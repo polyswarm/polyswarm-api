@@ -3,6 +3,9 @@ import asyncio
 import io
 import os
 import json
+import logging
+
+logger = logging.getLogger(__name__)
 
 # This will be removed after https://github.com/polyswarm/development-private/issues/191
 class EngineResolver(object):
@@ -105,6 +108,7 @@ class PolyswarmAPI(object):
         :param file_obj: File-like object to POST to the API
         :return: Dictionary of the result code and the UUID of the upload (if successful)
         """
+        logger.debug("Posting file %s with api-key %s" % (filename, self.api_key))
         # TODO check file-size. For now, we need to handle error.
         data = aiohttp.FormData()
         data.add_field('file', file_obj, filename=filename)
@@ -123,7 +127,8 @@ class PolyswarmAPI(object):
                     raise Exception("Error posting to PolySwarm API: {}".format(errors))
                 return response
 
-    async def _get_results_from_uuid(self, uuid):
+    @is_async
+    async def lookup_uuid_async(self, uuid):
         async with self.get_semaphore:
             async with self.session.get("%s/uuid/%s" % (self.uri, uuid),
                                         headers={"Authorization": self.api_key}) as raw_response:
@@ -157,7 +162,7 @@ class PolyswarmAPI(object):
         retries = 20
 
         # check UUID status immediately, in case the file already exists
-        result = await self._get_results_from_uuid(uuid)
+        result = await self.lookup_uuid_async(uuid)
 
         if self._reveal_closed(result):
             return result
@@ -167,7 +172,7 @@ class PolyswarmAPI(object):
         await asyncio.sleep(45)
 
         while retries > 0:
-            result = await self._get_results_from_uuid(uuid)
+            result = await self.lookup_uuid_async(uuid)
 
             if self._reveal_closed(result):
                 return result
@@ -219,10 +224,14 @@ class PolyswarmAPI(object):
                     response = await raw_response.read() if raw_response else 'None'
                     raise Exception('Received non-json response from PolySwarm API: %s', response)
                 if raw_response.status // 100 != 2:
+                    # TODO this behavior in the API needs to change
+                    if raw_response.status == 400 and response.get("errors").find("has not been in any") != -1:
+                        return {'hash': to_scan}
+
                     errors = response.get('errors')
                     raise Exception("Error reading from PolySwarm API: {}".format(errors))
 
-        return await self._get_results_from_uuid(response['result'])
+        return await self.lookup_uuid_async(response['result'])
 
     @is_async
     async def scan_files_async(self, files):
@@ -233,6 +242,18 @@ class PolyswarmAPI(object):
         :return: JSON report file
         """
         results = await asyncio.gather(*[self.scan_file_async(f) for f in files])
+
+        return results
+
+    @is_async
+    async def lookup_uuids_async(self, uuids):
+        """
+        Scan a collection of uuids using the PS API asynchronously.
+
+        :param uuids: List of uuids to scan.
+        :return: JSON report file
+        """
+        results = await asyncio.gather(*[self.lookup_uuid_async(u) for u in uuids])
 
         return results
 
@@ -332,6 +353,24 @@ class PolyswarmAPI(object):
         :return: JSON report file
         """
         return self.loop.run_until_complete(self.scan_hash_async(to_scan))
+
+    def lookup_uuid(self, uuid):
+        """
+        Lookup a scan result by UUID.
+
+        :param uuid: UUID to lookup
+        :return: JSON report file
+        """
+        return self.loop.run_until_complete(self.lookup_uuid_async(uuid))
+
+    def lookup_uuids(self, uuids):
+        """
+        Lookup scans result for a list of UUIDs.
+
+        :param uuids: List of UUIDs to lookup
+        :return: JSON report file
+        """
+        return self.loop.run_until_complete(self.lookup_uuids_async(uuids))
 
     def __del__(self):
         """
