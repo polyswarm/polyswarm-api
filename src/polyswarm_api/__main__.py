@@ -5,11 +5,13 @@ import sys
 import os
 from uuid import UUID
 
-from polyswarm_api import PolyswarmAPI
+from . import PolyswarmAPI
+from .formatting import PSResultFormatter
 
 CONTEXT_SETTINGS = dict(help_option_names=['-h', '--help'])
 
 logger = logging.getLogger(__name__)
+
 
 def is_hex(value):
     try:
@@ -18,10 +20,12 @@ def is_hex(value):
     except ValueError:
         return False
 
+
 def _is_valid_sha256(value):
     if len(value) != 64:
         return False
     return is_hex(value)
+
 
 def _is_valid_uuid(value):
     try:
@@ -30,31 +34,36 @@ def _is_valid_uuid(value):
     except:
         return False
 
+
 def validate_uuid(ctx, param, value):
     for uuid in value:
         if not _is_valid_uuid(uuid):
             raise click.BadParameter('UUID %s not valid, please check and try again.' % uuid)
     return value
-    
+
+
 def validate_hash(ctx, param, value):
     for h in value:
         if not _is_valid_sha256(h):
             raise click.BadParameter('Hash %s not valid, must be sha256 in hexadecimal format' % h)
     return value
 
+
 def validate_key(ctx, param, value):
     if not is_hex(value) or len(value) != 32:
         raise click.BadParameter("Invalid API key. Make sure you specified your key via -a or environment variable and try again.")
     return value
 
+
 @click.group(context_settings=CONTEXT_SETTINGS)
 @click.option("-a", "--api-key", help="Your API key for polyswarm.network (required)", default="", callback=validate_key, envvar="POLYSWARM_API_KEY")
 @click.option("-u", "--api-uri", default="https://consumer.epoch.polyswarm.network", envvar="POLYSWARM_API_URI", help="The API endpoint (ADVANCED)")
-@click.option("-o", "--output-file", default=sys.stdout, type=click.File("wb"), help="Path to output file.")
-@click.option("--fmt", "--output-format", type=click.Choice(['text', 'json']), help="Output format. Human-readable text or JSON.")
+@click.option("-o", "--output-file", default=sys.stdout, type=click.File("w"), help="Path to output file.")
+@click.option("--fmt", "--output-format", default="text", type=click.Choice(['text', 'json']), help="Output format. Human-readable text or JSON.")
+@click.option("--color/--no-color", default=True, help="Use colored output in text mode.")
 @click.option('-v', '--verbose', default=0, count=True)
 @click.pass_context
-def polyswarm(ctx, api_key, api_uri, output_file, output_format, verbose):
+def polyswarm(ctx, api_key, api_uri, output_file, output_format, color, verbose):
     """
     This is a PolySwarm CLI client, which allows you to interact directly
     with the PolySwarm network to scan files, search hashes, and more.
@@ -74,8 +83,15 @@ def polyswarm(ctx, api_key, api_uri, output_file, output_format, verbose):
 
     logging.basicConfig(level=log_level)
 
+    # only allow color for stdout
+    if output_file != sys.stdout:
+        color = False
+
     logging.debug("Creating API instance: api_key:%s, api_uri:%s" % (api_key, api_uri))
     ctx.obj['api'] = PolyswarmAPI(api_key, api_uri)
+    ctx.obj['color'] = color
+    ctx.obj['output_format'] = output_format
+    ctx.obj['output'] = output_file
 
 
 def _do_scan(api, paths, recursive=False):
@@ -91,7 +107,7 @@ def _do_scan(api, paths, recursive=False):
         elif os.path.isdir(path):
             directories.append(path)
         else:
-            logger.warn("Path %s is neither a file nor a directory, ignoring." % path)
+            logger.warning("Path %s is neither a file nor a directory, ignoring." % path)
 
     results = api.scan_files(files)
 
@@ -99,6 +115,7 @@ def _do_scan(api, paths, recursive=False):
         results.extend(api.scan_directory(d, recursive=recursive))
 
     return results
+
 
 @click.option("-f", "--force", is_flag=True, default=False,  help="Force re-scan even if file has already been analyzed.")
 @click.option("-r", "--recursive", is_flag=True, default=False, help="Scan directories recursively")
@@ -115,7 +132,10 @@ def scan(ctx, path, force, recursive):
 
     results = _do_scan(api, path, recursive)
 
-    print(results)
+    rf = PSResultFormatter(results, color=ctx.obj['color'],
+                                    output_format=ctx.obj['output_format'])
+    ctx.obj['output'].write(str(rf))
+
 
 @click.option('-r', '--hash-file', help="File of sha256 hashes, one per line.", type=click.File('r'))
 @click.argument('sha256', nargs=-1, callback=validate_hash)
@@ -138,7 +158,10 @@ def search(ctx, sha256, hash_file):
             else:
                 logger.warning("Invalid hash %s in file, ignoring." % h)
         
-    print(api.scan_hashes(sha256))
+    rf = PSResultFormatter(api.scan_hashes(sha256), color=ctx.obj['color'],
+                                    output_format=ctx.obj['output_format'])
+    ctx.obj['output'].write(str(rf))
+
 
 @click.option('-r', '--uuid-file', help="File of UUIDs, one per line.", type=click.File('r'))
 @click.argument('uuid', 'uuid', nargs=-1, callback=validate_uuid)
@@ -161,7 +184,10 @@ def lookup(ctx, uuid, uuid_file):
             else:
                 logger.warning("Invalid uuid %s in file, ignoring." % u)
         
-    print(api.lookup_uuids(uuids))
+    rf = PSResultFormatter(api.lookup_uuids(uuids), color=ctx.obj['color'],
+                                    output_format=ctx.obj['output_format'])
+    ctx.obj['output'].write(str(rf))
+
 
 if __name__ == '__main__':
     polyswarm(obj={})
