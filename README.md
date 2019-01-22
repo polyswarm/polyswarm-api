@@ -3,8 +3,13 @@ An interface to the public and private PolySwarm APIs.
 
 
 ## Installation
+From PyPI:
 
 `pip install polyswarm-api`
+
+From source:
+
+`python3 setup.py install`
 
 ## Usage
 
@@ -26,7 +31,7 @@ results = api.scan_hash("14ef23b8c5d06c0bf2d5a4b497a5fae11994c97ec012ed57c7d3417
 results = api.scan_hashes(["14ef23b8c5d06c0bf2d5a4b497a5fae11994c97ec012ed57c7d34178ee9953db"])
 ```
 
-To use the provided CLI interface:
+To use the provided CLI:
 
 ```bash
 $ export POLYSWARM_API_KEY=<Your API key from polyswarm.network>
