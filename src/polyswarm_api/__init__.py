@@ -197,7 +197,7 @@ class PolyswarmAPI(object):
             raise Exception("Failed to gather UUID for scan")
 
         # TODO hard code or not here?
-        retries = 20
+        retries = 30
 
         # check UUID status immediately, in case the file already exists
         result = await self.lookup_uuid_async(uuid)
@@ -219,8 +219,8 @@ class PolyswarmAPI(object):
 
             retries -= 1
 
-        print("WARN: Failed to get results in time.")
-        return {'files': []}
+        print("WARN: Failed to get results for file %s (%s) in time." % (filename, uuid))
+        return {'files': [], 'uuid': uuid}
 
     @is_async
     async def scan_data_async(self, data):
