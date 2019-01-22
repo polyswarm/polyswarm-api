@@ -7,6 +7,7 @@ def is_colored(fn):
                 '_info': '\033[92m',
                 '_good': '\033[92m',
                 '_bad': '\033[91m',
+                '_unknown': '\033[94m'
     }[fn.__name__]
 
     return lambda self, text: (color if self.color else '') + fn(self, text) + '\033[0m'
@@ -52,6 +53,10 @@ class PSResultFormatter(object):
     def _bad(self, text):
         return text
 
+    @is_colored
+    def _unknown(self, text):
+        return text
+
     @is_grouped
     def _normal(self, text):
         return text
@@ -91,6 +96,8 @@ class PSResultFormatter(object):
                         for assertion in f['assertions']:
                             if assertion['verdict'] is False:
                                 output.append("%s: %s" % (self._normal(assertion['engine']), self._good("Clean")))
+                            elif assertion['verdict'] is None:
+                                output.append("%s: %s" % (self._normal(assertion['engine']), self._unknown("Unknown/failed to respond")))
                             else:
                                 output.append("%s: %s" % (self._normal(assertion['engine']),
                                                           self._bad("Malicious") +
