@@ -86,14 +86,14 @@ class PolyswarmAPI(object):
 
     # TODO this should point to api.polyswarm.network
     def __init__(self, key, uri="https://consumer.epoch.polyswarm.network", is_async=False, get_limit=10,
-                 rate_limit=1.1, timeout=60, force=False):
+                 post_limit=4, timeout=120, force=False):
         """
 
         :param key: PolySwarm API key
         :param uri: PolySwarm API URI
         :param is_async: Enable if using async. Controls whether sessions are destroyed each call.
         :param get_limit: How many simultaneous GET requests to make. Increase at your own risk.
-        :param rate_limit: How many POST requests / second to make. Change at your own risk.
+        :param post_limit: How many simultaneous POST requests / second to make. Change at your own risk.
         :param timeout: How long to wait for scans to complete. This should be at least 45 seconds for round to complete
         :param force: Force re-scans if file was already submitted.
         """
@@ -115,8 +115,7 @@ class PolyswarmAPI(object):
         # ...sigh
         self.engine_resolver = EngineResolver(self.network)
 
-        self.rate_semaphore = asyncio.Semaphore(1)
-        self.rate_limit = rate_limit
+        self.post_semaphore = asyncio.Semaphore(post_limit)
 
         self.timeout = timeout
 
@@ -169,7 +168,7 @@ class PolyswarmAPI(object):
         data.add_field('file', file_obj, filename=filename)
 
         params = {"force": "true"} if self.force else {}
-        async with self.rate_semaphore:
+        async with self.post_semaphore:
             logger.debug("Posting file %s with api-key %s" % (filename, self.api_key))
             async with self.session.post(self.uri, data=data, params=params,
                                            headers={"Authorization": self.api_key}) as raw_response:
@@ -183,7 +182,6 @@ class PolyswarmAPI(object):
                     errors = response.get('errors')
                     logger.error("Error posting to PolySwarm API: {}".format(errors))
                     response = {"filename": filename, "status": "error"}
-                await asyncio.sleep(1/self.rate_limit)
                 return response
 
     @is_async

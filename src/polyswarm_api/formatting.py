@@ -88,7 +88,7 @@ class PSResultFormatter(object):
                         output.append(self._error('(No entry in PSResult, should not happen)\n'))
                         continue
                 if 'uuid' not in result:
-                    output.append(self.error('(Did not get a UUID for scan)'))
+                    output.append(self._error('(Did not get a UUID for scan)'))
                     continue
                 output.append(self._normal("Scan report for GUID %s\n=========================================================" % result['uuid']))
                 # files in info, lets loop
