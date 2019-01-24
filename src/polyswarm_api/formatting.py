@@ -1,5 +1,6 @@
 import json
 
+
 def is_colored(fn):
     color = {
                 '_error': '\033[91m',
@@ -10,7 +11,7 @@ def is_colored(fn):
                 '_unknown': '\033[94m'
     }[fn.__name__]
 
-    return lambda self, text: (color if self.color else '') + fn(self, text) + '\033[0m'
+    return lambda self, text: (color if self.color else '') + fn(self, text) + ('\033[0m' if self.color else '')
 
 
 def is_grouped(fn):
@@ -86,7 +87,9 @@ class PSResultFormatter(object):
                     else:
                         output.append(self._error('(No entry in PSResult, should not happen)\n'))
                         continue
-                # TODO why is GUID not in root of the response? you can only get info one GUID at a time from API
+                if 'uuid' not in result:
+                    output.append(self.error('(Did not get a UUID for scan)'))
+                    continue
                 output.append(self._normal("Scan report for GUID %s\n=========================================================" % result['uuid']))
                 # files in info, lets loop
                 for f in result['files']:
@@ -96,16 +99,16 @@ class PSResultFormatter(object):
                         for assertion in f['assertions']:
                             if assertion['verdict'] is False:
                                 output.append("%s: %s" % (self._normal(assertion['engine']), self._good("Clean")))
-                            elif assertion['verdict'] is None:
+                            elif assertion['verdict'] is None or assertion['mask'] is False:
                                 output.append("%s: %s" % (self._normal(assertion['engine']), self._unknown("Unknown/failed to respond")))
                             else:
                                 output.append("%s: %s" % (self._normal(assertion['engine']),
                                                           self._bad("Malicious") +
                                                           (self._bad(", metadata: %s" % assertion['metadata'])
                                                           if 'metadata' in assertion and assertion['metadata'] is not None else '')))
-                output.append(self._close_group())
+                    output.append(self._close_group())
             return "\n".join(output)
         elif self.output_format == "json":
-            return json.dumps(self.results)
+            return json.dumps(self.results, indent=4, sort_keys=True)
         else:
             return "(unknown output format)"

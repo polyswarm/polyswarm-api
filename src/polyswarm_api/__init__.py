@@ -56,6 +56,13 @@ class EngineResolver(object):
 
 
 def is_async(func):
+    """
+    Wrapper that ensures an aiohttp session exists in PolyswarmAPI
+    on entry into an async method in the library.
+
+    :param func: PolyswarmAPI method
+    :return: wrapped PolyswarmAPI method
+    """
     async def wrap_with_session(self, *args, **kwargs):
         # only let the entry function manage the session
         # session for now only lives for the life of the call,
@@ -74,22 +81,21 @@ def is_async(func):
     return wrap_with_session
 
 
-
 class PolyswarmAPI(object):
     """An interface to the public and private PolySwarm APIs."""
 
     # TODO this should point to api.polyswarm.network
     def __init__(self, key, uri="https://consumer.epoch.polyswarm.network", is_async=False, get_limit=10,
-                 post_limit=1, force=False, wait_for_arbitration=False):
+                 rate_limit=1.1, timeout=60, force=False):
         """
 
         :param key: PolySwarm API key
         :param uri: PolySwarm API URI
         :param is_async: Enable if using async. Controls whether sessions are destroyed each call.
         :param get_limit: How many simultaneous GET requests to make. Increase at your own risk.
-        :param post_limit: How many simultaneous POST requests to make. Increase at your own risk.
+        :param rate_limit: How many POST requests / second to make. Change at your own risk.
+        :param timeout: How long to wait for scans to complete. This should be at least 45 seconds for round to complete
         :param force: Force re-scans if file was already submitted.
-        :param wait_for_arbitration: When scanning files, wait for arbiters to vote. This could take awhile.
         """
         self.api_key = key
         self.loop = asyncio.get_event_loop()
@@ -101,16 +107,30 @@ class PolyswarmAPI(object):
 
         self.force = force
         self.get_semaphore = asyncio.Semaphore(get_limit)
-        self.post_semaphore = asyncio.Semaphore(post_limit)
-
-        self.wait_for_arbitration = wait_for_arbitration
 
         self.network = "prod" if uri.find("stage") == -1 else "stage"
+
+        self.portal_uri = "https://polyswarm.network/scan/results/" if self.network == "prod" else "https://portal.stage.polyswarm.network/"
 
         # ...sigh
         self.engine_resolver = EngineResolver(self.network)
 
-    def _fix_engine_names(self, result):
+        self.rate_semaphore = asyncio.Semaphore(1)
+        self.rate_limit = rate_limit
+
+        self.timeout = timeout
+
+    def _fix_result(self, result):
+        """
+        For now, since the name-ETH address mappings are not added by consume, we add them using
+        a hardcoded dict. This function does that for us. It also adds in a permalink to the scan.
+        These changes will be moved into consumer soon.
+
+        :param result: The JSON we got from consumer API
+        :return: JSON updated with name-ETH address mappings for microengines and arbiters
+        """
+        if 'uuid' in result:
+            result['permalink'] = self.portal_uri+result['uuid']
         try:
             for file in result['files']:
                 if 'assertions' in file:
@@ -144,41 +164,52 @@ class PolyswarmAPI(object):
         :param file_obj: File-like object to POST to the API
         :return: Dictionary of the result code and the UUID of the upload (if successful)
         """
-        logger.debug("Posting file %s with api-key %s" % (filename, self.api_key))
         # TODO check file-size. For now, we need to handle error.
         data = aiohttp.FormData()
         data.add_field('file', file_obj, filename=filename)
 
-        params = {"force": True} if self.force else {}
-        async with self.post_semaphore:
+        params = {"force": "true"} if self.force else {}
+        async with self.rate_semaphore:
+            logger.debug("Posting file %s with api-key %s" % (filename, self.api_key))
             async with self.session.post(self.uri, data=data, params=params,
                                            headers={"Authorization": self.api_key}) as raw_response:
                 try:
                     response = await raw_response.json()
                 except:
                     response = await raw_response.read() if raw_response else 'None'
-                    raise Exception('Received non-json response from PolySwarm API: %s', response)
+                    logger.error('Received non-json response from PolySwarm API: %s', response)
+                    response = {"filename": filename, "result": "error"}
                 if raw_response.status // 100 != 2:
                     errors = response.get('errors')
-                    raise Exception("Error posting to PolySwarm API: {}".format(errors))
+                    logger.error("Error posting to PolySwarm API: {}".format(errors))
+                    response = {"filename": filename, "status": "error"}
+                await asyncio.sleep(1/self.rate_limit)
                 return response
 
     @is_async
     async def lookup_uuid_async(self, uuid):
+        """
+        Lookup a UUID using the PS API asynchronously.
+
+        :param uuid: UUID to lookup.
+        :return: JSON report file
+        """
         async with self.get_semaphore:
-            async with self.session.get("%s/uuid/%s" % (self.uri, uuid),
-                                        headers={"Authorization": self.api_key}) as raw_response:
+            logger.debug("Looking up UUID %s", uuid)
+            async with self.session.get("%s/uuid/%s" % (self.uri, uuid)) as raw_response:
                 try:
                     response = await raw_response.json()
                 except:
                     response = await raw_response.read() if raw_response else 'None'
-                    raise Exception('Received non-json response from PolySwarm API: %s', response)
+                    logger.error('Received non-json response from PolySwarm API: %s', response)
+                    response = {'files': [], 'uuid': uuid}
                 if raw_response.status // 100 != 2:
                     errors = response.get('errors')
                     if raw_response.status == 400 and errors.find("has not been created") != -1:
-                        return {'uuid': uuid}
-                    raise Exception("Error reading from PolySwarm API: {}".format(errors))
-        return self._fix_engine_names(response['result'])
+                        return {'files': [], 'uuid': uuid}
+                    logger.error("Error reading from PolySwarm API: {}".format(errors))
+                    return {'files': [], 'uuid': uuid}
+        return self._fix_result(response['result'])
 
     @is_async
     async def scan_fileobj_async(self, to_scan, filename="data2"):
@@ -194,10 +225,12 @@ class PolyswarmAPI(object):
         if result['status'] == "OK":
             uuid = result['result']
         else:
-            raise Exception("Failed to gather UUID for scan")
+            logger.error("Failed to get UUID for scan of file %s", filename)
+            return {"filename": filename, "files": []}
 
-        # TODO hard code or not here?
-        retries = 30
+        logger.info("Successfully submitted file %s, UUID %s" % (filename, uuid))
+
+        retries = self.timeout
 
         # check UUID status immediately, in case the file already exists
         result = await self.lookup_uuid_async(uuid)
@@ -219,7 +252,7 @@ class PolyswarmAPI(object):
 
             retries -= 1
 
-        print("WARN: Failed to get results for file %s (%s) in time." % (filename, uuid))
+        logger.warn("Failed to get results for file %s (%s) in time.", filename, uuid)
         return {'files': [], 'uuid': uuid}
 
     @is_async
@@ -254,8 +287,7 @@ class PolyswarmAPI(object):
         """
         # TODO check file-size. For now, we need to handle error.
         async with self.get_semaphore:
-            async with self.session.get("%s/hash/%s" % (self.uri, to_scan),
-                                           headers={"Authorization": self.api_key}) as raw_response:
+            async with self.session.get("%s/hash/%s" % (self.uri, to_scan)) as raw_response:
                 try:
                     response = await raw_response.json()
                 except:

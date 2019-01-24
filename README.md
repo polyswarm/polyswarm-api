@@ -94,6 +94,8 @@ $ cat /tmp/test.json
 $
 ```
 
+For information regarding the JSON format, please see API.md.
+
 ## Questions? Problems?
 
 File a ticket or email us at `info@polyswarm.io`.
