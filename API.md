@@ -84,6 +84,3 @@ format: a list of scan results. A scan result is made up of the following fields
 <!--- TODO more statuses need editing here too --->
 - status: Whether the entire bounty was settled
 - uuid: UUID that can be used to look up this bounty in the PolySwarm API
-  
-- 
-- 
