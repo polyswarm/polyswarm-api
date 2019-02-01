@@ -156,11 +156,13 @@ class PolyswarmAPI(object):
         return all('window_closed' in file and file['window_closed']
                    for file in result['files'])
 
-    async def _post_file(self, file_obj, filename):
+    @is_async
+    async def post_file_async(self, file_obj, filename):
         """
-        POST file to the PS API to be scanned.
+        POST file to the PS API to be scanned asynchronously.
 
         :param file_obj: File-like object to POST to the API
+        :param filename: Name of file to be given to the API
         :return: Dictionary of the result code and the UUID of the upload (if successful)
         """
         # TODO check file-size. For now, we need to handle error.
@@ -219,7 +221,7 @@ class PolyswarmAPI(object):
         :return: JSON report
         """
 
-        result = await self._post_file(to_scan, filename)
+        result = await self.post_file_async(to_scan, filename)
         if result['status'] == "OK":
             uuid = result['result']
         else:
@@ -439,6 +441,16 @@ class PolyswarmAPI(object):
         :return: JSON report file
         """
         return self.loop.run_until_complete(self.lookup_uuids_async(uuids))
+
+    async def post_file(self, file_obj, filename):
+        """
+        POST file to the PS API to be scanned synchronously.
+
+        :param file_obj: File-like object to POST to the API
+        :param filename: Name of file to be given to the API
+        :return: Dictionary of the result code and the UUID of the upload (if successful)
+        """
+        return self.loop.run_until_complete(self.post_file_async(file_obj, filename))
 
     def __del__(self):
         """
