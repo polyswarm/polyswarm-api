@@ -128,7 +128,7 @@ def scan(ctx, path, force, recursive):
     """
     api = ctx.obj['api']
 
-    api.force = force
+    api.set_force(force)
 
     results = _do_scan(api, path, recursive)
 
