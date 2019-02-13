@@ -62,8 +62,9 @@ def validate_key(ctx, param, value):
 @click.option("--fmt", "--output-format", default="text", type=click.Choice(['text', 'json']), help="Output format. Human-readable text or JSON.")
 @click.option("--color/--no-color", default=True, help="Use colored output in text mode.")
 @click.option('-v', '--verbose', default=0, count=True)
+@click.option('-c', "--community", default="epoch", envvar="POLYSWARM_COMMUNITY", help="Community to use.")
 @click.pass_context
-def polyswarm(ctx, api_key, api_uri, output_file, output_format, color, verbose):
+def polyswarm(ctx, api_key, api_uri, output_file, output_format, color, verbose, community):
     """
     This is a PolySwarm CLI client, which allows you to interact directly
     with the PolySwarm network to scan files, search hashes, and more.
@@ -88,7 +89,7 @@ def polyswarm(ctx, api_key, api_uri, output_file, output_format, color, verbose)
         color = False
 
     logging.debug("Creating API instance: api_key:%s, api_uri:%s" % (api_key, api_uri))
-    ctx.obj['api'] = PolyswarmAPI(api_key, api_uri)
+    ctx.obj['api'] = PolyswarmAPI(api_key, api_uri, community=community)
     ctx.obj['color'] = color
     ctx.obj['output_format'] = output_format
     ctx.obj['output'] = output_file
@@ -119,14 +120,17 @@ def _do_scan(api, paths, recursive=False):
 
 @click.option("-f", "--force", is_flag=True, default=False,  help="Force re-scan even if file has already been analyzed.")
 @click.option("-r", "--recursive", is_flag=True, default=False, help="Scan directories recursively")
+@click.option("-t", "--timeout", type=click.INT, default=-1, help="How long to wait for results (default: forever, -1")
 @click.argument('path', nargs=-1, type=click.Path(exists=True))
 @polyswarm.command("scan", short_help="scan files/directories")
 @click.pass_context
-def scan(ctx, path, force, recursive):
+def scan(ctx, path, force, recursive, timeout):
     """
     Scan files or directories via PolySwarm
     """
     api = ctx.obj['api']
+
+    api.timeout = timeout
 
     api.set_force(force)
 

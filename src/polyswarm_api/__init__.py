@@ -4,6 +4,7 @@ import io
 import os
 import logging
 import hashlib
+import time
 
 logger = logging.getLogger(__name__)
 
@@ -62,20 +63,20 @@ class PolyswarmAsyncAPI(object):
 
     # TODO this should point to api.polyswarm.network
     def __init__(self, key, uri="https://consumer.epoch.polyswarm.network", get_limit=10,
-                 post_limit=4, timeout=120, force=False):
+                 post_limit=10, timeout=600, force=False, community="epoch"):
         """
 
         :param key: PolySwarm API key
         :param uri: PolySwarm API URI
         :param get_limit: How many simultaneous GET requests to make. Increase at your own risk.
         :param post_limit: How many simultaneous POST requests / second to make. Change at your own risk.
-        :param timeout: How long to wait for scans to complete. This should be at least 45 seconds for round to complete
+        :param timeout: How long to wait for scans to complete. This timeout will have 45 seconds added to it, the minimum bounty time.
         :param force: Force re-scans if file was already submitted.
+        :param community: Community to scan against.
         """
         self.api_key = key
 
-        self.uri = uri
-        self.session = None
+        self.uri = "{}/{}".format(uri, community)
 
         self.force = force
 
@@ -83,6 +84,7 @@ class PolyswarmAsyncAPI(object):
 
         self.network = "prod" if uri.find("stage") == -1 else "stage"
 
+        # TODO does this need commmunity?
         self.portal_uri = "https://polyswarm.network/scan/results/" if self.network == "prod" else "https://portal.stage.polyswarm.network/"
 
         # ...sigh
@@ -92,9 +94,6 @@ class PolyswarmAsyncAPI(object):
 
         self.timeout = timeout
 
-    async def start(self):
-        self.session = aiohttp.ClientSession()
-
     def set_force(self, force):
         """
         Enable forced re-submissions of bounties.
@@ -103,6 +102,15 @@ class PolyswarmAsyncAPI(object):
         :return: None
         """
         self.force = force
+
+    def set_timeout(self, timeout):
+        """
+        Set timeout for file scans. This timeout will have 45 seconds added to it, the minimum bounty time.
+
+        :param timeout: How long to wait for scan to complete
+        :return: None
+        """
+        self.timeout = timeout
 
     def _fix_result(self, result):
         """
@@ -144,19 +152,20 @@ class PolyswarmAsyncAPI(object):
         params = {"force": "true"} if self.force else {}
         async with self.post_semaphore:
             logger.debug("Posting file %s with api-key %s" % (filename, self.api_key))
-            async with self.session.post(self.uri, data=data, params=params,
-                                           headers={"Authorization": self.api_key}) as raw_response:
-                try:
-                    response = await raw_response.json()
-                except Exception:
-                    response = await raw_response.read() if raw_response else 'None'
-                    logger.error('Received non-json response from PolySwarm API: %s', response)
-                    response = {"filename": filename, "result": "error"}
-                if raw_response.status // 100 != 2:
-                    errors = response.get('errors')
-                    logger.error("Error posting to PolySwarm API: {}".format(errors))
-                    response = {"filename": filename, "status": "error"}
-                return response
+            async with aiohttp.ClientSession() as session:
+                async with session.post(self.uri, data=data, params=params,
+                                               headers={"Authorization": self.api_key}) as raw_response:
+                    try:
+                        response = await raw_response.json()
+                    except Exception:
+                        response = await raw_response.read() if raw_response else 'None'
+                        logger.error('Received non-json response from PolySwarm API: %s', response)
+                        response = {"filename": filename, "result": "error"}
+                    if raw_response.status // 100 != 2:
+                        errors = response.get('errors')
+                        logger.error("Error posting to PolySwarm API: {}".format(errors))
+                        response = {"filename": filename, "status": "error"}
+                    return response
 
     async def lookup_uuid(self, uuid):
         """
@@ -167,19 +176,20 @@ class PolyswarmAsyncAPI(object):
         """
         async with self.get_semaphore:
             logger.debug("Looking up UUID %s", uuid)
-            async with self.session.get("%s/uuid/%s" % (self.uri, uuid)) as raw_response:
-                try:
-                    response = await raw_response.json()
-                except Exception:
-                    response = await raw_response.read() if raw_response else 'None'
-                    logger.error('Received non-json response from PolySwarm API: %s', response)
-                    response = {'files': [], 'uuid': uuid}
-                if raw_response.status // 100 != 2:
-                    errors = response.get('errors')
-                    if raw_response.status == 400 and errors.find("has not been created") != -1:
+            async with aiohttp.ClientSession() as session:
+                async with session.get("%s/uuid/%s" % (self.uri, uuid)) as raw_response:
+                    try:
+                        response = await raw_response.json()
+                    except Exception:
+                        response = await raw_response.read() if raw_response else 'None'
+                        logger.error('Received non-json response from PolySwarm API: %s', response)
+                        response = {'files': [], 'uuid': uuid}
+                    if raw_response.status // 100 != 2:
+                        errors = response.get('errors')
+                        if raw_response.status == 400 and errors.find("has not been created") != -1:
+                            return {'files': [], 'uuid': uuid}
+                        logger.error("Error reading from PolySwarm API: {}".format(errors))
                         return {'files': [], 'uuid': uuid}
-                    logger.error("Error reading from PolySwarm API: {}".format(errors))
-                    return {'files': [], 'uuid': uuid}
         return self._fix_result(response['result'])
 
     async def scan_fileobj(self, to_scan, filename="data"):
@@ -200,8 +210,6 @@ class PolyswarmAsyncAPI(object):
 
         logger.info("Successfully submitted file %s, UUID %s" % (filename, uuid))
 
-        retries = self.timeout
-
         # check UUID status immediately, in case the file already exists
         result = await self.lookup_uuid(uuid)
 
@@ -212,7 +220,9 @@ class PolyswarmAsyncAPI(object):
         # TODO why are we using those numbers above, longer for reveal than assert is silly.
         await asyncio.sleep(45)
 
-        while retries > 0:
+        started = time.time()
+
+        while True:
             result = await self.lookup_uuid(uuid)
 
             if self._reveal_closed(result):
@@ -220,7 +230,8 @@ class PolyswarmAsyncAPI(object):
 
             await asyncio.sleep(1)
 
-            retries -= 1
+            if self.timeout >= 0 and time.time()-started > self.timeout:
+                break
 
         logger.warning("Failed to get results for file %s (%s) in time.", filename, uuid)
         return {'files': [], 'uuid': uuid}
@@ -257,19 +268,20 @@ class PolyswarmAsyncAPI(object):
         """
         # TODO check file-size. For now, we need to handle error.
         async with self.get_semaphore:
-            async with self.session.get("%s/hash/%s" % (self.uri, to_scan)) as raw_response:
-                try:
-                    response = await raw_response.json()
-                except:
-                    response = await raw_response.read() if raw_response else 'None'
-                    raise Exception('Received non-json response from PolySwarm API: %s', response)
-                if raw_response.status // 100 != 2:
-                    # TODO this behavior in the API needs to change
-                    if raw_response.status == 400 and response.get("errors").find("has not been in any") != -1:
-                        return {'hash': to_scan}
+            async with aiohttp.ClientSession() as session:
+                async with session.get("%s/hash/%s" % (self.uri, to_scan)) as raw_response:
+                    try:
+                        response = await raw_response.json()
+                    except:
+                        response = await raw_response.read() if raw_response else 'None'
+                        raise Exception('Received non-json response from PolySwarm API: %s', response)
+                    if raw_response.status // 100 != 2:
+                        # TODO this behavior in the API needs to change
+                        if raw_response.status == 400 and response.get("errors").find("has not been in any") != -1:
+                            return {'hash': to_scan}
 
-                    errors = response.get('errors')
-                    raise Exception("Error reading from PolySwarm API: {}".format(errors))
+                        errors = response.get('errors')
+                        raise Exception("Error reading from PolySwarm API: {}".format(errors))
 
         return await self.lookup_uuid(response['result'])
 
@@ -336,25 +348,13 @@ class PolyswarmAsyncAPI(object):
         return all('window_closed' in file and file['window_closed']
                    for file in result['files'])
 
-    def __del__(self):
-        """
-        Used to clean up sessions on death for async usage.
-
-        :return: None
-        """
-        if self.session is not None:
-            self.session.close()
-            self.session = None
-
-    def stop(self):
-        self.__del__()
 
 
 class PolyswarmAPI(object):
     """A synchronous interface to the public and private PolySwarm APIs."""
 
     def __init__(self, key, uri="https://consumer.epoch.polyswarm.network", get_limit=10,
-                 post_limit=4, timeout=120, force=False):
+                 post_limit=4, timeout=600, force=False, community="epoch"):
         """
 
         :param key: PolySwarm API key
@@ -363,13 +363,16 @@ class PolyswarmAPI(object):
         :param post_limit: How many simultaneous POST requests / second to make. Change at your own risk.
         :param timeout: How long to wait for scans to complete. This should be at least 45 seconds for round to complete
         :param force: Force re-scans if file was already submitted.
+        :param community: Community to scan against.
         """
-        self.ps_api = PolyswarmAsyncAPI(key, uri, get_limit, post_limit, timeout, force)
+        self.ps_api = PolyswarmAsyncAPI(key, uri, get_limit, post_limit, timeout, force, community)
         self.loop = asyncio.get_event_loop()
-        self.loop.run_until_complete(self.ps_api.start())
 
     def set_force(self, force):
         self.ps_api.set_force(force)
+
+    def set_timeout(self, timeout):
+        self.ps_api.set_timeout(timeout)
 
     def scan_fileobj(self, to_scan, filename="data"):
         """
