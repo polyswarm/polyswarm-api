@@ -35,6 +35,7 @@ To use the provided CLI:
 
 ```bash
 $ export POLYSWARM_API_KEY=<Your API key from polyswarm.network>
+$ export POLYSWARM_COMMUNITY=epoch
 $ polyswarm
 Usage: polyswarm [OPTIONS] COMMAND [ARGS]...
 
@@ -50,6 +51,7 @@ Options:
                                   Output format. Human-readable text or JSON.
   --color / --no-color            Use colored output in text mode.
   -v, --verbose
+  -c, --community TEXT            Community to use.
   -h, --help                      Show this message and exit.
 
 Commands:

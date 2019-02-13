@@ -1,26 +1,28 @@
 ## PolySwarm API
 
-### **POST** `/`
+New in v1.1: Each community has its own endpoint. To support the new API, simply prepend the community you wish to interact with to the URL. For most, this will be `/epoch/`.
+
+### **POST** `/[community]`
 
 Upload files to this endpoint. Returns a uuid to identify the submission. Add `?force=true` to forcibly rescan files.
 
 - result: the result of the request
 - uuid: The UUID of the scan.
 
-### **GET** `/hash/[file_hash]`
+### **GET** `/[community]/hash/[file_hash]`
 
 Returns a uuid for a submission that contains this file. Fields:
 
 - result: the result of the request
 - uuid: A UUID of the file, if known.
 
-### **GET** `/uuid/[uuid]`
+### **GET** `/[community]/uuid/[uuid]`
 
 Returns the current state of the submission, complete with scan results if completed. The full JSON format is described in the JSON format section.
 
 ## JSON Format
 
-The following an example of the results returned from the **GET**`/uuid/[uuid]` endpoint from which scan results can be retrieved.
+The following an example of the results returned from the **GET**`/[community]/uuid/[uuid]` endpoint from which scan results can be retrieved.
 
 ```json
 [

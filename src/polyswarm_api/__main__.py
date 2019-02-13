@@ -120,7 +120,7 @@ def _do_scan(api, paths, recursive=False):
 
 @click.option("-f", "--force", is_flag=True, default=False,  help="Force re-scan even if file has already been analyzed.")
 @click.option("-r", "--recursive", is_flag=True, default=False, help="Scan directories recursively")
-@click.option("-t", "--timeout", type=click.INT, default=-1, help="How long to wait for results (default: forever, -1")
+@click.option("-t", "--timeout", type=click.INT, default=-1, help="How long to wait for results (default: forever, -1)")
 @click.argument('path', nargs=-1, type=click.Path(exists=True))
 @polyswarm.command("scan", short_help="scan files/directories")
 @click.pass_context
