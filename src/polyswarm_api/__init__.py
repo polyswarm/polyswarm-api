@@ -338,14 +338,14 @@ class PolyswarmAsyncAPI(object):
 
     def _reveal_closed(self, result):
         """
-        Check result dict if reveal window is closed
+        Check result dict if reveal window is closed or error occurred
 
         :param result: Result dict from UUID check
         :return: If the assertion reveal window is closed
         """
 
         # TODO this really should be better named in the JSON, as there are multiple windows
-        return all('window_closed' in file and file['window_closed']
+        return all(('window_closed' in file and file['window_closed']) or ('failed' in file and file['failed'])
                    for file in result['files'])
 
 
