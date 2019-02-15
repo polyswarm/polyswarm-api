@@ -112,3 +112,18 @@ class PSResultFormatter(object):
             return json.dumps(self.results, indent=4, sort_keys=True)
         else:
             return "(unknown output format)"
+
+
+class PSDownloadResultFormatter(PSResultFormatter):
+    def __str__(self):
+        output = []
+        if self.output_format == "text":
+            for result in self.results:
+                if result['status'] == "OK":
+                    output.append(self._good("Downloaded {}: {}".format(result['file_hash'], result['file_path'])))
+                else:
+                    output.append(self._bad("Download {} failed: {}".format(result['file_hash'], result['reason'])))
+        elif self.output_format == "json":
+            json.dumps(self.results, indent=4, sort_keys=True)
+        else:
+            return "(unknown output format)"

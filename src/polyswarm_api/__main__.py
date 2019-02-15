@@ -6,7 +6,7 @@ import os
 from uuid import UUID
 
 from . import PolyswarmAPI
-from .formatting import PSResultFormatter
+from .formatting import PSResultFormatter, PSDownloadResultFormatter
 
 CONTEXT_SETTINGS = dict(help_option_names=['-h', '--help'])
 
@@ -192,6 +192,22 @@ def lookup(ctx, uuid, uuid_file):
                                     output_format=ctx.obj['output_format'])
     ctx.obj['output'].write(str(rf))
 
+
+@click.option('-m', '--metadata', help="Save file metadata into associated JSON file")
+@click.argument('sha256', 'sha256', nargs=-1, callback=validate_hash)
+@click.argument('destination', 'destination', nargs=1, callback=click.Path(file_okay=False))
+@polyswarm.command("download", short_help="download file(s)")
+@click.pass_context
+def download(ctx, metadata, sha256, destination):
+    if not os.path.exists(destination):
+        os.makedirs(destination)
+
+    api = ctx.obj['api']
+
+    rf = PSDownloadResultFormatter(api.download_files(sha256, destination, metadata),
+                                   color=ctx.obj['color'], output_format=ctx.obj['output_format'])
+
+    ctx.obj['output'].write((str(rf)))
 
 if __name__ == '__main__':
     polyswarm(obj={})
