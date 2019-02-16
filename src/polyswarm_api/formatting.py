@@ -88,14 +88,21 @@ class PSResultFormatter(object):
                         output.append(self._error('(No entry in PSResult, should not happen)\n'))
                         continue
                 if 'uuid' not in result:
-                    output.append(self._error('(Did not get a UUID for scan)'))
+                    output.append(self._error('(Did not get a UUID for scan)\n'))
                     continue
                 output.append(self._normal("Scan report for GUID %s\n=========================================================" % result['uuid']))
                 # files in info, lets loop
                 for f in result['files']:
                     output.append(self._open_group("Report for file %s, hash: %s" %
                                                    (f['filename'], f['hash'])))
-                    if 'assertions' in f:
+                    if 'assertions' not in f or len(f['assertions']) == 0:
+                        if 'failed' in f and f['failed']:
+                            output.append(self._bad("Bounty failed, please resubmit"))
+                        elif 'window_closed' in f and f['window_closed']:
+                            output.append(self._warn("Bounty closed without any engine assertions. Try again later."))
+                        else:
+                            output.append(self._normal("Bounty not closed yet, check again later."))
+                    else:
                         for assertion in f['assertions']:
                             if assertion['verdict'] is False:
                                 output.append("%s: %s" % (self._normal(assertion['engine']), self._good("Clean")))
@@ -123,7 +130,8 @@ class PSDownloadResultFormatter(PSResultFormatter):
                     output.append(self._good("Downloaded {}: {}".format(result['file_hash'], result['file_path'])))
                 else:
                     output.append(self._bad("Download {} failed: {}".format(result['file_hash'], result['reason'])))
+            return "\n".join(output) + "\n"
         elif self.output_format == "json":
-            json.dumps(self.results, indent=4, sort_keys=True)
+            return json.dumps(self.results, indent=4, sort_keys=True)
         else:
             return "(unknown output format)"

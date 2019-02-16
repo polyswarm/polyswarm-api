@@ -20,6 +20,11 @@ def is_hex(value):
     except ValueError:
         return False
 
+def _is_valid_sha1(value):
+    pass
+
+def _is_valid_md5(value):
+    pass
 
 def _is_valid_sha256(value):
     if len(value) != 64:
@@ -162,8 +167,8 @@ def search(ctx, sha256, hash_file):
             else:
                 logger.warning("Invalid hash %s in file, ignoring." % h)
         
-    rf = PSResultFormatter(api.scan_hashes(sha256), color=ctx.obj['color'],
-                                    output_format=ctx.obj['output_format'])
+    rf = PSResultFormatter(api.search_hashes(sha256), color=ctx.obj['color'],
+                           output_format=ctx.obj['output_format'])
     ctx.obj['output'].write(str(rf))
 
 
@@ -195,7 +200,7 @@ def lookup(ctx, uuid, uuid_file):
 
 @click.option('-m', '--metadata', help="Save file metadata into associated JSON file")
 @click.argument('sha256', 'sha256', nargs=-1, callback=validate_hash)
-@click.argument('destination', 'destination', nargs=1, callback=click.Path(file_okay=False))
+@click.argument('destination', 'destination', nargs=1, type=click.Path(file_okay=False))
 @polyswarm.command("download", short_help="download file(s)")
 @click.pass_context
 def download(ctx, metadata, sha256, destination):
@@ -208,6 +213,18 @@ def download(ctx, metadata, sha256, destination):
                                    color=ctx.obj['color'], output_format=ctx.obj['output_format'])
 
     ctx.obj['output'].write((str(rf)))
+
+
+@click.argument('sha256', 'sha256', nargs=-1, callback=validate_hash)
+@polyswarm.command("rescan", short_help="rescan files(s) by hash")
+@click.pass_context
+def rescan(ctx, sha256):
+    api = ctx.obj['api']
+
+    rf = PSResultFormatter(api.rescan_files(sha256), color=ctx.obj['color'],
+                                    output_format=ctx.obj['output_format'])
+    ctx.obj['output'].write(str(rf))
+
 
 if __name__ == '__main__':
     polyswarm(obj={})
