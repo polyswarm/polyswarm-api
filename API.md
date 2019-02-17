@@ -6,19 +6,29 @@ New in v1.1: Each community has its own endpoint. To support the new API, simply
 
 Upload files to this endpoint. Returns a uuid to identify the submission. Add `?force=true` to forcibly rescan files.
 
-- result: the result of the request
-- uuid: The UUID of the scan.
+Fields in JSON response:
+- status: the status of the request. OK if successful.
+- result: A UUID of the most recent scan of the file, if it was found.
 
-### **GET** `/[community]/hash/[file_hash]`
+### **GET** `/[community]/hash/[sha256]`
 
-Returns a uuid for a submission that contains this file. Fields:
+Returns a uuid for a submission that contains this file.
 
-- result: the result of the request
-- uuid: A UUID of the file, if known.
+Fields in JSON response:
+- status: the status of the request. OK if successful.
+- result: A UUID of the most recent scan of the file, if it was found.
 
 ### **GET** `/[community]/uuid/[uuid]`
 
 Returns the current state of the submission, complete with scan results if completed. The full JSON format is described in the JSON format section.
+
+### **GET** `/[community]/rescan/[sha256]`
+
+Initiates a scan of an already submitted artifact, identified by a `SHA256` hash , using the specified community.
+
+Fields in JSON response:
+- status: the status of the request. OK if successful.
+- result: A UUID of the most recent scan of the file, if it was found.
 
 ## JSON Format
 
