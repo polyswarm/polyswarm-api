@@ -80,7 +80,6 @@ class PSResultFormatter(object):
         output = []
         if self.output_format == "text":
             for result in self.results:
-                print(result)
                 if 'files' not in result:
                     if 'uuid' in result:
                         output.append(self._error('(UUID %s does not exist or has no files)\n' % result['uuid']))
