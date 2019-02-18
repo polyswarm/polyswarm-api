@@ -15,6 +15,8 @@ Fields in JSON response:
 ### **GET** `/[community]/hash/[sha256]`
 
 Returns a community-specific uuid for a submission that contains this file.
+If hash exists in the archive but has no available scan results, a rescan will be scheduled and the UUID
+of this new scan returned.
 
 Fields in JSON response:
 - status: the status of the request. OK if successful.
