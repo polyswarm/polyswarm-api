@@ -20,11 +20,18 @@ def is_hex(value):
     except ValueError:
         return False
 
+
 def _is_valid_sha1(value):
-    pass
+    if len(value) != 40:
+        return False
+    return is_hex(value)
+
 
 def _is_valid_md5(value):
-    pass
+    if len(value) != 32:
+        return False
+    return is_hex(value)
+
 
 def _is_valid_sha256(value):
     if len(value) != 64:
@@ -49,8 +56,8 @@ def validate_uuid(ctx, param, value):
 
 def validate_hash(ctx, param, value):
     for h in value:
-        if not _is_valid_sha256(h):
-            raise click.BadParameter('Hash %s not valid, must be sha256 in hexadecimal format' % h)
+        if not (_is_valid_sha256(h) or _is_valid_md5(h) or _is_valid_sha1(h)):
+            raise click.BadParameter('Hash %s not valid, must be sha256|md5|sha1 in hexadecimal format' % h)
     return value
 
 
@@ -146,28 +153,32 @@ def scan(ctx, path, force, recursive, timeout):
     ctx.obj['output'].write(str(rf))
 
 
-@click.option('-r', '--hash-file', help="File of sha256 hashes, one per line.", type=click.File('r'))
-@click.argument('sha256', nargs=-1, callback=validate_hash)
+@click.option('-r', '--hash-file', help="File of hashes, one per line.", type=click.File('r'))
+@click.option("--hash-type", help="Hash type to search [sha256|sha1|md5], default=sha256", default="sha256")
+@click.option("--rescan", is_flag=True, default=False, help="Rescan any files that exist for latest results.")
+@click.argument('hash', nargs=-1, callback=validate_hash)
 @polyswarm.command("search", short_help="search for hash")
 @click.pass_context
-def search(ctx, sha256, hash_file):
+def search(ctx, hash, hash_file, hash_type, rescan):
     """
     Search PolySwarm for files matching sha256 hashes
     """
     api = ctx.obj['api']
 
-    sha256 = list(sha256)
+    hashes = list(hash)
 
     # TODO dedupe
     if hash_file:
         for h in hash_file.readlines():
             h = h.strip()
-            if _is_valid_sha256(h):
-                sha256.append(h)
+            if (hash_type == "sha256" and _is_valid_sha256(h)) or \
+                    (hash_type == "sha1" and _is_valid_sha1(h)) or \
+                    (hash_type == "md5" and _is_valid_md5(h)):
+                hashes.append(h)
             else:
                 logger.warning("Invalid hash %s in file, ignoring." % h)
         
-    rf = PSResultFormatter(api.search_hashes(sha256), color=ctx.obj['color'],
+    rf = PSResultFormatter(api.search_hashes(hashes, hash_type, rescan), color=ctx.obj['color'],
                            output_format=ctx.obj['output_format'])
     ctx.obj['output'].write(str(rf))
 
@@ -198,30 +209,60 @@ def lookup(ctx, uuid, uuid_file):
     ctx.obj['output'].write(str(rf))
 
 
+@click.option('-r', '--hash-file', help="File of hashes, one per line.", type=click.File('r'))
 @click.option('-m', '--metadata', help="Save file metadata into associated JSON file")
-@click.argument('sha256', 'sha256', nargs=-1, callback=validate_hash)
+@click.option("--hash-type", help="Hash type to search [sha256|sha1|md5], default=sha256", default="sha256")
+@click.argument('hash', 'hash', nargs=-1, callback=validate_hash)
 @click.argument('destination', 'destination', nargs=1, type=click.Path(file_okay=False))
 @polyswarm.command("download", short_help="download file(s)")
 @click.pass_context
-def download(ctx, metadata, sha256, destination):
+def download(ctx, metadata, hash_file, hash_type, hash, destination):
     if not os.path.exists(destination):
         os.makedirs(destination)
 
     api = ctx.obj['api']
 
-    rf = PSDownloadResultFormatter(api.download_files(sha256, destination, metadata),
+    hashes = list(hash)
+
+    # TODO dedupe
+    if hash_file:
+        for h in hash_file.readlines():
+            h = h.strip()
+            if (hash_type == "sha256" and _is_valid_sha256(h)) or \
+                    (hash_type == "sha1" and _is_valid_sha1(h)) or \
+                    (hash_type == "md5" and _is_valid_md5(h)):
+                hashes.append(h)
+            else:
+                logger.warning("Invalid hash %s in file, ignoring." % h)
+
+    rf = PSDownloadResultFormatter(api.download_files(hashes, destination, metadata, hash_type),
                                    color=ctx.obj['color'], output_format=ctx.obj['output_format'])
 
     ctx.obj['output'].write((str(rf)))
 
 
-@click.argument('sha256', 'sha256', nargs=-1, callback=validate_hash)
+@click.option('-r', '--hash-file', help="File of hashes, one per line.", type=click.File('r'))
+@click.option("--hash-type", help="Hash type to search [sha256|sha1|md5], default=sha256", default="sha256")
+@click.argument('hash', 'hash', nargs=-1, callback=validate_hash)
 @polyswarm.command("rescan", short_help="rescan files(s) by hash")
 @click.pass_context
-def rescan(ctx, sha256):
+def rescan(ctx, hash_file, hash_type, hash):
     api = ctx.obj['api']
 
-    rf = PSResultFormatter(api.rescan_files(sha256), color=ctx.obj['color'],
+    hashes = list(hash)
+
+    # TODO dedupe
+    if hash_file:
+        for h in hash_file.readlines():
+            h = h.strip()
+            if (hash_type == "sha256" and _is_valid_sha256(h)) or \
+                    (hash_type == "sha1" and _is_valid_sha1(h)) or \
+                    (hash_type == "md5" and _is_valid_md5(h)):
+                hashes.append(h)
+            else:
+                logger.warning("Invalid hash %s in file, ignoring." % h)
+
+    rf = PSResultFormatter(api.rescan_files(hashes, hash_type), color=ctx.obj['color'],
                                     output_format=ctx.obj['output_format'])
     ctx.obj['output'].write(str(rf))
 

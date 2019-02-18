@@ -1,4 +1,5 @@
 import json
+from datetime import datetime
 
 
 def is_colored(fn):
@@ -8,7 +9,8 @@ def is_colored(fn):
                 '_info': '\033[92m',
                 '_good': '\033[92m',
                 '_bad': '\033[91m',
-                '_unknown': '\033[94m'
+                '_unknown': '\033[94m',
+                '_open_group': '\033[94m',
     }[fn.__name__]
 
     return lambda self, text: (color if self.color else '') + fn(self, text) + ('\033[0m' if self.color else '')
@@ -34,17 +36,17 @@ class PSResultFormatter(object):
     @is_grouped
     @is_colored
     def _info(self, text):
-        return "INFO: %s" % text
+        return "%s" % text
 
     @is_grouped
     @is_colored
     def _warn(self, text):
-        return "WARN: %s" % text
+        return "%s" % text
 
     @is_grouped
     @is_colored
     def _error(self, text):
-        return "ERROR: %s" % text
+        return "%s" % text
 
     @is_colored
     def _good(self, text):
@@ -63,6 +65,7 @@ class PSResultFormatter(object):
         return text
 
     @is_grouped
+    @is_colored
     def _open_group(self, title):
         self._depth += 1
         return title
@@ -77,6 +80,7 @@ class PSResultFormatter(object):
         output = []
         if self.output_format == "text":
             for result in self.results:
+                print(result)
                 if 'files' not in result:
                     if 'uuid' in result:
                         output.append(self._error('(UUID %s does not exist or has no files)\n' % result['uuid']))
@@ -95,13 +99,20 @@ class PSResultFormatter(object):
                 for f in result['files']:
                     output.append(self._open_group("Report for file %s, hash: %s" %
                                                    (f['filename'], f['hash'])))
+                    if 'file_info' in f:
+                        # this is in response to a /search/ request, so has some additional file metadata
+                        file_info = f['file_info']
+                        first_seen = datetime.utcfromtimestamp(file_info['timestamp']).strftime('%Y-%m-%d %H:%M:%S')
+                        output.append(self._info("File info: first seen: {}, mimetype: {}, extended_info: {}, known_filenames: {}".format(
+                            first_seen, file_info['mimetype'], file_info['extended_type'], ",".join(file_info['filenames'])
+                        )))
                     if 'assertions' not in f or len(f['assertions']) == 0:
                         if 'failed' in f and f['failed']:
                             output.append(self._bad("Bounty failed, please resubmit"))
                         elif 'window_closed' in f and f['window_closed']:
                             output.append(self._warn("Bounty closed without any engine assertions. Try again later."))
                         else:
-                            output.append(self._normal("Bounty not closed yet, check again later."))
+                            output.append(self._normal("Scan still in progress, please check again later."))
                     else:
                         for assertion in f['assertions']:
                             if assertion['verdict'] is False:
