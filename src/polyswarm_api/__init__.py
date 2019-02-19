@@ -6,6 +6,7 @@ import logging
 import hashlib
 import time
 import aiofiles
+import json
 
 logger = logging.getLogger(__name__)
 
@@ -359,7 +360,8 @@ class PolyswarmAsyncAPI(object):
                             return {"hash": to_rescan, "reason": "file_not_found", "status": "error"}
 
                         errors = response.get('errors')
-                        raise Exception("Error reading from PolySwarm API: {}".format(errors))
+                        logger.error("Error posting to PolySwarm API: {}".format(errors))
+                        response = {"hash": to_rescan, "status": "error"}
 
         return response
 
@@ -438,10 +440,10 @@ class PolyswarmAsyncAPI(object):
             return results
 
         if with_metadata:
-            meta_results = await self.search_hash(h)
-            if meta_results['OK'] and "files" in meta_results and "metadata" in meta_results["files"][0]:
+            meta_results = await self.search_hash(h, hash_type=hash_type)
+            if "files" in meta_results and "file_info" in meta_results["files"][0]:
                 async with aiofiles.open(out_path+".json", mode="w") as f:
-                    await f.write(meta_results["files"][0])
+                    await f.write(json.dumps(meta_results["files"][0]))
 
         return {"file_path": out_path, "status": "OK", "file_hash": h}
 

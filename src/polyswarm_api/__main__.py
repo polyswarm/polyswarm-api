@@ -210,7 +210,7 @@ def lookup(ctx, uuid, uuid_file):
 
 
 @click.option('-r', '--hash-file', help="File of hashes, one per line.", type=click.File('r'))
-@click.option('-m', '--metadata', help="Save file metadata into associated JSON file")
+@click.option('-m', '--metadata', is_flag=True, default=False, help="Save file metadata into associated JSON file")
 @click.option("--hash-type", help="Hash type to search [sha256|sha1|md5], default=sha256", default="sha256")
 @click.argument('hash', 'hash', nargs=-1, callback=validate_hash)
 @click.argument('destination', 'destination', nargs=1, type=click.Path(file_okay=False))
