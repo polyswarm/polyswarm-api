@@ -118,7 +118,7 @@ class PolyswarmAsyncAPI(object):
 
     def _fix_result(self, result):
         """
-        For now, since the name-ETH address mappings are not added by consume, we add them using
+        For now, since the name-ETH address mappings are not added by consumer, we add them using
         a hardcoded dict. This function does that for us. It also adds in a permalink to the scan.
         These changes will be moved into consumer soon.
 
@@ -332,7 +332,7 @@ class PolyswarmAsyncAPI(object):
                 logger.warning("Failed to parse response, not rescanning.")
                 return response
 
-        return response['result']
+        return self._fix_result(response['result'])
 
     async def rescan_hash(self, to_rescan, hash_type="sha256"):
         """
@@ -357,6 +357,7 @@ class PolyswarmAsyncAPI(object):
                             return {'hash': to_rescan}
 
                         if raw_response.status == 404:
+                            print(response)
                             return {"hash": to_rescan, "reason": "file_not_found", "status": "error"}
 
                         errors = response.get('errors')

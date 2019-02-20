@@ -69,7 +69,7 @@ def validate_key(ctx, param, value):
 
 @click.group(context_settings=CONTEXT_SETTINGS)
 @click.option("-a", "--api-key", help="Your API key for polyswarm.network (required)", default="", callback=validate_key, envvar="POLYSWARM_API_KEY")
-@click.option("-u", "--api-uri", default="https://consumer.epoch.polyswarm.network", envvar="POLYSWARM_API_URI", help="The API endpoint (ADVANCED)")
+@click.option("-u", "--api-uri", default="https://consumer.prod.polyswarm.network", envvar="POLYSWARM_API_URI", help="The API endpoint (ADVANCED)")
 @click.option("-o", "--output-file", default=sys.stdout, type=click.File("w"), help="Path to output file.")
 @click.option("--fmt", "--output-format", default="text", type=click.Choice(['text', 'json']), help="Output format. Human-readable text or JSON.")
 @click.option("--color/--no-color", default=True, help="Use colored output in text mode.")
