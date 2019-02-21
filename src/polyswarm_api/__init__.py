@@ -357,7 +357,6 @@ class PolyswarmAsyncAPI(object):
                             return {'hash': to_rescan}
 
                         if raw_response.status == 404:
-                            print(response)
                             return {"hash": to_rescan, "reason": "file_not_found", "status": "error"}
 
                         errors = response.get('errors')
