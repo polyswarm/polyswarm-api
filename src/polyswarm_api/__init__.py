@@ -4,6 +4,9 @@ import io
 import os
 import logging
 import hashlib
+import time
+import aiofiles
+import json
 
 logger = logging.getLogger(__name__)
 
@@ -62,20 +65,22 @@ class PolyswarmAsyncAPI(object):
 
     # TODO this should point to api.polyswarm.network
     def __init__(self, key, uri="https://consumer.epoch.polyswarm.network", get_limit=10,
-                 post_limit=4, timeout=120, force=False):
+                 post_limit=10, timeout=600, force=False, community="epoch"):
         """
 
         :param key: PolySwarm API key
         :param uri: PolySwarm API URI
         :param get_limit: How many simultaneous GET requests to make. Increase at your own risk.
         :param post_limit: How many simultaneous POST requests / second to make. Change at your own risk.
-        :param timeout: How long to wait for scans to complete. This should be at least 45 seconds for round to complete
+        :param timeout: How long to wait for scans to complete. This timeout will have 45 seconds added to it, the minimum bounty time.
         :param force: Force re-scans if file was already submitted.
+        :param community: Community to scan against.
         """
         self.api_key = key
 
         self.uri = uri
-        self.session = None
+
+        self.community_uri = "{}/{}".format(self.uri, community)
 
         self.force = force
 
@@ -83,6 +88,7 @@ class PolyswarmAsyncAPI(object):
 
         self.network = "prod" if uri.find("stage") == -1 else "stage"
 
+        # TODO does this need commmunity?
         self.portal_uri = "https://polyswarm.network/scan/results/" if self.network == "prod" else "https://portal.stage.polyswarm.network/"
 
         # ...sigh
@@ -91,9 +97,6 @@ class PolyswarmAsyncAPI(object):
         self.post_semaphore = asyncio.Semaphore(post_limit)
 
         self.timeout = timeout
-
-    async def start(self):
-        self.session = aiohttp.ClientSession()
 
     def set_force(self, force):
         """
@@ -104,9 +107,18 @@ class PolyswarmAsyncAPI(object):
         """
         self.force = force
 
+    def set_timeout(self, timeout):
+        """
+        Set timeout for file scans. This timeout will have 45 seconds added to it, the minimum bounty time.
+
+        :param timeout: How long to wait for scan to complete
+        :return: None
+        """
+        self.timeout = timeout
+
     def _fix_result(self, result):
         """
-        For now, since the name-ETH address mappings are not added by consume, we add them using
+        For now, since the name-ETH address mappings are not added by consumer, we add them using
         a hardcoded dict. This function does that for us. It also adds in a permalink to the scan.
         These changes will be moved into consumer soon.
 
@@ -129,6 +141,33 @@ class PolyswarmAsyncAPI(object):
 
         return result
 
+    async def get_file_data(self, h, hash_type="sha256"):
+        """
+        Download file data via the PS API
+
+        :param h: Hash of the file you wish to download
+        :param hash_type: Hash type [sha256|sha1|md5]
+        :return: Dictionary containing the file data if found, error dictionary if not
+        """
+        async with self.get_semaphore:
+            logger.debug("Downloading file hash %s with api key %s" % (h, self.api_key))
+            async with aiohttp.ClientSession() as session:
+                async with session.get("{}/download/{}/{}".format(self.uri, hash_type, h),
+                                       headers={"Authorization": self.api_key}) as raw_response:
+                    try:
+                        response = await raw_response.read()
+                    except Exception:
+                        response = await raw_response.read() if raw_response else 'None'
+                        logger.error('Received non-json response from PolySwarm API: %s', response)
+                        response = {"status": "error", "reason": "unknown_error"}
+                    if raw_response.status // 100 != 2:
+                        if raw_response.status == 404:
+                            return {"status": "error", "reason": "file_not_found"}
+                        else:
+                            return {"status": "error", "reason": "unknown_error"}
+                    return {"file_data": response, "status": "OK",
+                            "encoding": raw_response.headers.get('Content-Encoding', 'none')}
+
     async def post_file(self, file_obj, filename):
         """
         POST file to the PS API to be scanned asynchronously.
@@ -144,19 +183,20 @@ class PolyswarmAsyncAPI(object):
         params = {"force": "true"} if self.force else {}
         async with self.post_semaphore:
             logger.debug("Posting file %s with api-key %s" % (filename, self.api_key))
-            async with self.session.post(self.uri, data=data, params=params,
-                                           headers={"Authorization": self.api_key}) as raw_response:
-                try:
-                    response = await raw_response.json()
-                except Exception:
-                    response = await raw_response.read() if raw_response else 'None'
-                    logger.error('Received non-json response from PolySwarm API: %s', response)
-                    response = {"filename": filename, "result": "error"}
-                if raw_response.status // 100 != 2:
-                    errors = response.get('errors')
-                    logger.error("Error posting to PolySwarm API: {}".format(errors))
-                    response = {"filename": filename, "status": "error"}
-                return response
+            async with aiohttp.ClientSession() as session:
+                async with session.post(self.community_uri, data=data, params=params,
+                                               headers={"Authorization": self.api_key}) as raw_response:
+                    try:
+                        response = await raw_response.json()
+                    except Exception:
+                        response = await raw_response.read() if raw_response else 'None'
+                        logger.error('Received non-json response from PolySwarm API: %s', response)
+                        response = {"filename": filename, "result": "error"}
+                    if raw_response.status // 100 != 2:
+                        errors = response.get('errors')
+                        logger.error("Error posting to PolySwarm API: {}".format(errors))
+                        response = {"filename": filename, "status": "error"}
+                    return response
 
     async def lookup_uuid(self, uuid):
         """
@@ -167,20 +207,49 @@ class PolyswarmAsyncAPI(object):
         """
         async with self.get_semaphore:
             logger.debug("Looking up UUID %s", uuid)
-            async with self.session.get("%s/uuid/%s" % (self.uri, uuid)) as raw_response:
-                try:
-                    response = await raw_response.json()
-                except Exception:
-                    response = await raw_response.read() if raw_response else 'None'
-                    logger.error('Received non-json response from PolySwarm API: %s', response)
-                    response = {'files': [], 'uuid': uuid}
-                if raw_response.status // 100 != 2:
-                    errors = response.get('errors')
-                    if raw_response.status == 400 and errors.find("has not been created") != -1:
+            async with aiohttp.ClientSession() as session:
+                async with session.get("%s/uuid/%s" % (self.community_uri, uuid),
+                                       headers={"Authorization": self.api_key}) as raw_response:
+                    try:
+                        response = await raw_response.json()
+                    except Exception:
+                        response = await raw_response.read() if raw_response else 'None'
+                        logger.error('Received non-json response from PolySwarm API: %s', response)
+                        response = {'files': [], 'uuid': uuid}
+                    if raw_response.status // 100 != 2:
+                        errors = response.get('errors')
+                        if raw_response.status == 400 and errors.find("has not been created") != -1:
+                            return {'files': [], 'uuid': uuid}
+                        logger.error("Error reading from PolySwarm API: {}".format(errors))
                         return {'files': [], 'uuid': uuid}
-                    logger.error("Error reading from PolySwarm API: {}".format(errors))
-                    return {'files': [], 'uuid': uuid}
         return self._fix_result(response['result'])
+
+    async def _wait_for_uuid(self, uuid):
+        # check UUID status immediately, in case the file already exists
+        result = await self.lookup_uuid(uuid)
+
+        if self._reveal_closed(result):
+            return result
+
+        # wait for bounty to complete (20 blocks for assert, 25 for reveal)
+        # TODO why are we using those numbers above, longer for reveal than assert is silly.
+        await asyncio.sleep(45)
+
+        started = time.time()
+
+        while True:
+            result = await self.lookup_uuid(uuid)
+
+            if self._reveal_closed(result):
+                return result
+
+            await asyncio.sleep(1)
+
+            if time.time()-started > self.timeout >= 0:
+                break
+
+        logger.warning("Failed to get results for uuid %s in time.", uuid)
+        return {'files': result['files'], 'uuid': uuid}
 
     async def scan_fileobj(self, to_scan, filename="data"):
         """
@@ -200,30 +269,7 @@ class PolyswarmAsyncAPI(object):
 
         logger.info("Successfully submitted file %s, UUID %s" % (filename, uuid))
 
-        retries = self.timeout
-
-        # check UUID status immediately, in case the file already exists
-        result = await self.lookup_uuid(uuid)
-
-        if self._reveal_closed(result):
-            return result
-
-        # wait for bounty to complete (20 blocks for assert, 25 for reveal)
-        # TODO why are we using those numbers above, longer for reveal than assert is silly.
-        await asyncio.sleep(45)
-
-        while retries > 0:
-            result = await self.lookup_uuid(uuid)
-
-            if self._reveal_closed(result):
-                return result
-
-            await asyncio.sleep(1)
-
-            retries -= 1
-
-        logger.warning("Failed to get results for file %s (%s) in time.", filename, uuid)
-        return {'files': [], 'uuid': uuid}
+        return await self._wait_for_uuid(uuid)
 
     async def scan_data(self, data, filename=None):
         """
@@ -248,30 +294,76 @@ class PolyswarmAsyncAPI(object):
         with open(to_scan, "rb") as fobj:
             return await self.scan_fileobj(fobj, os.path.basename(to_scan))
 
-    async def scan_hash(self, to_scan):
+    async def search_hash(self, to_scan, hash_type="sha256", rescan=False):
         """
-        Scan a single hash using the PS API asynchronously.
+        Search for a single hash using the PS API asynchronously.
 
-        :param to_scan:
+        :param to_scan: Hash to search for
+        :param hash_type: Hash type [sha256|sha1|md5]
+        :param rescan: Whether to initiate a rescan for fresh results
+        :return: JSON report file
+        """
+        # TODO check file-size. For now, we need to handle error.
+        # if the hash is not sha256, we need to do a lookup first to get the sha256
+        if not rescan or hash_type != "sha256":
+            async with self.get_semaphore:
+                async with aiohttp.ClientSession() as session:
+                    async with session.get("{}/search/{}/{}".format(self.uri, hash_type, to_scan),
+                                           headers={"Authorization": self.api_key}) as raw_response:
+                        try:
+                            response = await raw_response.json()
+                        except Exception:
+                            response = await raw_response.read() if raw_response else 'None'
+                            raise Exception('Received non-json response from PolySwarm API: %s', response)
+                        if raw_response.status // 100 != 2:
+                            if raw_response.status == 404 and response.get("errors").find("has not been in any") != -1:
+                                return {'hash': to_scan}
+
+                            errors = response.get('errors')
+                            raise Exception("Error reading from PolySwarm API: {}".format(errors))
+
+        if rescan:
+            try:
+                sha256 = response['result']['files'][0]['hash'] if hash_type != "sha256" else to_scan
+                await self.rescan_file(sha256)
+                # get the new results, using sha256 so we know we get the same file even if collision happened
+                return await self.search_hash(sha256, "sha256", rescan=False)
+            except (KeyError, IndexError):
+                logger.warning("Failed to parse response, not rescanning.")
+                return response
+
+        return self._fix_result(response['result'])
+
+    async def rescan_hash(self, to_rescan, hash_type="sha256"):
+        """
+        Start a rescan for single hash using the PS API asynchronously.
+
+        :param to_rescan: sha256 hash of the file to rescan
         :return: JSON report file
         """
         # TODO check file-size. For now, we need to handle error.
         async with self.get_semaphore:
-            async with self.session.get("%s/hash/%s" % (self.uri, to_scan)) as raw_response:
-                try:
-                    response = await raw_response.json()
-                except:
-                    response = await raw_response.read() if raw_response else 'None'
-                    raise Exception('Received non-json response from PolySwarm API: %s', response)
-                if raw_response.status // 100 != 2:
-                    # TODO this behavior in the API needs to change
-                    if raw_response.status == 400 and response.get("errors").find("has not been in any") != -1:
-                        return {'hash': to_scan}
+            async with aiohttp.ClientSession() as session:
+                async with session.get("{}/rescan/{}/{}".format(self.community_uri, hash_type, to_rescan),
+                                       headers={"Authorization": self.api_key}) as raw_response:
+                    try:
+                        response = await raw_response.json()
+                    except Exception:
+                        response = await raw_response.read() if raw_response else 'None'
+                        raise Exception('Received non-json response from PolySwarm API: %s', response)
+                    if raw_response.status // 100 != 2:
+                        # TODO this behavior in the API needs to change
+                        if raw_response.status == 400 and response.get("errors").find("has not been in any") != -1:
+                            return {'hash': to_rescan}
 
-                    errors = response.get('errors')
-                    raise Exception("Error reading from PolySwarm API: {}".format(errors))
+                        if raw_response.status == 404:
+                            return {"hash": to_rescan, "reason": "file_not_found", "status": "error"}
 
-        return await self.lookup_uuid(response['result'])
+                        errors = response.get('errors')
+                        logger.error("Error posting to PolySwarm API: {}".format(errors))
+                        response = {"hash": to_rescan, "status": "error"}
+
+        return response
 
     async def scan_files(self, files):
         """
@@ -313,48 +405,107 @@ class PolyswarmAsyncAPI(object):
 
         return await self.scan_files(file_list)
 
-    async def scan_hashes(self, hashes):
+    async def search_hashes(self, hashes, hash_type="sha256", rescan=False):
         """
         Scan a collection of hashes using the PS API asynchronously.
 
         :param hashes: Hashes to scan.
+        :param hash_type: Hash type [sha256|sha1|md5]
+        :param rescan: Whether to initiate a rescan for fresh results
         :return: JSON report file
         """
-        results = await asyncio.gather(*[self.scan_hash(h) for h in hashes])
+        results = await asyncio.gather(*[self.search_hash(h, hash_type, rescan) for h in hashes])
 
         return results
 
+    async def download_file(self, h, destination_dir, with_metadata=False, hash_type="sha256"):
+        """
+        Download a file via the PS API
+
+        :param h: Hash of the file you wish to download
+        :param destination_dir: Directory you wish to save the file in
+        :param with_metadata: Whether to save related file metadata into an associated JSON file
+        :param hash_type: Hash type [sha256|sha1|md5]
+        :return: Dictionary containing path to the downloaded file if successful, error message if not
+        """
+        results = await self.get_file_data(h, hash_type)
+
+        out_path = os.path.join(destination_dir, h)
+
+        if results['status'] == "OK":
+            async with aiofiles.open(out_path, mode='wb') as f:
+                await f.write(results['file_data'])
+        else:
+            results['file_hash'] = h
+            return results
+
+        if with_metadata:
+            meta_results = await self.search_hash(h, hash_type=hash_type)
+            if "files" in meta_results and "file_info" in meta_results["files"][0]:
+                async with aiofiles.open(out_path+".json", mode="w") as f:
+                    await f.write(json.dumps(meta_results["files"][0]))
+
+        return {"file_path": out_path, "status": "OK", "file_hash": h}
+
+    async def download_files(self, hashes, destination_dir, with_metadata=True, hash_type="sha256"):
+        """
+        Download files  via the PS API
+
+        :param hashes: Hashes of the files you wish to download
+        :param destination_dir: Directory you wish to save the files in
+        :param with_metadata: Whether to save related file metadata into an associated JSON files
+        :param hash_type: Hash type [sha256|sha1|md5]
+
+        :return: Dictionary containing path to the downloaded file if successful, error message if not
+        """
+        results = await asyncio.gather(*[self.download_file(h, destination_dir,
+                                                            with_metadata, hash_type) for h in hashes])
+
+        return results
+
+    async def rescan_file(self, h, hash_type="sha256"):
+        """
+        Rescan a file by its sha256/sha1/md5 hash
+
+        :param h: Hash of the file to rescan
+        :param hash_type: Hash type [sha256|sha1|md5]
+        :return: JSON report file
+        """
+        result = await self.rescan_hash(h, hash_type)
+
+        if result['status'] != "OK":
+            return result
+
+        return await self._wait_for_uuid(result['result'])
+
+    async def rescan_files(self, hashes, hash_type="sha256"):
+        """
+        Rescan files by sha256/sha1/md5 hash
+
+        :param hashes: Hashes of the files to rescan
+        :param hash_type: Hash type [sha256|sha1|md5]
+        :return: JSON report file
+        """
+        return await asyncio.gather(*[self.rescan_file(h, hash_type) for h in hashes])
+
     def _reveal_closed(self, result):
         """
-        Check result dict if reveal window is closed
+        Check result dict if reveal window is closed or error occurred
 
         :param result: Result dict from UUID check
         :return: If the assertion reveal window is closed
         """
 
         # TODO this really should be better named in the JSON, as there are multiple windows
-        return all('window_closed' in file and file['window_closed']
+        return all(('window_closed' in file and file['window_closed']) or ('failed' in file and file['failed'])
                    for file in result['files'])
-
-    def __del__(self):
-        """
-        Used to clean up sessions on death for async usage.
-
-        :return: None
-        """
-        if self.session is not None:
-            self.session.close()
-            self.session = None
-
-    def stop(self):
-        self.__del__()
 
 
 class PolyswarmAPI(object):
     """A synchronous interface to the public and private PolySwarm APIs."""
 
     def __init__(self, key, uri="https://consumer.epoch.polyswarm.network", get_limit=10,
-                 post_limit=4, timeout=120, force=False):
+                 post_limit=4, timeout=600, force=False, community="epoch"):
         """
 
         :param key: PolySwarm API key
@@ -363,13 +514,37 @@ class PolyswarmAPI(object):
         :param post_limit: How many simultaneous POST requests / second to make. Change at your own risk.
         :param timeout: How long to wait for scans to complete. This should be at least 45 seconds for round to complete
         :param force: Force re-scans if file was already submitted.
+        :param community: Community to scan against.
         """
-        self.ps_api = PolyswarmAsyncAPI(key, uri, get_limit, post_limit, timeout, force)
+        self.ps_api = PolyswarmAsyncAPI(key, uri, get_limit, post_limit, timeout, force, community)
         self.loop = asyncio.get_event_loop()
-        self.loop.run_until_complete(self.ps_api.start())
 
     def set_force(self, force):
+        """
+        Enable forced re-submissions of bounties.
+
+        :param force: Boolean force/don't force bounty re-submission
+        :return: None
+        """
         self.ps_api.set_force(force)
+
+    def set_timeout(self, timeout):
+        """
+        Set timeout for file scans. This timeout will have 45 seconds added to it, the minimum bounty time.
+
+        :param timeout: How long to wait for scan to complete
+        :return: None
+        """
+        self.ps_api.set_timeout(timeout)
+
+    def get_file_data(self, sha256):
+        """
+        Get file data of a file from the PS API
+
+        :param sha256: SHA256 of the file
+        :return: Response dict containing file_data if successful, and status message about success/failure
+        """
+        return self.loop.run_until_complete(self.ps_api.get_file_data(sha256))
 
     def scan_fileobj(self, to_scan, filename="data"):
         """
@@ -405,7 +580,7 @@ class PolyswarmAPI(object):
         Scan files using the PS API synchronously.
 
         :param files: List of paths of files to scan.
-        :return:
+        :return: JSON report file
         """
         return self.loop.run_until_complete(self.ps_api.scan_files(files))
 
@@ -419,23 +594,27 @@ class PolyswarmAPI(object):
         """
         return self.loop.run_until_complete(self.ps_api.scan_directory(directory, recursive))
 
-    def scan_hashes(self, hashes):
+    def search_hashes(self, hashes, hash_type="sha256", rescan=False):
         """
         Scan a collection of hashes using the PS API synchronously.
 
         :param hashes: Hashes to scan.
+        :param hash_type: Hash type [sha256|sha1|md5]
+        :param rescan: Whether to initiate a rescan for fresh results
         :return: JSON report file
         """
-        return self.loop.run_until_complete(self.ps_api.scan_hashes(hashes))
+        return self.loop.run_until_complete(self.ps_api.search_hashes(hashes, hash_type, rescan))
 
-    def scan_hash(self, to_scan):
+    def search_hash(self, to_scan, hash_type="sha256", rescan=False):
         """
         Scan a single hash using the PS API asynchronously.
 
         :param to_scan:
+        :param hash_type: Hash type [sha256|sha1|md5]
+        :param rescan: Whether to initiate a rescan for fresh results
         :return: JSON report file
         """
-        return self.loop.run_until_complete(self.ps_api.scan_hash(to_scan))
+        return self.loop.run_until_complete(self.ps_api.search_hash(to_scan, hash_type, rescan))
 
     def lookup_uuid(self, uuid):
         """
@@ -464,3 +643,50 @@ class PolyswarmAPI(object):
         :return: Dictionary of the result code and the UUID of the upload (if successful)
         """
         return self.loop.run_until_complete(self.ps_api.post_file(file_obj, filename))
+
+    def download_file(self, h, destination_dir, with_metadata=False, hash_type="sha256"):
+        """
+        Download a file via the PS API
+
+        :param h: Hash of the file you wish to download
+        :param destination_dir: Directory you wish to save the file in
+        :param with_metadata: Whether to save related file metadata into an associated JSON file
+        :param hash_type: Hash type [sha256|sha1|md5]
+        :return: Dictionary containing path to the downloaded file if successful, error message if not
+        """
+        return self.loop.run_until_complete(self.ps_api.download_file(h, destination_dir,
+                                                                      with_metadata, hash_type))
+
+    def download_files(self, hashes, destination_dir, with_metadata=False, hash_type="sha256"):
+        """
+        Download files  via the PS API
+
+        :param hashes: Hashes of the files you wish to download
+        :param destination_dir: Directory you wish to save the files in
+        :param with_metadata: Whether to save related file metadata into an associated JSON files
+        :param hash_type: Hash type [sha256|sha1|md5]
+
+        :return: Dictionary containing path to the downloaded file if successful, error message if not
+        """
+        return self.loop.run_until_complete(self.ps_api.download_files(hashes, destination_dir,
+                                                                       with_metadata, hash_type))
+
+    def rescan_file(self, h, hash_type="sha256"):
+        """
+        Rescan a file by its sha256/sha1/md5 hash
+
+        :param h: Hash of the file to rescan
+        :param hash_type: Hash type [sha256|sha1|md5]
+        :return: JSON report file
+        """
+        return self.loop.run_until_complete(self.ps_api.rescan_file(h, hash_type))
+
+    def rescan_files(self, hashes, hash_type="sha256"):
+        """
+        Rescan a file by its sha256/sha1/md5 hash
+
+        :param hashes: Hashes of the files to rescan
+        :param hash_type: Hash type [sha256|sha1|md5]
+        :return: JSON report file
+        """
+        return self.loop.run_until_complete(self.ps_api.rescan_files(hashes, hash_type))

@@ -6,7 +6,7 @@ import os
 from uuid import UUID
 
 from . import PolyswarmAPI
-from .formatting import PSResultFormatter
+from .formatting import PSResultFormatter, PSDownloadResultFormatter
 
 CONTEXT_SETTINGS = dict(help_option_names=['-h', '--help'])
 
@@ -19,6 +19,18 @@ def is_hex(value):
         return True
     except ValueError:
         return False
+
+
+def _is_valid_sha1(value):
+    if len(value) != 40:
+        return False
+    return is_hex(value)
+
+
+def _is_valid_md5(value):
+    if len(value) != 32:
+        return False
+    return is_hex(value)
 
 
 def _is_valid_sha256(value):
@@ -44,8 +56,8 @@ def validate_uuid(ctx, param, value):
 
 def validate_hash(ctx, param, value):
     for h in value:
-        if not _is_valid_sha256(h):
-            raise click.BadParameter('Hash %s not valid, must be sha256 in hexadecimal format' % h)
+        if not (_is_valid_sha256(h) or _is_valid_md5(h) or _is_valid_sha1(h)):
+            raise click.BadParameter('Hash %s not valid, must be sha256|md5|sha1 in hexadecimal format' % h)
     return value
 
 
@@ -57,13 +69,14 @@ def validate_key(ctx, param, value):
 
 @click.group(context_settings=CONTEXT_SETTINGS)
 @click.option("-a", "--api-key", help="Your API key for polyswarm.network (required)", default="", callback=validate_key, envvar="POLYSWARM_API_KEY")
-@click.option("-u", "--api-uri", default="https://consumer.epoch.polyswarm.network", envvar="POLYSWARM_API_URI", help="The API endpoint (ADVANCED)")
+@click.option("-u", "--api-uri", default="https://consumer.prod.polyswarm.network", envvar="POLYSWARM_API_URI", help="The API endpoint (ADVANCED)")
 @click.option("-o", "--output-file", default=sys.stdout, type=click.File("w"), help="Path to output file.")
 @click.option("--fmt", "--output-format", default="text", type=click.Choice(['text', 'json']), help="Output format. Human-readable text or JSON.")
 @click.option("--color/--no-color", default=True, help="Use colored output in text mode.")
 @click.option('-v', '--verbose', default=0, count=True)
+@click.option('-c', "--community", default="epoch", envvar="POLYSWARM_COMMUNITY", help="Community to use.")
 @click.pass_context
-def polyswarm(ctx, api_key, api_uri, output_file, output_format, color, verbose):
+def polyswarm(ctx, api_key, api_uri, output_file, output_format, color, verbose, community):
     """
     This is a PolySwarm CLI client, which allows you to interact directly
     with the PolySwarm network to scan files, search hashes, and more.
@@ -88,7 +101,7 @@ def polyswarm(ctx, api_key, api_uri, output_file, output_format, color, verbose)
         color = False
 
     logging.debug("Creating API instance: api_key:%s, api_uri:%s" % (api_key, api_uri))
-    ctx.obj['api'] = PolyswarmAPI(api_key, api_uri)
+    ctx.obj['api'] = PolyswarmAPI(api_key, api_uri, community=community)
     ctx.obj['color'] = color
     ctx.obj['output_format'] = output_format
     ctx.obj['output'] = output_file
@@ -119,14 +132,17 @@ def _do_scan(api, paths, recursive=False):
 
 @click.option("-f", "--force", is_flag=True, default=False,  help="Force re-scan even if file has already been analyzed.")
 @click.option("-r", "--recursive", is_flag=True, default=False, help="Scan directories recursively")
+@click.option("-t", "--timeout", type=click.INT, default=-1, help="How long to wait for results (default: forever, -1)")
 @click.argument('path', nargs=-1, type=click.Path(exists=True))
 @polyswarm.command("scan", short_help="scan files/directories")
 @click.pass_context
-def scan(ctx, path, force, recursive):
+def scan(ctx, path, force, recursive, timeout):
     """
     Scan files or directories via PolySwarm
     """
     api = ctx.obj['api']
+
+    api.timeout = timeout
 
     api.set_force(force)
 
@@ -137,29 +153,33 @@ def scan(ctx, path, force, recursive):
     ctx.obj['output'].write(str(rf))
 
 
-@click.option('-r', '--hash-file', help="File of sha256 hashes, one per line.", type=click.File('r'))
-@click.argument('sha256', nargs=-1, callback=validate_hash)
+@click.option('-r', '--hash-file', help="File of hashes, one per line.", type=click.File('r'))
+@click.option("--hash-type", help="Hash type to search [sha256|sha1|md5], default=sha256", default="sha256")
+@click.option("--rescan", is_flag=True, default=False, help="Rescan any files that exist for latest results.")
+@click.argument('hash', nargs=-1, callback=validate_hash)
 @polyswarm.command("search", short_help="search for hash")
 @click.pass_context
-def search(ctx, sha256, hash_file):
+def search(ctx, hash, hash_file, hash_type, rescan):
     """
     Search PolySwarm for files matching sha256 hashes
     """
     api = ctx.obj['api']
 
-    sha256 = list(sha256)
+    hashes = list(hash)
 
     # TODO dedupe
     if hash_file:
         for h in hash_file.readlines():
             h = h.strip()
-            if _is_valid_sha256(h):
-                sha256.append(h)
+            if (hash_type == "sha256" and _is_valid_sha256(h)) or \
+                    (hash_type == "sha1" and _is_valid_sha1(h)) or \
+                    (hash_type == "md5" and _is_valid_md5(h)):
+                hashes.append(h)
             else:
                 logger.warning("Invalid hash %s in file, ignoring." % h)
         
-    rf = PSResultFormatter(api.scan_hashes(sha256), color=ctx.obj['color'],
-                                    output_format=ctx.obj['output_format'])
+    rf = PSResultFormatter(api.search_hashes(hashes, hash_type, rescan), color=ctx.obj['color'],
+                           output_format=ctx.obj['output_format'])
     ctx.obj['output'].write(str(rf))
 
 
@@ -185,6 +205,64 @@ def lookup(ctx, uuid, uuid_file):
                 logger.warning("Invalid uuid %s in file, ignoring." % u)
         
     rf = PSResultFormatter(api.lookup_uuids(uuids), color=ctx.obj['color'],
+                                    output_format=ctx.obj['output_format'])
+    ctx.obj['output'].write(str(rf))
+
+
+@click.option('-r', '--hash-file', help="File of hashes, one per line.", type=click.File('r'))
+@click.option('-m', '--metadata', is_flag=True, default=False, help="Save file metadata into associated JSON file")
+@click.option("--hash-type", help="Hash type to search [sha256|sha1|md5], default=sha256", default="sha256")
+@click.argument('hash', 'hash', nargs=-1, callback=validate_hash)
+@click.argument('destination', 'destination', nargs=1, type=click.Path(file_okay=False))
+@polyswarm.command("download", short_help="download file(s)")
+@click.pass_context
+def download(ctx, metadata, hash_file, hash_type, hash, destination):
+    if not os.path.exists(destination):
+        os.makedirs(destination)
+
+    api = ctx.obj['api']
+
+    hashes = list(hash)
+
+    # TODO dedupe
+    if hash_file:
+        for h in hash_file.readlines():
+            h = h.strip()
+            if (hash_type == "sha256" and _is_valid_sha256(h)) or \
+                    (hash_type == "sha1" and _is_valid_sha1(h)) or \
+                    (hash_type == "md5" and _is_valid_md5(h)):
+                hashes.append(h)
+            else:
+                logger.warning("Invalid hash %s in file, ignoring." % h)
+
+    rf = PSDownloadResultFormatter(api.download_files(hashes, destination, metadata, hash_type),
+                                   color=ctx.obj['color'], output_format=ctx.obj['output_format'])
+
+    ctx.obj['output'].write((str(rf)))
+
+
+@click.option('-r', '--hash-file', help="File of hashes, one per line.", type=click.File('r'))
+@click.option("--hash-type", help="Hash type to search [sha256|sha1|md5], default=sha256", default="sha256")
+@click.argument('hash', 'hash', nargs=-1, callback=validate_hash)
+@polyswarm.command("rescan", short_help="rescan files(s) by hash")
+@click.pass_context
+def rescan(ctx, hash_file, hash_type, hash):
+    api = ctx.obj['api']
+
+    hashes = list(hash)
+
+    # TODO dedupe
+    if hash_file:
+        for h in hash_file.readlines():
+            h = h.strip()
+            if (hash_type == "sha256" and _is_valid_sha256(h)) or \
+                    (hash_type == "sha1" and _is_valid_sha1(h)) or \
+                    (hash_type == "md5" and _is_valid_md5(h)):
+                hashes.append(h)
+            else:
+                logger.warning("Invalid hash %s in file, ignoring." % h)
+
+    rf = PSResultFormatter(api.rescan_files(hashes, hash_type), color=ctx.obj['color'],
                                     output_format=ctx.obj['output_format'])
     ctx.obj['output'].write(str(rf))
 
