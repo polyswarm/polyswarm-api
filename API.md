@@ -14,6 +14,8 @@ Fields in JSON response:
 
 ### **GET** `/[community]/hash/[sha256]`
 
+Requires authentication.
+
 Returns a community-specific uuid for a submission that contains this file.
 If hash exists in the archive but has no available scan results, a rescan will be scheduled and the UUID
 of this new scan returned.
@@ -31,6 +33,7 @@ Returns the current state of the submission, complete with scan results if compl
 Requires authentication.
 
 Initiates a scan of an already submitted artifact, identified by a `hash_type` hash , using the specified community.
+Supported hash types are sha256/sha1/md5. 
 
 Fields in JSON response:
 - status: the status of the request. OK if successful.
@@ -40,13 +43,16 @@ Fields in JSON response:
 
 Requires authentication.
 
-Download a file by its `hash_type` hash. Response is the file data.
+Download a file by its `hash_type` hash.
+Supported hash types are sha256/sha1/md5.
+Response is the file data.
 
 ### **GET** `/search/[hash_type]/[hash]`
 
 Requires authentication.
 
 Perform a search by `hash_type` hash across all communities provided API key has access to.
+Supported hash types are sha256/sha1/md5. 
 
 Response is described in the JSON Format section below, and includes both the optional `file_info` dictionary and
 the results of the latest scan of the file.
@@ -140,7 +146,7 @@ format: a list of scan results. A scan result is made up of the following fields
   <!--- TODO there are other statuses here that need documenting --->
   - bounty_status: The status of the bounty. "settled" means it has finished.
   - failed: whether the bounty failed for some reason
-  - file_info: an optional dictionary currently only returned by the search API
+  - file_info: an optional dictionary currently only returned by the search API. Not guaranteed to exist.
     - community: community in which this file was first seen
     - consumer_guids: a list of all historical scan GUID/community pairs
     - extend_type: extended file information as reported by `libmagic`
