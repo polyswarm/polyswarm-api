@@ -20,10 +20,11 @@ push-to-pypi:
     - >-
       tagver=$(git describe --abbrev=0 --tags)
       setupver=$(grep "version=" setup.py | cut -d"'" -f 2)
+
       if [ $tagver != $setupver ]; then
         echo "git tag version ($tagver) does not match setup.py version ($setupver)"
         exit 1
       fi
+
     # using env variables from Gitlab: TWINE_USERNAME, TWINE_PASSWORD, TWINE_REPOSITORY_URL
     - twine upload dist/*
-    
