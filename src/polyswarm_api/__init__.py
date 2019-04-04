@@ -504,7 +504,7 @@ class PolyswarmAsyncAPI(object):
 class PolyswarmAPI(object):
     """A synchronous interface to the public and private PolySwarm APIs."""
 
-    def __init__(self, key, uri="https://consumer.epoch.polyswarm.network", get_limit=10,
+    def __init__(self, key, uri="https://consumer.prod.polyswarm.network", get_limit=10,
                  post_limit=4, timeout=600, force=False, community="epoch"):
         """
 
