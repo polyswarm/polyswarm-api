@@ -18,21 +18,24 @@ To use the library:
 ```python
 import polyswarm_api
 
-api_key = "0bee8e13f4300ed2c904caa9ea6cb180ec2524cfa0339e576235abbf62032327"
+# you will need to get your own key from 
+# https://polyswarm.network/profile/apiKeys
+
+api_key = "317b21cb093263b701043cb0831a53b9"
 
 api = polyswarm_api.PolyswarmAPI(key=api_key)
 
-results = api.scan_directory("/path/to/directory")
+results = api.scan_directory("/path/to/eicar")
 
-results = api.scan_file("/path/to/file")
+results = api.scan_file("/path/to/eicar")
 
-results = api.search_hash("14ef23b8c5d06c0bf2d5a4b497a5fae11994c97ec012ed57c7d34178ee9953db")
+results = api.search_hash("275a021bbfb6489e54d471899f7db9d1663fc695ec2fe2a2c4538aabf651fd0f")
 
-results = api.search_hashes(["14ef23b8c5d06c0bf2d5a4b497a5fae11994c97ec012ed57c7d34178ee9953db"])
+results = api.search_hashes(["275a021bbfb6489e54d471899f7db9d1663fc695ec2fe2a2c4538aabf651fd0f"])
 
-results = api.download_file("14ef23b8c5d06c0bf2d5a4b497a5fae11994c97ec012ed57c7d34178ee9953db", "test/")
+results = api.download_file("275a021bbfb6489e54d471899f7db9d1663fc695ec2fe2a2c4538aabf651fd0f", "test/")
 
-results = api.rescan_file("14ef23b8c5d06c0bf2d5a4b497a5fae11994c97ec012ed57c7d34178ee9953db")
+results = api.rescan_file("275a021bbfb6489e54d471899f7db9d1663fc695ec2fe2a2c4538aabf651fd0f")
 ```
 
 To use the provided CLI:
