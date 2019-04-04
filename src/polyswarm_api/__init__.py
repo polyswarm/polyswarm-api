@@ -64,7 +64,7 @@ class PolyswarmAsyncAPI(object):
     """
 
     # TODO this should point to api.polyswarm.network
-    def __init__(self, key, uri="https://consumer.epoch.polyswarm.network", get_limit=10,
+    def __init__(self, key, uri="https://consumer.prod.polyswarm.network", get_limit=10,
                  post_limit=10, timeout=600, force=False, community="epoch"):
         """
 
