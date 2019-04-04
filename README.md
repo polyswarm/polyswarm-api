@@ -25,7 +25,7 @@ api_key = "317b21cb093263b701043cb0831a53b9"
 
 api = polyswarm_api.PolyswarmAPI(key=api_key)
 
-results = api.scan_directory("/path/to/eicar")
+results = api.scan_directory("/path/to/directory")
 
 results = api.scan_file("/path/to/eicar")
 
