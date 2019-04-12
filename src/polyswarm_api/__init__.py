@@ -7,6 +7,7 @@ import hashlib
 import time
 import aiofiles
 import json
+import urllib
 
 logger = logging.getLogger(__name__)
 
@@ -76,9 +77,20 @@ class PolyswarmAsyncAPI(object):
         :param force: Force re-scans if file was already submitted.
         :param community: Community to scan against.
         """
+        self._stage_base_domain = "lb.kb.polyswarm.network"
         self.api_key = key
 
         self.uri = uri
+
+        self.uri_parse = urllib.parse.urlparse(self.uri)
+
+        self.network = "prod"
+
+        if self.uri_parse.hostname.endswith(self._stage_base_domain):
+            self.network = "stage"
+            # TODO change this to stage.lb.kb.polyswarm.network *after* portal chart in kube
+            self.portal_uri = "https://portal.stage.polyswarm.network/scan/results/"
+            community = "kappa"
 
         self.consumer_uri = "{}/{}".format(self.uri, "consumer")
         self.search_uri = "{}/{}".format(self.uri, "search")
@@ -89,12 +101,8 @@ class PolyswarmAsyncAPI(object):
 
         self.get_semaphore = asyncio.Semaphore(get_limit)
 
-        self.network = "prod"
-        self.portal_uri = "https://polyswarm.network/scan/results/"
 
-        if uri.startswith("api.stage"):
-            self.network = "stage"
-            self.portal_uri = "https://portal.stage.polyswarm.network/scan/results/"
+        self.portal_uri = "https://polyswarm.network/scan/results/"
 
         # ...sigh
         self.engine_resolver = EngineResolver(self.network)
