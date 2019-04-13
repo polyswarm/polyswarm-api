@@ -35,7 +35,13 @@ class EngineResolver(object):
             "0x17476473b96f8127d3d463ea783fa938cdf1b46b": "Tachyon",
             "0x89b1e316033b72b56bcbbf0e10610446fac26bac": "Zillya",
             "0xfec7050bf25efe1510a854ae63d00a952f0a104f": "PSConsumer",
+            "0x06f2929f521cb9ef1ab769177c928784baf5af39": "Alibaba",
             "0x31174c90d709c952948a94b1ab5bc20c10cf364d": "Trustlook",
+            "0x7624398543657e3330d6645e4b70a1358697d313": "Rising",
+            "0xdae86a74f9996b66557cda627b1e0c5960f9142d": "Jiangmin",
+            "0x4adfd72125b44dfc39bcd4eeb5fe1d59c6a75ad9": "IRIS-H",
+            "0xb3f58a017e186942166c93107e5d17b1882f6734": "SecureAge",
+            "0x4078de09c3cf6301c28b250984e76c437703c71d": "Qihoo",
         }) if network == "stage" else self._lower_dict({
             "0x3750266f07e0590aa16e55c32e08e48878010f8f": "ClamAV-Engine",
             "0xdc6a0f9c3af726ba05aac14605ac9b3b958512d7": "ClamAV-Arbiter",
@@ -52,7 +58,13 @@ class EngineResolver(object):
             "0x1edf29c0977af06215032383f93deb9899d90118": "Tachyon",
             "0xf6019c1f057d26ffb2b41c221e0db4ef88931c86": "Zillya",
             "0x0409ba7c59127f81d8b09b3ec551204ebb3d034e": "PSConsumer",
+            "0x10a9ee8552f2c6b2787b240cebefc4a4bcb96f27": "Alibaba",
             "0xf598f7da0d00d9ad21fb00663a7d62a19d43ea61": "Trustlook",
+            "0xe2911b3c44a0c50b4d0cfe537a0c1a8b992f6ad0": "Rising",
+            "0xa605715c448f4a2319de2ad01f174ca9c440c4eb": "Jiangmin",
+            "0xa369322461e6b05ce0b3520765e032a3729ce4c7": "Tylabs",
+            "0x47f0c884bb67b3959c166a87f2385f3977769e42": "IRIS-H",
+            "0x0480ba80010adeafb67855343b711ae2e15d1b9c": "SecureAge",
         })
         self.reverse_engine_map = {v: k for k, v in self.engine_map.items()}
 
