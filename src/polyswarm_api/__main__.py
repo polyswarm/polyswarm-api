@@ -263,8 +263,62 @@ def rescan(ctx, hash_file, hash_type, hash):
                 logger.warning("Invalid hash %s in file, ignoring." % h)
 
     rf = PSResultFormatter(api.rescan_files(hashes, hash_type), color=ctx.obj['color'],
-                                    output_format=ctx.obj['output_format'])
+                           output_format=ctx.obj['output_format'])
     ctx.obj['output'].write(str(rf))
+
+
+@polyswarm.group(short_help="interact with live scans")
+def live():
+    pass
+
+
+@polyswarm.group(short_help="interact with historical scans")
+def historical():
+    pass
+
+
+@click.argument('rule_file', type=click.File('r'))
+@live.command("install", short_help="install a new YARA rule file")
+@click.pass_context
+def live_install(ctx, rule_file):
+    api = ctx.obj['api']
+
+    rules = rule_file.read()
+
+    PSResultFormatter(api.new_live_scan(rules), color=ctx.obj['color'],
+                      output_format=ctx.obj['output_format'])
+
+
+@click.option('-i', '--rule-id', type=int)
+@live.command("results", short_help="get results from live scans")
+@click.pass_context
+def live_results(ctx, rule_id):
+    api = ctx.obj['api']
+
+    PSResultFormatter(api.get_live_results(rule_id), color=ctx.obj['color'],
+                      output_format=ctx.obj['output_format'])
+
+
+@click.argument('rule_file', type=click.File('r'))
+@historical.command("start", short_help="start a new historical scan")
+@click.pass_context
+def historical_start(ctx, rule_file):
+    api = ctx.obj['api']
+
+    rules = rule_file.read()
+
+    PSResultFormatter(api.new_historical_scan(rules), color=ctx.obj['color'],
+                      output_format=ctx.obj['output_format'])
+
+
+@click.option('-i', '--rule-id', type=int)
+@historical.command("results", short_help="get results from historical scans")
+@click.pass_context
+def historical_results(ctx, rule_id):
+    api = ctx.obj['api']
+
+    PSResultFormatter(api.get_historical_results(rule_id), color=ctx.obj['color'],
+                      output_format=ctx.obj['output_format'])
 
 
 if __name__ == '__main__':
