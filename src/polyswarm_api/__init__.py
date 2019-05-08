@@ -608,12 +608,12 @@ class PolyswarmAsyncAPI(object):
         :return: Matches to the rules
         """
 
-        params = {}
+        params = {"with_results": "true"}
         if rule_id is not None:
             params['id'] = rule_id
 
         async with self.get_semaphore:
-            logger.debug(f"Posting rules with api-key {self.api_key}")
+            logger.debug(f"Reading results with api-key {self.api_key}")
             async with aiohttp.ClientSession() as session:
                 try:
                     async with session.get(f"{self.scan_uri}/{scan_type}", params=params,

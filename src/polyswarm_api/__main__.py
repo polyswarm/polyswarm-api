@@ -285,8 +285,9 @@ def live_install(ctx, rule_file):
 
     rules = rule_file.read()
 
-    PSResultFormatter(api.new_live_scan(rules), color=ctx.obj['color'],
+    rf = PSResultFormatter(api.new_live_scan(rules), color=ctx.obj['color'],
                       output_format=ctx.obj['output_format'])
+    ctx.obj['output'].write((str(rf)))
 
 
 @click.option('-i', '--rule-id', type=int)
@@ -295,8 +296,9 @@ def live_install(ctx, rule_file):
 def live_results(ctx, rule_id):
     api = ctx.obj['api']
 
-    PSResultFormatter(api.get_live_results(rule_id), color=ctx.obj['color'],
+    rf = PSResultFormatter(api.get_live_results(rule_id), color=ctx.obj['color'],
                       output_format=ctx.obj['output_format'])
+    ctx.obj['output'].write((str(rf)))
 
 
 @click.argument('rule_file', type=click.File('r'))
@@ -307,8 +309,9 @@ def historical_start(ctx, rule_file):
 
     rules = rule_file.read()
 
-    PSResultFormatter(api.new_historical_scan(rules), color=ctx.obj['color'],
+    rf = PSResultFormatter(api.new_historical_scan(rules), color=ctx.obj['color'],
                       output_format=ctx.obj['output_format'])
+    ctx.obj['output'].write((str(rf)))
 
 
 @click.option('-i', '--rule-id', type=int)
@@ -317,8 +320,9 @@ def historical_start(ctx, rule_file):
 def historical_results(ctx, rule_id):
     api = ctx.obj['api']
 
-    PSResultFormatter(api.get_historical_results(rule_id), color=ctx.obj['color'],
+    rf = PSResultFormatter(api.get_historical_results(rule_id), color=ctx.obj['color'],
                       output_format=ctx.obj['output_format'])
+    ctx.obj['output'].write((str(rf)))
 
 
 if __name__ == '__main__':
