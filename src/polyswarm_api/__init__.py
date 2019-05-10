@@ -551,7 +551,7 @@ class PolyswarmAsyncAPI(object):
         return all(('window_closed' in file and file['window_closed']) or ('failed' in file and file['failed'])
                    for file in result['files'])
 
-    async def _new_scan(self, rules, scan_type):
+    async def _new_hunt(self, rules, scan_type):
         """
         Create a new scan, either live or historical.
 
@@ -589,7 +589,7 @@ class PolyswarmAsyncAPI(object):
         :param rules: String containing YARA rules to install
         :return: ID of the new scan.
         """
-        return await self._new_scan(rules, "live")
+        return await self._new_hunt(rules, "live")
 
     async def new_historical_hunt(self, rules):
         """
@@ -598,7 +598,7 @@ class PolyswarmAsyncAPI(object):
         :param rules: String containing YARA rules to install
         :return: ID of the new scan.
         """
-        return await self._new_scan(rules, "historical")
+        return await self._new_hunt(rules, "historical")
 
     async def _get_hunt_results(self, rule_id=None, scan_type="live"):
         """

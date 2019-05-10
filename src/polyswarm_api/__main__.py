@@ -285,13 +285,13 @@ def live_install(ctx, rule_file):
 
     rules = rule_file.read()
 
-    rf = PSResultFormatter(api.new_live_scan(rules), color=ctx.obj['color'],
+    rf = PSResultFormatter(api.new_live_hunt(rules), color=ctx.obj['color'],
                       output_format=ctx.obj['output_format'])
     ctx.obj['output'].write((str(rf)))
 
 
 @click.option('-i', '--rule-id', type=int)
-@live.command("results", short_help="get results from live scans")
+@live.command("results", short_help="get results from live hunt")
 @click.pass_context
 def live_results(ctx, rule_id):
     api = ctx.obj['api']
@@ -302,20 +302,20 @@ def live_results(ctx, rule_id):
 
 
 @click.argument('rule_file', type=click.File('r'))
-@historical.command("start", short_help="start a new historical scan")
+@historical.command("start", short_help="start a new historical hunt")
 @click.pass_context
 def historical_start(ctx, rule_file):
     api = ctx.obj['api']
 
     rules = rule_file.read()
 
-    rf = PSResultFormatter(api.new_historical_scan(rules), color=ctx.obj['color'],
+    rf = PSResultFormatter(api.new_historical_hunt(rules), color=ctx.obj['color'],
                       output_format=ctx.obj['output_format'])
     ctx.obj['output'].write((str(rf)))
 
 
 @click.option('-i', '--rule-id', type=int)
-@historical.command("results", short_help="get results from historical scans")
+@historical.command("results", short_help="get results from historical hunt")
 @click.pass_context
 def historical_results(ctx, rule_id):
     api = ctx.obj['api']
