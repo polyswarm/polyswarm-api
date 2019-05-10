@@ -110,7 +110,7 @@ class PolyswarmAsyncAPI(object):
         self.search_uri = f"{self.uri}/search"
         self.download_uri = f"{self.uri}/download"
         self.community_uri = f"{self.consumer_uri}/{community}"
-        self.scan_uri = f"{self.uri}/scan"
+        self.hunt_uri = f"{self.uri}/hunt"
 
         self.force = force
 
@@ -565,7 +565,7 @@ class PolyswarmAsyncAPI(object):
             logger.debug(f"Posting rules with api-key {self.api_key}")
             async with aiohttp.ClientSession() as session:
                 try:
-                    async with session.post(f"{self.scan_uri}/{scan_type}", json=data,
+                    async with session.post(f"{self.hunt_uri}/{scan_type}", json=data,
                                             headers={"Authorization": self.api_key}) as raw_response:
                         try:
                             response = await raw_response.json()
@@ -582,7 +582,7 @@ class PolyswarmAsyncAPI(object):
                     logger.error('Server request failed')
                     return {'status': "error"}
 
-    async def new_live_scan(self, rules):
+    async def new_live_hunt(self, rules):
         """
         Create a new live scan, and replace the currently running YARA rules.
 
@@ -591,7 +591,7 @@ class PolyswarmAsyncAPI(object):
         """
         return await self._new_scan(rules, "live")
 
-    async def new_historical_scan(self, rules):
+    async def new_historical_hunt(self, rules):
         """
         Run a new historical scan.
 
@@ -600,7 +600,7 @@ class PolyswarmAsyncAPI(object):
         """
         return await self._new_scan(rules, "historical")
 
-    async def _get_scan_results(self, rule_id=None, scan_type="live"):
+    async def _get_hunt_results(self, rule_id=None, scan_type="live"):
         """
 
         :param rule_id: Rule ID (None if latest rule results are desired)
@@ -616,7 +616,7 @@ class PolyswarmAsyncAPI(object):
             logger.debug(f"Reading results with api-key {self.api_key}")
             async with aiohttp.ClientSession() as session:
                 try:
-                    async with session.get(f"{self.scan_uri}/{scan_type}", params=params,
+                    async with session.get(f"{self.hunt_uri}/{scan_type}", params=params,
                                             headers={"Authorization": self.api_key}) as raw_response:
                         try:
                             response = await raw_response.json()
@@ -640,7 +640,7 @@ class PolyswarmAsyncAPI(object):
         :param rule_id: Rule ID (None if latest rule results are desired)
         :return: Matches to the rules
         """
-        return await self._get_scan_results(rule_id, "live")
+        return await self._get_hunt_results(rule_id, "live")
 
     async def get_historical_results(self, rule_id=None):
         """
@@ -649,7 +649,7 @@ class PolyswarmAsyncAPI(object):
         :param rule_id: Rule ID (None if latest rule results are desired)
         :return: Matches to the rules
         """
-        return await self._get_scan_results(rule_id, "historical")
+        return await self._get_hunt_results(rule_id, "historical")
 
 
 class PolyswarmAPI(object):
@@ -842,27 +842,27 @@ class PolyswarmAPI(object):
         """
         return self.loop.run_until_complete(self.ps_api.rescan_files(hashes, hash_type))
 
-    def new_live_scan(self, rules):
+    def new_live_hunt(self, rules):
         """
-        Create a new live scan, and replace the currently running YARA rules.
+        Create a new live hunt, and replace the currently running YARA rules.
 
         :param rules: String containing YARA rules to install
-        :return: ID of the new scan.
+        :return: ID of the new hunt.
         """
-        return self.loop.run_until_complete(self.ps_api.new_live_scan(rules))
+        return self.loop.run_until_complete(self.ps_api.new_live_hunt(rules))
 
-    def new_historical_scan(self, rules):
+    def new_historical_hunt(self, rules):
         """
-        Run a new historical scan.
+        Run a new historical hunt.
 
         :param rules: String containing YARA rules to install
-        :return: ID of the new scan.
+        :return: ID of the new hunt.
         """
-        return self.loop.run_until_complete(self.ps_api.new_historical_scan(rules))
+        return self.loop.run_until_complete(self.ps_api.new_historical_hunt(rules))
 
     def get_live_results(self, rule_id=None):
         """
-        Get results from a live scan
+        Get results from a live hunt
 
         :param rule_id: Rule ID (None if latest rule results are desired)
         :return: Matches to the rules
@@ -871,7 +871,7 @@ class PolyswarmAPI(object):
 
     def get_historical_results(self, rule_id=None):
         """
-        Get results from a historical scan
+        Get results from a historical hunt
 
         :param rule_id: Rule ID (None if latest rule results are desired)
         :return: Matches to the rules
