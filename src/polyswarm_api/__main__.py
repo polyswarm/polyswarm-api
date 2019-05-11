@@ -290,14 +290,24 @@ def live_install(ctx, rule_file):
     ctx.obj['output'].write((str(rf)))
 
 
-@click.option('-i', '--rule-id', type=int)
+@click.option('-i', '--rule-id', type=int, help="ID of the rule file (defaults to latest)")
+@click.option("--download-path", "-d", type=click.Path(file_okay=False), help="In addition to fetching the results, download the files that matched.")
 @live.command("results", short_help="get results from live hunt")
 @click.pass_context
-def live_results(ctx, rule_id):
+def live_results(ctx, rule_id, download_path):
     api = ctx.obj['api']
 
-    rf = PSResultFormatter(api.get_live_results(rule_id), color=ctx.obj['color'],
+    results = api.get_live_results(rule_id)
+
+    rf = PSResultFormatter(results, color=ctx.obj['color'],
                       output_format=ctx.obj['output_format'])
+
+    if download_path and results['status'] == 'OK':
+        if not os.path.exists(download_path):
+            os.makedirs(download_path)
+        hashes = [match['artifact']['sha256'] for match in results['results']]
+        api.download_files(hashes, download_path, False, 'sha256')
+
     ctx.obj['output'].write((str(rf)))
 
 
@@ -314,14 +324,25 @@ def historical_start(ctx, rule_file):
     ctx.obj['output'].write((str(rf)))
 
 
-@click.option('-i', '--rule-id', type=int)
+@click.option('-i', '--rule-id', type=int, help="ID of the rule file (defaults to latest)")
+@click.option("--download-path", "-d", type=click.Path(file_okay=False), help="In addition to fetching the results, download the files that matched.")
 @historical.command("results", short_help="get results from historical hunt")
 @click.pass_context
-def historical_results(ctx, rule_id):
+def historical_results(ctx, rule_id, download_path):
     api = ctx.obj['api']
 
-    rf = PSResultFormatter(api.get_historical_results(rule_id), color=ctx.obj['color'],
+    results = api.get_historical_results(rule_id)
+
+    rf = PSResultFormatter(results, color=ctx.obj['color'],
                       output_format=ctx.obj['output_format'])
+
+    if download_path and results['status'] == 'OK':
+        if not os.path.exists(download_path):
+            os.makedirs(download_path)
+
+        hashes = [match['artifact']['sha256'] for match in results['results']]
+        api.download_files(hashes, download_path, False, 'sha256')
+
     ctx.obj['output'].write((str(rf)))
 
 

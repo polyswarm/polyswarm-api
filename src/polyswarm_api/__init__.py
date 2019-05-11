@@ -608,7 +608,7 @@ class PolyswarmAsyncAPI(object):
         :return: Matches to the rules
         """
 
-        params = {"with_results": "true"}
+        params = {"results": "true"}
         if rule_id is not None:
             params['id'] = rule_id
 
@@ -616,7 +616,7 @@ class PolyswarmAsyncAPI(object):
             logger.debug(f"Reading results with api-key {self.api_key}")
             async with aiohttp.ClientSession() as session:
                 try:
-                    async with session.get(f"{self.hunt_uri}/{scan_type}", params=params,
+                    async with session.get(f"{self.hunt_uri}/{scan_type}/results", params=params,
                                             headers={"Authorization": self.api_key}) as raw_response:
                         try:
                             response = await raw_response.json()
