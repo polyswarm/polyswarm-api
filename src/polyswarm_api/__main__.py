@@ -1,9 +1,15 @@
 #!/usr/bin/env python3
+import asyncio
+import base64
+from io import BytesIO
+
 import click
 import logging
 import sys
 import os
 from uuid import UUID
+
+from aiohttp import ServerDisconnectedError
 
 from . import PolyswarmAPI
 from .formatting import PSResultFormatter, PSDownloadResultFormatter
@@ -67,6 +73,22 @@ def validate_key(ctx, param, value):
     return value
 
 
+def get_random_test_artifact(add_random=0, malicious=True):
+
+    if malicious:
+        # eicar
+        artifact = base64.b64decode(b'WDVPIVAlQEFQWzRcUFpYNTQoUF4pN0NDKTd9JEVJQ0FSLVNUQU5EQVJELUFOVElWSVJVUy1URVNULUZJTEUhJEgrSCo=')
+    else:
+        artifact = b'this is not malicious' + os.urandom(256*1024)
+
+    if add_random:
+        artifact += os.urandom(add_random)
+
+    return artifact
+
+
+
+
 @click.group(context_settings=CONTEXT_SETTINGS)
 @click.option("-a", "--api-key", help="Your API key for polyswarm.network (required)", default="", callback=validate_key, envvar="POLYSWARM_API_KEY")
 @click.option("-u", "--api-uri", default="https://api.polyswarm.network/v1", envvar="POLYSWARM_API_URI", help="The API endpoint (ADVANCED)")
@@ -74,7 +96,7 @@ def validate_key(ctx, param, value):
 @click.option("--fmt", "--output-format", default="text", type=click.Choice(['text', 'json']), help="Output format. Human-readable text or JSON.")
 @click.option("--color/--no-color", default=True, help="Use colored output in text mode.")
 @click.option('-v', '--verbose', default=0, count=True)
-@click.option('-c', "--community", default="epoch", envvar="POLYSWARM_COMMUNITY", help="Community to use.")
+@click.option('-c', "--community", default="lima", envvar="POLYSWARM_COMMUNITY", help="Community to use.")
 @click.pass_context
 def polyswarm(ctx, api_key, api_uri, output_file, output_format, color, verbose, community):
     """
@@ -129,6 +151,66 @@ def _do_scan(api, paths, recursive=False):
 
     return results
 
+async def get_results(ctx, tasks):
+    results = []
+    failed_bounty, server_disconnects, other_exceptions, success = 0, 0, 0, 0
+    for r in asyncio.as_completed(tasks):
+        try:
+            final = None
+            final = await r
+            results.append(final)
+
+            zeroth_file = final['files'][0]
+            if not zeroth_file.get("bounty_guid"):
+                ctx.obj['output'].write("Failed to get bounty guid on {}\n".format(final.get('uuid')))
+
+            elif not zeroth_file.get("assertions"):
+                ctx.obj['output'].write("Failed to assertions on bounty guid on {}\n".format(zeroth_file.get("bounty_guid")))
+            success += 1
+        except IndexError:
+            ctx.obj['output'].write("Failed on bounty uuid {}\n".format(final.get('uuid')))
+            failed_bounty += 1
+        except ServerDisconnectedError as e:
+            ctx.obj['output'].write("Server disconnected error {}\n".format(e))
+            server_disconnects += 1
+        except Exception as e:
+            ctx.obj['output'].write("Failed on bounty with exception {}\n".format(e))
+            other_exceptions +=1
+    return results, (failed_bounty, server_disconnects, other_exceptions, success)
+
+@click.option("-t", "--timeout", type=click.INT, default=-1, help="How long to wait for results (default: forever, -1)")
+@click.option("-c", "--count", type=click.INT, default=1, help="how many tests to run")
+@polyswarm.command("test", short_help="quickly test api")
+@click.pass_context
+def test(ctx, timeout, count):
+    """
+    Scan files or directories via PolySwarm
+    """
+    api = ctx.obj['api']
+
+    api.timeout = timeout
+    tasks = []
+    # first check eicar
+
+    for r in range(0, count):
+        b = get_random_test_artifact(malicious=True, add_random=128)
+
+        task = api.loop.create_task(api.ps_api.scan_data(b))
+
+        tasks.append(task)
+
+    results, _ = api.loop.run_until_complete(asyncio.wait([get_results(ctx, tasks)]))
+
+    fr = results.pop()
+    results, stats = fr.result()
+
+
+    rf = PSResultFormatter(results, color=ctx.obj['color'],
+                                        output_format=ctx.obj['output_format'])
+    ctx.obj['output'].write(str(rf))
+
+    ctx.obj['output'].write('Got {} out of {} results\n'.format(len(results), count))
+
 
 @click.option("-f", "--force", is_flag=True, default=False,  help="Force re-scan even if file has already been analyzed.")
 @click.option("-r", "--recursive", is_flag=True, default=False, help="Scan directories recursively")
@@ -177,7 +259,7 @@ def search(ctx, hash, hash_file, hash_type, rescan):
                 hashes.append(h)
             else:
                 logger.warning("Invalid hash %s in file, ignoring." % h)
-        
+
     rf = PSResultFormatter(api.search_hashes(hashes, hash_type, rescan), color=ctx.obj['color'],
                            output_format=ctx.obj['output_format'])
     ctx.obj['output'].write(str(rf))

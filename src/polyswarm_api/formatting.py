@@ -79,6 +79,7 @@ class PSResultFormatter(object):
         # json is handled directly in main, to join the lists together
         output = []
         if self.output_format == "text":
+            response_counts = dict()
             for result in self.results:
                 if 'files' not in result:
                     if 'uuid' in result:
@@ -115,15 +116,21 @@ class PSResultFormatter(object):
                     else:
                         for assertion in f['assertions']:
                             if assertion['verdict'] is False:
+                                response_counts[assertion['engine']] = response_counts.get(assertion['engine'], 0) + 1
                                 output.append("%s: %s" % (self._normal(assertion['engine']), self._good("Clean")))
                             elif assertion['verdict'] is None or assertion['mask'] is False:
                                 output.append("%s: %s" % (self._normal(assertion['engine']), self._unknown("Unknown/failed to respond")))
                             else:
+                                response_counts[assertion['engine']] = response_counts.get(assertion['engine'], 0) + 1
                                 output.append("%s: %s" % (self._normal(assertion['engine']),
                                                           self._bad("Malicious") +
                                                           (self._bad(", metadata: %s" % assertion['metadata'])
                                                           if 'metadata' in assertion and assertion['metadata'] is not None else '')))
+
                     output.append(self._close_group())
+            output.append("Response counts")
+            for k, v in response_counts.items():
+                output.append("{}: {}/{}".format(k, v, len(self.results)))
             return "\n".join(output)
         elif self.output_format == "json":
             return json.dumps(self.results, indent=4, sort_keys=True)
