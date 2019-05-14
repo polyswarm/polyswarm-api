@@ -56,14 +56,14 @@ def _is_valid_uuid(value):
 def validate_uuid(ctx, param, value):
     for uuid in value:
         if not _is_valid_uuid(uuid):
-            raise click.BadParameter('UUID %s not valid, please check and try again.' % uuid)
+            raise click.BadParameter(f'UUID {uuid} not valid, please check and try again.')
     return value
 
 
 def validate_hash(ctx, param, value):
     for h in value:
         if not (_is_valid_sha256(h) or _is_valid_md5(h) or _is_valid_sha1(h)):
-            raise click.BadParameter('Hash %s not valid, must be sha256|md5|sha1 in hexadecimal format' % h)
+            raise click.BadParameter(f'Hash {h} not valid, must be sha256|md5|sha1 in hexadecimal format')
     return value
 
 
@@ -85,8 +85,6 @@ def get_random_test_artifact(add_random=0, malicious=True):
         artifact += os.urandom(add_random)
 
     return artifact
-
-
 
 
 @click.group(context_settings=CONTEXT_SETTINGS)
@@ -122,7 +120,7 @@ def polyswarm(ctx, api_key, api_uri, output_file, output_format, color, verbose,
     if output_file != sys.stdout:
         color = False
 
-    logging.debug("Creating API instance: api_key:%s, api_uri:%s" % (api_key, api_uri))
+    logging.debug(f"Creating API instance: api_key:{api_key}, api_uri:{api_uri}")
     ctx.obj['api'] = PolyswarmAPI(api_key, api_uri, community=community)
     ctx.obj['color'] = color
     ctx.obj['output_format'] = output_format
@@ -142,7 +140,7 @@ def _do_scan(api, paths, recursive=False):
         elif os.path.isdir(path):
             directories.append(path)
         else:
-            logger.warning("Path %s is neither a file nor a directory, ignoring." % path)
+            logger.warning(f"Path {path} is neither a file nor a directory, ignoring.")
 
     results = api.scan_files(files)
 
@@ -150,6 +148,7 @@ def _do_scan(api, paths, recursive=False):
         results.extend(api.scan_directory(d, recursive=recursive))
 
     return results
+
 
 async def get_results(ctx, tasks):
     results = []
@@ -162,19 +161,19 @@ async def get_results(ctx, tasks):
 
             zeroth_file = final['files'][0]
             if not zeroth_file.get("bounty_guid"):
-                ctx.obj['output'].write("Failed to get bounty guid on {}\n".format(final.get('uuid')))
+                ctx.obj['output'].write(f"Failed to get bounty guid on {final.get('uuid')}\n")
 
             elif not zeroth_file.get("assertions"):
-                ctx.obj['output'].write("Failed to assertions on bounty guid on {}\n".format(zeroth_file.get("bounty_guid")))
+                ctx.obj['output'].write(f"Failed to get assertions on bounty guid on {zeroth_file.get('bounty_guid')}\n")
             success += 1
         except IndexError:
-            ctx.obj['output'].write("Failed on bounty uuid {}\n".format(final.get('uuid')))
+            ctx.obj['output'].write(f"Failed on bounty uuid {final.get('uuid')}\n")
             failed_bounty += 1
         except ServerDisconnectedError as e:
-            ctx.obj['output'].write("Server disconnected error {}\n".format(e))
+            ctx.obj['output'].write(f"Server disconnected error {e}\n")
             server_disconnects += 1
         except Exception as e:
-            ctx.obj['output'].write("Failed on bounty with exception {}\n".format(e))
+            ctx.obj['output'].write(f"Failed on bounty with exception {e}\n")
             other_exceptions +=1
     return results, (failed_bounty, server_disconnects, other_exceptions, success)
 
@@ -197,8 +196,7 @@ def scan(ctx, path, force, recursive, timeout):
 
     results = _do_scan(api, path, recursive)
 
-    rf = PSResultFormatter(results, color=ctx.obj['color'],
-                                    output_format=ctx.obj['output_format'])
+    rf = PSResultFormatter(results, color=ctx.obj['color'], output_format=ctx.obj['output_format'])
     ctx.obj['output'].write(str(rf))
 
 
@@ -225,7 +223,7 @@ def search(ctx, hash, hash_file, hash_type, rescan):
                     (hash_type == "md5" and _is_valid_md5(h)):
                 hashes.append(h)
             else:
-                logger.warning("Invalid hash %s in file, ignoring." % h)
+                logger.warning(f"Invalid hash {h} in file, ignoring.")
 
     rf = PSResultFormatter(api.search_hashes(hashes, hash_type, rescan), color=ctx.obj['color'],
                            output_format=ctx.obj['output_format'])
@@ -251,10 +249,9 @@ def lookup(ctx, uuid, uuid_file):
             if _is_valid_uuid(u):
                 uuids.append(u)
             else:
-                logger.warning("Invalid uuid %s in file, ignoring." % u)
-        
-    rf = PSResultFormatter(api.lookup_uuids(uuids), color=ctx.obj['color'],
-                                    output_format=ctx.obj['output_format'])
+                logger.warning(f"Invalid uuid {u} in file, ignoring.")
+
+    rf = PSResultFormatter(api.lookup_uuids(uuids), color=ctx.obj['color'], output_format=ctx.obj['output_format'])
     ctx.obj['output'].write(str(rf))
 
 
@@ -282,7 +279,7 @@ def download(ctx, metadata, hash_file, hash_type, hash, destination):
                     (hash_type == "md5" and _is_valid_md5(h)):
                 hashes.append(h)
             else:
-                logger.warning("Invalid hash %s in file, ignoring." % h)
+                logger.warning(f"Invalid hash {h} in file, ignoring.")
 
     rf = PSDownloadResultFormatter(api.download_files(hashes, destination, metadata, hash_type),
                                    color=ctx.obj['color'], output_format=ctx.obj['output_format'])
@@ -309,7 +306,7 @@ def rescan(ctx, hash_file, hash_type, hash):
                     (hash_type == "md5" and _is_valid_md5(h)):
                 hashes.append(h)
             else:
-                logger.warning("Invalid hash %s in file, ignoring." % h)
+                logger.warning(f"Invalid hash {h} in file, ignoring.")
 
     rf = PSResultFormatter(api.rescan_files(hashes, hash_type), color=ctx.obj['color'],
                            output_format=ctx.obj['output_format'])
