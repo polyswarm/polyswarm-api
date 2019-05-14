@@ -78,7 +78,7 @@ class PolyswarmAsyncAPI(object):
     """
 
     def __init__(self, key, uri="https://api.polyswarm.network/v1", get_limit=100,
-                 post_limit=1000, timeout=600, force=False, community="epoch"):
+                 post_limit=1000, timeout=600, force=False, community="lima"):
         """
 
         :param key: PolySwarm API key
@@ -531,7 +531,7 @@ class PolyswarmAPI(object):
     """A synchronous interface to the public and private PolySwarm APIs."""
 
     def __init__(self, key, uri="https://api.polyswarm.network/v1", get_limit=100,
-                 post_limit=1000, timeout=600, force=False, community="epoch"):
+                 post_limit=1000, timeout=600, force=False, community="lima"):
         """
 
         :param key: PolySwarm API key
