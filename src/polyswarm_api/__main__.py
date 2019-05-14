@@ -401,6 +401,10 @@ def historical_results(ctx, rule_id, download_path):
 def stream(ctx, download_path):
     api = ctx.obj['api']
 
+    if download_path is not None:
+        if not os.path.exists(download_path):
+            os.makedirs(download_path)
+
     results = api.get_stream(download_path)
 
     rf = PSResultFormatter(results, color=ctx.obj['color'],
