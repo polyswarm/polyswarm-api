@@ -608,7 +608,7 @@ class PolyswarmAsyncAPI(object):
         :return: Matches to the rules
         """
 
-        params = {"results": "true"}
+        params = {}
         if rule_id is not None:
             params['id'] = rule_id
 
