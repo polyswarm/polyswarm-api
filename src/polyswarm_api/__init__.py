@@ -8,6 +8,7 @@ import time
 import aiofiles
 import json
 import urllib
+from urllib import parse
 
 logger = logging.getLogger(__name__)
 
@@ -111,6 +112,7 @@ class PolyswarmAsyncAPI(object):
         self.download_uri = f"{self.uri}/download"
         self.community_uri = f"{self.consumer_uri}/{community}"
         self.hunt_uri = f"{self.uri}/hunt"
+        self.stream_uri = f"{self.uri}/download/stream"
 
         self.force = force
 
@@ -180,7 +182,7 @@ class PolyswarmAsyncAPI(object):
             logger.debug("Downloading file hash {} with api key {}".format(h, self.api_key))
             async with aiohttp.ClientSession() as session:
                 try:
-                    async with session.get("{}/{}/{}".format(self.download_uri, hash_type, h),
+                    async with session.get(f"{self.download_uri}/{hash_type}/{h}",
                                            headers={"Authorization": self.api_key}) as raw_response:
                         try:
                             response = await raw_response.read()
@@ -626,7 +628,7 @@ class PolyswarmAsyncAPI(object):
                             response = {"result": "error"}
                         if raw_response.status // 100 != 2:
                             errors = response.get('errors')
-                            logger.error(f"Error posting to PolySwarm API: {errors}")
+                            logger.error(f"Error reading from PolySwarm API: {errors}")
                             response = {"status": "error"}
                         return response
                 except Exception:
@@ -650,6 +652,54 @@ class PolyswarmAsyncAPI(object):
         :return: Matches to the rules
         """
         return await self._get_hunt_results(rule_id, "historical")
+
+    async def get_stream(self, destination_dir=None):
+        async with aiohttp.ClientSession() as session:
+            async with self.get_semaphore:
+                logger.debug(f"Reading results with api-key {self.api_key}")
+                try:
+                    async with session.get(f"{self.stream_uri}",
+                                           headers={"Authorization": self.api_key}) as raw_response:
+                        try:
+                            response = await raw_response.json()
+                        except Exception:
+                            response = await raw_response.read() if raw_response else 'None'
+                            logger.error(f'Received non-json response from PolySwarm API: {response}')
+                            response = {"result": "error"}
+                        if raw_response.status // 100 != 2:
+                            errors = response.get('errors')
+                            logger.error(f"Error posting to PolySwarm API: {errors}")
+                            response = {"status": "error"}
+                except Exception:
+                    logger.error('Server request failed')
+                    return {'status': "error"}
+
+                if destination_dir is None:
+                    return response
+
+            for archive in response['result']:
+                async with self.get_semaphore:
+                    try:
+                        async with session.get(archive,
+                                               headers={"Authorization": self.api_key}) as raw_response:
+                            try:
+                                file_name = parse.urlparse(archive).path.split("/")[-1]
+                                out_path = os.path.join(destination_dir, file_name)
+                                async with aiofiles.open(out_path, mode="wb") as out:
+                                    while True:
+                                        chunk = await raw_response.content.read(2*1024*1024)
+                                        if not chunk:
+                                            break
+                                        await out.write(chunk)
+                            except Exception:
+                                response = await raw_response.read() if raw_response else 'None'
+                                logger.error(f'Received non-json response from PolySwarm API: {response}')
+                            if raw_response.status // 100 != 2:
+                                errors = response.get('errors')
+                                logger.error(f"Error reading from PolySwarm API: {errors}")
+                    except Exception:
+                        logger.error('Server request failed')
+                        return {'status': "error"}
 
 
 class PolyswarmAPI(object):
@@ -877,3 +927,14 @@ class PolyswarmAPI(object):
         :return: Matches to the rules
         """
         return self.loop.run_until_complete(self.ps_api.get_historical_results(rule_id))
+
+    def get_stream(self, destination_dir=None):
+        """
+        Get stream of tarballs from communities you have the stream privilege on.
+        Contact us at info@polyswarm.io for more info on enabling this feature.
+
+        :param destination_dir: Directory to down files to. None if you just want the list of URLs.
+
+        :return: List of signed S3 URLs for tarballs over the last two days
+        """
+        return self.loop.run_until_complete(self.ps_api.get_stream(destination_dir))

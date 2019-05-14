@@ -178,39 +178,6 @@ async def get_results(ctx, tasks):
             other_exceptions +=1
     return results, (failed_bounty, server_disconnects, other_exceptions, success)
 
-@click.option("-t", "--timeout", type=click.INT, default=-1, help="How long to wait for results (default: forever, -1)")
-@click.option("-c", "--count", type=click.INT, default=1, help="how many tests to run")
-@polyswarm.command("test", short_help="quickly test api")
-@click.pass_context
-def test(ctx, timeout, count):
-    """
-    Scan files or directories via PolySwarm
-    """
-    api = ctx.obj['api']
-
-    api.timeout = timeout
-    tasks = []
-    # first check eicar
-
-    for r in range(0, count):
-        b = get_random_test_artifact(malicious=True, add_random=128)
-
-        task = api.loop.create_task(api.ps_api.scan_data(b))
-
-        tasks.append(task)
-
-    results, _ = api.loop.run_until_complete(asyncio.wait([get_results(ctx, tasks)]))
-
-    fr = results.pop()
-    results, stats = fr.result()
-
-
-    rf = PSResultFormatter(results, color=ctx.obj['color'],
-                                        output_format=ctx.obj['output_format'])
-    ctx.obj['output'].write(str(rf))
-
-    ctx.obj['output'].write('Got {} out of {} results\n'.format(len(results), count))
-
 
 @click.option("-f", "--force", is_flag=True, default=False,  help="Force re-scan even if file has already been analyzed.")
 @click.option("-r", "--recursive", is_flag=True, default=False, help="Scan directories recursively")
@@ -424,6 +391,20 @@ def historical_results(ctx, rule_id, download_path):
 
         hashes = [match['artifact']['sha256'] for match in results['results']]
         api.download_files(hashes, download_path, False, 'sha256')
+
+    ctx.obj['output'].write((str(rf)))
+
+
+@click.option("--download-path", "-d", type=click.Path(file_okay=False), help="In addition to fetching the results, download the archives.")
+@polyswarm.command("stream", short_help="access the polyswarm file stream")
+@click.pass_context
+def stream(ctx, download_path):
+    api = ctx.obj['api']
+
+    results = api.get_stream(download_path)
+
+    rf = PSResultFormatter(results, color=ctx.obj['color'],
+                      output_format=ctx.obj['output_format'])
 
     ctx.obj['output'].write((str(rf)))
 
