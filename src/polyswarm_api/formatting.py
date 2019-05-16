@@ -161,15 +161,15 @@ class PSSearchResultFormatter(PSResultFormatter):
         if self.output_format == "text":
             output = []
             if len(self.search_results) == 0:
-                return self._bad(f"(Did not find any files matching any search criteria.)")
+                return self._bad(f"(Did not find any files matching any search criteria.)\n")
 
             for result in self.search_results:
                 search = result.search
                 result = result.result
                 if len(result) == 0:
-                    return self._bad(f"(Did not find any files matching {search})")
+                    return self._bad(f"(Did not find any files matching {search})\n")
 
-                output.append(self._good(f"Found {len(self.search_results)} matches to the search query."))
+                output.append(self._good(f"Found {len(result)} matches to the search query."))
                 output.append(self._normal(f"Search results for {search}"))
                 for artifact in result:
                     output.append(self._unknown(
@@ -194,3 +194,77 @@ class PSSearchResultFormatter(PSResultFormatter):
         else:
             return "(unknown output format)"
 
+
+class PSHuntResultFormatter(PSResultFormatter):
+    def __init__(self, results, output_format="text", color=True):
+        self.hunt_results = json.loads(json.dumps(results), object_hook=lambda d: Namespace(**d))
+        super(PSHuntResultFormatter, self).__init__(results, output_format, color)
+
+    def __str__(self):
+        if self.output_format == "text":
+            output = []
+
+            if self.hunt_results.status != "OK":
+                return self._bad("An unspecified error occurred fetching hunt records.")
+
+            results = self.hunt_results.result
+
+            if len(results) == 0:
+                return self._bad(f"(Did not find any results yet for this hunt.)\n")
+
+            output.append(self._good(f"Found {len(results)} samples in this hunt."))
+
+            for result in results:
+                output.append(self._good(f"Match on rule {result.rule_name}" + (f", tags: {result.tags}" if result.tags != "" else "")))
+                artifact = result.artifact
+                output.append(self._unknown(
+                    "File %s" % artifact.sha256))
+                output.append(
+                    self._info(self._open_group(self._info(f"File type: mimetype: {artifact.mimetype}, extended_info: {artifact.extended_type}"))))
+                output.append(self._info(f"SHA256: {artifact.sha256}"))
+                output.append(self._info(f"SHA1: {artifact.sha1}"))
+                output.append(self._info(f"MD5: {artifact.md5}"))
+
+                # gather instance data
+                countries, filenames = set(), set()
+                for artifact_instance in artifact.artifact_instances:
+                    countries.add(artifact_instance.country)
+                    filenames.add(artifact_instance.name)
+                output.append(self._info(f"Observed countries: {','.join(countries)}"))
+                output.append(self._info(f"Observed filenames: {','.join(filenames)}"))
+                output.append(self._close_group())
+            return "\n".join(output)
+        elif self.output_format == "json":
+            return json.dumps(self.results, indent=4, sort_keys=True)
+        else:
+            return "(unknown output format)"
+
+
+class PSHuntSubmissionFormatter(PSResultFormatter):
+    def __str__(self):
+        if self.output_format == "text":
+            if self.results['status'] != 'OK':
+                return self._bad("Failed to install rules.\n")
+            return self._good(f"Successfully submitted rules, rule_id: {self.results['result']['rule_id']}\n")
+
+        elif self.output_format == "json":
+            return json.dumps(self.results, indent=4, sort_keys=True)
+        else:
+            return "(unknown output format)"
+
+
+class PSStreamFormatter(PSResultFormatter):
+    def __str__(self):
+        if self.output_format == "text":
+            if self.results['status'] != 'OK':
+                return self._bad("Failed to access stream.\n")
+            if len(self.results['result']) == 0:
+                return self._bad("No archives have been posted in the supplied timeframe.\n")
+            urls = []
+            for value in self.results['result'].values():
+                urls.extend(value)
+            return "\n".join(urls)
+        elif self.output_format == "json":
+            return json.dumps(self.results, indent=4, sort_keys=True)
+        else:
+            return "(unknown output format)"

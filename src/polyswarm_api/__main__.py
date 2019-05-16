@@ -12,7 +12,8 @@ from uuid import UUID
 from aiohttp import ServerDisconnectedError
 
 from . import PolyswarmAPI
-from .formatting import PSResultFormatter, PSDownloadResultFormatter, PSSearchResultFormatter
+from .formatting import PSResultFormatter, PSDownloadResultFormatter, PSSearchResultFormatter, PSHuntResultFormatter, \
+    PSHuntSubmissionFormatter, PSStreamFormatter
 
 CONTEXT_SETTINGS = dict(help_option_names=['-h', '--help'])
 
@@ -205,11 +206,10 @@ def scan(ctx, path, force, recursive, timeout):
 
 @click.option('-r', '--hash-file', help="File of hashes, one per line.", type=click.File('r'))
 @click.option("--hash-type", help="Hash type to search [sha256|sha1|md5], default=sha256", default="sha256")
-@click.option("--rescan", is_flag=True, default=False, help="Rescan any files that exist for latest results.")
 @click.argument('hash', nargs=-1, callback=validate_hash)
 @polyswarm.command("search", short_help="search for hash")
 @click.pass_context
-def search(ctx, hash, hash_file, hash_type, rescan):
+def search(ctx, hash, hash_file, hash_type):
     """
     Search PolySwarm for files matching sha256 hashes
     """
@@ -228,7 +228,7 @@ def search(ctx, hash, hash_file, hash_type, rescan):
             else:
                 logger.warning("Invalid hash %s in file, ignoring." % h)
 
-    rf = PSSearchResultFormatter(api.search_hashes(hashes, hash_type, rescan), color=ctx.obj['color'],
+    rf = PSSearchResultFormatter(api.search_hashes(hashes, hash_type), color=ctx.obj['color'],
                            output_format=ctx.obj['output_format'])
     ctx.obj['output'].write(str(rf))
 
@@ -335,7 +335,7 @@ def live_install(ctx, rule_file):
 
     rules = rule_file.read()
 
-    rf = PSResultFormatter(api.new_live_hunt(rules), color=ctx.obj['color'],
+    rf = PSHuntSubmissionFormatter(api.new_live_hunt(rules), color=ctx.obj['color'],
                       output_format=ctx.obj['output_format'])
     ctx.obj['output'].write((str(rf)))
 
@@ -349,13 +349,13 @@ def live_results(ctx, rule_id, download_path):
 
     results = api.get_live_results(rule_id)
 
-    rf = PSResultFormatter(results, color=ctx.obj['color'],
+    rf = PSHuntResultFormatter(results, color=ctx.obj['color'],
                       output_format=ctx.obj['output_format'])
 
     if download_path and results['status'] == 'OK':
         if not os.path.exists(download_path):
             os.makedirs(download_path)
-        hashes = [match['artifact']['sha256'] for match in results['results']]
+        hashes = [match['artifact']['sha256'] for match in results['result']]
         api.download_files(hashes, download_path, False, 'sha256')
 
     ctx.obj['output'].write((str(rf)))
@@ -369,7 +369,7 @@ def historical_start(ctx, rule_file):
 
     rules = rule_file.read()
 
-    rf = PSResultFormatter(api.new_historical_hunt(rules), color=ctx.obj['color'],
+    rf = PSHuntSubmissionFormatter(api.new_historical_hunt(rules), color=ctx.obj['color'],
                       output_format=ctx.obj['output_format'])
     ctx.obj['output'].write((str(rf)))
 
@@ -383,14 +383,14 @@ def historical_results(ctx, rule_id, download_path):
 
     results = api.get_historical_results(rule_id)
 
-    rf = PSResultFormatter(results, color=ctx.obj['color'],
+    rf = PSHuntResultFormatter(results, color=ctx.obj['color'],
                       output_format=ctx.obj['output_format'])
 
     if download_path and results['status'] == 'OK':
         if not os.path.exists(download_path):
             os.makedirs(download_path)
 
-        hashes = [match['artifact']['sha256'] for match in results['results']]
+        hashes = [match['artifact']['sha256'] for match in results['result']]
         api.download_files(hashes, download_path, False, 'sha256')
 
     ctx.obj['output'].write((str(rf)))
@@ -408,7 +408,7 @@ def stream(ctx, download_path):
 
     results = api.get_stream(download_path)
 
-    rf = PSResultFormatter(results, color=ctx.obj['color'],
+    rf = PSStreamFormatter(results, color=ctx.obj['color'],
                       output_format=ctx.obj['output_format'])
 
     ctx.obj['output'].write((str(rf)))
