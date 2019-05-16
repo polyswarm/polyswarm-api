@@ -183,8 +183,10 @@ class PSSearchResultFormatter(PSResultFormatter):
                     # gather instance data
                     countries, filenames = set(), set()
                     for artifact_instance in artifact.artifact_instances:
-                        countries.add(artifact_instance.country)
-                        filenames.add(artifact_instance.name)
+                        if artifact_instance.country is not None:
+                            countries.add(artifact_instance.country)
+                        if artifact_instance.name is not None:
+                            filenames.add(artifact_instance.name)
                     output.append(self._info(f"Observed countries: {','.join(countries)}"))
                     output.append(self._info(f"Observed filenames: {','.join(filenames)}"))
                     output.append(self._close_group())
@@ -228,8 +230,10 @@ class PSHuntResultFormatter(PSResultFormatter):
                 # gather instance data
                 countries, filenames = set(), set()
                 for artifact_instance in artifact.artifact_instances:
-                    countries.add(artifact_instance.country)
-                    filenames.add(artifact_instance.name)
+                    if artifact_instance.country is not None:
+                        countries.add(artifact_instance.country)
+                    if artifact_instance.name is not None:
+                        filenames.add(artifact_instance.name)
                 output.append(self._info(f"Observed countries: {','.join(countries)}"))
                 output.append(self._info(f"Observed filenames: {','.join(filenames)}"))
                 output.append(self._close_group())
