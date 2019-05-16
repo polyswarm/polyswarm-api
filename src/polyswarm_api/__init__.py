@@ -362,13 +362,14 @@ class PolyswarmAsyncAPI(object):
                                 raise Exception('Received non-json response from PolySwarm API: %s', response)
                             if raw_response.status // 100 != 2:
                                 if raw_response.status == 404 and response.get("errors").find("has not been in any") != -1:
-                                    return {'hash': to_scan}
+                                    return {'hash': to_scan, "search": f"{hash_type}={to_scan}"}
 
                                 errors = response.get('errors')
                                 raise Exception("Error reading from PolySwarm API: {}".format(errors))
                     except Exception:
                         logger.error('Server request failed')
-                        return {'reason': "unknown_error", 'result': "error", 'hash': to_scan}
+                        return {'reason': "unknown_error", 'result': "error", 'hash': to_scan,
+                                "search": f"{hash_type}={to_scan}"}
 
         if rescan:
             try:
@@ -380,7 +381,8 @@ class PolyswarmAsyncAPI(object):
                 logger.warning("Failed to parse response, not rescanning.")
                 return response
 
-        return self._fix_result(response['result'])
+        response['search'] = f"{hash_type}={to_scan}"
+        return response
 
     async def rescan_hash(self, to_rescan, hash_type="sha256"):
         """
@@ -494,9 +496,11 @@ class PolyswarmAsyncAPI(object):
 
         if with_metadata:
             meta_results = await self.search_hash(h, hash_type=hash_type)
-            if "files" in meta_results and "file_info" in meta_results["files"][0]:
+            print(meta_results)
+            if 'result' in meta_results and len(meta_results['result']) > 0:
                 async with aiofiles.open(out_path+".json", mode="w") as f:
-                    await f.write(json.dumps(meta_results["files"][0]))
+                    # this is a hash search, only return one result
+                    await f.write(json.dumps(meta_results["result"][0]))
 
         return {"file_path": out_path, "status": "OK", "file_hash": h}
 

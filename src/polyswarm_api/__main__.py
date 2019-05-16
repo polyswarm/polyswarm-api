@@ -12,7 +12,7 @@ from uuid import UUID
 from aiohttp import ServerDisconnectedError
 
 from . import PolyswarmAPI
-from .formatting import PSResultFormatter, PSDownloadResultFormatter
+from .formatting import PSResultFormatter, PSDownloadResultFormatter, PSSearchResultFormatter
 
 CONTEXT_SETTINGS = dict(help_option_names=['-h', '--help'])
 
@@ -151,6 +151,7 @@ def _do_scan(api, paths, recursive=False):
 
     return results
 
+
 async def get_results(ctx, tasks):
     results = []
     failed_bounty, server_disconnects, other_exceptions, success = 0, 0, 0, 0
@@ -227,7 +228,7 @@ def search(ctx, hash, hash_file, hash_type, rescan):
             else:
                 logger.warning("Invalid hash %s in file, ignoring." % h)
 
-    rf = PSResultFormatter(api.search_hashes(hashes, hash_type, rescan), color=ctx.obj['color'],
+    rf = PSSearchResultFormatter(api.search_hashes(hashes, hash_type, rescan), color=ctx.obj['color'],
                            output_format=ctx.obj['output_format'])
     ctx.obj['output'].write(str(rf))
 

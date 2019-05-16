@@ -1,5 +1,6 @@
 import json
 from datetime import datetime
+from types import SimpleNamespace as Namespace
 
 
 def is_colored(fn):
@@ -128,9 +129,6 @@ class PSResultFormatter(object):
                                                           if 'metadata' in assertion and assertion['metadata'] is not None else '')))
 
                     output.append(self._close_group())
-            output.append("Response counts")
-            for k, v in response_counts.items():
-                output.append("{}: {}/{}".format(k, v, len(self.results)))
             return "\n".join(output)
         elif self.output_format == "json":
             return json.dumps(self.results, indent=4, sort_keys=True)
@@ -152,3 +150,47 @@ class PSDownloadResultFormatter(PSResultFormatter):
             return json.dumps(self.results, indent=4, sort_keys=True)
         else:
             return "(unknown output format)"
+
+
+class PSSearchResultFormatter(PSResultFormatter):
+    def __init__(self, results, output_format="text", color=True):
+        self.search_results = json.loads(json.dumps(results), object_hook=lambda d: Namespace(**d))
+        super(PSSearchResultFormatter, self).__init__(results, output_format, color)
+
+    def __str__(self):
+        if self.output_format == "text":
+            output = []
+            if len(self.search_results) == 0:
+                return self._bad(f"(Did not find any files matching any search criteria.)")
+
+            for result in self.search_results:
+                search = result.search
+                result = result.result
+                if len(result) == 0:
+                    return self._bad(f"(Did not find any files matching {search})")
+
+                output.append(self._good(f"Found {len(self.search_results)} matches to the search query."))
+                output.append(self._normal(f"Search results for {search}"))
+                for artifact in result:
+                    output.append(self._unknown(
+                        "File %s" % artifact.sha256))
+                    output.append(
+                        self._info(self._open_group(self._info(f"File type: mimetype: {artifact.mimetype}, extended_info: {artifact.extended_type}"))))
+                    output.append(self._info(f"SHA256: {artifact.sha256}"))
+                    output.append(self._info(f"SHA1: {artifact.sha1}"))
+                    output.append(self._info(f"MD5: {artifact.md5}"))
+
+                    # gather instance data
+                    countries, filenames = set(), set()
+                    for artifact_instance in artifact.artifact_instances:
+                        countries.add(artifact_instance.country)
+                        filenames.add(artifact_instance.name)
+                    output.append(self._info(f"Observed countries: {','.join(countries)}"))
+                    output.append(self._info(f"Observed filenames: {','.join(filenames)}"))
+                    output.append(self._close_group())
+            return "\n".join(output)
+        elif self.output_format == "json":
+            return json.dumps(self.results, indent=4, sort_keys=True)
+        else:
+            return "(unknown output format)"
+
