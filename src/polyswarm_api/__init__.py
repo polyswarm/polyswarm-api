@@ -8,54 +8,9 @@ import time
 import aiofiles
 import json
 
+from polyswarm_api.engine_resolver import EngineResolver
+
 logger = logging.getLogger(__name__)
-
-
-# This will be removed after https://github.com/polyswarm/development-private/issues/191
-class EngineResolver(object):
-    def _lower_dict(self, d):
-        return dict([(k, v.lower()) for k, v in d.items()])
-
-    def __init__(self, network):
-        self.engine_map = self._lower_dict({
-            "0x89a2d261fecc717fea00f3f449c4ec6c4277cfd8": "ClamAV-Engine",
-            "0x04c9aa5ecfd2eb126e93ef6d890c7d669acd1028": "ClamAV-Arbiter",
-            "0x0d14c9f70301ceb14cadd847e87aa3b55c72bafd": "Ikarus",
-            "0xbea35ed815c40e5a0fe470ec653776350ba49e14": "K7-Engine",
-            "0x2a1eeee60a652961a4b6981b6103cdcb63efbd6b": "K7-Arbiter",
-            "0x69d568837a75cd385ce6cafa176d878a1d3dc18f": "HatchingArb",
-            "0x29f9c138f445dde9330361b4dcf3db635fab2672": "PSArbiter",
-            "0x71175ca0caa19144b571a4a8483f7c29e2e15acb": "PSAmbassador",
-            "0xb397baa27044a122875cdeb69cae7dd0c62a25db": "DrWeb",
-            "0x1ef33589ed52b988a12e8ccc3d367283138b656a": "Lionic",
-            "0x026dcc346c7bd89ff7747e8c8efb591d68dc1247": "XVirus",
-            "0x15c588a0ff53f6c462fbdaf4285f7935f5d06e7c": "NanoAV",
-            "0x17476473b96f8127d3d463ea783fa938cdf1b46b": "Tachyon",
-            "0x89b1e316033b72b56bcbbf0e10610446fac26bac": "Zillya",
-            "0xfec7050bf25efe1510a854ae63d00a952f0a104f": "PSConsumer",
-            "0x31174c90d709c952948a94b1ab5bc20c10cf364d": "Trustlook",
-        }) if network == "stage" else self._lower_dict({
-            "0x3750266f07e0590aa16e55c32e08e48878010f8f": "ClamAV-Engine",
-            "0xdc6a0f9c3af726ba05aac14605ac9b3b958512d7": "ClamAV-Arbiter",
-            "0xa4815d9b8f710e610e8957f4ad13f725a4331cbb": "Ikarus",
-            "0xbe0b3ec289aaf9206659f8214c49d083dc1a9e17": "K7-Engine",
-            "0xd8b48da78188312c5fc079e532afd48de973767e": "K7-Arbiter",
-            "0x1f50cf288b5d19a55ac4c6514e5ba6a704bd03ec": "HatchingArb",
-            "0x2e03565b735e2343f7f0501a7772a42b1c0e8893": "PSArbiter",
-            "0xbd981a0a28236158196b1291a0ee3df1e9fcc11d": "PSAmbassador",
-            "0x7c6a9f9f9f1a67774999ff0e26ffdba2c9347eeb": "DrWeb",
-            "0x0457c40dba29166c1d2485f93946688c1fc6cc58": "Lionic",
-            "0x59af39803354bd08971ac8e7c6db7410a25ab8da": "XVirus",
-            "0x2b4c240b376e5406c5e2559c27789d776ae97efd": "NanoAV",
-            "0x1edf29c0977af06215032383f93deb9899d90118": "Tachyon",
-            "0xf6019c1f057d26ffb2b41c221e0db4ef88931c86": "Zillya",
-            "0x0409ba7c59127f81d8b09b3ec551204ebb3d034e": "PSConsumer",
-            "0xf598f7da0d00d9ad21fb00663a7d62a19d43ea61": "Trustlook",
-        })
-        self.reverse_engine_map = {v: k for k, v in self.engine_map.items()}
-
-    def get_engine_name(self, eth_pub):
-        return self.engine_map.get(eth_pub.lower(), eth_pub)
 
 
 class PolyswarmAsyncAPI(object):
@@ -86,13 +41,14 @@ class PolyswarmAsyncAPI(object):
 
         self.get_semaphore = asyncio.Semaphore(get_limit)
 
-        self.network = "prod" if uri.find("stage") == -1 else "stage"
+        self.network = "prod" if uri.find("lb.kb") == -1 else "lb.kb"
 
         # TODO does this need commmunity?
         self.portal_uri = "https://polyswarm.network/scan/results/" if self.network == "prod" else "https://portal.stage.polyswarm.network/"
 
-        # ...sigh
-        self.engine_resolver = EngineResolver(self.network)
+        self.api_uri = "https://api.k.polyswarm.network" if self.network == "prod" else "https://api.lb.kb.polyswarm.network"
+
+        self.engine_resolver = EngineResolver(self.api_uri)
 
         self.post_semaphore = asyncio.Semaphore(post_limit)
 

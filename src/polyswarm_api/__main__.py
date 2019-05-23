@@ -74,7 +74,7 @@ def validate_key(ctx, param, value):
 @click.option("--fmt", "--output-format", default="text", type=click.Choice(['text', 'json']), help="Output format. Human-readable text or JSON.")
 @click.option("--color/--no-color", default=True, help="Use colored output in text mode.")
 @click.option('-v', '--verbose', default=0, count=True)
-@click.option('-c', "--community", default="epoch", envvar="POLYSWARM_COMMUNITY", help="Community to use.")
+@click.option('-c', "--community", default="lima", envvar="POLYSWARM_COMMUNITY", help="Community to use.")
 @click.pass_context
 def polyswarm(ctx, api_key, api_uri, output_file, output_format, color, verbose, community):
     """
