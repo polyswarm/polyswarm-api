@@ -1,5 +1,8 @@
 ## PolySwarm API
 
+New in v0.3: Initial support for the new hunting/search/stream APIs. This version made some breaking changes to the
+search endpoint, so please update. More documentation on the new APIs will be added as features roll out.
+
 New in v0.2: Each community has its own endpoint. To support the new API, simply prepend the community you wish to interact with to the URL. For most, this will be `/epoch/`.
 
 ### **POST** `/[community]`
@@ -26,7 +29,7 @@ Fields in JSON response:
 
 ### **GET** `/[community]/uuid/[uuid]`
 
-Returns the current state of the submission, complete with scan results if completed. The full JSON format is described in the JSON format section.
+Returns the current state of the submission, complete with scan results if completed. The full JSON format is described in the JSON format section under "Bounty Results".
 
 ### **GET** `/[community]/rescan/[hash_type]/[hash]`
 
@@ -54,11 +57,10 @@ Requires authentication.
 Perform a search by `hash_type` hash across all communities provided API key has access to.
 Supported hash types are sha256/sha1/md5. 
 
-Response is described in the JSON Format section below, and includes both the optional `file_info` dictionary and
-the results of the latest scan of the file.
+Response is described in the JSON Format section below, under "Search Results".
 
 ## JSON Format
-
+### Bounty Results
 The following an example of the results returned from the **GET**`/[community]/uuid/[uuid]` endpoint from which scan results can be retrieved.
 
 ```json
@@ -170,3 +172,105 @@ format: a list of scan results. A scan result is made up of the following fields
 <!--- TODO more statuses need editing here too --->
 - status: Whether the entire bounty was settled
 - uuid: UUID that can be used to look up this bounty in the PolySwarm API
+
+### Search Results
+
+An example search response can be seen below:
+
+```json
+[
+      {
+        "artifact_instances": [
+          {
+            "artifact_id": 16301091586689620,
+            "bounty_id": null,
+            "bountyresult": {
+              "files": [
+                {
+                  "assertions": [
+                    {
+                      "author": "0x0D14c9F70301CeB14CaDD847e87AA3b55C72BafD",
+                      "bid": "62500000000000000",
+                      "mask": true,
+                      "metadata": "EICAR-Test-File",
+                      "verdict": true
+                    }
+                  ],
+                  "bounty_guid": "d187d4a2-7410-4a70-a5ee-73fd0533a90d",
+                  "bounty_status": "Settled",
+                  "failed": false,
+                  "filename": "eicar",
+                  "hash": "275a021bbfb6489e54d471899f7db9d1663fc695ec2fe2a2c4538aabf651fd0f",
+                  "result": null,
+                  "size": 68,
+                  "votes": [
+                    {
+                      "arbiter": "0x29F9c138F445dde9330361b4DCf3DB635faB2672",
+                      "vote": true
+                    },
+                    {
+                      "arbiter": "0x04C9aa5EcfD2EB126e93ef6D890c7d669Acd1028",
+                      "vote": true
+                    }
+                  ],
+                  "window_closed": true
+                }
+              ],
+              "forced": true,
+              "status": "Bounty Settled",
+              "uuid": "407dbdde-3505-4de4-a2df-ce1896e01053"
+            },
+            "community": "lima",
+            "consumer_guid": "16cb33d2-4a8f-472f-9884-293a5b1d1e72",
+            "country": "US",
+            "id": 8082705883320936,
+            "name": "eicar"
+          }
+        ],
+        "artifact_metadata": [
+          {
+            "tool": "strings",
+            "tool_metadata": {
+              "domains": [],
+              "ipv4": [],
+              "ipv6": [],
+              "urls": []
+            }
+          }
+        ],
+        "extended_type": "EICAR virus test files",
+        "id": 16301091586689620,
+        "md5": "69630e4574ec6798239b091cda43dca0",
+        "mimetype": "text/plain",
+        "sha1": "cf8bd9dfddff007f75adf4c2be48005cea317c62",
+        "sha256": "131f95c51cc819465fa1797f6ccacf9d494aaaff46fa3eac73ae63ffbdfd8267"
+      }
+]
+```
+
+The basic format is a list of artifacts, which then under them contain information on every time the network has seen
+the files, what votes/assertions where made, and what metadata was gathered from them.
+
+An artifact object has the following properties, which may be null:
+- artifact_instances (a list of times the artifact was seen, and information about it)
+- artifact_metadata (a list of results from various tools run internally)
+- extended_type
+- id
+- md5
+- mimetype
+- sha1
+- sha256
+
+
+Digging into the artifact_instances, you have the following information available:
+- artifact_id
+- bounty_id
+- bountyresults (a bounty result object)
+- community
+- consumer_guid
+- country (guessed roughly by geoip, if submitted through PolySwarm's APIs)
+- id
+- name (the original filename)
+
+Finally, there is a bounty result object. This object is identical to the result object described in the previous
+section.

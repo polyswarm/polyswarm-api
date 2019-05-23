@@ -1,0 +1,20 @@
+.idea/
+*.swp
+*.pyc
+venv/
+__pycache__/
+.pytest_cache
+.tox
+*.egg-info/
+tests/.hypothesis/
+.vscode
+.coverage
+.eggs
+build
+dist
+
+# Ignored Read the Docs assets
+_build
+_static
+_templates
+.vscode

@@ -36,13 +36,23 @@ results = api.search_hashes(["275a021bbfb6489e54d471899f7db9d1663fc695ec2fe2a2c4
 results = api.download_file("275a021bbfb6489e54d471899f7db9d1663fc695ec2fe2a2c4538aabf651fd0f", "test/")
 
 results = api.rescan_file("275a021bbfb6489e54d471899f7db9d1663fc695ec2fe2a2c4538aabf651fd0f")
+
+results = api.new_live_hunt(open("eicar.yara").read()) 
+
+results = api.get_live_results(rule_id=results['result']['rule_id'])
+
+results = api.new_historical_hunt(open("eicar.yara").read()) 
+
+results = api.get_historical_results(rule_id=results['result']['rule_id'])
+
+results = api.get_stream(destination_dir="/my/malware/path")
 ```
 
 To use the provided CLI:
 
 ```bash
 $ export POLYSWARM_API_KEY=<Your API key from polyswarm.network>
-$ export POLYSWARM_COMMUNITY=epoch
+$ export POLYSWARM_COMMUNITY=lima
 $ polyswarm
 Usage: polyswarm [OPTIONS] COMMAND [ARGS]...
 
@@ -62,11 +72,15 @@ Options:
   -h, --help                      Show this message and exit.
 
 Commands:
-  download  download file(s)
-  lookup    lookup UUID(s)
-  rescan    rescan files(s) by hash
-  scan      scan files/directories
-  search    search for hash
+  download    download file(s)
+  historical  interact with historical scans
+  live        interact with live scans
+  lookup      lookup UUID(s)
+  rescan      rescan files(s) by hash
+  scan        scan files/directories
+  search      search for hash
+  stream      access the polyswarm file stream
+
 
 $ polyswarm scan /tmp/eicar
 Scan report for GUID 39b04176-51eb-4431-82d0-a0a3176164f0

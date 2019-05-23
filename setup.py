@@ -15,7 +15,7 @@ with open("README.md", "r") as readme:
 
 setup(
     name='polyswarm-api',
-    version='0.2.3',
+    version='0.3.1',
     description='Client library to simplify interacting with the PolySwarm consumer API',
     long_description=long_description,
     long_description_content_type="text/markdown",
@@ -23,7 +23,7 @@ setup(
     author_email='info@polyswarm.io',
     url='https://github.com/polyswarm/polyswarm-api',
     license='MIT',
-    python_requires='>=3.5.2,<4',
+    python_requires='>=3.6,<4',
     install_requires=parse_requirements(),
     include_package_data=True,
     packages=find_packages('src'),
