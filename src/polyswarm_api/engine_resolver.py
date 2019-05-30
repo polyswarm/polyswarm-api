@@ -23,11 +23,14 @@ class EngineResolver(object):
             self.logger.debug("Begin engine name polling")
             headers = {'content-type': 'application/json'}
             async with aiohttp.ClientSession(headers=headers) as session:
-                async with session.get('{}/{}'.format(self.api_addr, 'v1/microengines/list')) as response:
-                    result = await response.json()
-                    engines_results = result.get('results', [])
-                    self.engine_map = dict([(engine.get('address'), engine.get('name')) for engine in engines_results])
-                    self.logger.debug('engine_map={}'.format(self.engine_map))
+                async with session.get(f'{self.api_addr}/v1/microengines/list') as response:
+                    if response.status // 100 == 2:
+                        result = await response.json()
+                        engines_results = result.get('results', [])
+                        self.engine_map = dict([(engine.get('address'), engine.get('name')) for engine in engines_results])
+                        self.logger.debug('engine_map={}'.format(self.engine_map))
+                    else:
+                        self.logger.warning('unable to get microengine informantion')
         except Exception as e:
             self.logger.exception('error pulling engine data from portal backend')
 

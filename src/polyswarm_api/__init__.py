@@ -8,7 +8,7 @@ import time
 import aiofiles
 import json
 
-from polyswarm_api.engine_resolver import EngineResolver
+from .engine_resolver import EngineResolver
 
 logger = logging.getLogger(__name__)
 
@@ -46,7 +46,7 @@ class PolyswarmAsyncAPI(object):
         # TODO does this need commmunity?
         self.portal_uri = "https://polyswarm.network/scan/results/" if self.network == "prod" else "https://portal.stage.polyswarm.network/"
 
-        self.api_uri = "https://api.k.polyswarm.network" if self.network == "prod" else "https://api.lb.kb.polyswarm.network"
+        self.api_uri = "https://api.polyswarm.network" if self.network == "prod" else "https://api.lb.kb.polyswarm.network"
 
         self.engine_resolver = EngineResolver(self.api_uri)
 
