@@ -41,13 +41,11 @@ class PolyswarmAsyncAPI(object):
 
         self.network = "prod"
         self.portal_uri = "https://polyswarm.network/scan/results/"
-        self.api_uri = "https://api.k.polyswarm.network"
         
         if self.uri_parse.hostname.endswith(self._stage_base_domain):
             self.network = "stage"
             # TODO change this to stage.lb.kb.polyswarm.network *after* portal chart in kube
             self.portal_uri = "https://portal.stage.polyswarm.network/scan/results/"
-            self.api_url = "https://api.lb.kb.polyswarm.network"
 
         self.consumer_uri = f"{self.uri}/consumer"
         self.search_uri = f"{self.uri}/search"
