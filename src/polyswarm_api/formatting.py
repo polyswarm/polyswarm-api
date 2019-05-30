@@ -104,9 +104,7 @@ class PSResultFormatter(object):
                         # this is in response to a /search/ request, so has some additional file metadata
                         file_info = f['file_info']
                         first_seen = datetime.utcfromtimestamp(file_info['timestamp']).strftime('%Y-%m-%d %H:%M:%S')
-                        output.append(self._info("File info: first seen: {}, mimetype: {}, extended_info: {}, known_filenames: {}".format(
-                            first_seen, file_info['mimetype'], file_info['extended_type'], ",".join(file_info['filenames'])
-                        )))
+                        output.append(self._info(f"File info: first seen: {first_seen}, mimetype: {file_info['mimetype']}, extended_info: {file_info['extended_type']}, known_filenames: {','.join(file_info['filenames'])}"))
                     if 'assertions' not in f or len(f['assertions']) == 0:
                         if 'failed' in f and f['failed']:
                             output.append(self._bad("Bounty failed, please resubmit"))
@@ -142,9 +140,9 @@ class PSDownloadResultFormatter(PSResultFormatter):
         if self.output_format == "text":
             for result in self.results:
                 if result['status'] == "OK":
-                    output.append(self._good("Downloaded {}: {}".format(result['file_hash'], result['file_path'])))
+                    output.append(self._good(f"Downloaded {result['file_hash']}: {result['file_path']}"))
                 else:
-                    output.append(self._bad("Download {} failed: {}".format(result['file_hash'], result['reason'])))
+                    output.append(self._bad(f"Download {result['file_hash']} failed: {result['reason']}"))
             return "\n".join(output) + "\n"
         elif self.output_format == "json":
             return json.dumps(self.results, indent=4, sort_keys=True)
