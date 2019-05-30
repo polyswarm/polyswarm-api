@@ -1,3 +1,0 @@
-[console_scripts]
-polyswarm = polyswarm_api.__main__:polyswarm
-
