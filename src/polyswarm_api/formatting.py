@@ -179,6 +179,7 @@ class PSSearchResultFormatter(PSResultFormatter):
                     output.append(self._info(f"SHA256: {artifact.sha256}"))
                     output.append(self._info(f"SHA1: {artifact.sha1}"))
                     output.append(self._info(f"MD5: {artifact.md5}"))
+                    output.append(self._info(f"First seen: {artifact.first_seen}"))
 
                     # gather instance data
                     countries, filenames = set(), set()
@@ -206,13 +207,16 @@ class PSHuntResultFormatter(PSResultFormatter):
         if self.output_format == "text":
             output = []
 
-            if self.hunt_results.status != "OK":
+            if self.hunt_results.status not in ["PENDING", "RUNNING", "SUCCESS", "FAILED"]:
                 return self._bad("An unspecified error occurred fetching hunt records.")
+
+            output.append(self._info(f"Scan status: {self.hunt_results.status.capitalize()}\n"))
 
             results = self.hunt_results.result
 
             if len(results) == 0:
-                return self._bad(f"(Did not find any results yet for this hunt.)\n")
+                output.append(self._bad(f"(Did not find any results yet for this hunt.)\n"))
+                return "\n".join(output)
 
             output.append(self._good(f"Found {len(results)} samples in this hunt."))
 
@@ -226,6 +230,7 @@ class PSHuntResultFormatter(PSResultFormatter):
                 output.append(self._info(f"SHA256: {artifact.sha256}"))
                 output.append(self._info(f"SHA1: {artifact.sha1}"))
                 output.append(self._info(f"MD5: {artifact.md5}"))
+                output.append(self._info(f"First seen: {artifact.first_seen}"))
 
                 # gather instance data
                 countries, filenames = set(), set()
