@@ -28,7 +28,7 @@ class EngineResolver(object):
                         result = await response.json()
                         engines_results = result.get('results', [])
                         self.engine_map = dict([(engine.get('address'), engine.get('name')) for engine in engines_results])
-                        self.logger.debug('engine_map={}'.format(self.engine_map))
+                        self.logger.debug(f'engine_map={self.engine_map}')
                     else:
                         self.engine_map = dict()
                         self.logger.warning('unable to get microengine information')

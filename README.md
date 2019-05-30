@@ -98,18 +98,15 @@ Report for file eicar, hash: 131f95c51cc819465fa1797f6ccacf9d494aaaff46fa3eac73a
 
 $ polyswarm -o /tmp/test.txt search 131f95c51cc819465fa1797f6ccacf9d494aaaff46fa3eac73ae63ffbdfd8267
 $ cat /tmp/test.txt
-Scan report for GUID 39b04176-51eb-4431-82d0-a0a3176164f0
-=========================================================
-Report for file eicar, hash: 131f95c51cc819465fa1797f6ccacf9d494aaaff46fa3eac73ae63ffbdfd8267
-        tachyon: Clean
-        nanoav: Malicious, metadata: {"infections": [{"name": "Marker.Dos.EICAR-Test-File.dyb"}]}
-        zillya: Malicious
-        clamav-engine: Malicious, metadata: Eicar-Test-Signature
-        k7-engine: Malicious, metadata: Trojan ( 000139291 )
-        ikarus: Malicious, metadata: EICAR-Test-File
-        xvirus: Malicious, metadata: 
-        drweb: Malicious, metadata: infected with EICAR Test File (NOT a Virus!)
-        lionic: Clean
+Found 1 matches to the search query.
+Search results for sha256=131f95c51cc819465fa1797f6ccacf9d494aaaff46fa3eac73ae63ffbdfd8267
+File 131f95c51cc819465fa1797f6ccacf9d494aaaff46fa3eac73ae63ffbdfd8267
+	File type: mimetype: text/plain, extended_info: EICAR virus test files
+	SHA256: 131f95c51cc819465fa1797f6ccacf9d494aaaff46fa3eac73ae63ffbdfd8267
+	SHA1: cf8bd9dfddff007f75adf4c2be48005cea317c62
+	MD5: 69630e4574ec6798239b091cda43dca0
+	Observed countries: US,PR
+	Observed filenames: 131f95c51cc819465fa1797f6ccacf9d494aaaff46fa3eac73ae63ffbdfd8267,eicar.com.txt,eicar.txt
 
 $ polyswarm -vvv -o /tmp/test.json --fmt json lookup 39b04176-51eb-4431-82d0-a0a3176164f0
 DEBUG:root:Creating API instance: api_key:<redacted>
