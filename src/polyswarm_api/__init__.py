@@ -293,7 +293,7 @@ class PolyswarmAsyncAPI(object):
         async with self.get_semaphore:
             async with aiohttp.ClientSession() as session:
                 try:
-                    async with session.get("{}/{}/{}".format(self.search_uri, hash_type, to_scan),
+                    async with session.get(f"{self.search_uri}/{hash_type}/{to_scan}",
                                            headers={"Authorization": self.api_key}) as raw_response:
                         try:
                             response = await raw_response.json()
@@ -305,7 +305,7 @@ class PolyswarmAsyncAPI(object):
                                 return {'hash': to_scan, "search": f"{hash_type}={to_scan}", "result": []}
 
                             errors = response.get('errors')
-                            raise Exception("Error reading from PolySwarm API: {}".format(errors))
+                            raise Exception(f"Error reading from PolySwarm API: {errors}")
                 except Exception:
                     logger.error('Server request failed')
                     return {'reason': "unknown_error", 'result': [], 'hash': to_scan,
