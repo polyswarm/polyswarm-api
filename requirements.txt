@@ -1,7 +1,6 @@
 click==6.7
 aiohttp==3.5.4
 requests==2.20.1
-websockets==6.0
 aiofiles==0.4.0
 # recommended for aiohttp
 aiodns==1.2.0
