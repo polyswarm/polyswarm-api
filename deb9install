@@ -9,5 +9,5 @@ sudo dpkg --configure -a
 sudo apt-get install -y python3-pip
 pip3 install polyswarm-api
 
-echo "PATH="$HOME/.local/bin:$PATH" | sudo tee -a /$HOME/.profile
-. /$HOME/.profile
+echo "PATH="$HOME/.local/bin:$PATH" | sudo tee -a $HOME/.profile
+. $HOME/.profile
