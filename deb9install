@@ -1,7 +1,7 @@
 echo "deb http://ftp.de.debian.org/debian testing main" | sudo tee -a /etc/apt/sources.list
 deb http://ftp.de.debian.org/debian testing main
 
-sudo aot-get update
+sudo apt-get update
 sudo apt-get python3.6
 
 pip3 install polyswarm-api
