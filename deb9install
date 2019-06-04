@@ -1,6 +1,5 @@
 #!/bin/bash
 echo "deb http://ftp.us.debian.org/debian testing main" | sudo tee -a /etc/apt/sources.list
-deb http://ftp.de.debian.org/debian testing main
 
 sudo apt-get update
 sudo apt-get install python3.6
