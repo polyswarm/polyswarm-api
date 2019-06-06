@@ -24,7 +24,7 @@ What is polyswarm-api?
 
 Source code for ``polyswarm-api`` is auto-generated here.
 
-For installation and usage instructions, please refer to `README.md <https://github.com/polyswarm/polyswarm-api>`
+For installation and usage instructions, please refer to `README.md <https://github.com/polyswarm/polyswarm-api>`_.
 
 
 Module Index
