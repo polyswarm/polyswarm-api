@@ -3,8 +3,6 @@ PolySwarm API Package
 
 .. raw:: html
 
-    <h2>Submodules</h2>
-
 PolyswarmAPI
 ------------------------------
 
@@ -28,3 +26,12 @@ EngineResolver
     :members:
     :undoc-members:
     :show-inheritance:
+
+
+.. Module contents
+.. ---------------
+
+.. .. automodule:: polyswarm_api
+..     :members:
+..     :undoc-members:
+..     :show-inheritance:
