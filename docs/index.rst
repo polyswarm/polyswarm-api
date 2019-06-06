@@ -4,16 +4,13 @@
    contain the root `toctree` directive.
 
 Welcome to the PolySwarm API Documentation!
-==============================================
+===========================================
 
 .. toctree::
     :hidden:
 
     Home <self>
 
-
-What is polyswarm-api?
-=========================
 
 ``polyswarm-api`` is a convenient library and command line interface (CLI) for interacting with the PolySwarm marketplace.
 
@@ -22,32 +19,37 @@ Documentation based on ``polyswarm-api`` source code is auto-generated here.
 For installation and usage instructions, please refer to `README.md <https://github.com/polyswarm/polyswarm-api>`_.
 
 
-
 PolySwarm API Package
 =======================
 
 PolyswarmAPI
-------------------------------
+-----------------------
 
-.. automodule:: PolyswarmAPI
+.. automodule:: polyswarm_api.PolyswarmAPI
     :members:
     :undoc-members:
     :show-inheritance:
 
 PolyswarmAsyncAPI
----------------------------------
+-----------------------
 
-.. automodule:: PolyswarmAsyncAPI
+.. automodule:: polyswarm_api.PolyswarmAsyncAPI
     :members:
     :undoc-members:
     :show-inheritance:
 
 EngineResolver
-----------------------------
+-----------------------
 
-.. automodule:: EngineResolver
+.. automodule:: polyswarm_api.EngineResolver
     :members:
     :undoc-members:
     :show-inheritance:
 
+Module Content
+---------------
 
+.. automodule:: polyswarm_api
+    :members:
+    :undoc-members:
+    :show-inheritance:
