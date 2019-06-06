@@ -4,8 +4,16 @@ import logging
 
 
 class EngineResolver(object):
+    """
+    Resolve blockchain addresses to Microengine names.
+    """
 
     def __init__(self, api_addr):
+        """
+        TODO
+
+        :param api_addr:
+        """
         self.logger = None
         self.api_addr = api_addr
         self.engine_map = None
@@ -13,12 +21,28 @@ class EngineResolver(object):
 
     @classmethod
     def get_logger_name(cls):
+        """
+        TODO
+
+        :return:
+        """
         return cls.__name__
 
     def get_engine_name(self, eth_pub):
+        """
+        TODO
+
+        :param eth_pub:
+        :return:
+        """
         return self.engine_map.get(eth_pub.lower(), eth_pub) if self.engine_map is not None else ''
 
     async def get_engines(self):
+        """
+        TODO
+
+        :return:
+        """
         try:
             self.logger.debug("Begin engine name polling")
             headers = {'content-type': 'application/json'}
@@ -36,6 +60,11 @@ class EngineResolver(object):
             self.logger.exception('error pulling engine data from portal backend')
 
     def run(self):
+        """
+        TODO
+
+        :return:
+        """
         if self.logger is None:
             self.logger = logging.getLogger(self.get_logger_name())
 
