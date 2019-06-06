@@ -42,6 +42,7 @@ author = 'PolySwarm Pte. Ltd.'
 extensions = [
     'sphinx.ext.autodoc',
     'sphinx.ext.napoleon',
+    'sphinx.ext.viewcode',
     'autoapi.extension',
 ]
 
