@@ -22,34 +22,17 @@ For installation and usage instructions, please refer to `README.md <https://git
 PolySwarm API Package
 =======================
 
-PolyswarmAPI
------------------------
-
-.. automodule:: polyswarm_api.PolyswarmAPI
-    :members:
-    :undoc-members:
-    :show-inheritance:
-
-PolyswarmAsyncAPI
------------------------
-
-.. automodule:: polyswarm_api.PolyswarmAsyncAPI
-    :members:
-    :undoc-members:
-    :show-inheritance:
-
-EngineResolver
------------------------
-
-.. automodule:: polyswarm_api.EngineResolver
-    :members:
-    :undoc-members:
-    :show-inheritance:
-
-Module Content
----------------
-
 .. automodule:: polyswarm_api
     :members:
     :undoc-members:
     :show-inheritance:
+
+
+EngineResolver
+-----------------------
+
+.. automodule:: polyswarm_api.engine_resolver
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
