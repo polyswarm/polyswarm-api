@@ -22,7 +22,7 @@ What is polyswarm-api?
 
 ``polyswarm-api`` is a convenient library and command line interface (CLI) for interacting with the PolySwarm marketplace.
 
-Source code for ``polyswarm-api`` is auto-generated here.
+Documentation based on ``polyswarm-api`` source code is auto-generated here.
 
 For installation and usage instructions, please refer to `README.md <https://github.com/polyswarm/polyswarm-api>`_.
 
