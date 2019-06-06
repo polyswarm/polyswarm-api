@@ -11,11 +11,6 @@ Welcome to the PolySwarm API Documentation!
 
     Home <self>
 
-.. toctree::
-   :maxdepth: 1
-
-   PolySwarm API Module <source/polyswarm-api>
-
 
 What is polyswarm-api?
 =========================
@@ -27,8 +22,32 @@ Documentation based on ``polyswarm-api`` source code is auto-generated here.
 For installation and usage instructions, please refer to `README.md <https://github.com/polyswarm/polyswarm-api>`_.
 
 
-Module Index
-==================
 
-* :ref:`modindex`
+PolySwarm API Package
+=======================
+
+PolyswarmAPI
+------------------------------
+
+.. automodule:: PolyswarmAPI
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+PolyswarmAsyncAPI
+---------------------------------
+
+.. automodule:: PolyswarmAsyncAPI
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+EngineResolver
+----------------------------
+
+.. automodule:: EngineResolver
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
 
