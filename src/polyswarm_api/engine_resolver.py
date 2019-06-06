@@ -11,6 +11,7 @@ class EngineResolver(object):
     def __init__(self, api_addr):
         """
         TODO
+
         :param api_addr:
         """
         self.logger = None
@@ -22,6 +23,7 @@ class EngineResolver(object):
     def get_logger_name(cls):
         """
         TODO
+
         :return:
         """
         return cls.__name__
@@ -29,6 +31,7 @@ class EngineResolver(object):
     def get_engine_name(self, eth_pub):
         """
         TODO
+
         :param eth_pub:
         :return:
         """
@@ -37,6 +40,7 @@ class EngineResolver(object):
     async def get_engines(self):
         """
         TODO
+
         :return:
         """
         try:
@@ -58,6 +62,7 @@ class EngineResolver(object):
     def run(self):
         """
         TODO
+
         :return:
         """
         if self.logger is None:
