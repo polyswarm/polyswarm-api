@@ -1,6 +1,7 @@
-# From: http://blog.readthedocs.com/python-36-support/
 build:
     image: latest
 python:
     version: 3.6
+    install:
+        - requirements: docs/requirements.txt
     
