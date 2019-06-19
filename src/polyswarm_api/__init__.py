@@ -301,7 +301,7 @@ class PolyswarmAsyncAPI(object):
                             response = await raw_response.read() if raw_response else 'None'
                             raise Exception('Received non-json response from PolySwarm API: %s', response)
                         if raw_response.status // 100 != 2:
-                            if raw_response.status == 404 and response.get("errors").find("has not been in any") != -1:
+                            if raw_response.status == 404:
                                 return {'hash': to_scan, "search": f"{hash_type}={to_scan}", "result": []}
 
                             errors = response.get('errors')
