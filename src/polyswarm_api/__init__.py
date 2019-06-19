@@ -301,7 +301,7 @@ class PolyswarmAsyncAPI(object):
                             response = await raw_response.read() if raw_response else 'None'
                             raise Exception('Received non-json response from PolySwarm API: %s', response)
                         if raw_response.status // 100 != 2:
-                            if raw_response.status == 404 and response.get("errors").find("has not been in any") != -1:
+                            if raw_response.status == 404:
                                 return {'hash': to_scan, "search": f"{hash_type}={to_scan}", "result": []}
 
                             errors = response.get('errors')
@@ -333,17 +333,18 @@ class PolyswarmAsyncAPI(object):
                         except Exception:
                             response = await raw_response.read() if raw_response else 'None'
                             raise Exception(f'Received non-json response from PolySwarm API: {response}')
+
+                        if raw_response.status == 404:
+                            return {"hash": to_rescan, "reason": "file_not_found", "status": "error"}
+
                         if raw_response.status // 100 != 2:
                             # TODO this behavior in the API needs to change
                             if raw_response.status == 400 and response.get("errors").find("has not been in any") != -1:
                                 return {'hash': to_rescan}
 
-                        if raw_response.status == 404:
-                            return {"hash": to_rescan, "reason": "file_not_found", "status": "error"}
-
-                        errors = response.get('errors')
-                        logger.error(f"Error posting to PolySwarm API: {errors}")
-                        response = {"hash": to_rescan, "status": "error"}
+                            errors = response.get('errors')
+                            logger.error(f"Error posting to PolySwarm API: {errors}")
+                            return {"hash": to_rescan, "status": "error"}
                 except Exception:
                     logger.error('Server request failed')
                     return {'reason': "unknown_error", 'result': "error", "hash": to_rescan}
