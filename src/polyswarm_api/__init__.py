@@ -75,6 +75,7 @@ class PolyswarmAsyncAPI(object):
             up_to_date, version = asyncio.get_event_loop().run_until_complete(self.check_version())
             if not up_to_date and version is not None:
                 logger.warn(f"PolySwarmAPI out of date. Installed version: {__version__}, Current version: {version}")
+                logger.warn("To update, run: pip install -U polyswarm-api")
                 logger.warn("Please upgrade or certain features may not work properly.")
 
     def set_force(self, force):
