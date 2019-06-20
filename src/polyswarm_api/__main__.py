@@ -82,8 +82,10 @@ def validate_key(ctx, param, value):
 @click.option("--color/--no-color", default=True, help="Use colored output in text mode.")
 @click.option('-v', '--verbose', default=0, count=True)
 @click.option('-c', "--community", default="lima", envvar="POLYSWARM_COMMUNITY", help="Community to use.")
+@click.option('--advanced-disable-version-check/--advanced-enable-version-check', default=False, help="Enable/disable GitHub release version check.")
 @click.pass_context
-def polyswarm(ctx, api_key, api_uri, output_file, output_format, color, verbose, community):
+def polyswarm(ctx, api_key, api_uri, output_file, output_format, color, verbose, community,
+              advanced_disable_version_check):
     """
     This is a PolySwarm CLI client, which allows you to interact directly
     with the PolySwarm network to scan files, search hashes, and more.
@@ -108,7 +110,8 @@ def polyswarm(ctx, api_key, api_uri, output_file, output_format, color, verbose,
         color = False
 
     logging.debug(f"Creating API instance: api_key:{api_key}, api_uri:{api_uri}")
-    ctx.obj['api'] = PolyswarmAPI(api_key, api_uri, community=community)
+    ctx.obj['api'] = PolyswarmAPI(api_key, api_uri, community=community,
+                                  check_version=(not advanced_disable_version_check))
     ctx.obj['color'] = color
     ctx.obj['output_format'] = output_format
     ctx.obj['output'] = output_file
