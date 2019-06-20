@@ -11,6 +11,7 @@ import urllib
 from urllib import parse
 
 from .engine_resolver import EngineResolver
+from ._version import __version__, __release_url__
 
 logger = logging.getLogger(__name__)
 
@@ -21,7 +22,7 @@ class PolyswarmAsyncAPI(object):
     """
 
     def __init__(self, key, uri="https://api.polyswarm.network/v1", get_limit=100,
-                 post_limit=1000, timeout=600, force=False, community="lima"):
+                 post_limit=1000, timeout=600, force=False, community="lima", check_version=True):
         """
 
         :param key: PolySwarm API key
@@ -31,6 +32,7 @@ class PolyswarmAsyncAPI(object):
         :param timeout: How long to wait for scans to complete. This timeout will have 45 seconds added to it, the minimum bounty time.
         :param force: Force re-scans if file was already submitted.
         :param community: Community to scan against.
+        :param check_version: Whether or not to check Github for version information
         """
         self._stage_base_domain = "lb.kb.polyswarm.network"
         self.api_key = key
@@ -68,6 +70,13 @@ class PolyswarmAsyncAPI(object):
         self.post_semaphore = asyncio.Semaphore(post_limit)
 
         self.timeout = timeout
+
+        if check_version:
+            up_to_date, version = asyncio.get_event_loop().run_until_complete(self.check_version())
+            if not up_to_date and version is not None:
+                logger.warn(f"PolySwarmAPI out of date. Installed version: {__version__}, Current version: {version}")
+                logger.warn("To update, run: pip install -U polyswarm-api")
+                logger.warn("Please upgrade or certain features may not work properly.")
 
     def set_force(self, force):
         """
@@ -113,6 +122,38 @@ class PolyswarmAsyncAPI(object):
         result['status'] = 'OK'
 
         return result
+
+    async def check_version(self):
+        """
+        Checks GitHub to see if you have the latest version installed.
+
+        :return: True,latest_version tuple if latest, False,latest_version tuple if not
+        """
+        check_fail_msg = f"Could not check GitHub for latest release (installed version is {__version__}). " \
+            f"Please check version manually."
+        async with aiohttp.ClientSession() as session:
+            try:
+                async with session.get(__release_url__) as raw_response:
+                    try:
+                        j = await raw_response.json()
+                    except Exception:
+                        logger.warn(check_fail_msg)
+                        return False, None
+
+                    release = j.get('tag_name', None)
+
+                    if release is None:
+                        logger.warn(check_fail_msg)
+                        return False, None
+
+                    if release != __version__:
+                        return False, release
+                    else:
+                        return True, release
+
+            except Exception:
+                logger.warn(check_fail_msg)
+                return False, None
 
     async def get_file_data(self, h, hash_type="sha256"):
         """
@@ -642,7 +683,7 @@ class PolyswarmAPI(object):
     """A synchronous interface to the public and private PolySwarm APIs."""
 
     def __init__(self, key, uri="https://api.polyswarm.network/v1", get_limit=100,
-                 post_limit=1000, timeout=600, force=False, community="lima"):
+                 post_limit=1000, timeout=600, force=False, community="lima", check_version=True):
         """
 
         :param key: PolySwarm API key
@@ -652,8 +693,9 @@ class PolyswarmAPI(object):
         :param timeout: How long to wait for scans to complete. This should be at least 45 seconds for round to complete
         :param force: Force re-scans if file was already submitted.
         :param community: Community to scan against.
+        :param check_version: Whether or not to check Github for version information
         """
-        self.ps_api = PolyswarmAsyncAPI(key, uri, get_limit, post_limit, timeout, force, community)
+        self.ps_api = PolyswarmAsyncAPI(key, uri, get_limit, post_limit, timeout, force, community, check_version)
         self.loop = asyncio.get_event_loop()
 
     def set_force(self, force):
@@ -673,6 +715,14 @@ class PolyswarmAPI(object):
         :return: None
         """
         self.ps_api.set_timeout(timeout)
+
+    def check_version(self):
+        """
+        Checks GitHub to see if you have the latest version installed.
+
+        :return: True,latest_version tuple if latest, False,latest_version tuple if not
+        """
+        return self.loop.run_until_complete(self.ps_api.check_version())
 
     def get_file_data(self, sha256):
         """
