@@ -39,11 +39,11 @@ results = api.rescan_file("275a021bbfb6489e54d471899f7db9d1663fc695ec2fe2a2c4538
 
 results = api.new_live_hunt(open("eicar.yara").read()) 
 
-results = api.get_live_results(rule_id=results['result']['rule_id'])
+results = api.get_live_results(hunt_id=results['result']['huntscan_id'])
 
 results = api.new_historical_hunt(open("eicar.yara").read()) 
 
-results = api.get_historical_results(rule_id=results['result']['rule_id'])
+results = api.get_historical_results(hunt_id=results['result']['huntscan_id'])
 
 results = api.get_stream(destination_dir="/my/malware/path")
 ```

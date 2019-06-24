@@ -577,17 +577,17 @@ class PolyswarmAsyncAPI(object):
         """
         return await self._new_hunt(rules, "historical")
 
-    async def _get_hunt_results(self, rule_id=None, scan_type="live"):
+    async def _get_hunt_results(self, hunt_id=None, scan_type="live"):
         """
 
-        :param rule_id: Rule ID (None if latest rule results are desired)
+        :param hunt_id: Rule ID (None if latest rule results are desired)
         :param scan_type: Type of scan, "live" or "historical"
         :return: Matches to the rules
         """
 
         params = {}
-        if rule_id is not None:
-            params['id'] = rule_id
+        if hunt_id is not None:
+            params['id'] = hunt_id
 
         async with self.get_semaphore:
             logger.debug(f"Reading results with api-key {self.api_key}")
@@ -610,23 +610,23 @@ class PolyswarmAsyncAPI(object):
                     logger.error('Server request failed')
                     return {'status': "error", 'result': []}
 
-    async def get_live_results(self, rule_id=None):
+    async def get_live_results(self, hunt_id=None):
         """
         Get results from a live scan
 
-        :param rule_id: Rule ID (None if latest rule results are desired)
+        :param hunt_id: ID of the hunt (None if latest rule results are desired)
         :return: Matches to the rules
         """
-        return await self._get_hunt_results(rule_id, "live")
+        return await self._get_hunt_results(hunt_id, "live")
 
-    async def get_historical_results(self, rule_id=None):
+    async def get_historical_results(self, hunt_id=None):
         """
         Get results from a historical scan
 
-        :param rule_id: Rule ID (None if latest rule results are desired)
+        :param hunt_id: ID of the hunt (None if latest rule results are desired)
         :return: Matches to the rules
         """
-        return await self._get_hunt_results(rule_id, "historical")
+        return await self._get_hunt_results(hunt_id, "historical")
 
     async def get_stream(self, destination_dir=None):
         async with aiohttp.ClientSession() as session:
@@ -896,23 +896,23 @@ class PolyswarmAPI(object):
         """
         return self.loop.run_until_complete(self.ps_api.new_historical_hunt(rules))
 
-    def get_live_results(self, rule_id=None):
+    def get_live_results(self, hunt_id=None):
         """
         Get results from a live hunt
 
-        :param rule_id: Rule ID (None if latest rule results are desired)
+        :param hunt_id: ID of the hunt (None if latest rule results are desired)
         :return: Matches to the rules
         """
-        return self.loop.run_until_complete(self.ps_api.get_live_results(rule_id))
+        return self.loop.run_until_complete(self.ps_api.get_live_results(hunt_id))
 
-    def get_historical_results(self, rule_id=None):
+    def get_historical_results(self, hunt_id=None):
         """
         Get results from a historical hunt
 
-        :param rule_id: Rule ID (None if latest rule results are desired)
+        :param hunt_id: ID of the hunt (None if latest hunt results are desired)
         :return: Matches to the rules
         """
-        return self.loop.run_until_complete(self.ps_api.get_historical_results(rule_id))
+        return self.loop.run_until_complete(self.ps_api.get_historical_results(hunt_id))
 
     def get_stream(self, destination_dir=None):
         """

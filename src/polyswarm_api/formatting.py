@@ -252,7 +252,7 @@ class PSHuntSubmissionFormatter(PSResultFormatter):
         if self.output_format == "text":
             if self.results['status'] != 'OK':
                 return self._bad("Failed to install rules.\n")
-            return self._good(f"Successfully submitted rules, rule_id: {self.results['result']['rule_id']}\n")
+            return self._good(f"Successfully submitted rules, hunt id: {self.results['result']['huntscan_id']}\n")
 
         elif self.output_format == "json":
             return json.dumps(self.results, indent=4, sort_keys=True)
