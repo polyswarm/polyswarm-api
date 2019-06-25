@@ -4,3 +4,4 @@ requests==2.20.1
 aiofiles==0.4.0
 # recommended for aiohttp
 aiodns==1.2.0
+polyswarm_artifact==1.1.1

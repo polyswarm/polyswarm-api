@@ -132,6 +132,12 @@ Report for file 131f95c51cc819465fa1797f6ccacf9d494aaaff46fa3eac73ae63ffbdfd8267
         zillya: Malicious, metadata: Status:Infected EICAR.TestFile
         k7-engine: Malicious, metadata: Trojan ( 000139291 )
 
+$ polyswarm url https://www.XXXXXX.XXXX/admin.php?f=1.gif
+Scan report for GUID 550bcbfe-7d75-4de0-8d23-8b490e7ee58b
+=========================================================
+Report for file admin.php?f=1.gif, hash: c9d2152432e5ed53513c510b5ce94557313af965ba93f7819651542408344dae
+	Trustlook: Malicious, metadata: [{'malware_family': 'Malware', 'scanner': {'environment': {'operating_system': 'Linux', 'architecture': 'x86_64'}}}]
+
 ```
 
 For information regarding the JSON format, please see [API.md](https://github.com/polyswarm/polyswarm-api/blob/master/API.md).
