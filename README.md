@@ -29,6 +29,8 @@ results = api.scan_directory("/path/to/directory")
 
 results = api.scan_file("/path/to/eicar")
 
+results = api.scan_url("http://bad.com")
+
 results = api.search_hash("275a021bbfb6489e54d471899f7db9d1663fc695ec2fe2a2c4538aabf651fd0f")
 
 results = api.search_hashes(["275a021bbfb6489e54d471899f7db9d1663fc695ec2fe2a2c4538aabf651fd0f"])

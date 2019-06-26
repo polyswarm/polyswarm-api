@@ -200,14 +200,14 @@ class PolyswarmAsyncAPI(object):
         # TODO check file-size. For now, we need to handle error.
         data = aiohttp.FormData()
         data.add_field('file', artifact_data_obj, filename=artifact_data_name)
+        data.add_field('artifact-type', artifact_type.name)
 
         params = {"force": "true"} if self.force else {}
-        params['artifact-type'] = artifact_type.name
         async with self.post_semaphore:
             logger.debug(f"Posting artifact {artifact_data_name} with api-key {self.api_key}")
             async with aiohttp.ClientSession() as session:
                 try:
-                    async with session.post(self.community_uri+"/"+artifact_type.name, data=data, params=params,
+                    async with session.post(self.community_uri, data=data, params=params,
                                             headers={"Authorization": self.api_key}) as raw_response:
                         try:
                             response = await raw_response.json()
