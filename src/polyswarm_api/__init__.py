@@ -376,19 +376,19 @@ class PolyswarmAsyncAPI(object):
                             raise Exception(f'Received non-json response from PolySwarm API: {response}')
 
                         if raw_response.status == 404:
-                            return {"hash": to_rescan, "reason": "file_not_found", "status": "error"}
+                            return {"hash": to_rescan, "reason": "file_not_found", "status": "error", "result": "not found"}
 
                         if raw_response.status // 100 != 2:
                             # TODO this behavior in the API needs to change
                             if raw_response.status == 400 and response.get("errors").find("has not been in any") != -1:
-                                return {'hash': to_rescan}
+                                return {'hash': to_rescan, 'status': 'error', 'result': 'not found'}
 
                             errors = response.get('errors')
                             logger.error(f"Error posting to PolySwarm API: {errors}")
-                            return {"hash": to_rescan, "status": "error"}
+                            return {"hash": to_rescan, "status": "error", "result": errors}
                 except Exception:
                     logger.error('Server request failed')
-                    return {'reason': "unknown_error", 'result': "error", "hash": to_rescan}
+                    return {'reason': "unknown_error", 'result': "error", "hash": to_rescan, 'status': 'error'}
 
         return response
 
