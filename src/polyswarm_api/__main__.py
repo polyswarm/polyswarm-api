@@ -371,7 +371,7 @@ def historical_results(ctx, rule_id, download_path):
     rf = PSHuntResultFormatter(results, color=ctx.obj['color'],
                       output_format=ctx.obj['output_format'])
 
-    if download_path and results['status'] == 'OK':
+    if download_path and results['status'] in ['OK', 'SUCCESS']:
         if not os.path.exists(download_path):
             os.makedirs(download_path)
 
