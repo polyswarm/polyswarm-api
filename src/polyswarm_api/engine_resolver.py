@@ -47,12 +47,12 @@ class EngineResolver(object):
             self.logger.debug("Begin engine name polling")
             headers = {'content-type': 'application/json'}
             async with aiohttp.ClientSession(headers=headers) as session:
-                async with session.get(f'{self.api_addr}/microengines/list') as response:
+                async with session.get("{api_addr}/microengines/list".format(api_addr=self.api_addr)) as response:
                     if response.status // 100 == 2:
                         result = await response.json()
                         engines_results = result.get('results', [])
                         self.engine_map = dict([(engine.get('address'), engine.get('name')) for engine in engines_results])
-                        self.logger.debug(f'engine_map={self.engine_map}')
+                        self.logger.debug("engine_map=%s", self.engine_map)
                     else:
                         self.engine_map = dict()
                         self.logger.warning('unable to get microengine information')

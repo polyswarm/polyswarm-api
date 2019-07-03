@@ -1,8 +1,5 @@
 #!/usr/bin/env python3
 import asyncio
-import base64
-from io import BytesIO
-
 import click
 import logging
 import sys
@@ -57,14 +54,14 @@ def _is_valid_uuid(value):
 def validate_uuid(ctx, param, value):
     for uuid in value:
         if not _is_valid_uuid(uuid):
-            raise click.BadParameter(f'UUID {uuid} not valid, please check and try again.')
+            raise click.BadParameter('UUID {} not valid, please check and try again.'.format(uuid))
     return value
 
 
 def validate_hash(ctx, param, value):
     for h in value:
         if not (_is_valid_sha256(h) or _is_valid_md5(h) or _is_valid_sha1(h)):
-            raise click.BadParameter(f'Hash {h} not valid, must be sha256|md5|sha1 in hexadecimal format')
+            raise click.BadParameter('Hash {} not valid, must be sha256|md5|sha1 in hexadecimal format'.format(h))
     return value
 
 
@@ -130,7 +127,7 @@ def _do_scan(api, paths, recursive=False):
         elif os.path.isdir(path):
             directories.append(path)
         else:
-            logger.warning(f"Path {path} is neither a file nor a directory, ignoring.")
+            logger.warning("Path %s is neither a file nor a directory, ignoring.", path)
 
     results = api.scan_files(files)
 
@@ -151,19 +148,19 @@ async def get_results(ctx, tasks):
 
             zeroth_file = final['files'][0]
             if not zeroth_file.get("bounty_guid"):
-                ctx.obj['output'].write(f"Failed to get bounty guid on {final.get('uuid')}\n")
+                ctx.obj['output'].write("Failed to get bounty guid on {}\n".format(final.get('uuid')))
 
             elif not zeroth_file.get("assertions"):
-                ctx.obj['output'].write(f"Failed to get assertions on bounty guid on {zeroth_file.get('bounty_guid')}\n")
+                ctx.obj['output'].write("Failed to get assertions on bounty guid on {}\n".format(zeroth_file.get('bounty_guid')))
             success += 1
         except IndexError:
-            ctx.obj['output'].write(f"Failed on bounty uuid {final.get('uuid')}\n")
+            ctx.obj['output'].write("Failed on bounty uuid {}\n".format(final.get('uuid')))
             failed_bounty += 1
         except ServerDisconnectedError as e:
-            ctx.obj['output'].write(f"Server disconnected error {e}\n")
+            ctx.obj['output'].write("Server disconnected error {}\n".format(e))
             server_disconnects += 1
         except Exception as e:
-            ctx.obj['output'].write(f"Failed on bounty with exception {e}\n")
+            ctx.obj['output'].write("Failed on bounty with exception {}\n".format(e))
             other_exceptions +=1
     return results, (failed_bounty, server_disconnects, other_exceptions, success)
 
@@ -212,10 +209,10 @@ def search(ctx, hash, hash_file, hash_type):
                     (hash_type == "md5" and _is_valid_md5(h)):
                 hashes.append(h)
             else:
-                logger.warning(f"Invalid hash {h} in file, ignoring.")
+                logger.warning("Invalid hash %s in file, ignoring.", h)
 
     rf = PSSearchResultFormatter(api.search_hashes(hashes, hash_type), color=ctx.obj['color'],
-                           output_format=ctx.obj['output_format'])
+                                 output_format=ctx.obj['output_format'])
     ctx.obj['output'].write(str(rf))
 
 
@@ -238,7 +235,7 @@ def lookup(ctx, uuid, uuid_file):
             if _is_valid_uuid(u):
                 uuids.append(u)
             else:
-                logger.warning(f"Invalid uuid {u} in file, ignoring.")
+                logger.warning("Invalid uuid %s in file, ignoring.", u)
 
     rf = PSResultFormatter(api.lookup_uuids(uuids), color=ctx.obj['color'], output_format=ctx.obj['output_format'])
     ctx.obj['output'].write(str(rf))
@@ -268,7 +265,7 @@ def download(ctx, metadata, hash_file, hash_type, hash, destination):
                     (hash_type == "md5" and _is_valid_md5(h)):
                 hashes.append(h)
             else:
-                logger.warning(f"Invalid hash {h} in file, ignoring.")
+                logger.warning("Invalid hash %s in file, ignoring.", h)
 
     rf = PSDownloadResultFormatter(api.download_files(hashes, destination, metadata, hash_type),
                                    color=ctx.obj['color'], output_format=ctx.obj['output_format'])
@@ -295,7 +292,7 @@ def rescan(ctx, hash_file, hash_type, hash):
                     (hash_type == "md5" and _is_valid_md5(h)):
                 hashes.append(h)
             else:
-                logger.warning(f"Invalid hash {h} in file, ignoring.")
+                logger.warning("Invalid hash %s in file, ignoring.", h)
 
     rf = PSResultFormatter(api.rescan_files(hashes, hash_type), color=ctx.obj['color'],
                            output_format=ctx.obj['output_format'])
@@ -321,7 +318,7 @@ def live_install(ctx, rule_file):
     rules = rule_file.read()
 
     rf = PSHuntSubmissionFormatter(api.new_live_hunt(rules), color=ctx.obj['color'],
-                      output_format=ctx.obj['output_format'])
+                                   output_format=ctx.obj['output_format'])
     ctx.obj['output'].write((str(rf)))
 
 
@@ -335,7 +332,7 @@ def live_results(ctx, rule_id, download_path):
     results = api.get_live_results(rule_id)
 
     rf = PSHuntResultFormatter(results, color=ctx.obj['color'],
-                      output_format=ctx.obj['output_format'])
+                               output_format=ctx.obj['output_format'])
 
     if download_path and results['status'] == 'OK':
         if not os.path.exists(download_path):
@@ -355,7 +352,7 @@ def historical_start(ctx, rule_file):
     rules = rule_file.read()
 
     rf = PSHuntSubmissionFormatter(api.new_historical_hunt(rules), color=ctx.obj['color'],
-                      output_format=ctx.obj['output_format'])
+                                   output_format=ctx.obj['output_format'])
     ctx.obj['output'].write((str(rf)))
 
 
@@ -369,7 +366,7 @@ def historical_results(ctx, rule_id, download_path):
     results = api.get_historical_results(rule_id)
 
     rf = PSHuntResultFormatter(results, color=ctx.obj['color'],
-                      output_format=ctx.obj['output_format'])
+                               output_format=ctx.obj['output_format'])
 
     if download_path and results['status'] in ['OK', 'SUCCESS']:
         if not os.path.exists(download_path):
@@ -394,7 +391,7 @@ def stream(ctx, download_path):
     results = api.get_stream(download_path)
 
     rf = PSStreamFormatter(results, color=ctx.obj['color'],
-                      output_format=ctx.obj['output_format'])
+                           output_format=ctx.obj['output_format'])
 
     ctx.obj['output'].write((str(rf)))
 

@@ -104,7 +104,12 @@ class PSResultFormatter(object):
                         # this is in response to a /search/ request, so has some additional file metadata
                         file_info = f['file_info']
                         first_seen = datetime.utcfromtimestamp(file_info['timestamp']).strftime('%Y-%m-%d %H:%M:%S')
-                        output.append(self._info(f"File info: first seen: {first_seen}, mimetype: {file_info['mimetype']}, extended_info: {file_info['extended_type']}, known_filenames: {','.join(file_info['filenames'])}"))
+                        output.append(self._info("File info: first seen: {first_seen}, mimetype: {mimetype}, "
+                                                 "extended_info: {extended_type}, known_filenames: {filenames}".
+                                                 format(first_seen=first_seen,
+                                                        mimetype=file_info['mimetype'],
+                                                        extended_type=file_info['extended_type'],
+                                                        filenames=','.join(file_info['filenames']))))
                     if 'assertions' not in f or len(f['assertions']) == 0:
                         if 'failed' in f and f['failed']:
                             output.append(self._bad("Bounty failed, please resubmit"))
@@ -140,9 +145,11 @@ class PSDownloadResultFormatter(PSResultFormatter):
         if self.output_format == "text":
             for result in self.results:
                 if result['status'] == "OK":
-                    output.append(self._good(f"Downloaded {result['file_hash']}: {result['file_path']}"))
+                    output.append(self._good("Downloaded {file_hash}: {file_path}".format(file_hash=result['file_hash'],
+                                                                                          file_path=result['file_path'])))
                 else:
-                    output.append(self._bad(f"Download {result['file_hash']} failed: {result['reason']}"))
+                    output.append(self._bad("Download {file_hash} failed: {reason}".format(file_hash=result['file_hash'],
+                                                                                           reason=result['reason'])))
             return "\n".join(output) + "\n"
         elif self.output_format == "json":
             return json.dumps(self.results, indent=4, sort_keys=True)
@@ -159,25 +166,27 @@ class PSSearchResultFormatter(PSResultFormatter):
         if self.output_format == "text":
             output = []
             if len(self.search_results) == 0:
-                return self._bad(f"(Did not find any files matching any search criteria.)\n")
+                return self._bad("(Did not find any files matching any search criteria.)\n")
 
             for result in self.search_results:
                 search = result.search
                 result = result.result
                 if len(result) == 0:
-                    return self._bad(f"(Did not find any files matching {search})\n")
+                    return self._bad("(Did not find any files matching {search})\n".format(search=search))
 
-                output.append(self._good(f"Found {len(result)} matches to the search query."))
-                output.append(self._normal(f"Search results for {search}"))
+                output.append(self._good("Found {count} matches to the search query.".format(count=len(result))))
+                output.append(self._normal("Search results for {search}".format(search=search)))
                 for artifact in result:
-                    output.append(self._unknown(
-                        "File %s" % artifact.sha256))
+                    output.append(self._unknown("File %s" % artifact.sha256))
                     output.append(
-                        self._info(self._open_group(self._info(f"File type: mimetype: {artifact.mimetype}, extended_info: {artifact.extended_type}"))))
-                    output.append(self._info(f"SHA256: {artifact.sha256}"))
-                    output.append(self._info(f"SHA1: {artifact.sha1}"))
-                    output.append(self._info(f"MD5: {artifact.md5}"))
-                    output.append(self._info(f"First seen: {artifact.first_seen}"))
+                        self._info(self._open_group(
+                            self._info("File type: mimetype: {mimetype}, extended_info: {extended_type}".
+                                       format(mimetype=artifact.mimetype,
+                                              extended_type=artifact.extended_type)))))
+                    output.append(self._info("SHA256: {hash}".format(hash=artifact.sha256)))
+                    output.append(self._info("SHA1: {hash}".format(hash=artifact.sha1)))
+                    output.append(self._info("MD5: {hash}".format(hash=artifact.md5)))
+                    output.append(self._info("First seen: {first_seen}".format(first_seen=artifact.first_seen)))
 
                     # gather instance data
                     countries, filenames = set(), set()
@@ -186,8 +195,8 @@ class PSSearchResultFormatter(PSResultFormatter):
                             countries.add(artifact_instance.country)
                         if artifact_instance.name is not None:
                             filenames.add(artifact_instance.name)
-                    output.append(self._info(f"Observed countries: {','.join(countries)}"))
-                    output.append(self._info(f"Observed filenames: {','.join(filenames)}"))
+                    output.append(self._info("Observed countries: {countries}".format(countries=','.join(countries))))
+                    output.append(self._info("Observed filenames: {filenames}".format(filenames=','.join(filenames))))
                     output.append(self._close_group())
             return "\n".join(output)
         elif self.output_format == "json":
@@ -208,27 +217,30 @@ class PSHuntResultFormatter(PSResultFormatter):
             if self.hunt_results.status not in ["PENDING", "RUNNING", "SUCCESS", "FAILED"]:
                 return self._bad("An unspecified error occurred fetching hunt records.")
 
-            output.append(self._info(f"Scan status: {self.hunt_results.status.capitalize()}\n"))
+            output.append(self._info("Scan status: {status}\n".format(status=self.hunt_results.status.capitalize())))
 
             results = self.hunt_results.result
 
             if len(results) == 0:
-                output.append(self._bad(f"(Did not find any results yet for this hunt.)\n"))
+                output.append(self._bad("(Did not find any results yet for this hunt.)\n"))
                 return "\n".join(output)
 
-            output.append(self._good(f"Found {len(results)} samples in this hunt."))
+            output.append(self._good("Found {count} samples in this hunt.".format(count=len(results))))
 
             for result in results:
-                output.append(self._good(f"Match on rule {result.rule_name}" + (f", tags: {result.tags}" if result.tags != "" else "")))
+                output.append(self._good("Match on rule {name}".format(name=result.rule_name) +
+                                         (", tags: {result_tags}".format(result_tags=result.tags) if result.tags != "" else "")))
                 artifact = result.artifact
-                output.append(self._unknown(
-                    "File %s" % artifact.sha256))
+                output.append(self._unknown("File %s" % artifact.sha256))
                 output.append(
-                    self._info(self._open_group(self._info(f"File type: mimetype: {artifact.mimetype}, extended_info: {artifact.extended_type}"))))
-                output.append(self._info(f"SHA256: {artifact.sha256}"))
-                output.append(self._info(f"SHA1: {artifact.sha1}"))
-                output.append(self._info(f"MD5: {artifact.md5}"))
-                output.append(self._info(f"First seen: {artifact.first_seen}"))
+                    self._info(self._open_group(
+                        self._info("File type: mimetype: {mimetype}, extended_info: {extended_type}".
+                                   format(mimetype=artifact.mimetype,
+                                          extended_type=artifact.extended_type)))))
+                output.append(self._info("SHA256: {hash}".format(hash=artifact.sha256)))
+                output.append(self._info("SHA1: {hash}".format(hash=artifact.sha1)))
+                output.append(self._info("MD5: {hash}".format(hash=artifact.md5)))
+                output.append(self._info("First seen: {first_seen}".format(first_seen=artifact.first_seen)))
 
                 # gather instance data
                 countries, filenames = set(), set()
@@ -237,8 +249,8 @@ class PSHuntResultFormatter(PSResultFormatter):
                         countries.add(artifact_instance.country)
                     if artifact_instance.name is not None:
                         filenames.add(artifact_instance.name)
-                output.append(self._info(f"Observed countries: {','.join(countries)}"))
-                output.append(self._info(f"Observed filenames: {','.join(filenames)}"))
+                output.append(self._info("Observed countries: {countries}".format(countries=','.join(countries))))
+                output.append(self._info("Observed filenames: {filenames}".format(filenames=','.join(filenames))))
                 output.append(self._close_group())
             return "\n".join(output)
         elif self.output_format == "json":
@@ -252,7 +264,8 @@ class PSHuntSubmissionFormatter(PSResultFormatter):
         if self.output_format == "text":
             if self.results['status'] != 'OK':
                 return self._bad("Failed to install rules.\n")
-            return self._good(f"Successfully submitted rules, rule_id: {self.results['result']['rule_id']}\n")
+            return self._good("Successfully submitted rules, rule_id: {rule_id}\n".
+                              format(rule_id=self.results['result']['rule_id']))
 
         elif self.output_format == "json":
             return json.dumps(self.results, indent=4, sort_keys=True)

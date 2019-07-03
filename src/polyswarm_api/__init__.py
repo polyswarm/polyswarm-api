@@ -49,12 +49,12 @@ class PolyswarmAsyncAPI(object):
             # TODO change this to stage.lb.kb.polyswarm.network *after* portal chart in kube
             self.portal_uri = "https://portal.stage.polyswarm.network/scan/results/"
 
-        self.consumer_uri = f"{self.uri}/consumer"
-        self.search_uri = f"{self.uri}/search"
-        self.download_uri = f"{self.uri}/download"
-        self.community_uri = f"{self.consumer_uri}/{community}"
-        self.hunt_uri = f"{self.uri}/hunt"
-        self.stream_uri = f"{self.uri}/download/stream"
+        self.consumer_uri = "{uri}/consumer".format(uri=self.uri)
+        self.search_uri = "{uri}/search".format(uri=self.uri)
+        self.download_uri = "{uri}/download".format(uri=self.uri)
+        self.community_uri = "{consumer_uri}/{community}".format(consumer_uri=self.consumer_uri, community=community)
+        self.hunt_uri = "{uri}/hunt".format(uri=self.uri)
+        self.stream_uri = "{uri}/download/stream".format(uri=self.uri)
 
         self.force = force
 
@@ -74,9 +74,9 @@ class PolyswarmAsyncAPI(object):
         if check_version:
             up_to_date, version = asyncio.get_event_loop().run_until_complete(self.check_version())
             if not up_to_date and version is not None:
-                logger.warn(f"PolySwarmAPI out of date. Installed version: {__version__}, Current version: {version}")
-                logger.warn("To update, run: pip install -U polyswarm-api")
-                logger.warn("Please upgrade or certain features may not work properly.")
+                logger.warning("PolySwarmAPI out of date. Installed version: %s, Current version: %s", __version__, version)
+                logger.warning("To update, run: pip install -U polyswarm-api")
+                logger.warning("Please upgrade or certain features may not work properly.")
 
     def set_force(self, force):
         """
@@ -129,21 +129,21 @@ class PolyswarmAsyncAPI(object):
 
         :return: True,latest_version tuple if latest, False,latest_version tuple if not
         """
-        check_fail_msg = f"Could not check GitHub for latest release (installed version is {__version__}). " \
-            f"Please check version manually."
+        check_fail_msg = "Could not check GitHub for latest release (installed version is {version}). " \
+                         "Please check version manually.".format(version=__version__)
         async with aiohttp.ClientSession() as session:
             try:
                 async with session.get(__release_url__) as raw_response:
                     try:
                         j = await raw_response.json()
                     except Exception:
-                        logger.warn(check_fail_msg)
+                        logger.warning(check_fail_msg)
                         return False, None
 
                     release = j.get('tag_name', None)
 
                     if release is None:
-                        logger.warn(check_fail_msg)
+                        logger.warning(check_fail_msg)
                         return False, None
 
                     if release != __version__:
@@ -152,7 +152,7 @@ class PolyswarmAsyncAPI(object):
                         return True, release
 
             except Exception:
-                logger.warn(check_fail_msg)
+                logger.warning(check_fail_msg)
                 return False, None
 
     async def get_file_data(self, h, hash_type="sha256"):
@@ -164,16 +164,18 @@ class PolyswarmAsyncAPI(object):
         :return: Dictionary containing the file data if found, error dictionary if not
         """
         async with self.get_semaphore:
-            logger.debug(f"Downloading file hash {h} with api key {self.api_key}")
+            logger.debug("Downloading file hash %s with api key %s", h, self.api_key)
             async with aiohttp.ClientSession() as session:
                 try:
-                    async with session.get(f"{self.download_uri}/{hash_type}/{h}",
+                    async with session.get("{download_uri}/{hash_type}/{hash}".format(download_uri=self.download_uri,
+                                                                                      hash_type=hash_type,
+                                                                                      hash=h),
                                            headers={"Authorization": self.api_key}) as raw_response:
                         try:
                             response = await raw_response.read()
                         except Exception:
                             response = await raw_response.read() if raw_response else 'None'
-                            logger.error(f'Received non-json response from PolySwarm API: {response}')
+                            logger.error("Received non-json response from PolySwarm API: %s", response)
                             response = {"status": "error", "reason": "unknown_error"}
                         if raw_response.status // 100 != 2:
                             if raw_response.status == 404:
@@ -183,7 +185,7 @@ class PolyswarmAsyncAPI(object):
                         return {"file_data": response, "status": "OK",
                                 "encoding": raw_response.headers.get('Content-Encoding', 'none')}
                 except Exception:
-                    logger.error('Server request failed')
+                    logger.error("Server request failed")
                     return {'reason': "unknown_error",  'status': "error"}
 
     async def post_file(self, file_obj, filename):
@@ -200,7 +202,7 @@ class PolyswarmAsyncAPI(object):
 
         params = {"force": "true"} if self.force else {}
         async with self.post_semaphore:
-            logger.debug(f"Posting file {filename} with api-key {self.api_key}")
+            logger.debug("Posting file %s with api-key %s", filename, self.api_key)
             async with aiohttp.ClientSession() as session:
                 try:
                     async with session.post(self.community_uri, data=data, params=params,
@@ -209,15 +211,15 @@ class PolyswarmAsyncAPI(object):
                             response = await raw_response.json()
                         except Exception:
                             response = await raw_response.read() if raw_response else 'None'
-                            logger.error(f'Received non-json response from PolySwarm API: {response}')
+                            logger.error("Received non-json response from PolySwarm API: %s", response)
                             response = {"filename": filename, "result": "error"}
                         if raw_response.status // 100 != 2:
                             errors = response.get('errors')
-                            logger.error(f"Error posting to PolySwarm API: {errors}")
+                            logger.error("Error posting to PolySwarm API: %s", errors)
                             response = {"filename": filename, "status": "error"}
                         return response
                 except Exception:
-                    logger.error('Server request failed')
+                    logger.error("Server request failed")
                     return {'filename': filename, 'status': "error"}
 
     async def lookup_uuid(self, uuid):
@@ -228,26 +230,27 @@ class PolyswarmAsyncAPI(object):
         :return: JSON report file
         """
         async with self.get_semaphore:
-            logger.debug(f"Looking up UUID {uuid}")
+            logger.debug("Looking up UUID %s", uuid)
             async with aiohttp.ClientSession() as session:
                 try:
-                    async with session.get(f"{self.community_uri}/uuid/{uuid}",
+                    async with session.get("{community_uri}/uuid/{uuid}".format(community_uri=self.community_uri,
+                                                                                uuid=uuid),
                                            headers={"Authorization": self.api_key}) as raw_response:
                         try:
                             response = await raw_response.json()
                         except Exception:
                             response = await raw_response.read() if raw_response else 'None'
-                            logger.error(f'Received non-json response from PolySwarm API: {response}')
+                            logger.error("Received non-json response from PolySwarm API: %s", response)
                             response = {'files': [], 'uuid': uuid}
                         if raw_response.status // 100 != 2:
                             errors = response.get('errors')
                             if raw_response.status == 400 and errors.find("has not been created") != -1:
                                 return {'files': [], 'uuid': uuid}
-                            logger.error(f"Error reading from PolySwarm API: {errors}")
+                            logger.error("Error reading from PolySwarm API: %s", errors)
                             return {'files': [], 'uuid': uuid}
                         return self._fix_result(response['result'])
                 except Exception:
-                    logger.error('Server request failed')
+                    logger.error("Server request failed")
                     return {'reason': "unknown_error", 'status': "error", 'uuid': uuid}
 
     async def _wait_for_uuid(self, uuid):
@@ -277,7 +280,7 @@ class PolyswarmAsyncAPI(object):
             if time.time()-started > self.timeout >= 0:
                 break
 
-        logger.warning(f"Failed to get results for uuid {uuid} in time.")
+        logger.warning("Failed to get results for uuid %s in time.", uuid)
         return {'files': result['files'], 'uuid': uuid}
 
     async def scan_fileobj(self, to_scan, filename="data"):
@@ -293,10 +296,10 @@ class PolyswarmAsyncAPI(object):
         if result['status'] == "OK":
             uuid = result['result']
         else:
-            logger.error(f"Failed to get UUID for scan of file {filename}")
+            logger.error("Failed to get UUID for scan of file %s", filename)
             return {"filename": filename, "files": []}
 
-        logger.info(f"Successfully submitted file {filename}, UUID {uuid}")
+        logger.info("Successfully submitted file %s, UUID %s", filename, uuid)
 
         return await self._wait_for_uuid(uuid)
 
@@ -334,25 +337,29 @@ class PolyswarmAsyncAPI(object):
         async with self.get_semaphore:
             async with aiohttp.ClientSession() as session:
                 try:
-                    async with session.get(f"{self.search_uri}/{hash_type}/{to_scan}",
+                    async with session.get("{search_uri}/{hash_type}/{hash}".format(search_uri=self.search_uri,
+                                                                                    hash_type=hash_type, hash=to_scan),
                                            headers={"Authorization": self.api_key}) as raw_response:
                         try:
                             response = await raw_response.json()
                         except Exception:
                             response = await raw_response.read() if raw_response else 'None'
-                            raise Exception('Received non-json response from PolySwarm API: %s', response)
+                            raise Exception("Received non-json response from PolySwarm API: %s", response)
                         if raw_response.status // 100 != 2:
                             if raw_response.status == 404:
-                                return {'hash': to_scan, "search": f"{hash_type}={to_scan}", "result": []}
+                                return {'hash': to_scan,
+                                        "search": "{hash_type}={hash}".format(hash_type=hash_type, hash=to_scan),
+                                        "result": []}
 
                             errors = response.get('errors')
-                            raise Exception(f"Error reading from PolySwarm API: {errors}")
+                            raise Exception("Error reading from PolySwarm API: %s", errors)
                 except Exception:
-                    logger.error('Server request failed')
+                    logger.error("Server request failed")
                     return {'reason': "unknown_error", 'result': [], 'hash': to_scan,
-                            "search": f"{hash_type}={to_scan}", "status": "error"}
+                            "search": "{hash_type}={hash}".format(hash_type=hash_type, hash=to_scan),
+                            "status": "error"}
 
-        response['search'] = f"{hash_type}={to_scan}"
+        response['search'] = "{hash_type}={hash}".format(hash_type=hash_type, hash=to_scan)
         return response
 
     async def rescan_hash(self, to_rescan, hash_type="sha256"):
@@ -367,13 +374,15 @@ class PolyswarmAsyncAPI(object):
         async with self.get_semaphore:
             async with aiohttp.ClientSession() as session:
                 try:
-                    async with session.get(f"{self.community_uri}/rescan/{hash_type}/{to_rescan}",
+                    async with session.get("{community_uri}/rescan/{hash_type}/{hash}".format(community_uri=self.community_uri,
+                                                                                              hash_type=hash_type,
+                                                                                              hash=to_rescan),
                                            headers={"Authorization": self.api_key}) as raw_response:
                         try:
                             response = await raw_response.json()
                         except Exception:
                             response = await raw_response.read() if raw_response else 'None'
-                            raise Exception(f'Received non-json response from PolySwarm API: {response}')
+                            raise Exception("Received non-json response from PolySwarm API: %s", response)
 
                         if raw_response.status == 404:
                             return {"hash": to_rescan, "reason": "file_not_found", "status": "error", "result": "not found"}
@@ -384,10 +393,10 @@ class PolyswarmAsyncAPI(object):
                                 return {'hash': to_rescan, 'status': 'error', 'result': 'not found'}
 
                             errors = response.get('errors')
-                            logger.error(f"Error posting to PolySwarm API: {errors}")
+                            logger.error("Error posting to PolySwarm API: %s", errors)
                             return {"hash": to_rescan, "status": "error", "result": errors}
                 except Exception:
-                    logger.error('Server request failed')
+                    logger.error("Server request failed")
                     return {'reason': "unknown_error", 'result': "error", "hash": to_rescan, 'status': 'error'}
 
         return response
@@ -539,20 +548,22 @@ class PolyswarmAsyncAPI(object):
         data = {"yara": rules}
 
         async with self.post_semaphore:
-            logger.debug(f"Posting rules with api-key {self.api_key}")
+            logger.debug("Posting rules with api-key %s", self.api_key)
             async with aiohttp.ClientSession() as session:
                 try:
-                    async with session.post(f"{self.hunt_uri}/{scan_type}", json=data,
+                    async with session.post("{hunt_uri}/{scan_type}".format(hunt_uri=self.hunt_uri,
+                                                                            scan_type=scan_type),
+                                            json=data,
                                             headers={"Authorization": self.api_key}) as raw_response:
                         try:
                             response = await raw_response.json()
                         except Exception:
                             response = await raw_response.read() if raw_response else 'None'
-                            logger.error(f'Received non-json response from PolySwarm API: {response}')
+                            logger.error('Received non-json response from PolySwarm API: %s', response)
                             response = {"status": "error", 'result': []}
                         if raw_response.status // 100 != 2:
                             errors = response.get('errors')
-                            logger.error(f"Error posting to PolySwarm API: {errors}")
+                            logger.error("Error posting to PolySwarm API: %s", errors)
                             response = {"status": "error", 'result': []}
                         return response
                 except Exception:
@@ -590,24 +601,26 @@ class PolyswarmAsyncAPI(object):
             params['id'] = rule_id
 
         async with self.get_semaphore:
-            logger.debug(f"Reading results with api-key {self.api_key}")
+            logger.debug("Reading results with api-key %s", self.api_key)
             async with aiohttp.ClientSession() as session:
                 try:
-                    async with session.get(f"{self.hunt_uri}/{scan_type}/results", params=params,
-                                            headers={"Authorization": self.api_key}) as raw_response:
+                    async with session.get("{hunt_uri}/{scan_type}/results".format(hunt_uri=self.hunt_uri,
+                                                                                   scan_type=scan_type),
+                                           params=params,
+                                           headers={"Authorization": self.api_key}) as raw_response:
                         try:
                             response = await raw_response.json()
                         except Exception:
                             response = await raw_response.read() if raw_response else 'None'
-                            logger.error(f'Received non-json response from PolySwarm API: {response}')
+                            logger.error("Received non-json response from PolySwarm API: %s", response)
                             response = {"status": "error", 'result': []}
                         if raw_response.status // 100 != 2:
                             errors = response.get('errors')
-                            logger.error(f"Error reading from PolySwarm API: {errors}")
+                            logger.error("Error reading from PolySwarm API: %s", errors)
                             response = {"status": "error", 'result': []}
                         return response
                 except Exception:
-                    logger.error('Server request failed')
+                    logger.error("Server request failed")
                     return {'status': "error", 'result': []}
 
     async def get_live_results(self, rule_id=None):
@@ -631,23 +644,23 @@ class PolyswarmAsyncAPI(object):
     async def get_stream(self, destination_dir=None):
         async with aiohttp.ClientSession() as session:
             async with self.get_semaphore:
-                logger.debug(f"Reading results with api-key {self.api_key}")
+                logger.debug("Reading results with api-key %s", self.api_key)
                 try:
-                    async with session.get(f"{self.stream_uri}",
+                    async with session.get("stream_uri".format(stream_uri=self.stream_uri),
                                            headers={"Authorization": self.api_key},
                                            params={"since": 1440}) as raw_response:
                         try:
                             response = await raw_response.json()
                         except Exception:
                             response = await raw_response.read() if raw_response else 'None'
-                            logger.error(f'Received non-json response from PolySwarm API: {response}')
+                            logger.error("Received non-json response from PolySwarm API: %s", response)
                             response = {"result": "error"}
                         if raw_response.status // 100 != 2:
                             errors = response.get('errors')
-                            logger.error(f"Error posting to PolySwarm API: {errors}")
+                            logger.error("Error posting to PolySwarm API: %s", errors)
                             response = {"status": "error"}
                 except Exception:
-                    logger.error('Server request failed')
+                    logger.error("Server request failed")
                     return {'status': "error"}
 
                 if destination_dir is None:
@@ -669,12 +682,12 @@ class PolyswarmAsyncAPI(object):
                                             await out.write(chunk)
                                 except Exception:
                                     response = await raw_response.read() if raw_response else 'None'
-                                    logger.error(f'Received non-json response from PolySwarm API: {response}')
+                                    logger.error("Received non-json response from PolySwarm API: %s", response)
                                 if raw_response.status // 100 != 2:
                                     errors = response.get('errors')
-                                    logger.error(f"Error reading from PolySwarm API: {errors}")
+                                    logger.error("Error reading from PolySwarm API: %s", errors)
                         except Exception:
-                            logger.error('Server request failed')
+                            logger.error("Server request failed")
                             return {'status': "error"}
             return response
 
