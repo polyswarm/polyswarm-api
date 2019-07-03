@@ -23,7 +23,7 @@ setup(
     author_email='info@polyswarm.io',
     url='https://github.com/polyswarm/polyswarm-api',
     license='MIT',
-    python_requires='>=3.6,<4',
+    python_requires='>=3.5.4,<4',
     install_requires=parse_requirements(),
     include_package_data=True,
     packages=find_packages('src'),
