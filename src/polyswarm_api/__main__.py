@@ -106,7 +106,7 @@ def polyswarm(ctx, api_key, api_uri, output_file, output_format, color, verbose,
     if output_file != sys.stdout:
         color = False
 
-    logging.debug(f"Creating API instance: api_key:{api_key}, api_uri:{api_uri}")
+    logging.debug("Creating API instance: api_key:%s, api_uri:%s", api_key, api_uri)
     ctx.obj['api'] = PolyswarmAPI(api_key, api_uri, community=community,
                                   check_version=(not advanced_disable_version_check))
     ctx.obj['color'] = color
