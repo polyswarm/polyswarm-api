@@ -98,7 +98,7 @@ class PSResultFormatter(object):
                 output.append(self._normal("Scan report for GUID %s\n=========================================================" % result['uuid']))
                 # files in info, lets loop
                 for f in result['files']:
-                    output.append(self._open_group("Report for file %s, hash: %s" %
+                    output.append(self._open_group("Report for artifact %s, hash: %s" %
                                                    (f['filename'], f['hash'])))
                     if 'file_info' in f:
                         # this is in response to a /search/ request, so has some additional file metadata
@@ -264,9 +264,8 @@ class PSHuntSubmissionFormatter(PSResultFormatter):
         if self.output_format == "text":
             if self.results['status'] != 'OK':
                 return self._bad("Failed to install rules.\n")
-            return self._good("Successfully submitted rules, rule_id: {rule_id}\n".
-                              format(rule_id=self.results['result']['rule_id']))
-
+            return self._good("Successfully submitted rules, hunt id: {hunt_id}\n".
+                              format(hunt_id=self.results['result']['hunt_id']))
         elif self.output_format == "json":
             return json.dumps(self.results, indent=4, sort_keys=True)
         else:

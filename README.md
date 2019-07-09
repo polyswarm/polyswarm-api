@@ -29,6 +29,8 @@ results = api.scan_directory("/path/to/directory")
 
 results = api.scan_file("/path/to/eicar")
 
+results = api.scan_url("http://bad.com")
+
 results = api.search_hash("275a021bbfb6489e54d471899f7db9d1663fc695ec2fe2a2c4538aabf651fd0f")
 
 results = api.search_hashes(["275a021bbfb6489e54d471899f7db9d1663fc695ec2fe2a2c4538aabf651fd0f"])
@@ -39,11 +41,11 @@ results = api.rescan_file("275a021bbfb6489e54d471899f7db9d1663fc695ec2fe2a2c4538
 
 results = api.new_live_hunt(open("eicar.yara").read()) 
 
-results = api.get_live_results(rule_id=results['result']['rule_id'])
+results = api.get_live_results(hunt_id=results['result']['hunt_id'])
 
 results = api.new_historical_hunt(open("eicar.yara").read()) 
 
-results = api.get_historical_results(rule_id=results['result']['rule_id'])
+results = api.get_historical_results(hunt_id=results['result']['hunt_id'])
 
 results = api.get_stream(destination_dir="/my/malware/path")
 ```
@@ -131,6 +133,12 @@ Report for file 131f95c51cc819465fa1797f6ccacf9d494aaaff46fa3eac73ae63ffbdfd8267
         nanoav: Malicious, metadata: {"infections": [{"name": "Marker.Dos.EICAR-Test-File.dyb"}]}
         zillya: Malicious, metadata: Status:Infected EICAR.TestFile
         k7-engine: Malicious, metadata: Trojan ( 000139291 )
+
+$ polyswarm url https://www.XXXXXX.XXXX/admin.php?f=1.gif
+Scan report for GUID 550bcbfe-7d75-4de0-8d23-8b490e7ee58b
+=========================================================
+Report for file admin.php?f=1.gif, hash: c9d2152432e5ed53513c510b5ce94557313af965ba93f7819651542408344dae
+	Trustlook: Malicious, metadata: [{'malware_family': 'Malware', 'scanner': {'environment': {'operating_system': 'Linux', 'architecture': 'x86_64'}}}]
 
 ```
 
