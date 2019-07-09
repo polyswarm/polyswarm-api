@@ -325,14 +325,14 @@ def live_install(ctx, rule_file):
     ctx.obj['output'].write((str(rf)))
 
 
-@click.option('-i', '--rule-id', type=int, help="ID of the rule file (defaults to latest)")
+@click.option('-i', '--hunt-id', type=int, help="ID of the rule file (defaults to latest)")
 @click.option("--download-path", "-d", type=click.Path(file_okay=False), help="In addition to fetching the results, download the files that matched.")
 @live.command("results", short_help="get results from live hunt")
 @click.pass_context
-def live_results(ctx, rule_id, download_path):
+def live_results(ctx, hunt_id, download_path):
     api = ctx.obj['api']
 
-    results = api.get_live_results(rule_id)
+    results = api.get_live_results(hunt_id)
 
     rf = PSHuntResultFormatter(results, color=ctx.obj['color'],
                       output_format=ctx.obj['output_format'])
@@ -359,14 +359,14 @@ def historical_start(ctx, rule_file):
     ctx.obj['output'].write((str(rf)))
 
 
-@click.option('-i', '--rule-id', type=int, help="ID of the rule file (defaults to latest)")
+@click.option('-i', '--hunt-id', type=int, help="ID of the rule file (defaults to latest)")
 @click.option("--download-path", "-d", type=click.Path(file_okay=False), help="In addition to fetching the results, download the files that matched.")
 @historical.command("results", short_help="get results from historical hunt")
 @click.pass_context
-def historical_results(ctx, rule_id, download_path):
+def historical_results(ctx, hunt_id, download_path):
     api = ctx.obj['api']
 
-    results = api.get_historical_results(rule_id)
+    results = api.get_historical_results(hunt_id)
 
     rf = PSHuntResultFormatter(results, color=ctx.obj['color'],
                       output_format=ctx.obj['output_format'])
