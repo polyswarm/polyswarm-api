@@ -1,6 +1,6 @@
 # polyswarm-api
 An interface to the public and private PolySwarm APIs.
-
+Supports python3.5 >= 3.5.4 and python3.6 >= 3.6.5
 
 ## Installation
 From PyPI:
