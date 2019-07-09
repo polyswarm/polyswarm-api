@@ -98,7 +98,7 @@ class PSResultFormatter(object):
                 output.append(self._normal("Scan report for GUID %s\n=========================================================" % result['uuid']))
                 # files in info, lets loop
                 for f in result['files']:
-                    output.append(self._open_group("Report for file %s, hash: %s" %
+                    output.append(self._open_group("Report for artifact %s, hash: %s" %
                                                    (f['filename'], f['hash'])))
                     if 'file_info' in f:
                         # this is in response to a /search/ request, so has some additional file metadata

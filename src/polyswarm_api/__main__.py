@@ -190,6 +190,33 @@ def scan(ctx, path, force, recursive, timeout):
     ctx.obj['output'].write(str(rf))
 
 
+@click.option('-r', '--url-file', help="File of URLs, one per line.", type=click.File('r'))
+@click.option("-f", "--force", is_flag=True, default=False,  help="Force re-scan even if file has already been analyzed.")
+@click.option("-t", "--timeout", type=click.INT, default=-1, help="How long to wait for results (default: forever, -1)")
+@click.argument('url', nargs=-1, type=click.STRING)
+@polyswarm.command("url", short_help="scan url")
+@click.pass_context
+def url_scan(ctx, url, url_file, force, timeout):
+    """
+    Scan files or directories via PolySwarm
+    """
+    api = ctx.obj['api']
+
+    api.timeout = timeout
+
+    api.set_force(force)
+
+    urls = url
+
+    if url_file:
+        urls.extend([u.strip() for u in open(url_file).readlines()])
+
+    results = api.scan_urls(urls)
+
+    rf = PSResultFormatter(results, color=ctx.obj['color'], output_format=ctx.obj['output_format'])
+    ctx.obj['output'].write(str(rf))
+
+
 @click.option('-r', '--hash-file', help="File of hashes, one per line.", type=click.File('r'))
 @click.option("--hash-type", help="Hash type to search [sha256|sha1|md5], default=sha256", default="sha256")
 @click.argument('hash', nargs=-1, callback=validate_hash)
