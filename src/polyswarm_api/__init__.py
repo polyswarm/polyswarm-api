@@ -320,10 +320,10 @@ class PolyswarmAsyncAPI(object):
         if result['status'] == "OK":
             uuid = result['result']
         else:
-            logger.error(f"Failed to get UUID for scan of file {name}")
+            logger.error("Failed to get UUID for scan of file %s", name)
             return {"filename": name, "files": []}
 
-        logger.info(f"Successfully submitted file {name}, UUID {uuid}")
+        logger.info("Successfully submitted file %s, UUID %s", name, uuid)
 
         return await self._wait_for_uuid(uuid)
 
