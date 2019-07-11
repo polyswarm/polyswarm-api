@@ -6,6 +6,7 @@
   - [Installation](#installation)
   - [Usage](#usage)
     - [Use the library:](#use-the-library)
+      - [Create an API Client](#create-an-api-client)
       - [Perform Scans](#perform-scans)
       - [Perform Searches](#perform-searches)
       - [Download Files](#download-files)
@@ -13,7 +14,7 @@
       - [Perform Rescans](#perform-rescans)
       - [Get a Stream](#get-a-stream)
     - [Use the provided CLI](#use-the-provided-cli)
-      - [Setup](#setup)
+      - [Configuration](#configuration)
       - [Perform Scans](#perform-scans-1)
       - [Perform Searches](#perform-searches-1)
       - [Lookup UUIDs](#lookup-uuids)
@@ -43,7 +44,7 @@ From source:
 
 ### Use the library:
 
-Create an API client:
+#### Create an API Client
 
 ```python
 import polyswarm_api
@@ -126,7 +127,7 @@ results = api.get_stream(destination_dir="/my/malware/path")
 
 ### Use the provided CLI
 
-#### Setup
+#### Configuration
 
 ```bash
 $ export POLYSWARM_API_KEY=<Your API key from polyswarm.network>
