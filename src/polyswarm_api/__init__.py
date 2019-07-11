@@ -417,6 +417,9 @@ class PolyswarmAsyncAPI(object):
         """
         async with self.get_semaphore:
             async with aiohttp.ClientSession() as session:
+
+                print('{query_uri}/{query}'.format(**{'query_uri': self.query_uri,
+                                                                           'query': parse.quote(json.dumps(query))}))
                 try:
                     async with session.get('{query_uri}/{query}'.format(**{'query_uri': self.query_uri,
                                                                            'query': parse.quote(json.dumps(query))}),
@@ -436,7 +439,7 @@ class PolyswarmAsyncAPI(object):
 
                 except Exception as e:
                     logger.error('Server request failed', e)
-                    return {'reason': str(e), "result": [], "search": query, "status": "error"}
+                    return {'reason': 'unknown_error', "result": [], "search": query, "status": "error"}
 
         response['search'] = query
         return response

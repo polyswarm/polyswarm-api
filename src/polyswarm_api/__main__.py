@@ -252,7 +252,7 @@ def search(ctx, search_arguments, hash_file, hash_type):
     api = ctx.obj['api']
 
     if len(search_arguments) == 1 and _is_json(search_arguments[0]):
-        results = api.search_query(search_arguments[0])
+        results = api.search_query(json.loads(search_arguments[0]))
     else:
         hashes = list(search_arguments)
         if hash_file:
