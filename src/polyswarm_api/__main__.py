@@ -5,6 +5,7 @@ import logging
 import sys
 import os
 from uuid import UUID
+import json
 
 from aiohttp import ServerDisconnectedError
 
@@ -214,33 +215,55 @@ def url_scan(ctx, url, url_file, force, timeout):
     ctx.obj['output'].write(str(rf))
 
 
-@click.option('-r', '--hash-file', help='File of hashes, one per line.', type=click.File('r'))
-@click.option('--hash-type', help='Hash type to search [sha256|sha1|md5], default=sha256', default='sha256')
-@click.argument('hash', nargs=-1, callback=validate_hash)
-@polyswarm.command('search', short_help='search for hash')
+@click.option('-r', '--hash-file', help="File of hashes, one per line.", type=click.File('r'))
+@click.option("--hash-type", help="Hash type to search [sha256|sha1|md5], default=sha256", default="sha256")
+@click.argument('search_argument', nargs=-1)
+@polyswarm.command("search", short_help="search for hashes separated by space or JSON query")
 @click.pass_context
-def search(ctx, hash, hash_file, hash_type):
+def search(ctx, search_argument, hash_file, hash_type):
     """
     Search PolySwarm for files matching sha256 hashes
     """
+    def _is_json(string):
+        try:
+            json.loads(string)
+        except ValueError:
+            return False
+        return True
+
+    def _remove_invalid_hashes(hash_candidates, candidates_hash_type):
+
+        def is_valid_hash(candidate):
+            return (candidates_hash_type == 'sha256' and _is_valid_sha256(candidate)) or \
+                   (candidates_hash_type == 'sha1' and _is_valid_sha1(candidate)) or \
+                   (candidates_hash_type == 'md5' and _is_valid_md5(candidate))
+        valid_hashes = []
+        for candidate in hash_candidates:
+            if is_valid_hash(candidate):
+                valid_hashes.append(candidate)
+            else:
+                logger.warning('Invalid hash %s, ignoring.', candidate)
+        return valid_hashes
+
     api = ctx.obj['api']
 
-    hashes = list(hash)
+    if len(search_argument) == 1 and _is_json(search_argument[0]):
+        query = search_argument[0]
+        results = api.search_query(query)
+        rf = PSSearchResultFormatter(results, color=ctx.obj['color'],
+                                     output_format=ctx.obj['output_format'])
+        ctx.obj['output'].write(str(rf))
+    else:
+        hashes = list(search_argument)
+        if hash_file:
+            hashes += [h.strip() for h in hash_file.readLines()]
+        hashes = _remove_invalid_hashes(hashes, hash_type)
 
-    # TODO dedupe
-    if hash_file:
-        for h in hash_file.readlines():
-            h = h.strip()
-            if (hash_type == 'sha256' and _is_valid_sha256(h)) or \
-                    (hash_type == 'sha1' and _is_valid_sha1(h)) or \
-                    (hash_type == 'md5' and _is_valid_md5(h)):
-                hashes.append(h)
-            else:
-                logger.warning('Invalid hash %s in file, ignoring.', h)
+        rf = PSSearchResultFormatter(api.search_hashes(hashes, hash_type),
+                                     color=ctx.obj['color'],
+                                     output_format=ctx.obj['output_format'])
 
-    rf = PSSearchResultFormatter(api.search_hashes(hashes, hash_type), color=ctx.obj['color'],
-                                 output_format=ctx.obj['output_format'])
-    ctx.obj['output'].write(str(rf))
+        ctx.obj['output'].write(str(rf))
 
 
 @click.option('-r', '--uuid-file', help='File of UUIDs, one per line.', type=click.File('r'))

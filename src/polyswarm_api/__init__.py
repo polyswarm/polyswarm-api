@@ -53,6 +53,7 @@ class PolyswarmAsyncAPI(object):
 
         self.consumer_uri = '{uri}/consumer'.format(uri=self.uri)
         self.search_uri = '{uri}/search'.format(uri=self.uri)
+        self.query_uri = f"{self.uri}/query"
         self.download_uri = '{uri}/download'.format(uri=self.uri)
         self.community_uri = '{consumer_uri}/{community}'.format(consumer_uri=self.consumer_uri, community=community)
         self.hunt_uri = '{uri}/hunt'.format(uri=self.uri)
@@ -404,6 +405,38 @@ class PolyswarmAsyncAPI(object):
                             'status': 'error'}
 
         response['search'] = '{hash_type}={hash}'.format(hash_type=hash_type, hash=to_scan)
+        return response
+
+    async def search_query(self, query):
+        """
+        Search by Elasticsearch query using the PS API asynchronously.
+
+        :param query: Elasticsearch query
+        :return: JSON report file
+        """
+        async with self.get_semaphore:
+            async with aiohttp.ClientSession() as session:
+                try:
+                    async with session.get(f"{self.query_uri}/{parse.quote(json.dumps(query))}",
+                                           headers={"Authorization": self.api_key}) as raw_response:
+
+                        try:
+                            response = await raw_response.json()
+                        except Exception:
+                            response = await raw_response.read() if raw_response else 'None'
+                            response = response.decode("utf-8")
+                            if raw_response.status == 404:
+                                return {"search": query, 'result': []}
+                            elif raw_response.status // 100 != 2:
+                                raise Exception(f"Error reading from PolySwarm API: {response}")
+                            else:
+                                raise Exception(f"Received non-json response from PolySwarm API: {response}")
+
+                except Exception as e:
+                    logger.error('Server request failed', e)
+                    return {'reason': str(e), "result": [], "search": query, "status": "error"}
+
+        response["search"] = query
         return response
 
     async def rescan_hash(self, to_rescan, hash_type='sha256'):
@@ -889,6 +922,15 @@ class PolyswarmAPI(object):
         :return: JSON report file
         """
         return self.loop.run_until_complete(self.ps_api.search_hash(to_scan, hash_type))
+
+    def search_query(self, query):
+        """
+        Search by Elasticsearch query using the PS API asynchronously.
+
+        :param query:
+        :return: JSON report file
+        """
+        return self.loop.run_until_complete(self.ps_api.search_query(query))
 
     def lookup_uuid(self, uuid):
         """

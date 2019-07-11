@@ -1,0 +1,12 @@
+{
+    "reason": "Received non-json response from PolySwarm API: Definitely NOT JSON",
+    "result": [],
+    "search": {
+        "query": {
+            "exists": {
+                "field": "lief.libraries"
+            }
+        }
+    },
+    "status": "error"
+}

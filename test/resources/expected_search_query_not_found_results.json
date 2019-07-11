@@ -1,0 +1,10 @@
+{
+  "search": {
+    "query": {
+      "exists": {
+        "field": "lief.libraries"
+      }
+    }
+  },
+  "result": []
+}
