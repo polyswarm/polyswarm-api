@@ -215,10 +215,10 @@ def url_scan(ctx, url, url_file, force, timeout):
     ctx.obj['output'].write(str(rf))
 
 
-@click.option('-r', '--hash-file', help="File of hashes, one per line.", type=click.File('r'))
-@click.option("--hash-type", help="Hash type to search [sha256|sha1|md5], default=sha256", default="sha256")
+@click.option('-r', '--hash-file', help='File of hashes, one per line.', type=click.File('r'))
+@click.option('--hash-type', help='Hash type to search [sha256|sha1|md5], default=sha256', default='sha256')
 @click.argument('search_arguments', nargs=-1)
-@polyswarm.command("search", short_help="search for hashes separated by space or JSON query")
+@polyswarm.command('search', short_help='search for hashes separated by space or JSON query')
 @click.pass_context
 def search(ctx, search_arguments, hash_file, hash_type):
     """
