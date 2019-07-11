@@ -417,7 +417,9 @@ class PolyswarmAsyncAPI(object):
         async with self.get_semaphore:
             async with aiohttp.ClientSession() as session:
                 try:
-                    async with session.get(f"{self.query_uri}/{parse.quote(json.dumps(query))}",
+                    async with session.get('{query_uri}/{query}'
+                                                   .format(**{'query_uri': self.query_uri,
+                                                              'query': parse.quote(json.dumps(query))}),
                                            headers={"Authorization": self.api_key}) as raw_response:
 
                         try:

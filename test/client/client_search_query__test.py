@@ -37,7 +37,7 @@ class SearchQueryTestCase(PolyApiBaseTestCase):
     def test_search_query(self):
         test_uri = f"http://localhost:{self.server.port}/v1"
         test_client = PolyswarmAPI(self.test_api_key, uri=test_uri)
-        expected_results = self._get_test_json_resource("expected_search_query_success_results.json")
+        expected_results = self._get_test_json_resource("expected_search_success_results.json")
         results = test_client.search_query(self.test_query)
         self.assertDictEqual(results, expected_results)
 

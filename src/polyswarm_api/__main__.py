@@ -217,10 +217,10 @@ def url_scan(ctx, url, url_file, force, timeout):
 
 @click.option('-r', '--hash-file', help="File of hashes, one per line.", type=click.File('r'))
 @click.option("--hash-type", help="Hash type to search [sha256|sha1|md5], default=sha256", default="sha256")
-@click.argument('search_argument', nargs=-1)
+@click.argument('search_arguments', nargs=-1)
 @polyswarm.command("search", short_help="search for hashes separated by space or JSON query")
 @click.pass_context
-def search(ctx, search_argument, hash_file, hash_type):
+def search(ctx, search_arguments, hash_file, hash_type):
     """
     Search PolySwarm for files matching sha256 hashes
     """
@@ -231,12 +231,16 @@ def search(ctx, search_argument, hash_file, hash_type):
             return False
         return True
 
+    def _get_hashes_from_file(file):
+        return [h.strip() for h in file.readLines()]
+
     def _remove_invalid_hashes(hash_candidates, candidates_hash_type):
 
-        def is_valid_hash(candidate):
-            return (candidates_hash_type == 'sha256' and _is_valid_sha256(candidate)) or \
-                   (candidates_hash_type == 'sha1' and _is_valid_sha1(candidate)) or \
-                   (candidates_hash_type == 'md5' and _is_valid_md5(candidate))
+        def is_valid_hash(hash_candidate):
+            return (candidates_hash_type == 'sha256' and _is_valid_sha256(hash_candidate)) or \
+                   (candidates_hash_type == 'sha1' and _is_valid_sha1(hash_candidate)) or \
+                   (candidates_hash_type == 'md5' and _is_valid_md5(hash_candidate))
+
         valid_hashes = []
         for candidate in hash_candidates:
             if is_valid_hash(candidate):
@@ -247,23 +251,18 @@ def search(ctx, search_argument, hash_file, hash_type):
 
     api = ctx.obj['api']
 
-    if len(search_argument) == 1 and _is_json(search_argument[0]):
-        query = search_argument[0]
-        results = api.search_query(query)
-        rf = PSSearchResultFormatter(results, color=ctx.obj['color'],
-                                     output_format=ctx.obj['output_format'])
-        ctx.obj['output'].write(str(rf))
+    if len(search_arguments) == 1 and _is_json(search_arguments[0]):
+        results = api.search_query(search_arguments[0])
     else:
-        hashes = list(search_argument)
+        hashes = list(search_arguments)
         if hash_file:
-            hashes += [h.strip() for h in hash_file.readLines()]
+            hashes += _get_hashes_from_file(hash_file)
         hashes = _remove_invalid_hashes(hashes, hash_type)
+        results = api.search_hashes(hashes, hash_type)
 
-        rf = PSSearchResultFormatter(api.search_hashes(hashes, hash_type),
-                                     color=ctx.obj['color'],
-                                     output_format=ctx.obj['output_format'])
-
-        ctx.obj['output'].write(str(rf))
+    rf = PSSearchResultFormatter(results, color=ctx.obj['color'],
+                                 output_format=ctx.obj['output_format'])
+    ctx.obj['output'].write(str(rf))
 
 
 @click.option('-r', '--uuid-file', help='File of UUIDs, one per line.', type=click.File('r'))
