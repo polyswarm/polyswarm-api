@@ -45,7 +45,7 @@ class PolyswarmAsyncAPI(object):
 
         self.network = 'prod'
         self.portal_uri = 'https://polyswarm.network/scan/results/'
-        
+
         if self.uri_parse.hostname.endswith(self._stage_base_domain):
             self.network = 'stage'
             # TODO change this to stage.lb.kb.polyswarm.network *after* portal chart in kube
@@ -53,7 +53,7 @@ class PolyswarmAsyncAPI(object):
 
         self.consumer_uri = '{uri}/consumer'.format(uri=self.uri)
         self.search_uri = '{uri}/search'.format(uri=self.uri)
-        self.query_uri = f"{self.uri}/query"
+        self.query_uri = "{uri}/query".format(**{'uri': self.uri})
         self.download_uri = '{uri}/download'.format(uri=self.uri)
         self.community_uri = '{consumer_uri}/{community}'.format(consumer_uri=self.consumer_uri, community=community)
         self.hunt_uri = '{uri}/hunt'.format(uri=self.uri)
@@ -77,7 +77,8 @@ class PolyswarmAsyncAPI(object):
         if check_version:
             up_to_date, version = asyncio.get_event_loop().run_until_complete(self.check_version())
             if not up_to_date and version is not None:
-                logger.warning('PolySwarmAPI out of date. Installed version: %s, Current version: %s', __version__, version)
+                logger.warning('PolySwarmAPI out of date. Installed version: %s, Current version: %s', __version__,
+                               version)
                 logger.warning('To update, run: pip install -U polyswarm-api')
                 logger.warning('Please upgrade or certain features may not work properly.')
 
@@ -109,7 +110,7 @@ class PolyswarmAsyncAPI(object):
         :return: JSON updated with name-ETH address mappings for microengines and arbiters
         """
         if 'uuid' in result:
-            result['permalink'] = self.portal_uri+result['uuid']
+            result['permalink'] = self.portal_uri + result['uuid']
         try:
             for file in result['files']:
                 if 'assertions' in file:
@@ -189,7 +190,7 @@ class PolyswarmAsyncAPI(object):
                                 'encoding': raw_response.headers.get('Content-Encoding', 'none')}
                 except Exception:
                     logger.error('Server request failed')
-                    return {'reason': 'unknown_error',  'status': 'error'}
+                    return {'reason': 'unknown_error', 'status': 'error'}
 
     async def post_artifact(self, artifact_data_obj, artifact_data_name, artifact_type=ArtifactType.FILE):
         """
@@ -303,7 +304,7 @@ class PolyswarmAsyncAPI(object):
 
             await asyncio.sleep(1)
 
-            if time.time()-started > self.timeout >= 0:
+            if time.time() - started > self.timeout >= 0:
                 break
 
         logger.warning('Failed to get results for uuid %s in time.', uuid)
@@ -417,28 +418,27 @@ class PolyswarmAsyncAPI(object):
         async with self.get_semaphore:
             async with aiohttp.ClientSession() as session:
                 try:
-                    async with session.get('{query_uri}/{query}'
-                                                   .format(**{'query_uri': self.query_uri,
-                                                              'query': parse.quote(json.dumps(query))}),
+                    async with session.get('{query_uri}/{query}'.format(**{'query_uri': self.query_uri,
+                                                                           'query': parse.quote(json.dumps(query))}),
                                            headers={"Authorization": self.api_key}) as raw_response:
 
                         try:
                             response = await raw_response.json()
                         except Exception:
                             response = await raw_response.read() if raw_response else 'None'
-                            response = response.decode("utf-8")
+                            response = response.decode('utf-8')
                             if raw_response.status == 404:
                                 return {"search": query, 'result': []}
                             elif raw_response.status // 100 != 2:
-                                raise Exception(f"Error reading from PolySwarm API: {response}")
+                                raise Exception('Error reading from PolySwarm API: {}'.format(response))
                             else:
-                                raise Exception(f"Received non-json response from PolySwarm API: {response}")
+                                raise Exception('Received non-json response from PolySwarm API: {}'.format(response))
 
                 except Exception as e:
                     logger.error('Server request failed', e)
                     return {'reason': str(e), "result": [], "search": query, "status": "error"}
 
-        response["search"] = query
+        response['search'] = query
         return response
 
     async def rescan_hash(self, to_rescan, hash_type='sha256'):
@@ -453,10 +453,11 @@ class PolyswarmAsyncAPI(object):
         async with self.get_semaphore:
             async with aiohttp.ClientSession() as session:
                 try:
-                    async with session.get('{community_uri}/rescan/{hash_type}/{hash}'.format(community_uri=self.community_uri,
-                                                                                              hash_type=hash_type,
-                                                                                              hash=to_rescan),
-                                           headers={'Authorization': self.api_key}) as raw_response:
+                    async with session.get(
+                            '{community_uri}/rescan/{hash_type}/{hash}'.format(community_uri=self.community_uri,
+                                                                               hash_type=hash_type,
+                                                                               hash=to_rescan),
+                            headers={'Authorization': self.api_key}) as raw_response:
                         try:
                             response = await raw_response.json()
                         except Exception:
@@ -464,7 +465,8 @@ class PolyswarmAsyncAPI(object):
                             raise Exception('Received non-json response from PolySwarm API: %s', response)
 
                         if raw_response.status == 404:
-                            return {'hash': to_rescan, 'reason': 'file_not_found', 'status': 'error', 'result': 'not found'}
+                            return {'hash': to_rescan, 'reason': 'file_not_found', 'status': 'error',
+                                    'result': 'not found'}
 
                         if raw_response.status // 100 != 2:
                             # TODO this behavior in the API needs to change
@@ -523,8 +525,8 @@ class PolyswarmAsyncAPI(object):
         """
         if recursive:
             file_list = [os.path.join(path, file)
-                            for (path, dirs, files) in os.walk(directory)
-                            for file in files if os.path.isfile(os.path.join(path, file))]
+                         for (path, dirs, files) in os.walk(directory)
+                         for file in files if os.path.isfile(os.path.join(path, file))]
         else:
             file_list = [os.path.join(directory, file) for file in os.listdir(directory)
                          if os.path.isfile(os.path.join(directory, file))]
@@ -568,7 +570,7 @@ class PolyswarmAsyncAPI(object):
         if with_metadata:
             meta_results = await self.search_hash(h, hash_type=hash_type)
             if 'result' in meta_results and len(meta_results['result']) > 0:
-                async with aiofiles.open(out_path+'.json', mode='w') as f:
+                async with aiofiles.open(out_path + '.json', mode='w') as f:
                     # this is a hash search, only return one result
                     await f.write(json.dumps(meta_results['result'][0]))
 
@@ -766,7 +768,7 @@ class PolyswarmAsyncAPI(object):
                                     out_path = os.path.join(destination_dir, file_name)
                                     async with aiofiles.open(out_path, mode='wb') as out:
                                         while True:
-                                            chunk = await raw_response.content.read(2*1024*1024)
+                                            chunk = await raw_response.content.read(2 * 1024 * 1024)
                                             if not chunk:
                                                 break
                                             await out.write(chunk)
