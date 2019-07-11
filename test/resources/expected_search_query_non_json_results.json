@@ -1,5 +1,5 @@
 {
-    "reason": "Received non-json response from PolySwarm API: Definitely NOT JSON",
+    "reason": "unknown_error",
     "result": [],
     "search": {
         "query": {
