@@ -45,9 +45,7 @@ class PolyswarmAsyncAPI(object):
 
         self.uri_parse = urllib.parse.urlparse(self.uri)
 
-        self.network = 'prod'
-        if self.uri_parse.hostname.endswith(self._stage_base_domain):
-            self.network = 'stage'
+        self.network = 'stage' if self.uri_parse.hostname.endswith(self._stage_base_domain) else 'prod'
 
         self.consumer_uri = consumer_uri or '{uri}/consumer'.format(uri=self.uri)
         self.search_uri = search_uri or '{uri}/search'.format(uri=self.uri)
