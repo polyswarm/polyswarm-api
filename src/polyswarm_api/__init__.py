@@ -50,7 +50,8 @@ class PolyswarmAsyncAPI(object):
         self.consumer_uri = consumer_uri or '{uri}/consumer'.format(uri=self.uri)
         self.search_uri = search_uri or '{uri}/search'.format(uri=self.uri)
         self.download_uri = download_uri or '{uri}/download'.format(uri=self.uri)
-        self.community_uri = community_uri or '{consumer_uri}/{community}'.format(consumer_uri=self.consumer_uri, community=community)
+        self.community_uri = community_uri or '{consumer_uri}/{community}'.format(consumer_uri=self.consumer_uri,
+                                                                                  community=community)
         self.hunt_uri = hunt_uri or '{uri}/hunt'.format(uri=self.uri)
         self.stream_uri = stream_uri or '{uri}/download/stream'.format(uri=self.uri)
 
@@ -61,7 +62,9 @@ class PolyswarmAsyncAPI(object):
         self.network = 'prod' if uri.find('lb.kb') == -1 else 'lb.kb'
 
         # TODO does this need commmunity?
-        self.portal_uri = portal_uri or 'https://polyswarm.network/scan/results/' if self.network == 'prod' else 'https://portal.stage.polyswarm.network/'
+        self.portal_uri = portal_uri or ('https://polyswarm.network/scan/results/'
+                                         if self.network == 'prod'
+                                         else 'https://portal.stage.polyswarm.network/')
 
         self.engine_resolver = EngineResolver(self.uri)
 
