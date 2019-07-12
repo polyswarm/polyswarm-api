@@ -26,7 +26,7 @@ class PolyswarmAsyncAPI(object):
     def __init__(self, key, uri='https://api.polyswarm.network/v1', get_limit=100,
                  post_limit=1000, timeout=600, force=False, community='lima', check_version=True,
                  consumer_uri=None, search_uri=None, download_uri=None, community_uri=None,
-                 hunt_uri=None, stream_uri=None, portal_uri=None, **kwargs):
+                 hunt_uri=None, stream_uri=None, portal_uri=None, query_uri=None, **kwargs):
         """
 
         :param key: PolySwarm API key
@@ -49,6 +49,7 @@ class PolyswarmAsyncAPI(object):
 
         self.consumer_uri = consumer_uri or '{uri}/consumer'.format(uri=self.uri)
         self.search_uri = search_uri or '{uri}/search'.format(uri=self.uri)
+        self.query_uri = query_uri or "{uri}/query".format(**{'uri': self.uri})
         self.download_uri = download_uri or '{uri}/download'.format(uri=self.uri)
         self.community_uri = community_uri or '{consumer_uri}/{community}'.format(consumer_uri=self.consumer_uri,
                                                                                   community=community)
@@ -75,7 +76,8 @@ class PolyswarmAsyncAPI(object):
         if check_version:
             up_to_date, version = asyncio.get_event_loop().run_until_complete(self.check_version())
             if not up_to_date and version is not None:
-                logger.warning('PolySwarmAPI out of date. Installed version: %s, Current version: %s', __version__, version)
+                logger.warning('PolySwarmAPI out of date. Installed version: %s, Current version: %s', __version__,
+                               version)
                 logger.warning('To update, run: pip install -U polyswarm-api')
                 logger.warning('Please upgrade or certain features may not work properly.')
 
@@ -107,7 +109,7 @@ class PolyswarmAsyncAPI(object):
         :return: JSON updated with name-ETH address mappings for microengines and arbiters
         """
         if 'uuid' in result:
-            result['permalink'] = self.portal_uri+result['uuid']
+            result['permalink'] = self.portal_uri + result['uuid']
         try:
             for file in result['files']:
                 if 'assertions' in file:
@@ -187,7 +189,7 @@ class PolyswarmAsyncAPI(object):
                                 'encoding': raw_response.headers.get('Content-Encoding', 'none')}
                 except Exception:
                     logger.error('Server request failed')
-                    return {'reason': 'unknown_error',  'status': 'error'}
+                    return {'reason': 'unknown_error', 'status': 'error'}
 
     async def post_artifact(self, artifact_data_obj, artifact_data_name, artifact_type=ArtifactType.FILE):
         """
@@ -301,7 +303,7 @@ class PolyswarmAsyncAPI(object):
 
             await asyncio.sleep(1)
 
-            if time.time()-started > self.timeout >= 0:
+            if time.time() - started > self.timeout >= 0:
                 break
 
         logger.warning('Failed to get results for uuid %s in time.', uuid)
@@ -405,6 +407,42 @@ class PolyswarmAsyncAPI(object):
         response['search'] = '{hash_type}={hash}'.format(hash_type=hash_type, hash=to_scan)
         return response
 
+    async def search_query(self, query):
+        """
+        Search by Elasticsearch query using the PS API asynchronously.
+
+        :param query: Elasticsearch query
+        :return: JSON report file
+        """
+        async with self.get_semaphore:
+            async with aiohttp.ClientSession() as session:
+
+                print('{query_uri}/{query}'.format(**{'query_uri': self.query_uri,
+                                                                           'query': parse.quote(json.dumps(query))}))
+                try:
+                    async with session.get('{query_uri}/{query}'.format(**{'query_uri': self.query_uri,
+                                                                           'query': parse.quote(json.dumps(query))}),
+                                           headers={"Authorization": self.api_key}) as raw_response:
+
+                        try:
+                            response = await raw_response.json()
+                        except Exception:
+                            response = await raw_response.read() if raw_response else 'None'
+                            response = response.decode('utf-8')
+                            if raw_response.status == 404:
+                                return {"search": query, 'result': []}
+                            elif raw_response.status // 100 != 2:
+                                raise Exception('Error reading from PolySwarm API: {}'.format(response))
+                            else:
+                                raise Exception('Received non-json response from PolySwarm API: {}'.format(response))
+
+                except Exception as e:
+                    logger.error('Server request failed', e)
+                    return {'reason': 'unknown_error', "result": [], "search": query, "status": "error"}
+
+        response['search'] = query
+        return response
+
     async def rescan_hash(self, to_rescan, hash_type='sha256'):
         """
         Start a rescan for single hash using the PS API asynchronously.
@@ -417,10 +455,11 @@ class PolyswarmAsyncAPI(object):
         async with self.get_semaphore:
             async with aiohttp.ClientSession() as session:
                 try:
-                    async with session.get('{community_uri}/rescan/{hash_type}/{hash}'.format(community_uri=self.community_uri,
-                                                                                              hash_type=hash_type,
-                                                                                              hash=to_rescan),
-                                           headers={'Authorization': self.api_key}) as raw_response:
+                    async with session.get(
+                            '{community_uri}/rescan/{hash_type}/{hash}'.format(community_uri=self.community_uri,
+                                                                               hash_type=hash_type,
+                                                                               hash=to_rescan),
+                            headers={'Authorization': self.api_key}) as raw_response:
                         try:
                             response = await raw_response.json()
                         except Exception:
@@ -428,7 +467,8 @@ class PolyswarmAsyncAPI(object):
                             raise Exception('Received non-json response from PolySwarm API: %s', response)
 
                         if raw_response.status == 404:
-                            return {'hash': to_rescan, 'reason': 'file_not_found', 'status': 'error', 'result': 'not found'}
+                            return {'hash': to_rescan, 'reason': 'file_not_found', 'status': 'error',
+                                    'result': 'not found'}
 
                         if raw_response.status // 100 != 2:
                             # TODO this behavior in the API needs to change
@@ -487,8 +527,8 @@ class PolyswarmAsyncAPI(object):
         """
         if recursive:
             file_list = [os.path.join(path, file)
-                            for (path, dirs, files) in os.walk(directory)
-                            for file in files if os.path.isfile(os.path.join(path, file))]
+                         for (path, dirs, files) in os.walk(directory)
+                         for file in files if os.path.isfile(os.path.join(path, file))]
         else:
             file_list = [os.path.join(directory, file) for file in os.listdir(directory)
                          if os.path.isfile(os.path.join(directory, file))]
@@ -532,7 +572,7 @@ class PolyswarmAsyncAPI(object):
         if with_metadata:
             meta_results = await self.search_hash(h, hash_type=hash_type)
             if 'result' in meta_results and len(meta_results['result']) > 0:
-                async with aiofiles.open(out_path+'.json', mode='w') as f:
+                async with aiofiles.open(out_path + '.json', mode='w') as f:
                     # this is a hash search, only return one result
                     await f.write(json.dumps(meta_results['result'][0]))
 
@@ -730,7 +770,7 @@ class PolyswarmAsyncAPI(object):
                                     out_path = os.path.join(destination_dir, file_name)
                                     async with aiofiles.open(out_path, mode='wb') as out:
                                         while True:
-                                            chunk = await raw_response.content.read(2*1024*1024)
+                                            chunk = await raw_response.content.read(2 * 1024 * 1024)
                                             if not chunk:
                                                 break
                                             await out.write(chunk)
@@ -749,7 +789,8 @@ class PolyswarmAsyncAPI(object):
 class PolyswarmAPI(object):
     """A synchronous interface to the public and private PolySwarm APIs."""
 
-    def __init__(self, *args, **kwargs):
+    def __init__(self, key, uri='https://api.polyswarm.network/v1', get_limit=100,
+                 post_limit=1000, timeout=600, force=False, community='lima', check_version=True):
         """
 
         :param key: PolySwarm API key
@@ -761,8 +802,7 @@ class PolyswarmAPI(object):
         :param community: Community to scan against.
         :param check_version: Whether or not to check Github for version information
         """
-        # Since this is a wrapper, send all arguments down to the async client
-        self.ps_api = PolyswarmAsyncAPI(*args, **kwargs)
+        self.ps_api = PolyswarmAsyncAPI(key, uri, get_limit, post_limit, timeout, force, community, check_version)
         self.loop = asyncio.get_event_loop()
 
     def set_force(self, force):
@@ -888,6 +928,15 @@ class PolyswarmAPI(object):
         :return: JSON report file
         """
         return self.loop.run_until_complete(self.ps_api.search_hash(to_scan, hash_type))
+
+    def search_query(self, query):
+        """
+        Search by Elasticsearch query using the PS API asynchronously.
+
+        :param query:
+        :return: JSON report file
+        """
+        return self.loop.run_until_complete(self.ps_api.search_query(query))
 
     def lookup_uuid(self, uuid):
         """
