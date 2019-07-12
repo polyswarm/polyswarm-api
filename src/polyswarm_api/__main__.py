@@ -72,16 +72,21 @@ def validate_key(ctx, param, value):
 
 
 @click.group(context_settings=CONTEXT_SETTINGS)
-@click.option('-a', '--api-key', help='Your API key for polyswarm.network (required)', default='', callback=validate_key, envvar='POLYSWARM_API_KEY')
-@click.option('-u', '--api-uri', default='https://api.polyswarm.network/v1', envvar='POLYSWARM_API_URI', help='The API endpoint (ADVANCED)')
-@click.option('-o', '--output-file', default=sys.stdout, type=click.File('w'), help='Path to output file.')
-@click.option('--fmt', '--output-format', default='text', type=click.Choice(['text', 'json']), help='Output format. Human-readable text or JSON.')
+@click.option('-a', '--api-key', help='Your API key for polyswarm.network (required)',
+              default='', callback=validate_key, envvar='POLYSWARM_API_KEY')
+@click.option('-u', '--custom-uri', help='Manually overwrite API endpoints (ADVANCED)', multiple=True)
+@click.option('-o', '--output-file', default=sys.stdout, type=click.File('w'),
+              help='Path to output file.')
+@click.option('--fmt', '--output-format', default='text', type=click.Choice(['text', 'json']),
+              help='Output format. Human-readable text or JSON.')
 @click.option('--color/--no-color', default=True, help='Use colored output in text mode.')
 @click.option('-v', '--verbose', default=0, count=True)
-@click.option('-c', '--community', default='lima', envvar='POLYSWARM_COMMUNITY', help='Community to use.')
-@click.option('--advanced-disable-version-check/--advanced-enable-version-check', default=False, help='Enable/disable GitHub release version check.')
+@click.option('-c', '--community', default='lima', envvar='POLYSWARM_COMMUNITY',
+              help='Community to use.')
+@click.option('--advanced-disable-version-check/--advanced-enable-version-check', default=False,
+              help='Enable/disable GitHub release version check.')
 @click.pass_context
-def polyswarm(ctx, api_key, api_uri, output_file, output_format, color, verbose, community,
+def polyswarm(ctx, api_key, custom_uri, output_file, output_format, color, verbose, community,
               advanced_disable_version_check):
     """
     This is a PolySwarm CLI client, which allows you to interact directly
@@ -106,9 +111,10 @@ def polyswarm(ctx, api_key, api_uri, output_file, output_format, color, verbose,
     if output_file != sys.stdout:
         color = False
 
-    logging.debug('Creating API instance: api_key:%s, api_uri:%s', api_key, api_uri)
-    ctx.obj['api'] = PolyswarmAPI(api_key, api_uri, community=community,
-                                  check_version=(not advanced_disable_version_check))
+    logging.debug('Creating API instance: api_key:%s, custom_uris:%s', api_key, custom_uri)
+    overwrite_uris = dict(uri.split('=', maxsplit=1) for uri in custom_uri)
+    ctx.obj['api'] = PolyswarmAPI(api_key, community=community,
+                                  check_version=(not advanced_disable_version_check), **overwrite_uris)
     ctx.obj['color'] = color
     ctx.obj['output_format'] = output_format
     ctx.obj['output'] = output_file

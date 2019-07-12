@@ -24,7 +24,9 @@ class PolyswarmAsyncAPI(object):
     """
 
     def __init__(self, key, uri='https://api.polyswarm.network/v1', get_limit=100,
-                 post_limit=1000, timeout=600, force=False, community='lima', check_version=True):
+                 post_limit=1000, timeout=600, force=False, community='lima', check_version=True,
+                 consumer_uri=None, search_uri=None, download_uri=None, community_uri=None,
+                 hunt_uri=None, stream_uri=None, portal_uri=None, **kwargs):
         """
 
         :param key: PolySwarm API key
@@ -44,19 +46,19 @@ class PolyswarmAsyncAPI(object):
         self.uri_parse = urllib.parse.urlparse(self.uri)
 
         self.network = 'prod'
-        self.portal_uri = 'https://polyswarm.network/scan/results/'
+        self.portal_uri = portal_uri or 'https://polyswarm.network/scan/results/'
         
         if self.uri_parse.hostname.endswith(self._stage_base_domain):
             self.network = 'stage'
             # TODO change this to stage.lb.kb.polyswarm.network *after* portal chart in kube
-            self.portal_uri = 'https://portal.stage.polyswarm.network/scan/results/'
+            self.portal_uri = portal_uri or 'https://portal.stage.polyswarm.network/scan/results/'
 
-        self.consumer_uri = '{uri}/consumer'.format(uri=self.uri)
-        self.search_uri = '{uri}/search'.format(uri=self.uri)
-        self.download_uri = '{uri}/download'.format(uri=self.uri)
-        self.community_uri = '{consumer_uri}/{community}'.format(consumer_uri=self.consumer_uri, community=community)
-        self.hunt_uri = '{uri}/hunt'.format(uri=self.uri)
-        self.stream_uri = '{uri}/download/stream'.format(uri=self.uri)
+        self.consumer_uri = consumer_uri or '{uri}/consumer'.format(uri=self.uri)
+        self.search_uri = search_uri or '{uri}/search'.format(uri=self.uri)
+        self.download_uri = download_uri or '{uri}/download'.format(uri=self.uri)
+        self.community_uri = community_uri or '{consumer_uri}/{community}'.format(consumer_uri=self.consumer_uri, community=community)
+        self.hunt_uri = hunt_uri or '{uri}/hunt'.format(uri=self.uri)
+        self.stream_uri = stream_uri or '{uri}/download/stream'.format(uri=self.uri)
 
         self.force = force
 
@@ -65,7 +67,7 @@ class PolyswarmAsyncAPI(object):
         self.network = 'prod' if uri.find('lb.kb') == -1 else 'lb.kb'
 
         # TODO does this need commmunity?
-        self.portal_uri = 'https://polyswarm.network/scan/results/' if self.network == 'prod' else 'https://portal.stage.polyswarm.network/'
+        self.portal_uri = portal_uri or 'https://polyswarm.network/scan/results/' if self.network == 'prod' else 'https://portal.stage.polyswarm.network/'
 
         self.engine_resolver = EngineResolver(self.uri)
 
@@ -750,8 +752,7 @@ class PolyswarmAsyncAPI(object):
 class PolyswarmAPI(object):
     """A synchronous interface to the public and private PolySwarm APIs."""
 
-    def __init__(self, key, uri='https://api.polyswarm.network/v1', get_limit=100,
-                 post_limit=1000, timeout=600, force=False, community='lima', check_version=True):
+    def __init__(self, *args, **kwargs):
         """
 
         :param key: PolySwarm API key
@@ -763,7 +764,8 @@ class PolyswarmAPI(object):
         :param community: Community to scan against.
         :param check_version: Whether or not to check Github for version information
         """
-        self.ps_api = PolyswarmAsyncAPI(key, uri, get_limit, post_limit, timeout, force, community, check_version)
+        # Since this is a wrapper, send all arguments down to the async client
+        self.ps_api = PolyswarmAsyncAPI(*args, **kwargs)
         self.loop = asyncio.get_event_loop()
 
     def set_force(self, force):
