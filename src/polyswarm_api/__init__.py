@@ -419,8 +419,8 @@ class PolyswarmAsyncAPI(object):
             async with aiohttp.ClientSession() as session:
                 try:
                     async with session.get(self.search_uri,
-                                           headers={"Authorization": self.api_key},
-                                           params={"type": "metadata"},
+                                           headers={'Authorization': self.api_key},
+                                           params={'type': 'metadata'},
                                            json=query) as raw_response:
 
                         try:
@@ -431,7 +431,7 @@ class PolyswarmAsyncAPI(object):
                             raise Exception('Received non-json response from PolySwarm API: {}'.format(response))
 
                         if raw_response.status == 404:
-                            return {"search": query, 'result': [], 'status': 'OK'}
+                            return {'search': query, 'result': [], 'status': 'OK'}
                         elif raw_response.status // 100 != 2:
                             raise Exception('Error reading from PolySwarm API: {}'.format(response['errors']))
 
