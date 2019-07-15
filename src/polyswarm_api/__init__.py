@@ -53,7 +53,6 @@ class PolyswarmAsyncAPI(object):
 
         self.consumer_uri = '{uri}/consumer'.format(uri=self.uri)
         self.search_uri = '{uri}/search'.format(uri=self.uri)
-        self.query_uri = "{uri}/query".format(**{'uri': self.uri})
         self.download_uri = '{uri}/download'.format(uri=self.uri)
         self.community_uri = '{consumer_uri}/{community}'.format(consumer_uri=self.consumer_uri, community=community)
         self.hunt_uri = '{uri}/hunt'.format(uri=self.uri)
@@ -383,8 +382,8 @@ class PolyswarmAsyncAPI(object):
         async with self.get_semaphore:
             async with aiohttp.ClientSession() as session:
                 try:
-                    async with session.get('{search_uri}/{hash_type}/{hash}'.format(search_uri=self.search_uri,
-                                                                                    hash_type=hash_type, hash=to_scan),
+                    async with session.get('{search_uri}',
+                                           params={'type': hash_type, 'hash': to_scan},
                                            headers={'Authorization': self.api_key}) as raw_response:
                         try:
                             response = await raw_response.json()
@@ -417,13 +416,10 @@ class PolyswarmAsyncAPI(object):
         """
         async with self.get_semaphore:
             async with aiohttp.ClientSession() as session:
-
-                print('{query_uri}/{query}'.format(**{'query_uri': self.query_uri,
-                                                                           'query': parse.quote(json.dumps(query))}))
                 try:
-                    async with session.get('{query_uri}/{query}'.format(**{'query_uri': self.query_uri,
-                                                                           'query': parse.quote(json.dumps(query))}),
-                                           headers={"Authorization": self.api_key}) as raw_response:
+                    async with session.get(self.search_uri,
+                                           headers={"Authorization": self.api_key},
+                                           json=query) as raw_response:
 
                         try:
                             response = await raw_response.json()

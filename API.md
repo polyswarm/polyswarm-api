@@ -50,12 +50,14 @@ Download a file by its `hash_type` hash.
 Supported hash types are sha256/sha1/md5.
 Response is the file data.
 
-### **GET** `/search/[hash_type]/[hash]`
+### **GET** `/search`
 
 Requires authentication.
 
-Perform a search by `hash_type` hash across all communities provided API key has access to.
-Supported hash types are sha256/sha1/md5. 
+This path accepts three GET paramters:
+- type: string, type of hash to search for
+- hash: hash, the hash to search for
+- query: boolean, search by metadata instead. This also requires a JSON POST body.
 
 Response is described in the JSON Format section below, under "Search Results".
 
