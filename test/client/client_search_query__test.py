@@ -54,7 +54,7 @@ class SearchQueryTestCase(PolyApiBaseTestCase):
 
         with patch('polyswarm_api.logger.error') as mock_logger_error:
             test_client.search_query(self.test_query)
-        self.assertEqual(mock_logger_error.call_args[0][0], 'Server request failed')
+        self.assertEqual(mock_logger_error.call_args[0][0], 'Server request failed: %s')
         self.assertEqual(str(mock_logger_error.call_args[0][1]),
                          'Error reading from PolySwarm API: Search query is not valid')
 
@@ -64,7 +64,7 @@ class SearchQueryTestCase(PolyApiBaseTestCase):
         expected_results = self._get_test_json_resource('expected_search_query_non_json_results.json')
         with patch('polyswarm_api.logger.error') as mock_logger_error:
             results = test_client.search_query(self.test_query)
-        self.assertEqual(mock_logger_error.call_args[0][0], 'Server request failed')
+        self.assertEqual(mock_logger_error.call_args[0][0], 'Server request failed: %s')
         self.assertEqual(str(mock_logger_error.call_args[0][1]),
-                         'Received non-json response from PolySwarm API: Definitely NOT JSON')
+                         'Received non-json response from PolySwarm API: 404: Not Found')
         self.assertDictEqual(results, expected_results)
