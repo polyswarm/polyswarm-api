@@ -57,7 +57,7 @@ Requires authentication.
 This path accepts three GET paramters:
 - type: string, type of hash to search for
 - hash: hash, the hash to search for
-- query: boolean, search by metadata instead. This also requires a JSON POST body.
+- query: boolean, search by metadata instead. This also requires a JSON request body.
 
 Response is described in the JSON Format section below, under "Search Results".
 
