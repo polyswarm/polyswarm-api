@@ -215,21 +215,20 @@ def url_scan(ctx, url, url_file, force, timeout):
     ctx.obj['output'].write(str(rf))
 
 
+@polyswarm.group(short_help='interact with PolySwarm search api')
+def search():
+    pass
+
+
 @click.option('-r', '--hash-file', help='File of hashes, one per line.', type=click.File('r'))
 @click.option('--hash-type', help='Hash type to search [sha256|sha1|md5], default=sha256', default='sha256')
-@click.argument('search_arguments', nargs=-1)
-@polyswarm.command('search', short_help='search for hashes separated by space or JSON query')
+@click.argument('hashes', nargs=-1)
+@search.command('hash', short_help='search for hashes separated by space')
 @click.pass_context
-def search(ctx, search_arguments, hash_file, hash_type):
+def hashes(ctx, hashes, hash_file, hash_type):
     """
     Search PolySwarm for files matching sha256 hashes
     """
-    def _is_json(string):
-        try:
-            json.loads(string)
-        except ValueError:
-            return False
-        return True
 
     def _get_hashes_from_file(file):
         return [h.strip() for h in file.readLines()]
@@ -251,18 +250,51 @@ def search(ctx, search_arguments, hash_file, hash_type):
 
     api = ctx.obj['api']
 
-    if len(search_arguments) == 1 and _is_json(search_arguments[0]):
-        results = api.search_query(json.loads(search_arguments[0]))
-    else:
-        hashes = list(search_arguments)
-        if hash_file:
-            hashes += _get_hashes_from_file(hash_file)
-        hashes = _remove_invalid_hashes(hashes, hash_type)
-        results = api.search_hashes(hashes, hash_type)
+    if hash_file:
+        hashes += _get_hashes_from_file(hash_file)
+    hashes = _remove_invalid_hashes(hashes, hash_type)
+    results = api.search_hashes(hashes, hash_type)
 
-    rf = PSSearchResultFormatter(results, color=ctx.obj['color'],
-                                 output_format=ctx.obj['output_format'])
-    ctx.obj['output'].write(str(rf))
+    if results['status'] == 'OK':
+        rf = PSSearchResultFormatter(results, color=ctx.obj['color'],
+                                     output_format=ctx.obj['output_format'])
+        ctx.obj['output'].write(str(rf))
+    else:
+        ctx.obj['output'].write('An error occurred.\n')
+
+
+@click.option('-r', '--query-file', help='Properly formatted JSON search file', type=click.File('r'))
+@click.argument('json_search_query', nargs=-1)
+@search.command('metadata', short_help='search metadata of files')
+@click.pass_context
+def metadata(ctx, json_search_query, query_file):
+
+    api = ctx.obj['api']
+
+    try:
+        if len(json_search_query) == 1:
+            query = json.loads(json_search_query[0])
+        elif query_file:
+            query = json.load(query_file)
+        else:
+            logger.error('No query specified')
+            return
+    except json.decoder.JSONDecodeError:
+        logger.error('Failed to parse JSON')
+        return
+    except UnicodeDecodeError:
+        logger.error('Failed to parse JSON due to Unicode error')
+        return
+
+    results = api.search_query(query)
+
+    if results['status'] == 'OK':
+        rf = PSSearchResultFormatter(results, color=ctx.obj['color'],
+                                     output_format=ctx.obj['output_format'])
+
+        ctx.obj['output'].write(str(rf))
+    else:
+        ctx.obj['output'].write('An error occurred.\n')
 
 
 @click.option('-r', '--uuid-file', help='File of UUIDs, one per line.', type=click.File('r'))
