@@ -53,7 +53,7 @@ class PolyswarmAsyncAPI(object):
 
         self.consumer_uri = '{uri}/consumer'.format(uri=self.uri)
         self.search_uri = '{uri}/search'.format(uri=self.uri)
-        self.query_uri = "{uri}/query".format(**{'uri': self.uri})
+        self.query_uri = "{uri}/search/query".format(**{'uri': self.uri})
         self.download_uri = '{uri}/download'.format(uri=self.uri)
         self.community_uri = '{consumer_uri}/{community}'.format(consumer_uri=self.consumer_uri, community=community)
         self.hunt_uri = '{uri}/hunt'.format(uri=self.uri)
@@ -438,7 +438,8 @@ class PolyswarmAsyncAPI(object):
                                 raise Exception('Received non-json response from PolySwarm API: {}'.format(response))
 
                 except Exception as e:
-                    logger.error('Server request failed', e)
+                    logger.error('Server request failed')
+                    logger.exception(e)
                     return {'reason': 'unknown_error', "result": [], "search": query, "status": "error"}
 
         response['search'] = query
