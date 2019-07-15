@@ -53,7 +53,7 @@ class PolyswarmAsyncAPI(object):
 
         self.consumer_uri = '{uri}/consumer'.format(uri=self.uri)
         self.search_uri = '{uri}/search'.format(uri=self.uri)
-        self.query_uri = "{uri}/search/query".format(**{'uri': self.uri})
+        self.query_uri = '{uri}/search/query'.format(uri=self.uri)
         self.download_uri = '{uri}/download'.format(uri=self.uri)
         self.community_uri = '{consumer_uri}/{community}'.format(consumer_uri=self.consumer_uri, community=community)
         self.hunt_uri = '{uri}/hunt'.format(uri=self.uri)
@@ -418,8 +418,6 @@ class PolyswarmAsyncAPI(object):
         async with self.get_semaphore:
             async with aiohttp.ClientSession() as session:
 
-                print('{query_uri}/{query}'.format(**{'query_uri': self.query_uri,
-                                                                           'query': parse.quote(json.dumps(query))}))
                 try:
                     async with session.get('{query_uri}/{query}'.format(**{'query_uri': self.query_uri,
                                                                            'query': parse.quote(json.dumps(query))}),
