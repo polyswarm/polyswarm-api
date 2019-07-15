@@ -255,12 +255,9 @@ def hashes(ctx, hashes, hash_file, hash_type):
     hashes = _remove_invalid_hashes(hashes, hash_type)
     results = api.search_hashes(hashes, hash_type)
 
-    if results['status'] == 'OK':
-        rf = PSSearchResultFormatter(results, color=ctx.obj['color'],
-                                     output_format=ctx.obj['output_format'])
-        ctx.obj['output'].write(str(rf))
-    else:
-        ctx.obj['output'].write('An error occurred.\n')
+    rf = PSSearchResultFormatter(results, color=ctx.obj['color'],
+                                 output_format=ctx.obj['output_format'])
+    ctx.obj['output'].write(str(rf))
 
 
 @click.option('-r', '--query-file', help='Properly formatted JSON search file', type=click.File('r'))
@@ -289,7 +286,7 @@ def metadata(ctx, json_search_query, query_file):
     results = api.search_query(query)
 
     if results['status'] == 'OK':
-        rf = PSSearchResultFormatter(results, color=ctx.obj['color'],
+        rf = PSSearchResultFormatter(results['result'], color=ctx.obj['color'],
                                      output_format=ctx.obj['output_format'])
 
         ctx.obj['output'].write(str(rf))
