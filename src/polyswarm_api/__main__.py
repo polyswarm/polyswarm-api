@@ -285,13 +285,11 @@ def metadata(ctx, json_search_query, query_file):
 
     results = api.search_query(query)
 
-    if results['status'] == 'OK':
-        rf = PSSearchResultFormatter(results, color=ctx.obj['color'],
-                                     output_format=ctx.obj['output_format'])
+    # TODO handle the difference here better, will address in refactor
+    rf = PSSearchResultFormatter([results], color=ctx.obj['color'],
+                                 output_format=ctx.obj['output_format'])
 
-        ctx.obj['output'].write(str(rf))
-    else:
-        ctx.obj['output'].write('An error occurred.\n')
+    ctx.obj['output'].write(str(rf))
 
     return 0
 

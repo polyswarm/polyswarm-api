@@ -383,7 +383,7 @@ class PolyswarmAsyncAPI(object):
             async with aiohttp.ClientSession() as session:
                 try:
                     async with session.get(self.search_uri,
-                                           params={'type': hash_type, 'hash': to_scan},
+                                           params={'type': hash_type, 'hash': to_scan, 'with_instances': 'true'},
                                            headers={'Authorization': self.api_key}) as raw_response:
                         try:
                             response = await raw_response.json()
@@ -420,7 +420,7 @@ class PolyswarmAsyncAPI(object):
                 try:
                     async with session.get(self.search_uri,
                                            headers={'Authorization': self.api_key},
-                                           params={'type': 'metadata'},
+                                           params={'type': 'metadata', 'with_instances': 'true'},
                                            json=query) as raw_response:
 
                         try:

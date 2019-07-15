@@ -160,8 +160,6 @@ class PSDownloadResultFormatter(PSResultFormatter):
 class PSSearchResultFormatter(PSResultFormatter):
     def __init__(self, results, output_format='text', color=True):
         super(PSSearchResultFormatter, self).__init__(results, output_format, color)
-        if isinstance(results, dict):
-            results = results['result']
         self.search_results = json.loads(json.dumps(results), object_hook=lambda d: Namespace(**d))
 
     def __str__(self):
