@@ -275,23 +275,25 @@ def metadata(ctx, json_search_query, query_file):
             query = json.load(query_file)
         else:
             logger.error('No query specified')
-            return
+            return 0
     except json.decoder.JSONDecodeError:
         logger.error('Failed to parse JSON')
-        return
+        return 0
     except UnicodeDecodeError:
         logger.error('Failed to parse JSON due to Unicode error')
-        return
+        return 0
 
     results = api.search_query(query)
 
     if results['status'] == 'OK':
-        rf = PSSearchResultFormatter(results['results'], color=ctx.obj['color'],
+        rf = PSSearchResultFormatter(results, color=ctx.obj['color'],
                                      output_format=ctx.obj['output_format'])
 
         ctx.obj['output'].write(str(rf))
     else:
         ctx.obj['output'].write('An error occurred.\n')
+
+    return 0
 
 
 @click.option('-r', '--uuid-file', help='File of UUIDs, one per line.', type=click.File('r'))

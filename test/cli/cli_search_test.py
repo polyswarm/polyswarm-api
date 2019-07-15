@@ -44,7 +44,7 @@ class SearchTest(TestCase):
         with patch('polyswarm_api.PolyswarmAPI.search_query') as mock_search_hashes:
             mock_search_hashes.side_effect = self._mock_search_query_with_results
             result = self.test_runner.invoke(polyswarm,
-                                             ['--api-key', self.test_api_key, '--output-format', 'json',
+                                             [ '-vvv','--api-key', self.test_api_key, '--output-format', 'json',
                                               '--output-file', self.test_captured_output_file,
                                               'search', 'metadata', '{query}'.format(**{'query': json.dumps(self.test_query)})])
 
