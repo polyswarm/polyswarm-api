@@ -53,7 +53,6 @@ class PolyswarmAsyncAPI(object):
 
         self.consumer_uri = '{uri}/consumer'.format(uri=self.uri)
         self.search_uri = '{uri}/search'.format(uri=self.uri)
-        self.query_uri = "{uri}/query".format(**{'uri': self.uri})
         self.download_uri = '{uri}/download'.format(uri=self.uri)
         self.community_uri = '{consumer_uri}/{community}'.format(consumer_uri=self.consumer_uri, community=community)
         self.hunt_uri = '{uri}/hunt'.format(uri=self.uri)
@@ -383,22 +382,23 @@ class PolyswarmAsyncAPI(object):
         async with self.get_semaphore:
             async with aiohttp.ClientSession() as session:
                 try:
-                    async with session.get('{search_uri}/{hash_type}/{hash}'.format(search_uri=self.search_uri,
-                                                                                    hash_type=hash_type, hash=to_scan),
+                    async with session.get(self.search_uri,
+                                           params={'type': hash_type, 'hash': to_scan},
                                            headers={'Authorization': self.api_key}) as raw_response:
                         try:
                             response = await raw_response.json()
                         except Exception:
                             response = await raw_response.read() if raw_response else 'None'
-                            raise Exception('Received non-json response from PolySwarm API: %s', response)
+                            raise Exception('Received non-json response from PolySwarm API: {}'.format(response))
                         if raw_response.status // 100 != 2:
                             if raw_response.status == 404:
                                 return {'hash': to_scan,
                                         'search': '{hash_type}={hash}'.format(hash_type=hash_type, hash=to_scan),
-                                        'result': []}
+                                        'result': [],
+                                        'status': 'OK'}
 
                             errors = response.get('errors')
-                            raise Exception('Error reading from PolySwarm API: %s', errors)
+                            raise Exception('Error reading from PolySwarm API: {}'.format(errors))
                 except Exception:
                     logger.error('Server request failed')
                     return {'reason': 'unknown_error', 'result': [], 'hash': to_scan,
@@ -417,29 +417,27 @@ class PolyswarmAsyncAPI(object):
         """
         async with self.get_semaphore:
             async with aiohttp.ClientSession() as session:
-
-                print('{query_uri}/{query}'.format(**{'query_uri': self.query_uri,
-                                                                           'query': parse.quote(json.dumps(query))}))
                 try:
-                    async with session.get('{query_uri}/{query}'.format(**{'query_uri': self.query_uri,
-                                                                           'query': parse.quote(json.dumps(query))}),
-                                           headers={"Authorization": self.api_key}) as raw_response:
+                    async with session.get(self.search_uri,
+                                           headers={'Authorization': self.api_key},
+                                           params={'type': 'metadata'},
+                                           json=query) as raw_response:
 
                         try:
                             response = await raw_response.json()
                         except Exception:
                             response = await raw_response.read() if raw_response else 'None'
                             response = response.decode('utf-8')
-                            if raw_response.status == 404:
-                                return {"search": query, 'result': []}
-                            elif raw_response.status // 100 != 2:
-                                raise Exception('Error reading from PolySwarm API: {}'.format(response))
-                            else:
-                                raise Exception('Received non-json response from PolySwarm API: {}'.format(response))
+                            raise Exception('Received non-json response from PolySwarm API: {}'.format(response))
+
+                        if raw_response.status == 404:
+                            return {'search': query, 'result': [], 'status': 'OK'}
+                        elif raw_response.status // 100 != 2:
+                            raise Exception('Error reading from PolySwarm API: {}'.format(response['errors']))
 
                 except Exception as e:
-                    logger.error('Server request failed', e)
-                    return {'reason': 'unknown_error', "result": [], "search": query, "status": "error"}
+                    logger.error('Server request failed: %s', e)
+                    return {'reason': 'unknown_error', 'result': [], 'search': query, 'status': 'error'}
 
         response['search'] = query
         return response

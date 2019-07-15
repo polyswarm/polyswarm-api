@@ -20,18 +20,17 @@ class SearchQueryTestCase(PolyApiBaseTestCase):
 
         async def not_found_response(request):
             del request
-            return web.Response(text='Search query didn\'t return any results', status=404)
+            return web.Response(text='{}', content_type='application/json', status=404)
 
         async def invalid_query_response(request):
             del request
             return web.Response(text='Search query is not valid', status=400)
 
         app = web.Application()
-        query = parse.quote(json.dumps(self.test_query))
-        app.router.add_get('/v1/query/{}'.format(query), success_response)
-        app.router.add_get('/v2/query/{}'.format(query), not_found_response)
-        app.router.add_get('/v3/query/{}'.format(query), invalid_query_response)
-        app.router.add_get('/v4/query/{}'.format(query), non_json_response)
+        app.router.add_get('/v1/search', success_response)
+        app.router.add_get('/v2/search', not_found_response)
+        app.router.add_get('/v3/search', invalid_query_response)
+        app.router.add_get('/v4/search', non_json_response)
         return app
 
     def test_search_query(self):
@@ -54,9 +53,9 @@ class SearchQueryTestCase(PolyApiBaseTestCase):
 
         with patch('polyswarm_api.logger.error') as mock_logger_error:
             test_client.search_query(self.test_query)
-        self.assertEqual(mock_logger_error.call_args[0][0], 'Server request failed')
+        self.assertEqual(mock_logger_error.call_args[0][0], 'Server request failed: %s')
         self.assertEqual(str(mock_logger_error.call_args[0][1]),
-                         'Error reading from PolySwarm API: Search query is not valid')
+                         'Received non-json response from PolySwarm API: Search query is not valid')
 
     def test_search_query_non_json_response_from_server(self):
         test_uri = 'http://localhost:{}/v4'.format(self.server.port)
@@ -64,7 +63,7 @@ class SearchQueryTestCase(PolyApiBaseTestCase):
         expected_results = self._get_test_json_resource('expected_search_query_non_json_results.json')
         with patch('polyswarm_api.logger.error') as mock_logger_error:
             results = test_client.search_query(self.test_query)
-        self.assertEqual(mock_logger_error.call_args[0][0], 'Server request failed')
+        self.assertEqual(mock_logger_error.call_args[0][0], 'Server request failed: %s')
         self.assertEqual(str(mock_logger_error.call_args[0][1]),
                          'Received non-json response from PolySwarm API: Definitely NOT JSON')
         self.assertDictEqual(results, expected_results)
