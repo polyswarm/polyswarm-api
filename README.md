@@ -99,9 +99,9 @@ They are only allowed in the following simple form (not in the complete formm wi
 
 ```json
 {
-            'query': {
-                'exists': {
-                    'field': 'lief.libraries'
+            "query": {
+                "exists": {
+                    "field": "lief.libraries"
                 }
             }
         }
@@ -115,11 +115,11 @@ They are only allowed in the following simple form (not in the complete formm wi
 
 ```json
 {
-            'query': {
-                'range': {
-                    'age': {
-                        'gte': 10,
-                        'lte': 20
+            "query": {
+                "range": {
+                    "age": {
+                        "gte": 10,
+                        "lte": 20
                     }
                 }
             }
@@ -133,9 +133,9 @@ They are only allowed in the following simple form (not in the complete formm wi
 
 ```json
 {
-                'query_string': {
-                    'default_field': 'content',
-                    'query': 'this AND that OR thus'
+                "query_string": {
+                    "default_field": "content",
+                    "query": "this AND that OR thus"
                 }
             }
         }
@@ -148,11 +148,11 @@ They are only allowed in the following simple form (not in the complete formm wi
 
 ```json
 {
-            'query': {
-                'simple_query_string': {
-                    'query': '\'fried eggs\' +(eggplant | potato) -frittata',
-                    'fields': ['title^5', 'body'],
-                    'default_operator': 'and'
+            "query": {
+                "simple_query_string": {
+                    "query": "\"fried eggs\" +(eggplant | potato) -frittata",
+                    "fields": ["title^5", "body"],
+                    "default_operator": "and"
                 }
             }
         }
@@ -164,9 +164,9 @@ They are only allowed in the following simple form (not in the complete formm wi
 
 ```json
 {
-            'query': {
-                'terms': {
-                    'user': ['kimchy', 'elasticsearch']
+            "query": {
+                "terms": {
+                    "user": ["kimchy", "elasticsearch"]
                 }
             }
         }
