@@ -739,7 +739,7 @@ class PolyswarmAsyncAPI(object):
             async with self.get_semaphore:
                 logger.debug('Reading results with api-key %s', self.api_key)
                 try:
-                    async with session.get('stream_uri'.format(stream_uri=self.stream_uri),
+                    async with session.get('{stream_uri}'.format(stream_uri=self.stream_uri),
                                            headers={'Authorization': self.api_key},
                                            params={'since': 1440}) as raw_response:
                         try:
