@@ -93,7 +93,7 @@ results = api.search_query(query)
 
 For query search, only a sub-set of [Elasticsearch](ttps://www.elastic.co/guide/en/elasticsearch/reference/6.7/) queries are allowed at the moment.
 
-They are only allowed in the following simple form (not in the complete formm with all other attributes) for security reasons.
+They are only allowed in the following simple form (not in the complete form with all other attributes) for security reasons.
 
 ##### Check If Field Exists
 
