@@ -1,0 +1,174 @@
+[{
+  "result": [
+    {
+      "artifact_metadata": [
+        {
+          "tool": "strings",
+          "tool_metadata": {
+          "strings": {
+            "some": "stuff"
+          },
+          "exiftool": {
+            "some": "stuff"
+          },
+          "lief": {
+            "some": "stuff"
+          }
+        }
+        },
+        {
+          "tool": "exiftool",
+          "tool_metadata": {
+          "strings": {
+            "some": "stuff"
+          },
+          "exiftool": {
+            "some": "stuff"
+          },
+          "lief": {
+            "some": "stuff"
+          }
+        }
+        },
+        {
+          "tool": "leif",
+          "tool_metadata": {
+          "strings": {
+            "some": "stuff"
+          },
+          "exiftool": {
+            "some": "stuff"
+          },
+          "lief": {
+            "some": "stuff"
+          }
+        }
+        }
+      ],
+      "extended_type": null,
+      "first_seen": "Wed, 21 Oct 2015 19:20:00 GMT",
+      "id": 111,
+      "md5": null,
+      "mimetype": null,
+      "s3_file_name": null,
+      "sha1": null,
+      "sha256": null
+    },
+    {
+      "artifact_metadata": [
+        {
+          "tool": "strings",
+          "tool_metadata": {
+          "strings": {
+            "some": "stuff"
+          },
+          "exiftool": {
+            "some": "stuff"
+          },
+          "lief": {
+            "some": "stuff"
+          }
+        }
+        },
+        {
+          "tool": "exiftool",
+          "tool_metadata": {
+          "strings": {
+            "some": "stuff"
+          },
+          "exiftool": {
+            "some": "stuff"
+          },
+          "lief": {
+            "some": "stuff"
+          }
+        }
+        },
+        {
+          "tool": "leif",
+          "tool_metadata": {
+          "strings": {
+            "some": "stuff"
+          },
+          "exiftool": {
+            "some": "stuff"
+          },
+          "lief": {
+            "some": "stuff"
+          }
+        }
+        }
+      ],
+      "extended_type": null,
+      "first_seen": "Wed, 21 Oct 2015 19:20:00 GMT",
+      "id": 222,
+      "md5": null,
+      "mimetype": null,
+      "s3_file_name": null,
+      "sha1": null,
+      "sha256": null
+    },
+    {
+      "artifact_metadata": [
+        {
+          "tool": "strings",
+          "tool_metadata": {
+          "strings": {
+            "some": "stuff"
+          },
+          "exiftool": {
+            "some": "stuff"
+          },
+          "lief": {
+            "some": "stuff"
+          }
+        }
+        },
+        {
+          "tool": "exiftool",
+          "tool_metadata": {
+          "strings": {
+            "some": "stuff"
+          },
+          "exiftool": {
+            "some": "stuff"
+          },
+          "lief": {
+            "some": "stuff"
+          }
+        }
+        },
+        {
+          "tool": "leif",
+          "tool_metadata": {
+          "strings": {
+            "some": "stuff"
+          },
+          "exiftool": {
+            "some": "stuff"
+          },
+          "lief": {
+            "some": "stuff"
+          }
+        }
+        }
+      ],
+      "extended_type": null,
+      "first_seen": "Wed, 21 Oct 2015 19:20:00 GMT",
+      "id": 333,
+      "md5": null,
+      "mimetype": null,
+      "s3_file_name": null,
+      "sha1": null,
+      "sha256": null
+    }
+  ],
+  "status": "OK",
+  "search": {
+    "query": {
+      "exists": {
+        "field": "lief.libraries"
+      }
+    }
+  }
+}]
