@@ -61,7 +61,7 @@ class SearchTest(TestCase):
 
     def _mock_search_hashes_with_results(self, hashes, hash_type):
         del hashes, hash_type
-        return self._get_test_json_resource_content('expected_search_success_results.json')
+        return self._get_test_json_resource_content('expected_search_success_results_hash.json')
 
     def _mock_search_query_with_results(self, query):
         del query
