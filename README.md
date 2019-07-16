@@ -293,28 +293,29 @@ File 131f95c51cc819465fa1797f6ccacf9d494aaaff46fa3eac73ae63ffbdfd8267
 ```
 
 ```bash
-$ polyswarm_api -o /tmp/test.txt search search metadata '{ "query": { "exists": {"field": "lief.libraries"}}}'
+$ polyswarm_api -o /tmp/test.txt search metadata '{ "query": { "exists": {"field": "lief.libraries"}}}'
 $ cat /tmp/test.txt | more
 Found 1000 matches to the search query.
 Search results for namespace(query=namespace(exists=namespace(field='lief.libraries')))
-File 3a56238678560ca57c87cc08d0e912a7cfddaa65c449135d908590780a086232
-	File type: mimetype: application/x-dosexec, extended_info: PE32 executable (GUI) Intel 80386, for MS Windows, UPX compressed
-	SHA256: 3a56238678560ca57c87cc08d0e912a7cfddaa65c449135d908590780a086232
-	SHA1: 29629198ac945de358952337da1015a8252c11f1
-	MD5: e74b9320e6c15363fa30319af75ff3e5
-	First seen: Thu, 16 May 2019 14:26:26 GMT
-	Observed countries: ,PR
-	Observed filenames: 3a56238678560ca57c87cc08d0e912a7cfddaa65c449135d908590780a086232
+File 235560617206a589614faf8a88ff8f0901555b711dec8426f2865ecea5631805
+	File type: mimetype: application/x-dosexec, extended_info: PE32 executable (GUI) Intel 80386, for MS Windows
+	SHA256: 235560617206a589614faf8a88ff8f0901555b711dec8426f2865ecea5631805
+	SHA1: ef1ff9476d69c0893fd9eac5f481dfcbdbfd6678
+	MD5: fa56d47b239a55bbaa3d29c2a4106208
+	First seen: Fri, 19 Apr 2019 21:27:35 GMT
+	Observed countries: PR
+	Observed filenames: 235560617206a589614faf8a88ff8f0901555b711dec8426f2865ecea5631805,fa56d47b239a55bbaa3d29c2a4106208
 
 
 File 54ca07d1c196afac470ae3e3d7144bbede5a3de48805ca1d83a94529fbf29195
-	File type: mimetype: application/x-dosexec, extended_info: PE32 executable (GUI) Intel 80386, for MS Windows, UPX compressed
+	File type: mimetype: application/x-dosexec, extended_info: PE32 executable (GUI) Intel 80386, for MS Windows, UPX compresse
+d
 	SHA256: 54ca07d1c196afac470ae3e3d7144bbede5a3de48805ca1d83a94529fbf29195
 	SHA1: 126792313f220d937ae754e17fa2d16f1d0e7895
 	MD5: 22b144ad5b597fde1825b85e2db8c800
 	First seen: Wed, 08 May 2019 07:37:55 GMT
-	Observed countries: ,US
-	Observed filenames: 54ca07d1c196afac470ae3e3d7144bbede5a3de48805ca1d83a94529fbf29195,server.exe
+	Observed countries: US
+	Observed filenames: server.exe,54ca07d1c196afac470ae3e3d7144bbede5a3de48805ca1d83a94529fbf29195
 
 
 File a850c62b139c87af276f4699b97ecaa9553c0d73149d635375108506fc7b34a3
@@ -323,16 +324,14 @@ File a850c62b139c87af276f4699b97ecaa9553c0d73149d635375108506fc7b34a3
 	SHA1: ab893f4c7abdcbca87f1107924c45217e95e0808
 	MD5: 128ae4a05c43d523f247340e81857eb7
 	First seen: Fri, 19 Apr 2019 21:29:03 GMT
-	Observed countries: ,PR
-	Observed filenames: 128ae4a05c43d523f247340e81857eb7,a850c62b139c87af276f4699b97ecaa9553c0d73149d635375108506fc7b34a3
+	Observed countries: PR
+	Observed filenames: a850c62b139c87af276f4699b97ecaa9553c0d73149d635375108506fc7b34a3,128ae4a05c43d523f247340e81857eb7
 
 
-File 235560617206a589614faf8a88ff8f0901555b711dec8426f2865ecea5631805
+File 1c51769f1f06a512b4f96c6c12f11005a98bca31d7cb640725660110c5813d5a
 	File type: mimetype: application/x-dosexec, extended_info: PE32 executable (GUI) Intel 80386, for MS Windows
-	SHA256: 235560617206a589614faf8a88ff8f0901555b711dec8426f2865ecea5631805
-	SHA1: ef1ff9476d69c0893fd9eac5f481dfcbdbfd6678
+	SHA256: 1c51769f1f06a512b4f96c6c12f11005a98bca31d7cb640725660110c5813d5a
 --More--
-
 ```
 
 #### Lookup UUIDs
