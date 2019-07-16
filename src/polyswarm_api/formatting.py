@@ -160,6 +160,7 @@ class PSDownloadResultFormatter(PSResultFormatter):
 class PSSearchResultFormatter(PSResultFormatter):
     def __init__(self, results, output_format='text', color=True):
         super(PSSearchResultFormatter, self).__init__(results, output_format, color)
+        self.searches = [query['search'] for query in results]
         self.search_results = json.loads(json.dumps(results), object_hook=lambda d: Namespace(**d))
 
     def __str__(self):
@@ -168,8 +169,8 @@ class PSSearchResultFormatter(PSResultFormatter):
             if len(self.search_results) == 0:
                 return self._bad('(Did not find any files matching any search criteria.)\n')
 
-            for result in self.search_results:
-                search = result.search
+            for i, result in enumerate(self.search_results):
+                search = self.searches[i]
                 result = result.result
                 if len(result) == 0:
                     return self._bad('(Did not find any files matching {search})\n'.format(search=search))
