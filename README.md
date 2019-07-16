@@ -5,21 +5,27 @@
 - [polyswarm-api](#polyswarm-api)
   - [Installation](#installation)
   - [Usage](#usage)
-    - [Use the library:](#use-the-library)
-      - [Create an API Client](#create-an-api-client)
-      - [Perform Scans](#perform-scans)
-      - [Perform Searches](#perform-searches)
-      - [Download Files](#download-files)
-      - [Perform Hunts](#perform-hunts)
-      - [Perform Rescans](#perform-rescans)
-      - [Get a Stream](#get-a-stream)
     - [Use the provided CLI](#use-the-provided-cli)
       - [Configuration](#configuration)
+      - [Perform Scans](#perform-scans)
+      - [Perform Searches](#perform-searches)
+      - [Lookup UUIDs](#lookup-uuids)
+      - [Download Files](#download-files)
+      - [Perform Rescans](#perform-rescans)
+    - [Use the library:](#use-the-library)
+      - [Create an API Client](#create-an-api-client)
       - [Perform Scans](#perform-scans-1)
       - [Perform Searches](#perform-searches-1)
-      - [Lookup UUIDs](#lookup-uuids)
+        - [Allowed Query Searches](#allowed-query-searches)
+          - [Check If Field Exists](#check-if-field-exists)
+          - [Range Query](#range-query)
+          - [Query String](#query-string)
+          - [Simple Query String](#simple-query-string)
+          - [Terms (Array) Query](#terms-array-query)
       - [Download Files](#download-files-1)
+      - [Perform Hunts](#perform-hunts)
       - [Perform Rescans](#perform-rescans-1)
+      - [Get a Stream](#get-a-stream)
   - [Questions? Problems?](#questions-problems)
 
 <!-- END doctoc generated TOC please keep comment here to allow auto update -->
@@ -41,89 +47,6 @@ From source:
     python3 setup.py install
 
 ## Usage
-
-### Use the library:
-
-#### Create an API Client
-
-```python
-import polyswarm_api
-
-api_key = "317b21cb093263b701043cb0831a53b9"
-
-api = polyswarm_api.PolyswarmAPI(key=api_key)
-```
-
-**Note:** You will need to get your own API key from [`polyswarm.network/profile/apiKeys`](https://polyswarm.network/profile/apiKeys)
-
-#### Perform Scans
-
-```python
-results = api.scan_directory("/path/to/directory")
-
-results = api.scan_file("/path/to/eicar")
-
-results = api.scan_url("http://bad.com")
-```
-
-#### Perform Searches
-
-```python
-results = api.search_hash("275a021bbfb6489e54d471899f7db9d1663fc695ec2fe2a2c4538aabf651fd0f")
-
-results = api.search_hashes(["275a021bbfb6489e54d471899f7db9d1663fc695ec2fe2a2c4538aabf651fd0f"])
-
-query = { "query": {
-                "exists": {
-                    "field": "lief.libraries"
-                }
-            }
-        }
-results = api.search_query(query)
-
-```
-
-#### Download Files
-
-```python
-results = api.download_file("275a021bbfb6489e54d471899f7db9d1663fc695ec2fe2a2c4538aabf651fd0f", "test/")
-
-results = api.rescan_file("275a021bbfb6489e54d471899f7db9d1663fc695ec2fe2a2c4538aabf651fd0f")
-
-results = api.new_live_hunt(open("eicar.yara").read()) 
-
-results = api.get_live_results(hunt_id=results['result']['hunt_id'])
-
-results = api.new_historical_hunt(open("eicar.yara").read()) 
-
-results = api.get_historical_results(hunt_id=results['result']['hunt_id'])
-
-results = api.get_stream(destination_dir="/my/malware/path")
-```
-
-#### Perform Hunts
-
-```python
-results = api.new_live_hunt(open("eicar.yara").read()) 
-
-results = api.get_live_results(hunt_id=results['result']['hunt_id'])
-
-results = api.new_historical_hunt(open("eicar.yara").read()) 
-
-results = api.get_historical_results(hunt_id=results['result']['hunt_id'])
-```
-
-#### Perform Rescans
-
-```python
-results = api.rescan_file("275a021bbfb6489e54d471899f7db9d1663fc695ec2fe2a2c4538aabf651fd0f")
-``````
-
-#### Get a Stream
-
-```python
-results = api.get_stream(destination_dir="/my/malware/path")
-```
 
 ### Use the provided CLI
 
@@ -188,7 +111,7 @@ Report for file admin.php?f=1.gif, hash: c9d2152432e5ed53513c510b5ce94557313af96
 #### Perform Searches
 
 ```bash
-$ polyswarm -o /tmp/test.txt search 131f95c51cc819465fa1797f6ccacf9d494aaaff46fa3eac73ae63ffbdfd8267
+$ polyswarm -o /tmp/test.txt search hash 131f95c51cc819465fa1797f6ccacf9d494aaaff46fa3eac73ae63ffbdfd8267
 $ cat /tmp/test.txt
 Found 1 matches to the search query.
 Search results for sha256=131f95c51cc819465fa1797f6ccacf9d494aaaff46fa3eac73ae63ffbdfd8267
@@ -199,6 +122,48 @@ File 131f95c51cc819465fa1797f6ccacf9d494aaaff46fa3eac73ae63ffbdfd8267
 	MD5: 69630e4574ec6798239b091cda43dca0
 	Observed countries: US,PR
 	Observed filenames: 131f95c51cc819465fa1797f6ccacf9d494aaaff46fa3eac73ae63ffbdfd8267,eicar.com.txt,eicar.txt
+```
+
+```bash
+$ polyswarm_api -o /tmp/test.txt search metadata '{ "query": { "exists": {"field": "lief.libraries"}}}'
+$ cat /tmp/test.txt | more
+Found 1000 matches to the search query.
+Search results for namespace(query=namespace(exists=namespace(field='lief.libraries')))
+File 235560617206a589614faf8a88ff8f0901555b711dec8426f2865ecea5631805
+	File type: mimetype: application/x-dosexec, extended_info: PE32 executable (GUI) Intel 80386, for MS Windows
+	SHA256: 235560617206a589614faf8a88ff8f0901555b711dec8426f2865ecea5631805
+	SHA1: ef1ff9476d69c0893fd9eac5f481dfcbdbfd6678
+	MD5: fa56d47b239a55bbaa3d29c2a4106208
+	First seen: Fri, 19 Apr 2019 21:27:35 GMT
+	Observed countries: PR
+	Observed filenames: 235560617206a589614faf8a88ff8f0901555b711dec8426f2865ecea5631805,fa56d47b239a55bbaa3d29c2a4106208
+
+
+File 54ca07d1c196afac470ae3e3d7144bbede5a3de48805ca1d83a94529fbf29195
+	File type: mimetype: application/x-dosexec, extended_info: PE32 executable (GUI) Intel 80386, for MS Windows, UPX compresse
+d
+	SHA256: 54ca07d1c196afac470ae3e3d7144bbede5a3de48805ca1d83a94529fbf29195
+	SHA1: 126792313f220d937ae754e17fa2d16f1d0e7895
+	MD5: 22b144ad5b597fde1825b85e2db8c800
+	First seen: Wed, 08 May 2019 07:37:55 GMT
+	Observed countries: US
+	Observed filenames: server.exe,54ca07d1c196afac470ae3e3d7144bbede5a3de48805ca1d83a94529fbf29195
+
+
+File a850c62b139c87af276f4699b97ecaa9553c0d73149d635375108506fc7b34a3
+	File type: mimetype: application/x-dosexec, extended_info: PE32 executable (GUI) Intel 80386, for MS Windows
+	SHA256: a850c62b139c87af276f4699b97ecaa9553c0d73149d635375108506fc7b34a3
+	SHA1: ab893f4c7abdcbca87f1107924c45217e95e0808
+	MD5: 128ae4a05c43d523f247340e81857eb7
+	First seen: Fri, 19 Apr 2019 21:29:03 GMT
+	Observed countries: PR
+	Observed filenames: a850c62b139c87af276f4699b97ecaa9553c0d73149d635375108506fc7b34a3,128ae4a05c43d523f247340e81857eb7
+
+
+File 1c51769f1f06a512b4f96c6c12f11005a98bca31d7cb640725660110c5813d5a
+	File type: mimetype: application/x-dosexec, extended_info: PE32 executable (GUI) Intel 80386, for MS Windows
+	SHA256: 1c51769f1f06a512b4f96c6c12f11005a98bca31d7cb640725660110c5813d5a
+--More--
 ```
 
 #### Lookup UUIDs
@@ -238,6 +203,174 @@ Report for file 131f95c51cc819465fa1797f6ccacf9d494aaaff46fa3eac73ae63ffbdfd8267
 ```
 
 For information regarding the JSON format, please see [API.md](https://github.com/polyswarm/polyswarm-api/blob/master/API.md).
+
+### Use the library:
+
+#### Create an API Client
+
+```python
+import polyswarm_api
+
+api_key = "317b21cb093263b701043cb0831a53b9"
+
+api = polyswarm_api.PolyswarmAPI(key=api_key)
+```
+
+**Note:** You will need to get your own API key from [`polyswarm.network/profile/apiKeys`](https://polyswarm.network/profile/apiKeys)
+
+#### Perform Scans
+
+```python
+results = api.scan_directory("/path/to/directory")
+
+results = api.scan_file("/path/to/eicar")
+
+results = api.scan_url("http://bad.com")
+```
+
+#### Perform Searches
+
+```python
+results = api.search_hash("275a021bbfb6489e54d471899f7db9d1663fc695ec2fe2a2c4538aabf651fd0f")
+
+results = api.search_hashes(["275a021bbfb6489e54d471899f7db9d1663fc695ec2fe2a2c4538aabf651fd0f"])
+
+query = { "query": {
+                "exists": {
+                    "field": "lief.libraries"
+                }
+            }
+        }
+results = api.search_query(query)
+
+```
+
+##### Allowed Query Searches
+
+For query search, only a sub-set of [Elasticsearch](https://www.elastic.co/guide/en/elasticsearch/reference/6.7/) queries are allowed at the moment.
+
+They are only allowed in the following simple form (not in the complete formm with all other attributes) for security reasons.
+
+###### Check If Field Exists
+
+```json
+{
+    "query": {
+        "exists": {
+            "field": "lief.libraries"
+        }
+    }
+}
+
+```
+
+**Note:** [Elasticsearch Exists Query](https://www.elastic.co/guide/en/elasticsearch/reference/6.7/query-dsl-exists-query.html).
+
+
+###### Range Query
+
+```json
+{
+    "query": {
+        "range": {
+            "age": {
+                "gte": 10,
+                "lte": 20
+            }
+        }
+    }
+}
+
+```
+
+**Note:** [Elasticsearch Range Query](https://www.elastic.co/guide/en/elasticsearch/reference/6.7/query-dsl-range-query.html). These are specially interesting for date fields. You will find a reference on date math [here](https://www.elastic.co/guide/en/elasticsearch/reference/6.4/query-dsl-range-query.html).
+
+###### Query String
+
+```json
+{
+    "query_string": {
+            "default_field": "content",
+            "query": "this AND that OR thus"
+        }
+    }
+}
+```
+
+**Note:** [Elasticsearch Query String](https://www.elastic.co/guide/en/elasticsearch/reference/6.7/query-dsl-query-string-query.html).
+
+
+###### Simple Query String
+
+```json
+{
+    "query": {
+        "simple_query_string": {
+            "query": "\"fried eggs\" +(eggplant | potato) -frittata",
+            "fields": ["title^5", "body"],
+            "default_operator": "and"
+        }
+    }
+}
+```
+
+**Note:** [Elasticsearch Simple Query String](https://www.elastic.co/guide/en/elasticsearch/reference/6.7/query-dsl-simple-query-string-query.html).
+
+###### Terms (Array) Query
+
+```json
+{
+    "query": {
+        "terms": {
+            "user": ["kimchy", "elasticsearch"]
+        }
+    }
+}
+```
+
+**Note:** [Elasticsearch Terms Query](https://www.elastic.co/guide/en/elasticsearch/reference/6.7/query-dsl-terms-query.html).
+
+#### Download Files
+
+```python
+results = api.download_file("275a021bbfb6489e54d471899f7db9d1663fc695ec2fe2a2c4538aabf651fd0f", "test/")
+
+results = api.rescan_file("275a021bbfb6489e54d471899f7db9d1663fc695ec2fe2a2c4538aabf651fd0f")
+
+results = api.new_live_hunt(open("eicar.yara").read()) 
+
+results = api.get_live_results(hunt_id=results['result']['hunt_id'])
+
+results = api.new_historical_hunt(open("eicar.yara").read()) 
+
+results = api.get_historical_results(hunt_id=results['result']['hunt_id'])
+
+results = api.get_stream(destination_dir="/my/malware/path")
+```
+
+#### Perform Hunts
+
+```python
+results = api.new_live_hunt(open("eicar.yara").read()) 
+
+results = api.get_live_results(hunt_id=results['result']['hunt_id'])
+
+results = api.new_historical_hunt(open("eicar.yara").read()) 
+
+results = api.get_historical_results(hunt_id=results['result']['hunt_id'])
+```
+
+#### Perform Rescans
+
+```python
+results = api.rescan_file("275a021bbfb6489e54d471899f7db9d1663fc695ec2fe2a2c4538aabf651fd0f")
+``````
+
+#### Get a Stream
+
+```python
+results = api.get_stream(destination_dir="/my/malware/path")
+```
 
 ## Questions? Problems?
 
