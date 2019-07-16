@@ -99,12 +99,12 @@ They are only allowed in the following simple form (not in the complete formm wi
 
 ```json
 {
-            "query": {
-                "exists": {
-                    "field": "lief.libraries"
-                }
-            }
+    "query": {
+        "exists": {
+            "field": "lief.libraries"
         }
+    }
+}
 
 ```
 
@@ -115,15 +115,15 @@ They are only allowed in the following simple form (not in the complete formm wi
 
 ```json
 {
-            "query": {
-                "range": {
-                    "age": {
-                        "gte": 10,
-                        "lte": 20
-                    }
-                }
+    "query": {
+        "range": {
+            "age": {
+                "gte": 10,
+                "lte": 20
             }
         }
+    }
+}
 
 ```
 
@@ -133,12 +133,12 @@ They are only allowed in the following simple form (not in the complete formm wi
 
 ```json
 {
-                "query_string": {
-                    "default_field": "content",
-                    "query": "this AND that OR thus"
-                }
-            }
+    "query_string": {
+            "default_field": "content",
+            "query": "this AND that OR thus"
         }
+    }
+}
 ```
 
 **Note:** [Elasticsearch Query String](https://www.elastic.co/guide/en/elasticsearch/reference/6.7/query-dsl-query-string-query.html).
@@ -148,14 +148,14 @@ They are only allowed in the following simple form (not in the complete formm wi
 
 ```json
 {
-            "query": {
-                "simple_query_string": {
-                    "query": "\"fried eggs\" +(eggplant | potato) -frittata",
-                    "fields": ["title^5", "body"],
-                    "default_operator": "and"
-                }
-            }
+    "query": {
+        "simple_query_string": {
+            "query": "\"fried eggs\" +(eggplant | potato) -frittata",
+            "fields": ["title^5", "body"],
+            "default_operator": "and"
         }
+    }
+}
 ```
 
 **Note:** [Elasticsearch Simple Query String](https://www.elastic.co/guide/en/elasticsearch/reference/6.7/query-dsl-simple-query-string-query.html).
@@ -164,12 +164,12 @@ They are only allowed in the following simple form (not in the complete formm wi
 
 ```json
 {
-            "query": {
-                "terms": {
-                    "user": ["kimchy", "elasticsearch"]
-                }
-            }
+    "query": {
+        "terms": {
+            "user": ["kimchy", "elasticsearch"]
         }
+    }
+}
 ```
 
 **Note:** [Elasticsearch Terms Query](https://www.elastic.co/guide/en/elasticsearch/reference/6.7/query-dsl-terms-query.html).
