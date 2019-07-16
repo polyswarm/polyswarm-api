@@ -9,6 +9,12 @@
       - [Create an API Client](#create-an-api-client)
       - [Perform Scans](#perform-scans)
       - [Perform Searches](#perform-searches)
+        - [Allowed Query Searches](#allowed-query-searches)
+        - [Check If Field Exists](#check-if-field-exists)
+        - [Range Query](#range-query)
+        - [Query String](#query-string)
+        - [Simple Query String](#simple-query-string)
+        - [Terms (Array) Query](#terms-array-query)
       - [Download Files](#download-files)
       - [Perform Hunts](#perform-hunts)
       - [Perform Rescans](#perform-rescans)
@@ -82,6 +88,91 @@ query = { "query": {
 results = api.search_query(query)
 
 ```
+
+##### Allowed Query Searches
+
+For query search, only a sub-set of [Elasticsearch](ttps://www.elastic.co/guide/en/elasticsearch/reference/6.7/) queries are allowed at the moment.
+
+They are only allowed in the following simple form (not in the complete formm with all other attributes) for security reasons.
+
+##### Check If Field Exists
+
+```json
+{
+            'query': {
+                'exists': {
+                    'field': 'lief.libraries'
+                }
+            }
+        }
+
+```
+
+**Note:** [Elasticsearch Exists Query](https://www.elastic.co/guide/en/elasticsearch/reference/6.7/query-dsl-exists-query.html).
+
+
+##### Range Query
+
+```json
+{
+            'query': {
+                'range': {
+                    'age': {
+                        'gte': 10,
+                        'lte': 20
+                    }
+                }
+            }
+        }
+
+```
+
+**Note:** [Elasticsearch Range Query](https://www.elastic.co/guide/en/elasticsearch/reference/6.7/query-dsl-range-query.html). These are specially interesting for date fields. You will find a reference on date math [here](https://www.elastic.co/guide/en/elasticsearch/reference/6.4/query-dsl-range-query.html).
+
+##### Query String
+
+```json
+{
+                'query_string': {
+                    'default_field': 'content',
+                    'query': 'this AND that OR thus'
+                }
+            }
+        }
+```
+
+**Note:** [Elasticsearch Query String](https://www.elastic.co/guide/en/elasticsearch/reference/6.7/query-dsl-query-string-query.html).
+
+
+##### Simple Query String
+
+```json
+{
+            'query': {
+                'simple_query_string': {
+                    'query': '\'fried eggs\' +(eggplant | potato) -frittata',
+                    'fields': ['title^5', 'body'],
+                    'default_operator': 'and'
+                }
+            }
+        }
+```
+
+**Note:** [Elasticsearch Simple Query String](https://www.elastic.co/guide/en/elasticsearch/reference/6.7/query-dsl-simple-query-string-query.html).
+
+##### Terms (Array) Query
+
+```json
+{
+            'query': {
+                'terms': {
+                    'user': ['kimchy', 'elasticsearch']
+                }
+            }
+        }
+```
+
+**Note:** [Elasticsearch Terms Query](https://www.elastic.co/guide/en/elasticsearch/reference/6.7/query-dsl-terms-query.html).
 
 #### Download Files
 
