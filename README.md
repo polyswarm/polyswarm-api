@@ -10,11 +10,11 @@
       - [Perform Scans](#perform-scans)
       - [Perform Searches](#perform-searches)
         - [Allowed Query Searches](#allowed-query-searches)
-        - [Check If Field Exists](#check-if-field-exists)
-        - [Range Query](#range-query)
-        - [Query String](#query-string)
-        - [Simple Query String](#simple-query-string)
-        - [Terms (Array) Query](#terms-array-query)
+          - [Check If Field Exists](#check-if-field-exists)
+          - [Range Query](#range-query)
+          - [Query String](#query-string)
+          - [Simple Query String](#simple-query-string)
+          - [Terms (Array) Query](#terms-array-query)
       - [Download Files](#download-files)
       - [Perform Hunts](#perform-hunts)
       - [Perform Rescans](#perform-rescans)
@@ -91,11 +91,11 @@ results = api.search_query(query)
 
 ##### Allowed Query Searches
 
-For query search, only a sub-set of [Elasticsearch](ttps://www.elastic.co/guide/en/elasticsearch/reference/6.7/) queries are allowed at the moment.
+For query search, only a sub-set of [Elasticsearch](https://www.elastic.co/guide/en/elasticsearch/reference/6.7/) queries are allowed at the moment.
 
 They are only allowed in the following simple form (not in the complete formm with all other attributes) for security reasons.
 
-##### Check If Field Exists
+###### Check If Field Exists
 
 ```json
 {
@@ -111,7 +111,7 @@ They are only allowed in the following simple form (not in the complete formm wi
 **Note:** [Elasticsearch Exists Query](https://www.elastic.co/guide/en/elasticsearch/reference/6.7/query-dsl-exists-query.html).
 
 
-##### Range Query
+###### Range Query
 
 ```json
 {
@@ -129,7 +129,7 @@ They are only allowed in the following simple form (not in the complete formm wi
 
 **Note:** [Elasticsearch Range Query](https://www.elastic.co/guide/en/elasticsearch/reference/6.7/query-dsl-range-query.html). These are specially interesting for date fields. You will find a reference on date math [here](https://www.elastic.co/guide/en/elasticsearch/reference/6.4/query-dsl-range-query.html).
 
-##### Query String
+###### Query String
 
 ```json
 {
@@ -144,7 +144,7 @@ They are only allowed in the following simple form (not in the complete formm wi
 **Note:** [Elasticsearch Query String](https://www.elastic.co/guide/en/elasticsearch/reference/6.7/query-dsl-query-string-query.html).
 
 
-##### Simple Query String
+###### Simple Query String
 
 ```json
 {
@@ -160,7 +160,7 @@ They are only allowed in the following simple form (not in the complete formm wi
 
 **Note:** [Elasticsearch Simple Query String](https://www.elastic.co/guide/en/elasticsearch/reference/6.7/query-dsl-simple-query-string-query.html).
 
-##### Terms (Array) Query
+###### Terms (Array) Query
 
 ```json
 {
