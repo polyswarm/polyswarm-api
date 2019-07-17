@@ -4,11 +4,33 @@ services:
   - docker:dind
 
 stages:
-  - pypi
+  - test
+  - release
+
+test-run35:
+  image: python:3.5
+  stage: test
+  before_script:
+    - pip3 install --upgrade pip
+  script:
+    - pip3 install .
+    - polyswarm -h
+    - pytest -s -v
+
+test-run36:
+  image: python:3.6
+  stage: test
+  before_script:
+    - pip3 install --upgrade pip
+  script:
+    - pip3 install .
+    - polyswarm -h
+    - pytest -s -v
+
 
 push-to-pypi:
   image: python:3.6
-  stage: pypi
+  stage: release
   only:
     - tags
   before_script:
