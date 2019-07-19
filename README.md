@@ -125,7 +125,7 @@ File 131f95c51cc819465fa1797f6ccacf9d494aaaff46fa3eac73ae63ffbdfd8267
 ```
 
 ```bash
-$ polyswarm_api -o /tmp/test.txt search metadata '{ "query": { "exists": {"field": "lief.libraries"}}}'
+$ polyswarm -o /tmp/test.txt search metadata '{ "query": { "exists": {"field": "lief.libraries"}}}'
 $ cat /tmp/test.txt | more
 Found 1000 matches to the search query.
 Search results for namespace(query=namespace(exists=namespace(field='lief.libraries')))
