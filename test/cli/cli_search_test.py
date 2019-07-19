@@ -42,7 +42,7 @@ class SearchTest(TestCase):
                                               '--output-file', self.test_captured_output_file,
                                               'search', 'metadata', self.test_query])
 
-        self.assertEqual(result.exit_code, 0)
+        self.assertEqual(result.exit_code, 0, msg=result.exception)
         output = self._get_file_content(self.test_captured_output_file)
         self.assertEqual(output, expected_output)
 
@@ -57,7 +57,7 @@ class SearchTest(TestCase):
         del hashes, hash_type
         return self._get_test_json_resource_content('expected_search_success_results_hash.json')
 
-    def _mock_search_query_with_results(self, query):
+    def _mock_search_query_with_results(self, query, raw=True):
         del query
         return self._get_test_json_resource_content('expected_search_success_results.json')
 
