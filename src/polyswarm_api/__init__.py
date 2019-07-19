@@ -317,7 +317,7 @@ class PolyswarmAsyncAPI(object):
         :param name: name to associate with the artifact
         :return: JSON report
         """
-        result = await self.post_url(to_scan, to_scan)
+        result = await self.post_url(to_scan, name)
         if result['status'] == 'OK':
             uuid = result['result']
         else:
