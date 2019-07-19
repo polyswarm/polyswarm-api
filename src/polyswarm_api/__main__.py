@@ -261,18 +261,20 @@ def hashes(ctx, hashes, hash_file, hash_type):
 
 
 @click.option('-r', '--query-file', help='Properly formatted JSON search file', type=click.File('r'))
-@click.argument('json_search_query', nargs=-1)
+@click.argument('query_string', nargs=-1)
 @search.command('metadata', short_help='search metadata of files')
 @click.pass_context
-def metadata(ctx, json_search_query, query_file):
+def metadata(ctx, query_string, query_file):
 
     api = ctx.obj['api']
 
     try:
-        if len(json_search_query) == 1:
-            query = json.loads(json_search_query[0])
+        if len(query_string) >= 1:
+            query = query_string[0]
+            raw = False
         elif query_file:
             query = json.load(query_file)
+            raw = True
         else:
             logger.error('No query specified')
             return 0
@@ -283,7 +285,7 @@ def metadata(ctx, json_search_query, query_file):
         logger.error('Failed to parse JSON due to Unicode error')
         return 0
 
-    results = api.search_query(query)
+    results = api.search_query(query, raw)
 
     # TODO handle the difference here better, will address in refactor
     rf = PSSearchResultFormatter([results], color=ctx.obj['color'],

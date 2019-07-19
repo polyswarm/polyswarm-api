@@ -317,7 +317,7 @@ class PolyswarmAsyncAPI(object):
         :param name: name to associate with the artifact
         :return: JSON report
         """
-        result = await self.post_url(to_scan, to_scan)
+        result = await self.post_url(to_scan, name)
         if result['status'] == 'OK':
             uuid = result['result']
         else:
@@ -408,13 +408,23 @@ class PolyswarmAsyncAPI(object):
         response['search'] = '{hash_type}={hash}'.format(hash_type=hash_type, hash=to_scan)
         return response
 
-    async def search_query(self, query):
+    async def search_query(self, query, raw=True):
         """
         Search by Elasticsearch query using the PS API asynchronously.
 
-        :param query: Elasticsearch query
+        :param query: Elasticsearch JSON query or search string
+        :param raw: If true, treated as ES JSON query. If false, treated as an ES query_string
         :return: JSON report file
         """
+
+        if not raw:
+            query = {
+                'query': {
+                    'query_string': {
+                        'query': query
+                    }
+                }
+            }
         async with self.get_semaphore:
             async with aiohttp.ClientSession() as session:
                 try:
@@ -928,14 +938,15 @@ class PolyswarmAPI(object):
         """
         return self.loop.run_until_complete(self.ps_api.search_hash(to_scan, hash_type))
 
-    def search_query(self, query):
+    def search_query(self, query, raw=True):
         """
         Search by Elasticsearch query using the PS API asynchronously.
 
-        :param query:
+        :param query: Elasticsearch JSON query or search string
+        :param raw: If true, treated as ES JSON query. If false, treated as an ES query_string
         :return: JSON report file
         """
-        return self.loop.run_until_complete(self.ps_api.search_query(query))
+        return self.loop.run_until_complete(self.ps_api.search_query(query, raw))
 
     def lookup_uuid(self, uuid):
         """
