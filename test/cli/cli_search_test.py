@@ -17,13 +17,7 @@ class SearchTest(TestCase):
         self.test_api_key = '963da5a463b0ab61fe0f96f82846490d'
         self.test_hash = '08666dae57ea6a8ef21cfa38cf41db395e8c39c61b1f281cb6927b2bca07fb1d'
         self.test_captured_output_file = '/tmp/output.txt'
-        self.test_query = {
-            "query": {
-                "exists": {
-                    "field": "lief.libraries"
-                }
-            }
-        }
+        self.test_query = "_exists_:lief.libraries"
 
     def setUp(self):
         self._remove_file(self.test_captured_output_file)
@@ -44,11 +38,11 @@ class SearchTest(TestCase):
         with patch('polyswarm_api.PolyswarmAPI.search_query') as mock_search_hashes:
             mock_search_hashes.side_effect = self._mock_search_query_with_results
             result = self.test_runner.invoke(polyswarm,
-                                             [ '-vvv','--api-key', self.test_api_key, '--output-format', 'json',
+                                             ['-vvv', '--api-key', self.test_api_key, '--output-format', 'json',
                                               '--output-file', self.test_captured_output_file,
-                                              'search', 'metadata', '{query}'.format(**{'query': json.dumps(self.test_query)})])
+                                              'search', 'metadata', self.test_query])
 
-        self.assertEqual(result.exit_code, 0)
+        self.assertEqual(result.exit_code, 0, msg=result.exception)
         output = self._get_file_content(self.test_captured_output_file)
         self.assertEqual(output, expected_output)
 
@@ -63,7 +57,7 @@ class SearchTest(TestCase):
         del hashes, hash_type
         return self._get_test_json_resource_content('expected_search_success_results_hash.json')
 
-    def _mock_search_query_with_results(self, query):
+    def _mock_search_query_with_results(self, query, raw=True):
         del query
         return self._get_test_json_resource_content('expected_search_success_results.json')
 
