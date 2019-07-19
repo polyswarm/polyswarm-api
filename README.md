@@ -17,10 +17,9 @@
       - [Perform Scans](#perform-scans-1)
       - [Perform Searches](#perform-searches-1)
         - [Allowed Query Searches](#allowed-query-searches)
+          - [Query String](#query-string)
           - [Check If Field Exists](#check-if-field-exists)
           - [Range Query](#range-query)
-          - [Query String](#query-string)
-          - [Simple Query String](#simple-query-string)
           - [Terms (Array) Query](#terms-array-query)
       - [Download Files](#download-files-1)
       - [Perform Hunts](#perform-hunts)
@@ -125,44 +124,38 @@ File 131f95c51cc819465fa1797f6ccacf9d494aaaff46fa3eac73ae63ffbdfd8267
 ```
 
 ```bash
-$ polyswarm -o /tmp/test.txt search metadata '{ "query": { "exists": {"field": "lief.libraries"}}}'
+$ polyswarm -o /tmp/test.txt search metadata "strings.domains:en.wikipedia.org AND exiftool.ZipFileName:AndroidManifest.xml AND exiftool.ZipRequiredVersion:>19"
 $ cat /tmp/test.txt | more
-Found 1000 matches to the search query.
-Search results for namespace(query=namespace(exists=namespace(field='lief.libraries')))
-File 235560617206a589614faf8a88ff8f0901555b711dec8426f2865ecea5631805
-	File type: mimetype: application/x-dosexec, extended_info: PE32 executable (GUI) Intel 80386, for MS Windows
-	SHA256: 235560617206a589614faf8a88ff8f0901555b711dec8426f2865ecea5631805
-	SHA1: ef1ff9476d69c0893fd9eac5f481dfcbdbfd6678
-	MD5: fa56d47b239a55bbaa3d29c2a4106208
-	First seen: Fri, 19 Apr 2019 21:27:35 GMT
-	Observed countries: PR
-	Observed filenames: 235560617206a589614faf8a88ff8f0901555b711dec8426f2865ecea5631805,fa56d47b239a55bbaa3d29c2a4106208
+Found 18 matches to the search query.
+Search results for {'query': {'query_string': {'query': 'strings.domains:en.wikipedia.org AND exift
+ool.ZipFileName:AndroidManifest.xml'}}}
+File 1d38780c2327086816d0a87d878d57b943d6ad5109b9389b5d5ffe3f9065698b
+	File type: mimetype: application/java-archive, extended_info: Java archive data (JAR)
+	SHA256: 1d38780c2327086816d0a87d878d57b943d6ad5109b9389b5d5ffe3f9065698b
+	SHA1: 76f5b2c6abbd6b30dc00fbe797001bf7247f423b
+	MD5: 12a1028e90696d9f3926ac3ab150950c
+	First seen: Sun, 24 Mar 2019 15:27:32 GMT
+	Observed countries: 
+	Observed filenames: 1d38780c2327086816d0a87d878d57b943d6ad5109b9389b5d5ffe3f9065698b
 
 
-File 54ca07d1c196afac470ae3e3d7144bbede5a3de48805ca1d83a94529fbf29195
-	File type: mimetype: application/x-dosexec, extended_info: PE32 executable (GUI) Intel 80386, for MS Windows, UPX compresse
-d
-	SHA256: 54ca07d1c196afac470ae3e3d7144bbede5a3de48805ca1d83a94529fbf29195
-	SHA1: 126792313f220d937ae754e17fa2d16f1d0e7895
-	MD5: 22b144ad5b597fde1825b85e2db8c800
-	First seen: Wed, 08 May 2019 07:37:55 GMT
-	Observed countries: US
-	Observed filenames: server.exe,54ca07d1c196afac470ae3e3d7144bbede5a3de48805ca1d83a94529fbf29195
+File d8e6ac2884597021479796d252fcd61dbbfd71f7c07af54d71478af377e0bfb9
+	File type: mimetype: application/java-archive, extended_info: Java archive data (JAR)
+	SHA256: d8e6ac2884597021479796d252fcd61dbbfd71f7c07af54d71478af377e0bfb9
+	SHA1: a5b267cd66d0da885d252b279d28cb887f8b901c
+	MD5: bb0dd7f93ef2eaacfde18d07909fac0b
+	First seen: Sun, 31 Mar 2019 08:58:17 GMT
+	Observed countries: 
+	Observed filenames: d8e6ac2884597021479796d252fcd61dbbfd71f7c07af54d71478af377e0bfb9
 
 
-File a850c62b139c87af276f4699b97ecaa9553c0d73149d635375108506fc7b34a3
-	File type: mimetype: application/x-dosexec, extended_info: PE32 executable (GUI) Intel 80386, for MS Windows
-	SHA256: a850c62b139c87af276f4699b97ecaa9553c0d73149d635375108506fc7b34a3
-	SHA1: ab893f4c7abdcbca87f1107924c45217e95e0808
-	MD5: 128ae4a05c43d523f247340e81857eb7
-	First seen: Fri, 19 Apr 2019 21:29:03 GMT
-	Observed countries: PR
-	Observed filenames: a850c62b139c87af276f4699b97ecaa9553c0d73149d635375108506fc7b34a3,128ae4a05c43d523f247340e81857eb7
-
-
-File 1c51769f1f06a512b4f96c6c12f11005a98bca31d7cb640725660110c5813d5a
-	File type: mimetype: application/x-dosexec, extended_info: PE32 executable (GUI) Intel 80386, for MS Windows
-	SHA256: 1c51769f1f06a512b4f96c6c12f11005a98bca31d7cb640725660110c5813d5a
+File 041044068eb8295a4d80786c3f55c77c641b6f3eb33187bbf504aa923ec5db78
+	File type: mimetype: application/java-archive, extended_info: Java archive data (JAR)
+	SHA256: 041044068eb8295a4d80786c3f55c77c641b6f3eb33187bbf504aa923ec5db78
+	SHA1: 5ab68f339ddf9d8701d2c3947cc0596652b92cb0
+	MD5: c93a8476c16cc7e044be305b71fe1b1f
+	First seen: Wed, 27 Mar 2019 07:02:24 GMT
+	Observed countries: 
 --More--
 ```
 
@@ -249,7 +242,22 @@ results = api.search_query(query)
 
 For query search, only a sub-set of [Elasticsearch](https://www.elastic.co/guide/en/elasticsearch/reference/6.7/) queries are allowed at the moment.
 
-They are only allowed in the following simple form (not in the complete formm with all other attributes) for security reasons.
+They are only allowed in the following simple form (not in the complete form with all other attributes) for security reasons.
+
+To make command line searching easier, the default input format for the CLI is a query field that will be wrapped into a [JSON `query_string` request](https://www.elastic.co/guide/en/elasticsearch/reference/current/query-dsl-query-string-query.html).
+This is likely sufficient for most queries.
+
+###### Query String
+
+```json
+{
+    "query": {
+      "query_string": {
+            "query": "this AND that OR something:>10"
+        }
+    }
+}
+```
 
 ###### Check If Field Exists
 
@@ -285,16 +293,6 @@ They are only allowed in the following simple form (not in the complete formm wi
 
 **Note:** [Elasticsearch Range Query](https://www.elastic.co/guide/en/elasticsearch/reference/6.7/query-dsl-range-query.html). These are specially interesting for date fields. You will find a reference on date math [here](https://www.elastic.co/guide/en/elasticsearch/reference/6.4/query-dsl-range-query.html).
 
-###### Query String
-
-```json
-{
-    "query_string": {
-            "default_field": "content",
-            "query": "this AND that OR thus"
-        }
-    }
-}
 ```
 
 **Note:** [Elasticsearch Query String](https://www.elastic.co/guide/en/elasticsearch/reference/6.7/query-dsl-query-string-query.html).
