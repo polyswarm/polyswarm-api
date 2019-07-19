@@ -129,7 +129,7 @@ $ polyswarm -o /tmp/test.txt search metadata "strings.domains:en.wikipedia.org A
 $ cat /tmp/test.txt | more
 Found 18 matches to the search query.
 Search results for {'query': {'query_string': {'query': 'strings.domains:en.wikipedia.org AND exift
-ool.ZipFileName:AndroidManifest.xml'}}}
+ool.ZipFileName:AndroidManifest.xml AND exiftool.ZipRequiredVersion:>19'}}}
 File 1d38780c2327086816d0a87d878d57b943d6ad5109b9389b5d5ffe3f9065698b
 	File type: mimetype: application/java-archive, extended_info: Java archive data (JAR)
 	SHA256: 1d38780c2327086816d0a87d878d57b943d6ad5109b9389b5d5ffe3f9065698b

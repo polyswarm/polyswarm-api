@@ -413,7 +413,7 @@ class PolyswarmAsyncAPI(object):
         Search by Elasticsearch query using the PS API asynchronously.
 
         :param query: Elasticsearch JSON query or search string
-        :param raw: If this is a raw JSON query or needs wrapping
+        :param raw: If true, treated as ES JSON query. If false, treated as an ES query_string
         :return: JSON report file
         """
 
@@ -943,7 +943,7 @@ class PolyswarmAPI(object):
         Search by Elasticsearch query using the PS API asynchronously.
 
         :param query: Elasticsearch JSON query or search string
-        :param raw: If this is a raw JSON query or needs wrapping
+        :param raw: If true, treated as ES JSON query. If false, treated as an ES query_string
         :return: JSON report file
         """
         return self.loop.run_until_complete(self.ps_api.search_query(query, raw))
