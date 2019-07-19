@@ -16,6 +16,7 @@
       - [Create an API Client](#create-an-api-client)
       - [Perform Scans](#perform-scans-1)
       - [Perform Searches](#perform-searches-1)
+        - [Metadata Terms](#metadata-terms)
         - [Allowed Query Searches](#allowed-query-searches)
           - [Query String](#query-string)
           - [Check If Field Exists](#check-if-field-exists)
@@ -238,6 +239,56 @@ results = api.search_query(query)
 
 ```
 
+##### Metadata Terms
+The following is a non-exhaustive list of the terms currently supported by PolySwarm.
+When searching, each nested level would be separated by `.`, e.g. `pefile.imphash`.
+Names of fields *are case-sensitive* so take care to specify them correctly. The following list is non-exhaustive.
+If there are more fields or tools you would like to see, please get in touch at [info@polyswarm.io](mailto:info@polyswarm.io).
+
+* `lief` - curated `lief` output
+    * `has_nx`
+    * `is_pie`
+    * `libraries` - list of imported libraries
+    * `entrypoint` - entrypoint in decimal
+    * `virtual_size` - virtual size in decimal
+    * `exported_functions` - list of exported functions
+    * `imported_functions` - list of imported functions
+
+* `pefile` - curated `pefile` output
+    * `is_dll` - boolean
+    * `is_exe` - boolean
+    * `exports` - exported functions
+    * `imphash` - `imphash` of the file
+    * `imports` - dictionary of imports in format `dllname: [list, of, functions]`
+    * `uses_cfg` - boolean
+    * `uses_dep` - boolean
+    * `uses_seh` - boolean
+    * `compile_date` - boolean
+    * `has_import_table` - boolean
+    * `has_export_table` - boolean
+    * `is_probably_packed` - boolean
+    * `warnings` - warnings from pefile parser
+    
+* `exiftool` - `exiftool` output (from `exiftool -j`)
+    * `MIMEType` - mimetype of the file
+    * `InternalName` - internal name extracted from executable
+    * `OriginalFileName` - original name of the file
+    * `Author` - author of the file
+    * `Title` - title of the file
+    * `Subject` - subject of the file
+    * `LanguageCode` - language used by executable (e.g. 'English (U.S.)')
+    * `CharacterSet` - character set of file
+    * `Language` - language of file (e.g. 'en-GB')
+    * `ModifyDate` - last modified time string from document
+    * `CreateDate` - creation time string from document
+    * many more; view `exiftool` documentation for more info.
+
+* `strings` - interesting statically-extracted strings
+    * `domains` - observed domains
+    * `urls` - URLs (including things like emails)
+    * `ipv4` - IPV4 addresses
+    * `ipv6` - IPV6 addresses
+
 ##### Allowed Query Searches
 
 For query search, only a sub-set of [Elasticsearch](https://www.elastic.co/guide/en/elasticsearch/reference/6.7/) queries are allowed at the moment.
@@ -246,6 +297,7 @@ They are only allowed in the following simple form (not in the complete form wit
 
 To make command line searching easier, the default input format for the CLI is a query field that will be wrapped into a [JSON `query_string` request](https://www.elastic.co/guide/en/elasticsearch/reference/current/query-dsl-query-string-query.html).
 This is likely sufficient for most queries.
+Do note: some characters, like backslashes, must be escaped with a backslash.
 
 ###### Query String
 
