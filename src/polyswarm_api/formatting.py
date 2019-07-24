@@ -220,7 +220,7 @@ class PSHuntResultFormatter(PSResultFormatter):
 
             output.append(self._info('Scan status: {status}\n'.format(status=self.hunt_results.status.capitalize())))
 
-            results = self.hunt_results.result
+            results = self.hunt_results.result.results
 
             if len(results) == 0:
                 output.append(self._bad('(Did not find any results yet for this hunt.)\n'))
