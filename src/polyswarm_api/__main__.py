@@ -254,9 +254,8 @@ def hashes(ctx, hashes, hash_file, hash_type):
 
     if hash_file:
         hashes += _get_hashes_from_file(hash_file)
-    print(hashes)
+
     hashes = _remove_invalid_hashes(hashes, hash_type)
-    print(hashes)
     results = api.search_hashes(hashes, hash_type)
 
     rf = PSSearchResultFormatter(results, color=ctx.obj['color'],
