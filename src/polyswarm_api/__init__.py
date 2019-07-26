@@ -464,7 +464,7 @@ class PolyswarmAsyncAPI(object):
         async with self.get_semaphore:
             async with aiohttp.ClientSession() as session:
                 try:
-                    async with session.get(
+                    async with session.post(
                             '{community_uri}/rescan/{hash_type}/{hash}'.format(community_uri=self.community_uri,
                                                                                hash_type=hash_type,
                                                                                hash=to_rescan),
