@@ -173,7 +173,8 @@ class PSSearchResultFormatter(PSResultFormatter):
                 search = self.searches[i]
                 result = result.result
                 if len(result) == 0:
-                    return self._bad('(Did not find any files matching {search})\n'.format(search=search))
+                    output.append(self._bad('(Did not find any files matching {search})\n'.format(search=search)))
+                    continue
 
                 output.append(self._good('Found {count} matches to the search query.'.format(count=len(result))))
                 output.append(self._normal('Search results for {search}'.format(search=search)))

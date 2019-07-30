@@ -231,7 +231,7 @@ def hashes(ctx, hashes, hash_file, hash_type):
     """
 
     def _get_hashes_from_file(file):
-        return [h.strip() for h in file.readLines()]
+        return [h.strip() for h in file.readlines()]
 
     def _remove_invalid_hashes(hash_candidates, candidates_hash_type):
 
@@ -250,8 +250,11 @@ def hashes(ctx, hashes, hash_file, hash_type):
 
     api = ctx.obj['api']
 
+    hashes = list(hashes)
+
     if hash_file:
         hashes += _get_hashes_from_file(hash_file)
+
     hashes = _remove_invalid_hashes(hashes, hash_type)
     results = api.search_hashes(hashes, hash_type)
 
