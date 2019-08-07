@@ -2,8 +2,6 @@ from aiohttp import web
 from polyswarm_api import PolyswarmAPI
 from test.utils import PolyApiBaseTestCase
 from unittest.mock import patch
-from urllib import parse
-import json
 
 
 class SearchQueryTestCase(PolyApiBaseTestCase):
