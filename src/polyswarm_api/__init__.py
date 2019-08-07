@@ -440,9 +440,7 @@ class PolyswarmAsyncAPI(object):
                             response = response.decode('utf-8')
                             raise Exception('Received non-json response from PolySwarm API: {}'.format(response))
 
-                        if raw_response.status == 404:
-                            return {'search': query, 'result': [], 'status': 'OK'}
-                        elif raw_response.status // 100 != 2:
+                        if raw_response.status // 100 != 2:
                             raise Exception('Error reading from PolySwarm API: {}'.format(response['errors']))
 
                 except Exception as e:
