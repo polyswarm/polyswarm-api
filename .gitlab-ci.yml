@@ -8,6 +8,8 @@ stages:
   - release
 
 test-run35:
+  tags:
+    - kube
   image: python:3.5
   stage: test
   before_script:
@@ -18,6 +20,8 @@ test-run35:
     - pytest -s -v
 
 test-run36:
+  tags:
+    - kube
   image: python:3.6
   stage: test
   before_script:
@@ -29,6 +33,8 @@ test-run36:
 
 
 push-to-pypi:
+  tags:
+    - kube
   image: python:3.6
   stage: release
   only:

@@ -173,7 +173,8 @@ class PSSearchResultFormatter(PSResultFormatter):
                 search = self.searches[i]
                 result = result.result
                 if len(result) == 0:
-                    return self._bad('(Did not find any files matching {search})\n'.format(search=search))
+                    output.append(self._bad('(Did not find any files matching {search})\n'.format(search=search)))
+                    continue
 
                 output.append(self._good('Found {count} matches to the search query.'.format(count=len(result))))
                 output.append(self._normal('Search results for {search}'.format(search=search)))
@@ -220,7 +221,7 @@ class PSHuntResultFormatter(PSResultFormatter):
 
             output.append(self._info('Scan status: {status}\n'.format(status=self.hunt_results.status.capitalize())))
 
-            results = self.hunt_results.result
+            results = self.hunt_results.result.results
 
             if len(results) == 0:
                 output.append(self._bad('(Did not find any results yet for this hunt.)\n'))
