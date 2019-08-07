@@ -20,8 +20,7 @@ class SearchQueryTestCase(PolyApiBaseTestCase):
 
         async def not_found_response(request):
             del request
-            response = self._get_test_text_resource('search_query_server_success_empty_response.json')
-            return web.Response(text=response, content_type='application/json')
+            return web.Response(text='{}', content_type='application/json', status=404)
 
         async def invalid_query_response(request):
             del request
