@@ -9,6 +9,7 @@ import aiofiles
 import json
 import urllib
 from urllib import parse
+from binascii import hexlify
 
 from polyswarmartifact import ArtifactType
 
