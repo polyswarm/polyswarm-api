@@ -392,7 +392,7 @@ def historical():
     pass
 
 
-@click.argument('rule_file', type=click.File('r'))
+@click.argument('rule_file', type=click.File('rb'))
 @live.command('install', short_help='install a new YARA rule file')
 @click.pass_context
 def live_install(ctx, rule_file):
@@ -426,7 +426,7 @@ def live_results(ctx, hunt_id, download_path):
     ctx.obj['output'].write((str(rf)))
 
 
-@click.argument('rule_file', type=click.File('r'))
+@click.argument('rule_file', type=click.File('rb'))
 @historical.command('start', short_help='start a new historical hunt')
 @click.pass_context
 def historical_start(ctx, rule_file):
