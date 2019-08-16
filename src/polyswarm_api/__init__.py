@@ -9,7 +9,7 @@ import aiofiles
 import json
 import urllib
 from urllib import parse
-from binascii import hexlify
+from base64 import b64encode
 
 from polyswarmartifact import ArtifactType
 
@@ -649,7 +649,7 @@ class PolyswarmAsyncAPI(object):
         :param scan_type: Type of scan, "live" or "historical"
         :return: ID of the new scan
         """
-        data = {'yara': hexlify(rules)}
+        data = {'yara': b64encode(rules)}
 
         async with self.post_semaphore:
             logger.debug('Posting rules with api-key %s', self.api_key)
