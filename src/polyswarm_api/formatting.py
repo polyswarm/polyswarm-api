@@ -109,7 +109,7 @@ class PSResultFormatter(object):
                                                  format(first_seen=first_seen,
                                                         mimetype=file_info['mimetype'],
                                                         extended_type=file_info['extended_type'],
-                                                        filenames=','.join(file_info['filenames']))))
+                                                        filenames=','.join(set(file_info['filenames'])))))
                     if 'assertions' not in f or len(f['assertions']) == 0:
                         if 'failed' in f and f['failed']:
                             output.append(self._bad('Bounty failed, please resubmit'))
