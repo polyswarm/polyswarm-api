@@ -742,14 +742,23 @@ class PolyswarmAsyncAPI(object):
         """
         return await self._get_hunt_results(hunt_id, 'historical')
 
-    async def get_stream(self, destination_dir=None):
+    async def get_stream(self, destination_dir=None, since=1440):
+        """
+        Get stream of tarballs from communities you have the stream privilege on.
+        Contact us at info@polyswarm.io for more info on enabling this feature.
+
+        :param destination_dir: Directory to down files to. None if you just want the list of URLs.
+        :param since: Fetch all archives that are `since` minutes old or newer
+
+        :return: List of signed S3 URLs for tarballs over the last two days
+        """
         async with aiohttp.ClientSession() as session:
             async with self.get_semaphore:
                 logger.debug('Reading results with api-key %s', self.api_key)
                 try:
                     async with session.get('{stream_uri}'.format(stream_uri=self.stream_uri),
                                            headers={'Authorization': self.api_key},
-                                           params={'since': 1440}) as raw_response:
+                                           params={'since': since}) as raw_response:
                         try:
                             response = await raw_response.json()
                         except Exception:
@@ -1066,12 +1075,13 @@ class PolyswarmAPI(object):
         """
         return self.loop.run_until_complete(self.ps_api.get_historical_results(hunt_id))
 
-    def get_stream(self, destination_dir=None):
+    def get_stream(self, destination_dir=None, since=1440):
         """
         Get stream of tarballs from communities you have the stream privilege on.
         Contact us at info@polyswarm.io for more info on enabling this feature.
 
         :param destination_dir: Directory to down files to. None if you just want the list of URLs.
+        :param since: Fetch all archives that are `since` minutes old or newer
 
         :return: List of signed S3 URLs for tarballs over the last two days
         """

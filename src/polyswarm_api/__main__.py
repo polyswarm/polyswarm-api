@@ -73,14 +73,18 @@ def validate_key(ctx, param, value):
 
 
 @click.group(context_settings=CONTEXT_SETTINGS)
-@click.option('-a', '--api-key', help='Your API key for polyswarm.network (required)', default='', callback=validate_key, envvar='POLYSWARM_API_KEY')
-@click.option('-u', '--api-uri', default='https://api.polyswarm.network/v1', envvar='POLYSWARM_API_URI', help='The API endpoint (ADVANCED)')
+@click.option('-a', '--api-key', help='Your API key for polyswarm.network (required)',
+              default='', callback=validate_key, envvar='POLYSWARM_API_KEY')
+@click.option('-u', '--api-uri', default='https://api.polyswarm.network/v1',
+              envvar='POLYSWARM_API_URI', help='The API endpoint (ADVANCED)')
 @click.option('-o', '--output-file', default=sys.stdout, type=click.File('w'), help='Path to output file.')
-@click.option('--fmt', '--output-format', default='text', type=click.Choice(['text', 'json']), help='Output format. Human-readable text or JSON.')
+@click.option('--fmt', '--output-format', default='text', type=click.Choice(['text', 'json']),
+              help='Output format. Human-readable text or JSON.')
 @click.option('--color/--no-color', default=True, help='Use colored output in text mode.')
 @click.option('-v', '--verbose', default=0, count=True)
 @click.option('-c', '--community', default='lima', envvar='POLYSWARM_COMMUNITY', help='Community to use.')
-@click.option('--advanced-disable-version-check/--advanced-enable-version-check', default=False, help='Enable/disable GitHub release version check.')
+@click.option('--advanced-disable-version-check/--advanced-enable-version-check', default=False,
+              help='Enable/disable GitHub release version check.')
 @click.pass_context
 def polyswarm(ctx, api_key, api_uri, output_file, output_format, color, verbose, community,
               advanced_disable_version_check):
@@ -166,7 +170,8 @@ async def get_results(ctx, tasks):
     return results, (failed_bounty, server_disconnects, other_exceptions, success)
 
 
-@click.option('-f', '--force', is_flag=True, default=False,  help='Force re-scan even if file has already been analyzed.')
+@click.option('-f', '--force', is_flag=True, default=False,
+              help='Force re-scan even if file has already been analyzed.')
 @click.option('-r', '--recursive', is_flag=True, default=False, help='Scan directories recursively')
 @click.option('-t', '--timeout', type=click.INT, default=-1, help='How long to wait for results (default: forever, -1)')
 @click.argument('path', nargs=-1, type=click.Path(exists=True))
@@ -189,7 +194,8 @@ def scan(ctx, path, force, recursive, timeout):
 
 
 @click.option('-r', '--url-file', help='File of URLs, one per line.', type=click.File('r'))
-@click.option('-f', '--force', is_flag=True, default=False,  help='Force re-scan even if file has already been analyzed.')
+@click.option('-f', '--force', is_flag=True, default=False,
+              help='Force re-scan even if file has already been analyzed.')
 @click.option('-t', '--timeout', type=click.INT, default=-1, help='How long to wait for results (default: forever, -1)')
 @click.argument('url', nargs=-1, type=click.STRING)
 @polyswarm.command('url', short_help='scan url')
@@ -406,7 +412,8 @@ def live_install(ctx, rule_file):
 
 
 @click.option('-i', '--hunt-id', type=int, help='ID of the rule file (defaults to latest)')
-@click.option('--download-path', '-d', type=click.Path(file_okay=False), help='In addition to fetching the results, download the files that matched.')
+@click.option('--download-path', '-d', type=click.Path(file_okay=False),
+              help='In addition to fetching the results, download the files that matched.')
 @live.command('results', short_help='get results from live hunt')
 @click.pass_context
 def live_results(ctx, hunt_id, download_path):
@@ -440,7 +447,8 @@ def historical_start(ctx, rule_file):
 
 
 @click.option('-i', '--hunt-id', type=int, help='ID of the rule file (defaults to latest)')
-@click.option('--download-path', '-d', type=click.Path(file_okay=False), help='In addition to fetching the results, download the files that matched.')
+@click.option('--download-path', '-d', type=click.Path(file_okay=False),
+              help='In addition to fetching the results, download the files that matched.')
 @historical.command('results', short_help='get results from historical hunt')
 @click.pass_context
 def historical_results(ctx, hunt_id, download_path):
@@ -461,17 +469,20 @@ def historical_results(ctx, hunt_id, download_path):
     ctx.obj['output'].write((str(rf)))
 
 
-@click.option('--download-path', '-d', type=click.Path(file_okay=False), help='In addition to fetching the results, download the archives.')
+@click.option('--download-path', '-d', type=click.Path(file_okay=False),
+              help='In addition to fetching the results, download the archives.')
+@click.option('-s', '--since', type=click.IntRange(1, 2880), default=1440,
+              help='Request archives X minutes into the past. Default: 1440, Max: 2880')
 @polyswarm.command('stream', short_help='access the polyswarm file stream')
 @click.pass_context
-def stream(ctx, download_path):
+def stream(ctx, download_path, since):
     api = ctx.obj['api']
 
     if download_path is not None:
         if not os.path.exists(download_path):
             os.makedirs(download_path)
 
-    results = api.get_stream(download_path)
+    results = api.get_stream(download_path, since=since)
 
     rf = PSStreamFormatter(results, color=ctx.obj['color'],
                            output_format=ctx.obj['output_format'])
