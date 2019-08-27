@@ -23,8 +23,8 @@ class PolyswarmAsyncAPI(object):
     An asynchronous interface to the PolySwarm API.
     """
 
-    def __init__(self, key, uri='https://api.polyswarm.network/v1', get_limit=100,
-                 post_limit=1000, timeout=600, force=False, community='lima', check_version=True):
+    def __init__(self, key, uri='https://api.polyswarm.network/v1', get_limit=10,
+                 post_limit=1, timeout=600, force=False, community='lima', check_version=True):
         """
 
         :param key: PolySwarm API key
@@ -440,9 +440,7 @@ class PolyswarmAsyncAPI(object):
                             response = response.decode('utf-8')
                             raise Exception('Received non-json response from PolySwarm API: {}'.format(response))
 
-                        if raw_response.status == 404:
-                            return {'search': query, 'result': [], 'status': 'OK'}
-                        elif raw_response.status // 100 != 2:
+                        if raw_response.status // 100 != 2:
                             raise Exception('Error reading from PolySwarm API: {}'.format(response['errors']))
 
                 except Exception as e:
@@ -744,14 +742,23 @@ class PolyswarmAsyncAPI(object):
         """
         return await self._get_hunt_results(hunt_id, 'historical')
 
-    async def get_stream(self, destination_dir=None):
+    async def get_stream(self, destination_dir=None, since=1440):
+        """
+        Get stream of tarballs from communities you have the stream privilege on.
+        Contact us at info@polyswarm.io for more info on enabling this feature.
+
+        :param destination_dir: Directory to down files to. None if you just want the list of URLs.
+        :param since: Fetch all archives that are `since` minutes old or newer
+
+        :return: List of signed S3 URLs for tarballs over the last two days
+        """
         async with aiohttp.ClientSession() as session:
             async with self.get_semaphore:
                 logger.debug('Reading results with api-key %s', self.api_key)
                 try:
                     async with session.get('{stream_uri}'.format(stream_uri=self.stream_uri),
                                            headers={'Authorization': self.api_key},
-                                           params={'since': 1440}) as raw_response:
+                                           params={'since': since}) as raw_response:
                         try:
                             response = await raw_response.json()
                         except Exception:
@@ -798,8 +805,8 @@ class PolyswarmAsyncAPI(object):
 class PolyswarmAPI(object):
     """A synchronous interface to the public and private PolySwarm APIs."""
 
-    def __init__(self, key, uri='https://api.polyswarm.network/v1', get_limit=100,
-                 post_limit=1000, timeout=600, force=False, community='lima', check_version=True):
+    def __init__(self, key, uri='https://api.polyswarm.network/v1', get_limit=10,
+                 post_limit=1, timeout=600, force=False, community='lima', check_version=True):
         """
 
         :param key: PolySwarm API key
@@ -1068,12 +1075,13 @@ class PolyswarmAPI(object):
         """
         return self.loop.run_until_complete(self.ps_api.get_historical_results(hunt_id))
 
-    def get_stream(self, destination_dir=None):
+    def get_stream(self, destination_dir=None, since=1440):
         """
         Get stream of tarballs from communities you have the stream privilege on.
         Contact us at info@polyswarm.io for more info on enabling this feature.
 
         :param destination_dir: Directory to down files to. None if you just want the list of URLs.
+        :param since: Fetch all archives that are `since` minutes old or newer
 
         :return: List of signed S3 URLs for tarballs over the last two days
         """
