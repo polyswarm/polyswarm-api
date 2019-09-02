@@ -711,8 +711,8 @@ class PolyswarmAsyncAPI(object):
             offset = 0
 
         params = {
-            "limit": limit,
-            "offset": offset,
+            'limit': limit,
+            'offset': offset,
         }
 
         if hunt_id is not None:
