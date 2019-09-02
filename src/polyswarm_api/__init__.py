@@ -17,7 +17,7 @@ from ._version import __version__, __release_url__
 
 logger = logging.getLogger(__name__)
 
-MAX_HUNT_RESULTS = 5000
+MAX_HUNT_RESULTS = 20000
 
 class PolyswarmAsyncAPI(object):
     """

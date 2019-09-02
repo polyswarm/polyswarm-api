@@ -417,7 +417,7 @@ def live_install(ctx, rule_file):
 @live.command('results', short_help='get results from live hunt')
 @click.option('-a', '--all', is_flag=True, default=False,
               help='Request all historical results (could take awhile).')
-@click.option('-l', '--limit', type=int, help='Number of results to request (maximum 10,000)', default=MAX_HUNT_RESULTS)
+@click.option('-l', '--limit', type=int, help='Number of results to request (maximum 20000, default 5000)', default=5000)
 @click.option('-o', '--offset', type=int, help='Offset into results to start request from .', default=0)
 @click.pass_context
 def live_results(ctx, hunt_id, download_path, all, limit, offset):
@@ -455,7 +455,7 @@ def historical_start(ctx, rule_file):
               help='In addition to fetching the results, download the files that matched.')
 @click.option('-a', '--all', is_flag=True, default=False,
               help='Request all historical results (could take awhile).')
-@click.option('-l', '--limit', type=int, help='Number of results to request (maximum 10,000)', default=MAX_HUNT_RESULTS)
+@click.option('-l', '--limit', type=int, help='Number of results to request (maximum 20000, default 5000)', default=5000)
 @click.option('-o', '--offset', type=int, help='Offset into results to start request from .', default=0)
 @historical.command('results', short_help='get results from historical hunt')
 @click.pass_context
