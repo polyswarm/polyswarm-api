@@ -227,7 +227,8 @@ class PSHuntResultFormatter(PSResultFormatter):
                 output.append(self._bad('(Did not find any results yet for this hunt.)\n'))
                 return '\n'.join(output)
 
-            output.append(self._good('Found {count} samples in this hunt.'.format(count=len(results))))
+            output.append(self._good('Found {total} samples in this hunt, displaying {count}.'.format(
+                count=len(results), total=self.hunt_results.result.total)))
 
             for result in results:
                 output.append(self._good('Match on rule {name}'.format(name=result.rule_name) +
