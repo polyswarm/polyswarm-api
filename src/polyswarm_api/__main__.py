@@ -11,7 +11,7 @@ from aiohttp import ServerDisconnectedError
 
 from . import PolyswarmAPI
 from .formatting import PSResultFormatter, PSDownloadResultFormatter, PSSearchResultFormatter, PSHuntResultFormatter, \
-    PSHuntSubmissionFormatter, PSStreamFormatter
+    PSHuntSubmissionFormatter, PSStreamFormatter, PSHuntDeletionFormatter
 
 CONTEXT_SETTINGS = dict(help_option_names=['-h', '--help'])
 
@@ -411,6 +411,17 @@ def live_install(ctx, rule_file):
     ctx.obj['output'].write((str(rf)))
 
 
+@live.command('delete', short_help='Delete the live hunt associate with the given hunt_id')
+@click.argument('hunt_id')
+@click.pass_context
+def live_delete(ctx, hunt_id):
+    api = ctx.obj['api']
+
+    rf = PSHuntDeletionFormatter(api.delete_live_hunt(hunt_id), color=ctx.obj['color'],
+                                 output_format=ctx.obj['output_format'])
+    ctx.obj['output'].write((str(rf)))
+
+
 @click.option('-i', '--hunt-id', type=int, help='ID of the rule file (defaults to latest)')
 @click.option('--download-path', '-d', type=click.Path(file_okay=False),
               help='In addition to fetching the results, download the files that matched.')
@@ -443,6 +454,17 @@ def historical_start(ctx, rule_file):
 
     rf = PSHuntSubmissionFormatter(api.new_historical_hunt(rules), color=ctx.obj['color'],
                                    output_format=ctx.obj['output_format'])
+    ctx.obj['output'].write((str(rf)))
+
+
+@historical.command('delete', short_help='Delete the historical hunt associate with the given hunt_id')
+@click.argument('hunt_id')
+@click.pass_context
+def historical_delete(ctx, hunt_id):
+    api = ctx.obj['api']
+
+    rf = PSHuntDeletionFormatter(api.delete_historical_hunt(hunt_id), color=ctx.obj['color'],
+                                 output_format=ctx.obj['output_format'])
     ctx.obj['output'].write((str(rf)))
 
 
