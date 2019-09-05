@@ -277,7 +277,7 @@ class PSHuntSubmissionFormatter(PSResultFormatter):
 class PSHuntDeletionFormatter(PSResultFormatter):
     def __str__(self):
         if self.output_format == 'text':
-            if self.results['status'] != 'Deleted':
+            if self.results['status'] != 'OK':
                 return self._bad('Failed to delete hunt.\n')
             return self._good('Successfully deleted hunt id: {hunt_id}\n'.
                               format(hunt_id=self.results['result']['hunt_id']))
