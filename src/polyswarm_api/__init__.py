@@ -690,6 +690,52 @@ class PolyswarmAsyncAPI(object):
         """
         return await self._new_hunt(rules, 'historical')
 
+    async def _delete_hunt(self, hunt_id, scan_type):
+        """
+        Delete a scan, either live or historical.
+
+        :param hunt_id: String containing hunt id
+        :return: ID of the new scan
+        """
+        async with self.post_semaphore:
+            logger.debug('Posting rules with api-key %s', self.api_key)
+            async with aiohttp.ClientSession() as session:
+                try:
+                    async with session.delete('{hunt_uri}/{scan_type}'.format(hunt_uri=self.hunt_uri,
+                                                                              scan_type=scan_type),
+                                              json={'hunt_id': hunt_id},
+                                              headers={'Authorization': self.api_key}) as raw_response:
+                        try:
+                            response = await raw_response.json()
+                        except Exception:
+                            response = await raw_response.read() if raw_response else 'None'
+                            logger.error('Received non-json response from PolySwarm API: %s', response)
+                            response = {'status': 'error', 'result': []}
+                        if raw_response.status // 100 != 2:
+                            errors = response.get('errors')
+                            logger.error('Error posting to PolySwarm API: %s', errors)
+                            response = {'status': 'error', 'result': []}
+                        return response
+                except Exception:
+                    logger.error('Server request failed')
+                    return {'status': 'error', 'result': []}
+
+    async def delete_live_hunt(self, hunt_id):
+        """
+        Delete a live scan.
+
+        :param hunt_id: String containing hunt id
+        """
+        return await self._delete_hunt(hunt_id, 'live')
+
+    async def delete_historical_hunt(self, hunt_id):
+        """
+        Delete a historical scan.
+
+        :param hunt_id: String containing hunt id
+        """
+        return await self._delete_hunt(hunt_id, 'historical')
+
     async def _get_hunt_results(self, hunt_id=None, scan_type='live', limit=MAX_HUNT_RESULTS, offset=0,
                                 all_results=False, with_metadata=False, with_bounties=False):
         """
@@ -1109,6 +1155,22 @@ class PolyswarmAPI(object):
         :return: ID of the new hunt.
         """
         return self.loop.run_until_complete(self.ps_api.new_historical_hunt(rules))
+
+    def delete_live_hunt(self, hunt_id):
+        """
+        Delete a live scan.
+
+        :param hunt_id: String containing hunt id
+        """
+        return self.loop.run_until_complete(self.ps_api.delete_live_hunt(hunt_id))
+
+    def delete_historical_hunt(self, hunt_id):
+        """
+        Delete a historical scan.
+
+        :param hunt_id: String containing hunt id
+        """
+        return self.loop.run_until_complete(self.ps_api.delete_historical_hunt(hunt_id))
 
     def get_live_results(self, hunt_id=None, limit=MAX_HUNT_RESULTS, offset=0,
                                 all_results=False, with_metadata=False, with_bounties=False):

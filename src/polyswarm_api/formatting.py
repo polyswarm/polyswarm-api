@@ -275,6 +275,19 @@ class PSHuntSubmissionFormatter(PSResultFormatter):
             return '(unknown output format)'
 
 
+class PSHuntDeletionFormatter(PSResultFormatter):
+    def __str__(self):
+        if self.output_format == 'text':
+            if self.results['status'] != 'OK':
+                return self._bad('Failed to delete hunt.\n')
+            return self._good('Successfully deleted hunt id: {hunt_id}\n'.
+                              format(hunt_id=self.results['result']['hunt_id']))
+        elif self.output_format == 'json':
+            return json.dumps(self.results, indent=4, sort_keys=True)
+        else:
+            return '(unknown output format)'
+
+
 class PSStreamFormatter(PSResultFormatter):
     def __str__(self):
         if self.output_format == 'text':
