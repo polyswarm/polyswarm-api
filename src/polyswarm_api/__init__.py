@@ -767,7 +767,7 @@ class PolyswarmAsyncAPI(object):
             params['id'] = hunt_id
 
         if with_bounties:
-            params['with_bounties'] = 'true'
+            params['with_bounty_results'] = 'true'
 
         if with_metadata:
             params['with_metadata'] = 'true'
