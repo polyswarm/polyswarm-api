@@ -25,7 +25,7 @@ class PolyswarmAsyncAPI(object):
     """
 
     def __init__(self, key, uri='https://api.polyswarm.network/v1', get_limit=10,
-                 post_limit=1, timeout=600, force=False, community='lima', check_version=True):
+                 post_limit=3, timeout=600, force=False, community='lima', check_version=True):
         """
 
         :param key: PolySwarm API key
@@ -691,7 +691,7 @@ class PolyswarmAsyncAPI(object):
         return await self._new_hunt(rules, 'historical')
 
     async def _get_hunt_results(self, hunt_id=None, scan_type='live', limit=MAX_HUNT_RESULTS, offset=0,
-                                all_results=False):
+                                all_results=False, with_metadata=False, with_bounties=False):
         """
 
         :param hunt_id: Rule ID (None if latest rule results are desired)
@@ -699,6 +699,8 @@ class PolyswarmAsyncAPI(object):
         :param limit: Limit the number of scan results, returns the most recent hits
         :param offset: Offset into the result set to return
         :param all_results: Boolean on whether to fetch all results. Note: this ignores limit/offset and can take awhile.
+        :param with_metadata: Whether to include metadata in the results
+        :param with_bounties: Whether to include bounty results in the results
         :return: Matches to the rules
         """
 
@@ -717,6 +719,12 @@ class PolyswarmAsyncAPI(object):
 
         if hunt_id is not None:
             params['id'] = hunt_id
+
+        if with_bounties:
+            params['with_bounties'] = 'true'
+
+        if with_metadata:
+            params['with_metadata'] = 'true'
 
         async with self.get_semaphore:
             logger.debug('Reading results with api-key %s', self.api_key)
@@ -757,7 +765,7 @@ class PolyswarmAsyncAPI(object):
                     return {'status': 'error', 'result': []}
 
     async def get_live_results(self, hunt_id=None, limit=MAX_HUNT_RESULTS, offset=0,
-                                all_results=False):
+                                all_results=False, with_metadata=False, with_bounties=False):
         """
         Get results from a live scan
 
@@ -765,12 +773,14 @@ class PolyswarmAsyncAPI(object):
         :param limit: Limit the number of scan results, returns the most recent hits
         :param offset: Offset into the result set to return
         :param all_results: Boolean on whether to fetch all results. Note: this ignores limit/offset and can take awhile.
+        :param with_metadata: Whether to include metadata in the results
+        :param with_bounties: Whether to include bounty results in the results
         :return: Matches to the rules
         """
-        return await self._get_hunt_results(hunt_id, 'live', limit, offset, all_results)
+        return await self._get_hunt_results(hunt_id, 'live', limit, offset, all_results, with_metadata, with_bounties)
 
     async def get_historical_results(self, hunt_id=None, limit=MAX_HUNT_RESULTS, offset=0,
-                                all_results=False):
+                                all_results=False, with_metadata=False, with_bounties=False):
         """
         Get results from a historical scan
 
@@ -778,9 +788,12 @@ class PolyswarmAsyncAPI(object):
         :param limit: Limit the number of scan results, returns the most recent hits
         :param offset: Offset into the result set to return
         :param all_results: Boolean on whether to fetch all results. Note: this ignores limit/offset and can take awhile.
+        :param with_metadata: Whether to include metadata in the results
+        :param with_bounties: Whether to include bounty results in the results
         :return: Matches to the rules
         """
-        return await self._get_hunt_results(hunt_id, 'historical', limit, offset, all_results)
+        return await self._get_hunt_results(hunt_id, 'historical', limit, offset, all_results,
+                                            with_metadata, with_bounties)
 
     async def get_stream(self, destination_dir=None, since=1440):
         """
@@ -846,7 +859,7 @@ class PolyswarmAPI(object):
     """A synchronous interface to the public and private PolySwarm APIs."""
 
     def __init__(self, key, uri='https://api.polyswarm.network/v1', get_limit=10,
-                 post_limit=1, timeout=600, force=False, community='lima', check_version=True):
+                 post_limit=3, timeout=600, force=False, community='lima', check_version=True):
         """
 
         :param key: PolySwarm API key
@@ -1098,7 +1111,7 @@ class PolyswarmAPI(object):
         return self.loop.run_until_complete(self.ps_api.new_historical_hunt(rules))
 
     def get_live_results(self, hunt_id=None, limit=MAX_HUNT_RESULTS, offset=0,
-                                all_results=False):
+                                all_results=False, with_metadata=False, with_bounties=False):
         """
         Get results from a live hunt
 
@@ -1106,12 +1119,15 @@ class PolyswarmAPI(object):
         :param limit: Limit the number of scan results, returns the most recent hits
         :param offset: Offset into the result set to return
         :param all_results: Boolean on whether to fetch all results. Note: this ignores limit/offset and can take awhile.
+        :param with_metadata: Whether to include metadata in the results
+        :param with_bounties: Whether to include bounty results in the results
         :return: Matches to the rules
         """
-        return self.loop.run_until_complete(self.ps_api.get_live_results(hunt_id, limit, offset, all_results))
+        return self.loop.run_until_complete(self.ps_api.get_live_results(hunt_id, limit, offset, all_results,
+                                                                         with_metadata, with_bounties))
 
     def get_historical_results(self, hunt_id=None, limit=MAX_HUNT_RESULTS, offset=0,
-                                all_results=False):
+                                all_results=False, with_metadata=False, with_bounties=False):
         """
         Get results from a historical hunt
 
@@ -1119,9 +1135,12 @@ class PolyswarmAPI(object):
         :param limit: Limit the number of scan results, returns the most recent hits
         :param offset: Offset into the result set to return
         :param all_results: Boolean on whether to fetch all results. Note: this ignores limit/offset and can take awhile.
+        :param with_metadata: Whether to include metadata in the results
+        :param with_bounties: Whether to include bounty results in the results
         :return: Matches to the rules
         """
-        return self.loop.run_until_complete(self.ps_api.get_historical_results(hunt_id, limit, offset, all_results))
+        return self.loop.run_until_complete(self.ps_api.get_historical_results(hunt_id, limit, offset, all_results,
+                                                                               with_metadata, with_bounties))
 
     def get_stream(self, destination_dir=None, since=1440):
         """
