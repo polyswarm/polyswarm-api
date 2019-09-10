@@ -389,13 +389,12 @@ class PolyswarmAsyncAPI(object):
         :param hash_string: Hash to search for
         :return: JSON report file
         """
+        hash_type = self._get_hash_type(hash_string)
+
+        if not hash_type:
+            raise Exception('Invalid Hash')
+
         async with self.get_semaphore:
-
-            hash_type = self._get_hash_type(hash_string)
-
-            if not hash_type:
-                raise Exception('Invalid Hash')
-
             async with aiohttp.ClientSession() as session:
                 try:
                     async with session.get(self.search_uri,
