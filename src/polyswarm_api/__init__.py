@@ -590,7 +590,7 @@ class PolyswarmAsyncAPI(object):
             return results
 
         if with_metadata:
-            meta_results = await self.search_hash(h, hash_type=hash_type)
+            meta_results = await self.search_hash(h)
             if 'result' in meta_results and len(meta_results['result']) > 0:
                 async with aiofiles.open(out_path + '.json', mode='w') as f:
                     # this is a hash search, only return one result
@@ -936,13 +936,11 @@ class PolyswarmAPI(object):
         """
         return self.loop.run_until_complete(self.ps_api.scan_directory(directory, recursive))
 
-    def search_hashes(self, hashes, hash_type='sha256'):
+    def search_hashes(self, hashes):
         """
         Scan a collection of hashes using the PS API synchronously.
 
         :param hashes: Hashes to scan.
-        :param hash_type: Hash type [sha256|sha1|md5]
-        :param rescan: Whether to initiate a rescan for fresh results
         :return: JSON report file
         """
         return self.loop.run_until_complete(self.ps_api.search_hashes(hashes))
