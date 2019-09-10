@@ -9,9 +9,9 @@ import json
 
 from aiohttp import ServerDisconnectedError
 
-from . import PolyswarmAPI
+from . import PolyswarmAPI, MAX_HUNT_RESULTS
 from .formatting import PSResultFormatter, PSDownloadResultFormatter, PSSearchResultFormatter, PSHuntResultFormatter, \
-    PSHuntSubmissionFormatter, PSStreamFormatter
+    PSHuntSubmissionFormatter, PSStreamFormatter, PSHuntDeletionFormatter
 
 CONTEXT_SETTINGS = dict(help_option_names=['-h', '--help'])
 
@@ -411,15 +411,34 @@ def live_install(ctx, rule_file):
     ctx.obj['output'].write((str(rf)))
 
 
+@live.command('delete', short_help='Delete the live hunt associate with the given hunt_id')
+@click.argument('hunt_id')
+@click.pass_context
+def live_delete(ctx, hunt_id):
+    api = ctx.obj['api']
+
+    rf = PSHuntDeletionFormatter(api.delete_live_hunt(hunt_id), color=ctx.obj['color'],
+                                 output_format=ctx.obj['output_format'])
+    ctx.obj['output'].write((str(rf)))
+
+
 @click.option('-i', '--hunt-id', type=int, help='ID of the rule file (defaults to latest)')
 @click.option('--download-path', '-d', type=click.Path(file_okay=False),
               help='In addition to fetching the results, download the files that matched.')
 @live.command('results', short_help='get results from live hunt')
+@click.option('-a', '--all', is_flag=True, default=False,
+              help='Request all historical results (could take awhile).')
+@click.option('-l', '--limit', type=int, help='Number of results to request (maximum 20000, default 5000)', default=5000)
+@click.option('-o', '--offset', type=int, help='Offset into results to start request from .', default=0)
+@click.option('-m', '--with-metadata', is_flag=True, default=False,
+              help='Request metadata associated with artifacts as well.')
+@click.option('-b', '--with-bounties', is_flag=True, default=False,
+              help='Request bounty results associated with artifacts as well')
 @click.pass_context
-def live_results(ctx, hunt_id, download_path):
+def live_results(ctx, hunt_id, download_path, all, limit, offset, with_metadata, with_bounties):
     api = ctx.obj['api']
 
-    results = api.get_live_results(hunt_id)
+    results = api.get_live_results(hunt_id, limit, offset, all, with_metadata, with_bounties)
 
     rf = PSHuntResultFormatter(results, color=ctx.obj['color'],
                                output_format=ctx.obj['output_format'])
@@ -446,15 +465,34 @@ def historical_start(ctx, rule_file):
     ctx.obj['output'].write((str(rf)))
 
 
+@historical.command('delete', short_help='Delete the historical hunt associate with the given hunt_id')
+@click.argument('hunt_id')
+@click.pass_context
+def historical_delete(ctx, hunt_id):
+    api = ctx.obj['api']
+
+    rf = PSHuntDeletionFormatter(api.delete_historical_hunt(hunt_id), color=ctx.obj['color'],
+                                 output_format=ctx.obj['output_format'])
+    ctx.obj['output'].write((str(rf)))
+
+
 @click.option('-i', '--hunt-id', type=int, help='ID of the rule file (defaults to latest)')
 @click.option('--download-path', '-d', type=click.Path(file_okay=False),
               help='In addition to fetching the results, download the files that matched.')
+@click.option('-a', '--all', is_flag=True, default=False,
+              help='Request all historical results (could take awhile).')
+@click.option('-l', '--limit', type=int, help='Number of results to request (maximum 20000, default 5000)', default=5000)
+@click.option('-o', '--offset', type=int, help='Offset into results to start request from .', default=0)
+@click.option('-m', '--with-metadata', is_flag=True, default=False,
+              help='Request metadata associated with artifacts as well.')
+@click.option('-b', '--with-bounties', is_flag=True, default=False,
+              help='Request bounty results associated with artifacts as well')
 @historical.command('results', short_help='get results from historical hunt')
 @click.pass_context
-def historical_results(ctx, hunt_id, download_path):
+def historical_results(ctx, hunt_id, download_path, all, limit, offset, with_metadata, with_bounties):
     api = ctx.obj['api']
 
-    results = api.get_historical_results(hunt_id)
+    results = api.get_historical_results(hunt_id, limit, offset, all, with_metadata, with_bounties)
 
     rf = PSHuntResultFormatter(results, color=ctx.obj['color'],
                                output_format=ctx.obj['output_format'])
