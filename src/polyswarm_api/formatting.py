@@ -246,14 +246,15 @@ class PSHuntResultFormatter(PSResultFormatter):
                 output.append(self._info('First seen: {first_seen}'.format(first_seen=artifact.first_seen)))
 
                 # gather instance data
-                countries, filenames = set(), set()
-                for artifact_instance in artifact.artifact_instances:
-                    if artifact_instance.country:
-                        countries.add(artifact_instance.country)
-                    if artifact_instance.name:
-                        filenames.add(artifact_instance.name)
-                output.append(self._info('Observed countries: {countries}'.format(countries=','.join(countries))))
-                output.append(self._info('Observed filenames: {filenames}'.format(filenames=','.join(filenames))))
+                if hasattr(artifact, 'artifact_instances'):
+                    countries, filenames = set(), set()
+                    for artifact_instance in artifact.artifact_instances:
+                        if artifact_instance.country:
+                            countries.add(artifact_instance.country)
+                        if artifact_instance.name:
+                            filenames.add(artifact_instance.name)
+                    output.append(self._info('Observed countries: {countries}'.format(countries=','.join(countries))))
+                    output.append(self._info('Observed filenames: {filenames}'.format(filenames=','.join(filenames))))
                 output.append(self._close_group())
             return '\n'.join(output)
         elif self.output_format == 'json':
