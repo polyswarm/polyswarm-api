@@ -246,11 +246,10 @@ def search():
 
 
 @click.option('-r', '--hash-file', help='File of hashes, one per line.', type=click.File('r'))
-@click.option('--hash-type', help='Hash type to search [sha256|sha1|md5]')
 @click.argument('hashes', nargs=-1)
 @search.command('hash', short_help='search for hashes separated by space')
 @click.pass_context
-def hashes(ctx, hashes, hash_file, hash_type):
+def hashes(ctx, hashes, hash_file):
     """
     Search PolySwarm for files matching sha256 hashes
     """
