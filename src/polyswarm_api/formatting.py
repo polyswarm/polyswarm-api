@@ -227,7 +227,8 @@ class PSHuntResultFormatter(PSResultFormatter):
                 output.append(self._bad('(Did not find any results yet for this hunt.)\n'))
                 return '\n'.join(output)
 
-            output.append(self._good('Found {count} samples in this hunt.'.format(count=len(results))))
+            output.append(self._good('Found {total} samples in this hunt, displaying {count}.'.format(
+                count=len(results), total=self.hunt_results.result.total)))
 
             for result in results:
                 output.append(self._good('Match on rule {name}'.format(name=result.rule_name) +
@@ -245,14 +246,15 @@ class PSHuntResultFormatter(PSResultFormatter):
                 output.append(self._info('First seen: {first_seen}'.format(first_seen=artifact.first_seen)))
 
                 # gather instance data
-                countries, filenames = set(), set()
-                for artifact_instance in artifact.artifact_instances:
-                    if artifact_instance.country:
-                        countries.add(artifact_instance.country)
-                    if artifact_instance.name:
-                        filenames.add(artifact_instance.name)
-                output.append(self._info('Observed countries: {countries}'.format(countries=','.join(countries))))
-                output.append(self._info('Observed filenames: {filenames}'.format(filenames=','.join(filenames))))
+                if hasattr(artifact, 'artifact_instances'):
+                    countries, filenames = set(), set()
+                    for artifact_instance in artifact.artifact_instances:
+                        if artifact_instance.country:
+                            countries.add(artifact_instance.country)
+                        if artifact_instance.name:
+                            filenames.add(artifact_instance.name)
+                    output.append(self._info('Observed countries: {countries}'.format(countries=','.join(countries))))
+                    output.append(self._info('Observed filenames: {filenames}'.format(filenames=','.join(filenames))))
                 output.append(self._close_group())
             return '\n'.join(output)
         elif self.output_format == 'json':
