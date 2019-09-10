@@ -43,6 +43,26 @@ def _is_valid_sha256(value):
         return False
     return is_hex(value)
 
+def _get_hash_type(value):
+    if len(value) == 40:
+        return 'sha1'
+    elif len(value) == 64:
+        return 'sha256'
+    elif len(value) == 32:
+        return 'md5'
+    else:
+        return None
+
+def is_valid_hash(hash_candidate, candidates_hash_type):
+    logging.debug(f'{hash_candidate} - {candidates_hash_type}')
+    if candidates_hash_type == 'sha256':
+        return _is_valid_sha256(hash_candidate)
+    elif candidates_hash_type == 'sha1':
+        return _is_valid_sha1(hash_candidate)
+    elif candidates_hash_type == 'md5':
+        return _is_valid_md5(hash_candidate)
+    else:
+        return False
 
 def _is_valid_uuid(value):
     try:
@@ -227,7 +247,7 @@ def search():
 
 
 @click.option('-r', '--hash-file', help='File of hashes, one per line.', type=click.File('r'))
-@click.option('--hash-type', help='Hash type to search [sha256|sha1|md5], default=sha256', default='sha256')
+@click.option('--hash-type', help='Hash type to search [sha256|sha1|md5]')
 @click.argument('hashes', nargs=-1)
 @search.command('hash', short_help='search for hashes separated by space')
 @click.pass_context
@@ -239,16 +259,13 @@ def hashes(ctx, hashes, hash_file, hash_type):
     def _get_hashes_from_file(file):
         return [h.strip() for h in file.readlines()]
 
-    def _remove_invalid_hashes(hash_candidates, candidates_hash_type):
-
-        def is_valid_hash(hash_candidate):
-            return (candidates_hash_type == 'sha256' and _is_valid_sha256(hash_candidate)) or \
-                   (candidates_hash_type == 'sha1' and _is_valid_sha1(hash_candidate)) or \
-                   (candidates_hash_type == 'md5' and _is_valid_md5(hash_candidate))
-
+    # filter before API call so it does not raise exception
+    # and break execution
+    def _remove_invalid_hashes(hash_candidates):
         valid_hashes = []
         for candidate in hash_candidates:
-            if is_valid_hash(candidate):
+            hash_type = _get_hash_type(candidate)
+            if hash_type:
                 valid_hashes.append(candidate)
             else:
                 logger.warning('Invalid hash %s, ignoring.', candidate)
@@ -261,8 +278,9 @@ def hashes(ctx, hashes, hash_file, hash_type):
     if hash_file:
         hashes += _get_hashes_from_file(hash_file)
 
-    hashes = _remove_invalid_hashes(hashes, hash_type)
-    results = api.search_hashes(hashes, hash_type)
+    hashes = _remove_invalid_hashes(hashes)
+
+    results = api.search_hashes(hashes)
 
     rf = PSSearchResultFormatter(results, color=ctx.obj['color'],
                                  output_format=ctx.obj['output_format'])
