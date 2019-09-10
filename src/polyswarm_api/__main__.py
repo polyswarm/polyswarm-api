@@ -12,77 +12,12 @@ from aiohttp import ServerDisconnectedError
 from . import PolyswarmAPI, MAX_HUNT_RESULTS
 from .formatting import PSResultFormatter, PSDownloadResultFormatter, PSSearchResultFormatter, PSHuntResultFormatter, \
     PSHuntSubmissionFormatter, PSStreamFormatter, PSHuntDeletionFormatter
+from .utils import validate_key, validate_uuid, is_valid_uuid, \
+                   validate_hash, get_hash_type
 
 CONTEXT_SETTINGS = dict(help_option_names=['-h', '--help'])
 
 logger = logging.getLogger(__name__)
-
-
-def is_hex(value):
-    try:
-        a = int(value, 16)
-        return True
-    except ValueError:
-        return False
-
-def _is_valid_sha1(value):
-    if len(value) != 40:
-        return False
-    return is_hex(value)
-
-def _is_valid_md5(value):
-    if len(value) != 32:
-        return False
-    return is_hex(value)
-
-def _is_valid_sha256(value):
-    if len(value) != 64:
-        return False
-    return is_hex(value)
-
-def _get_hash_type(value):
-    if _is_valid_sha1(value):
-        return 'sha1'
-    elif _is_valid_sha256(value):
-        return 'sha256'
-    elif _is_valid_md5(value):
-        return 'md5'
-    else:
-        return None
-
-def _is_valid_hash(hash_candidate, candidates_hash_type):
-    if candidates_hash_type == 'sha256':
-        return _is_valid_sha256(hash_candidate)
-    elif candidates_hash_type == 'sha1':
-        return _is_valid_sha1(hash_candidate)
-    elif candidates_hash_type == 'md5':
-        return _is_valid_md5(hash_candidate)
-    else:
-        return False
-
-def _is_valid_uuid(value):
-    try:
-        val = UUID(value, version=4)
-        return True
-    except:
-        return False
-
-def validate_uuid(ctx, param, value):
-    for uuid in value:
-        if not _is_valid_uuid(uuid):
-            raise click.BadParameter('UUID {} not valid, please check and try again.'.format(uuid))
-    return value
-
-def validate_hash(ctx, param, value):
-    for h in value:
-        if not (_is_valid_sha256(h) or _is_valid_md5(h) or _is_valid_sha1(h)):
-            raise click.BadParameter('Hash {} not valid, must be sha256|md5|sha1 in hexadecimal format'.format(h))
-    return value
-
-def validate_key(ctx, param, value):
-    if not is_hex(value) or len(value) != 32:
-        raise click.BadParameter('Invalid API key. Make sure you specified your key via -a or environment variable and try again.')
-    return value
 
 
 @click.group(context_settings=CONTEXT_SETTINGS)
@@ -256,7 +191,7 @@ def hashes(ctx, hashes, hash_file):
     def _remove_invalid_hashes(hash_candidates):
         valid_hashes = []
         for candidate in hash_candidates:
-            hash_type = _get_hash_type(candidate)
+            hash_type = get_hash_type(candidate)
             if hash_type:
                 valid_hashes.append(candidate)
             else:
@@ -331,7 +266,7 @@ def lookup(ctx, uuid, uuid_file):
     if uuid_file:
         for u in uuid_file.readlines():
             u = u.strip()
-            if _is_valid_uuid(u):
+            if is_valid_uuid(u):
                 uuids.append(u)
             else:
                 logger.warning('Invalid uuid %s in file, ignoring.', u)
@@ -359,9 +294,9 @@ def download(ctx, metadata, hash_file, hash_type, hash, destination):
     if hash_file:
         for h in hash_file.readlines():
             h = h.strip()
-            if (hash_type == 'sha256' and _is_valid_sha256(h)) or \
-                    (hash_type == 'sha1' and _is_valid_sha1(h)) or \
-                    (hash_type == 'md5' and _is_valid_md5(h)):
+            if (hash_type == 'sha256' and is_valid_sha256(h)) or \
+                    (hash_type == 'sha1' and is_valid_sha1(h)) or \
+                    (hash_type == 'md5' and is_valid_md5(h)):
                 hashes.append(h)
             else:
                 logger.warning('Invalid hash %s in file, ignoring.', h)
@@ -386,9 +321,9 @@ def rescan(ctx, hash_file, hash_type, hash):
     if hash_file:
         for h in hash_file.readlines():
             h = h.strip()
-            if (hash_type == 'sha256' and _is_valid_sha256(h)) or \
-                    (hash_type == 'sha1' and _is_valid_sha1(h)) or \
-                    (hash_type == 'md5' and _is_valid_md5(h)):
+            if (hash_type == 'sha256' and is_valid_sha256(h)) or \
+                    (hash_type == 'sha1' and is_valid_sha1(h)) or \
+                    (hash_type == 'md5' and is_valid_md5(h)):
                 hashes.append(h)
             else:
                 logger.warning('Invalid hash %s in file, ignoring.', h)

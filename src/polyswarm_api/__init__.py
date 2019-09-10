@@ -13,6 +13,7 @@ from urllib import parse
 from polyswarmartifact import ArtifactType
 
 from .engine_resolver import EngineResolver
+from .utils import get_hash_type
 from ._version import __version__, __release_url__
 
 logger = logging.getLogger(__name__)
@@ -81,16 +82,6 @@ class PolyswarmAsyncAPI(object):
                                version)
                 logger.warning('To update, run: pip install -U polyswarm-api')
                 logger.warning('Please upgrade or certain features may not work properly.')
-
-    def _get_hash_type(self, value):
-        if len(value) == 40:
-            return 'sha1'
-        elif len(value) == 64:
-            return 'sha256'
-        elif len(value) == 32:
-            return 'md5'
-        else:
-            return None
 
     def set_force(self, force):
         """
@@ -389,7 +380,7 @@ class PolyswarmAsyncAPI(object):
         :param hash_string: Hash to search for
         :return: JSON report file
         """
-        hash_type = self._get_hash_type(hash_string)
+        hash_type = get_hash_type(hash_string)
 
         if not hash_type:
             raise Exception('Invalid Hash')
