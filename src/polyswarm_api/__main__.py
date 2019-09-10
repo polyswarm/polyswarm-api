@@ -25,18 +25,15 @@ def is_hex(value):
     except ValueError:
         return False
 
-
 def _is_valid_sha1(value):
     if len(value) != 40:
         return False
     return is_hex(value)
 
-
 def _is_valid_md5(value):
     if len(value) != 32:
         return False
     return is_hex(value)
-
 
 def _is_valid_sha256(value):
     if len(value) != 64:
@@ -44,16 +41,16 @@ def _is_valid_sha256(value):
     return is_hex(value)
 
 def _get_hash_type(value):
-    if len(value) == 40:
+    if _is_valid_sha1(value):
         return 'sha1'
-    elif len(value) == 64:
+    elif _is_valid_sha256(value):
         return 'sha256'
-    elif len(value) == 32:
+    elif _is_valid_md5(value):
         return 'md5'
     else:
         return None
 
-def is_valid_hash(hash_candidate, candidates_hash_type):
+def _is_valid_hash(hash_candidate, candidates_hash_type):
     if candidates_hash_type == 'sha256':
         return _is_valid_sha256(hash_candidate)
     elif candidates_hash_type == 'sha1':
@@ -70,20 +67,17 @@ def _is_valid_uuid(value):
     except:
         return False
 
-
 def validate_uuid(ctx, param, value):
     for uuid in value:
         if not _is_valid_uuid(uuid):
             raise click.BadParameter('UUID {} not valid, please check and try again.'.format(uuid))
     return value
 
-
 def validate_hash(ctx, param, value):
     for h in value:
         if not (_is_valid_sha256(h) or _is_valid_md5(h) or _is_valid_sha1(h)):
             raise click.BadParameter('Hash {} not valid, must be sha256|md5|sha1 in hexadecimal format'.format(h))
     return value
-
 
 def validate_key(ctx, param, value):
     if not is_hex(value) or len(value) != 32:
