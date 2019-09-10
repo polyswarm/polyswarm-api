@@ -53,8 +53,8 @@ class SearchTest(TestCase):
     def _get_test_json_resource_content(self, resource):
         return json.loads(self._get_test_text_resource_content(resource))
 
-    def _mock_search_hashes_with_results(self, hashes, hash_type):
-        del hashes, hash_type
+    def _mock_search_hashes_with_results(self, hashes):
+        del hashes
         return self._get_test_json_resource_content('expected_search_success_results_hash.json')
 
     def _mock_search_query_with_results(self, query, raw=True):
