@@ -751,6 +751,7 @@ class PolyswarmAsyncAPI(object):
         """
 
         if limit > MAX_HUNT_RESULTS:
+            logger.warning("Specificied a limit greater than %s, setting to %s", MAX_HUNT_RESULTS, MAX_HUNT_RESULTS)
             limit = MAX_HUNT_RESULTS
 
         # ignore offset/limit results in case we want all results
@@ -772,11 +773,11 @@ class PolyswarmAsyncAPI(object):
         if with_metadata:
             params['with_metadata'] = 'true'
 
-        async with self.get_semaphore:
-            logger.debug('Reading results with api-key %s', self.api_key)
-            async with aiohttp.ClientSession() as session:
-                try:
-                    async def _make_request(hunt_uri, params):
+        logger.debug('Reading results with api-key %s', self.api_key)
+        async with aiohttp.ClientSession() as session:
+            try:
+                async def _make_request(hunt_uri, params):
+                    async with self.get_semaphore:
                         async with session.get('{hunt_uri}/{scan_type}/results'.format(hunt_uri=hunt_uri,
                                                                                    scan_type=scan_type),
                                            params=params,
@@ -789,26 +790,26 @@ class PolyswarmAsyncAPI(object):
                                 response = await raw_response.read() if raw_response else 'None'
                                 logger.error('Received non-json response from PolySwarm API: %s', response)
                                 response = {'status': 'error', 'result': []}
-                            if raw_response.status // 100 != 2:
-                                errors = response.get('errors')
-                                logger.error('Error reading from PolySwarm API: %s', errors)
-                                response = {'status': 'error', 'result': []}
-                            return response
+                        if raw_response.status // 100 != 2:
+                            errors = response.get('errors')
+                            logger.error('Error reading from PolySwarm API: %s', errors)
+                            response = {'status': 'error', 'result': []}
+                        return response
 
-                    agg_response = await _make_request(self.hunt_uri, params)
+                agg_response = await _make_request(self.hunt_uri, params)
 
-                    if all_results and not agg_response['status'] == 'error':
-                        total_results = int(agg_response['result']['total'])
-                        for offset in range(limit, total_results, limit):
-                            params['offset'] = offset
-                            response = await _make_request(self.hunt_uri, params)
-                            agg_response['result']['results'].extend(response['result']['results'])
+                if all_results and not agg_response['status'] == 'error':
+                    total_results = int(agg_response['result']['total'])
+                    for offset in range(limit, total_results, limit):
+                        params['offset'] = offset
+                        response = await _make_request(self.hunt_uri, params)
+                        agg_response['result']['results'].extend(response['result']['results'])
 
-                    return agg_response
-                except Exception as e:
-                    print(e)
-                    logger.error('Server request failed')
-                    return {'status': 'error', 'result': []}
+                return agg_response
+            except Exception as e:
+                print(e)
+                logger.error('Server request failed')
+                return {'status': 'error', 'result': []}
 
     async def get_live_results(self, hunt_id=None, limit=MAX_HUNT_RESULTS, offset=0,
                                 all_results=False, with_metadata=False, with_bounties=False):
