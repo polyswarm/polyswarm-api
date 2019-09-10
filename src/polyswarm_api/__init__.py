@@ -82,6 +82,16 @@ class PolyswarmAsyncAPI(object):
                 logger.warning('To update, run: pip install -U polyswarm-api')
                 logger.warning('Please upgrade or certain features may not work properly.')
 
+    def _get_hash_type(self, value):
+        if len(value) == 40:
+            return 'sha1'
+        elif len(value) == 64:
+            return 'sha256'
+        elif len(value) == 32:
+            return 'md5'
+        else:
+            return None
+
     def set_force(self, force):
         """
         Enable forced re-submissions of bounties.
@@ -372,19 +382,24 @@ class PolyswarmAsyncAPI(object):
         with open(to_scan, 'rb') as fobj:
             return await self.scan_fileobj(fobj, os.path.basename(to_scan))
 
-    async def search_hash(self, to_scan, hash_type='sha256'):
+    async def search_hash(self, hash_string):
         """
         Search for a single hash using the PS API asynchronously.
 
-        :param to_scan: Hash to search for
-        :param hash_type: Hash type [sha256|sha1|md5]
+        :param hash_string: Hash to search for
         :return: JSON report file
         """
         async with self.get_semaphore:
+
+            hash_type = self._get_hash_type(hash_string)
+
+            if not hash_type:
+                raise Exception('Invalid Hash')
+
             async with aiohttp.ClientSession() as session:
                 try:
                     async with session.get(self.search_uri,
-                                           params={'type': hash_type, 'hash': to_scan, 'with_instances': 'true'},
+                                           params={'type': hash_type, 'hash': hash_string, 'with_instances': 'true'},
                                            headers={'Authorization': self.api_key}) as raw_response:
                         try:
                             response = await raw_response.json()
@@ -393,8 +408,8 @@ class PolyswarmAsyncAPI(object):
                             raise Exception('Received non-json response from PolySwarm API: {}'.format(response))
                         if raw_response.status // 100 != 2:
                             if raw_response.status == 404:
-                                return {'hash': to_scan,
-                                        'search': '{hash_type}={hash}'.format(hash_type=hash_type, hash=to_scan),
+                                return {'hash': hash_string,
+                                        'search': '{hash_type}={hash}'.format(hash_type=hash_type, hash=hash_string),
                                         'result': [],
                                         'status': 'OK'}
 
@@ -402,11 +417,11 @@ class PolyswarmAsyncAPI(object):
                             raise Exception('Error reading from PolySwarm API: {}'.format(errors))
                 except Exception:
                     logger.error('Server request failed')
-                    return {'reason': 'unknown_error', 'result': [], 'hash': to_scan,
-                            'search': '{hash_type}={hash}'.format(hash_type=hash_type, hash=to_scan),
+                    return {'reason': 'unknown_error', 'result': [], 'hash': hash_string,
+                            'search': '{hash_type}={hash}'.format(hash_type=hash_type, hash=hash_string),
                             'status': 'error'}
 
-        response['search'] = '{hash_type}={hash}'.format(hash_type=hash_type, hash=to_scan)
+        response['search'] = '{hash_type}={hash}'.format(hash_type=hash_type, hash=hash_string)
         return response
 
     async def search_query(self, query, raw=True):
@@ -543,16 +558,14 @@ class PolyswarmAsyncAPI(object):
 
         return await self.scan_files(file_list)
 
-    async def search_hashes(self, hashes, hash_type='sha256'):
+    async def search_hashes(self, hashes):
         """
         Scan a collection of hashes using the PS API asynchronously.
 
         :param hashes: Hashes to scan.
-        :param hash_type: Hash type [sha256|sha1|md5]
-        :param rescan: Whether to initiate a rescan for fresh results
         :return: JSON report file
         """
-        results = await asyncio.gather(*[self.search_hash(h, hash_type) for h in hashes])
+        results = await asyncio.gather(*[self.search_hash(h) for h in hashes])
 
         return results
 
@@ -1032,18 +1045,16 @@ class PolyswarmAPI(object):
         :param rescan: Whether to initiate a rescan for fresh results
         :return: JSON report file
         """
-        return self.loop.run_until_complete(self.ps_api.search_hashes(hashes, hash_type))
+        return self.loop.run_until_complete(self.ps_api.search_hashes(hashes))
 
-    def search_hash(self, to_scan, hash_type='sha256'):
+    def search_hash(self, to_scan):
         """
         Scan a single hash using the PS API asynchronously.
 
         :param to_scan:
-        :param hash_type: Hash type [sha256|sha1|md5]
-        :param rescan: Whether to initiate a rescan for fresh results
         :return: JSON report file
         """
-        return self.loop.run_until_complete(self.ps_api.search_hash(to_scan, hash_type))
+        return self.loop.run_until_complete(self.ps_api.search_hash(to_scan))
 
     def search_query(self, query, raw=True):
         """
