@@ -54,7 +54,6 @@ def _get_hash_type(value):
         return None
 
 def is_valid_hash(hash_candidate, candidates_hash_type):
-    logging.debug(f'{hash_candidate} - {candidates_hash_type}')
     if candidates_hash_type == 'sha256':
         return _is_valid_sha256(hash_candidate)
     elif candidates_hash_type == 'sha1':
