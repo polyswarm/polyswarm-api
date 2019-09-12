@@ -8,6 +8,7 @@ import time
 import aiofiles
 import json
 import urllib
+import itertools
 from urllib import parse
 
 from polyswarmartifact import ArtifactType
@@ -18,6 +19,17 @@ from ._version import __version__, __release_url__
 logger = logging.getLogger(__name__)
 
 MAX_HUNT_RESULTS = 20000
+MAX_ARTIFACT_BATCH_SIZE = 256
+
+
+def grouper(n, iterable):
+    it = iter(iterable)
+    while True:
+        chunk = tuple(itertools.islice(it, n))
+        if not chunk:
+            return
+        yield chunk
+
 
 class PolyswarmAsyncAPI(object):
     """
@@ -373,9 +385,12 @@ class PolyswarmAsyncAPI(object):
         # early definition to avoid exceptions in try..catch in the finally clause
         file_objs = []
         try:
-            file_objs = [open(file_name, 'rb') for file_name in to_scan]
-            file_names = [os.path.basename(file_name) for file_name in to_scan]
-            return await self.scan_fileobjs(file_objs, file_names)
+            file_objs = grouper(MAX_ARTIFACT_BATCH_SIZE, [open(file_name, 'rb') for file_name in to_scan])
+            file_names = grouper(MAX_ARTIFACT_BATCH_SIZE, [os.path.basename(file_name) for file_name in to_scan])
+            futures = []
+            for artifacts, names in zip(file_objs, file_names):
+                futures.append(self.scan_fileobjs(artifacts, names))
+            return await asyncio.gather(*futures)
         finally:
             # attempt to close files if they were opened, ignore errors if unable to close
             # they will later be garbage collected and properly closed if necessary
