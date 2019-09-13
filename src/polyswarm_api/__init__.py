@@ -13,6 +13,7 @@ from urllib import parse
 
 from polyswarmartifact import ArtifactType
 
+from . import exceptions
 from .engine_resolver import EngineResolver
 from ._version import __version__, __release_url__
 
@@ -225,24 +226,31 @@ class PolyswarmAsyncAPI(object):
         async with self.post_semaphore:
             logger.debug('Posting artifacts %s with api-key %s', printable_artifact_names, self.api_key)
             async with aiohttp.ClientSession() as session:
+                # prepare the failure message in case it is needed
+                failure_message = 'Failed to get UUID for scan of files %s'.format(printable_artifact_names)
                 try:
                     async with session.post(self.community_uri, data=data, params=params,
                                             headers={'Authorization': self.api_key}) as raw_response:
                         try:
                             response = await raw_response.json()
-                        except Exception:
+                        except Exception as e:
                             response = await raw_response.read() if raw_response else 'None'
                             logger.error('Received non-json response from PolySwarm API: %s', response)
-                            response = {'result': 'error'}
+                            raise exceptions.BadFormatException(failure_message) from e
+                        # check for non-200-ish responses
                         if raw_response.status // 100 != 2:
                             errors = response.get('errors')
                             logger.error('Error posting to PolySwarm API: %s', errors)
-                            response = {'status': 'error'}
+                            raise exceptions.ServerErrorException(failure_message)
+                        # check if the server responded with anything but "OK"
+                        if response['status'] != 'OK':
+                            logger.error('Failed to get UUID for scan')
+                            raise exceptions.ServerErrorException(failure_message)
                         logger.info('Successfully submitted %s, UUID %s', printable_artifact_names, response['result'])
                         return response
                 except Exception:
                     logger.error('Server request failed')
-                    return {'status': 'error'}
+                    raise exceptions.RequestFailedException(failure_message)
 
     async def lookup_uuid(self, uuid):
         """
@@ -323,15 +331,7 @@ class PolyswarmAsyncAPI(object):
     async def wait_for_results(self, results):
         futures = []
         for result in results:
-            if result['status'] == 'OK':
-                uuid = result['result']
-            else:
-                logger.error('Failed to get UUID for scan')
-                return {'filename': printable_artifact_names, 'files': []}
-            #     logger.error('Failed to get UUID for scan of files %s', ', '.join(printable_artifact_names))
-            #     return {'filename': ', '.join(printable_artifact_names), 'files': []}
-
-            futures.append(self._wait_for_uuid(uuid))
+            futures.append(self._wait_for_uuid(result['result']))
         return await asyncio.gather(*futures)
 
     async def scan_urls(self, to_scan):
@@ -341,10 +341,13 @@ class PolyswarmAsyncAPI(object):
         :param to_scan: List of URLs to scan
         :return: JSON report
         """
-        file_objs = [io.StringIO(url) for url in to_scan]
-        file_names = ['url'] * len(to_scan)
-        result = self.scan_fileobjs(file_objs, file_names, artifact_type=ArtifactType.URL)
-        return await self.wait_for_results(result)
+        try:
+            file_objs = [io.StringIO(url) for url in to_scan]
+            file_names = ['url'] * len(to_scan)
+            result = await self.scan_fileobjs(file_objs, file_names, artifact_type=ArtifactType.URL)
+            return await self.wait_for_results(result)
+        except exceptions.PolyswarmAPIException as e:
+            return {'filename': str(e), 'files': []}
 
     async def scan_files(self, to_scan):
         """
@@ -360,6 +363,8 @@ class PolyswarmAsyncAPI(object):
             file_names = [os.path.basename(file_name) for file_name in to_scan]
             result = await self.scan_fileobjs(file_objs, file_names, artifact_type=ArtifactType.FILE)
             return await self.wait_for_results(result)
+        except exceptions.PolyswarmAPIException as e:
+            return {'filename': str(e), 'files': []}
         finally:
             # attempt to close files if they were opened, ignore errors if unable to close
             # they will later be garbage collected and properly closed if necessary
