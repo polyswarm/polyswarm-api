@@ -176,7 +176,7 @@ def search():
 
 
 @click.option('-r', '--hash-file', help='File of hashes, one per line.', type=click.File('r'))
-@click.option('--hash-type', help='Hash type to search [sha256|sha1|md5]', default=None)
+@click.option('--hash-type', help='Hash type to search [default:sha256|sha1|md5]', default=None)
 @click.argument('hashes', nargs=-1)
 @search.command('hash', short_help='search for hashes separated by space')
 @click.pass_context
@@ -315,25 +315,42 @@ def download(ctx, metadata, hash_file, hash_type, hash, destination):
 
 
 @click.option('-r', '--hash-file', help='File of hashes, one per line.', type=click.File('r'))
-@click.option('--hash-type', help='Hash type to search [sha256|sha1|md5], default=sha256', default='sha256')
+@click.option('--hash-type', help='Hash type to search [default:sha256|sha1|md5]', default=None)
 @click.argument('hash', 'hash', nargs=-1, callback=validate_hash)
 @polyswarm.command('rescan', short_help='rescan files(s) by hash')
 @click.pass_context
 def rescan(ctx, hash_file, hash_type, hash):
+    """
+    Search PolySwarm for files matching hashes
+    """
+
+    def _get_hashes_from_file(file):
+        return [h.strip() for h in file.readlines()]
+
+    # filter before API call so it does not raise exception
+    # and break execution
+    def _remove_invalid_hashes(hash_candidates):
+        valid_hashes = []
+        for candidate in hash_candidates:
+            # check if are correct default hashes [sha1|sha256|md5]
+            hash_type = get_hash_type(candidate)
+            if hash_type:
+                valid_hashes.append(candidate)
+            else:
+                logger.warning('Invalid hash %s, ignoring.', candidate)
+        return valid_hashes
+
     api = ctx.obj['api']
 
     hashes = list(hash)
 
-    # TODO dedupe
     if hash_file:
-        for h in hash_file.readlines():
-            h = h.strip()
-            if (hash_type == 'sha256' and is_valid_sha256(h)) or \
-                    (hash_type == 'sha1' and is_valid_sha1(h)) or \
-                    (hash_type == 'md5' and is_valid_md5(h)):
-                hashes.append(h)
-            else:
-                logger.warning('Invalid hash %s in file, ignoring.', h)
+        hashes += _get_hashes_from_file(hash_file)
+
+    # validate default hashes [sha1|sha256|md5]
+    if not hash_type or hash_type == 'sha1' or \
+       hash_type == 'sha256' or hash_type == 'md5':
+        hashes = _remove_invalid_hashes(hashes)
 
     rf = PSResultFormatter(api.rescan_files(hashes, hash_type), color=ctx.obj['color'],
                            output_format=ctx.obj['output_format'])
