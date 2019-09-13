@@ -13,6 +13,7 @@ from urllib import parse
 from polyswarmartifact import ArtifactType
 
 from .engine_resolver import EngineResolver
+from .utils import get_hash_type
 from ._version import __version__, __release_url__
 
 logger = logging.getLogger(__name__)
@@ -372,14 +373,23 @@ class PolyswarmAsyncAPI(object):
         with open(to_scan, 'rb') as fobj:
             return await self.scan_fileobj(fobj, os.path.basename(to_scan))
 
-    async def search_hash(self, to_scan, hash_type='sha256'):
+    async def search_hash(self, to_scan, hash_type=None):
         """
         Search for a single hash using the PS API asynchronously.
 
         :param to_scan: Hash to search for
-        :param hash_type: Hash type [sha256|sha1|md5]
+        :param hash_type: Hash type [default:sha256|sha1|md5]
         :return: JSON report file
         """
+        if not hash_type or hash_type == 'sha1' or \
+           hash_type == 'sha256' or hash_type == 'md5':
+                # get/validate hash type if None and
+                # validate defaults if not None
+                hash_type = get_hash_type(to_scan)
+
+        if not hash_type:
+            raise Exception('Invalid Hash')
+
         async with self.get_semaphore:
             async with aiohttp.ClientSession() as session:
                 try:
@@ -1023,23 +1033,23 @@ class PolyswarmAPI(object):
         """
         return self.loop.run_until_complete(self.ps_api.scan_directory(directory, recursive))
 
-    def search_hashes(self, hashes, hash_type='sha256'):
+    def search_hashes(self, hashes, hash_type=None):
         """
         Scan a collection of hashes using the PS API synchronously.
 
         :param hashes: Hashes to scan.
-        :param hash_type: Hash type [sha256|sha1|md5]
+        :param hash_type: Hash type [default:sha256|sha1|md5]
         :param rescan: Whether to initiate a rescan for fresh results
         :return: JSON report file
         """
         return self.loop.run_until_complete(self.ps_api.search_hashes(hashes, hash_type))
 
-    def search_hash(self, to_scan, hash_type='sha256'):
+    def search_hash(self, to_scan, hash_type=None):
         """
         Scan a single hash using the PS API asynchronously.
 
         :param to_scan:
-        :param hash_type: Hash type [sha256|sha1|md5]
+        :param hash_type: Hash type [default:sha256|sha1|md5]
         :param rescan: Whether to initiate a rescan for fresh results
         :return: JSON report file
         """

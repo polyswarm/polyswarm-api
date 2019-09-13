@@ -176,28 +176,26 @@ def search():
 
 
 @click.option('-r', '--hash-file', help='File of hashes, one per line.', type=click.File('r'))
-@click.option('--hash-type', help='Hash type to search [sha256|sha1|md5], default=sha256', default='sha256')
+@click.option('--hash-type', help='Hash type to search [sha256|sha1|md5]', default=None)
 @click.argument('hashes', nargs=-1)
 @search.command('hash', short_help='search for hashes separated by space')
 @click.pass_context
 def hashes(ctx, hashes, hash_file, hash_type):
     """
-    Search PolySwarm for files matching sha256 hashes
+    Search PolySwarm for files matching hashes
     """
 
     def _get_hashes_from_file(file):
         return [h.strip() for h in file.readlines()]
 
-    def _remove_invalid_hashes(hash_candidates, candidates_hash_type):
-
-        def is_valid_hash(hash_candidate):
-            return (candidates_hash_type == 'sha256' and is_valid_sha256(hash_candidate)) or \
-                   (candidates_hash_type == 'sha1' and is_valid_sha1(hash_candidate)) or \
-                   (candidates_hash_type == 'md5' and is_valid_md5(hash_candidate))
-
+    # filter before API call so it does not raise exception
+    # and break execution
+    def _remove_invalid_hashes(hash_candidates):
         valid_hashes = []
         for candidate in hash_candidates:
-            if is_valid_hash(candidate):
+            # check if are correct default hashes [sha1|sha256|md5]
+            hash_type = get_hash_type(candidate)
+            if hash_type:
                 valid_hashes.append(candidate)
             else:
                 logger.warning('Invalid hash %s, ignoring.', candidate)
@@ -210,11 +208,16 @@ def hashes(ctx, hashes, hash_file, hash_type):
     if hash_file:
         hashes += _get_hashes_from_file(hash_file)
 
-    hashes = _remove_invalid_hashes(hashes, hash_type)
+    # validate default hashes [sha1|sha256|md5]
+    if not hash_type or hash_type == 'sha1' or \
+       hash_type == 'sha256' or hash_type == 'md5':
+        hashes = _remove_invalid_hashes(hashes)
+
     results = api.search_hashes(hashes, hash_type)
 
     rf = PSSearchResultFormatter(results, color=ctx.obj['color'],
                                  output_format=ctx.obj['output_format'])
+
     ctx.obj['output'].write(str(rf))
 
 
