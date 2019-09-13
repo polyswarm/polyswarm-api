@@ -210,10 +210,10 @@ def url_scan(ctx, url, url_file, force, timeout):
 
     api.set_force(force)
 
-    urls = url
+    urls = list(url)
 
     if url_file:
-        urls.extend([u.strip() for u in open(url_file).readlines()])
+        urls.extend([u.strip() for u in url_file.readlines()])
 
     results = api.scan_urls(urls)
 
