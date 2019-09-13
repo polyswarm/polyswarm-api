@@ -321,7 +321,7 @@ def download(ctx, metadata, hash_file, hash_type, hash, destination):
 @click.pass_context
 def rescan(ctx, hash_file, hash_type, hash):
     """
-    Search PolySwarm for files matching hashes
+    Rescan files with matched hashes
     """
 
     def _get_hashes_from_file(file):
