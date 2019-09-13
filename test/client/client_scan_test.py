@@ -73,7 +73,7 @@ def async_return(result):
 
 
 @contextmanager
-def test_dir(files_dict):
+def temp_dir(files_dict):
     with tempfile.TemporaryDirectory() as tmp_dir:
         files = []
         for file_name, file_content in files_dict.items():
@@ -100,7 +100,7 @@ class ScanTestCase(TestCase):
 
     def test_file_request_failed_exception(self):
         client = PolyswarmAPI(self.test_api_key)
-        with test_dir({'test1': '123', 'test2': '456'}) as (_, files):
+        with temp_dir({'test1': '123', 'test2': '456'}) as (_, files):
             error_msg = ', '.join(files)
             with mock.patch('polyswarm_api.PolyswarmAsyncAPI.post_artifacts',
                             side_effect=exceptions.RequestFailedException(error_msg)):
@@ -109,7 +109,7 @@ class ScanTestCase(TestCase):
 
     def test_file_request_successful(self):
         client = PolyswarmAPI(self.test_api_key)
-        with test_dir({'test1': '123', 'test2': '456'}) as (_, files):
+        with temp_dir({'test1': '123', 'test2': '456'}) as (_, files):
             with mock.patch(
                     'polyswarm_api.PolyswarmAsyncAPI.post_artifacts',
                     return_value=async_return({
