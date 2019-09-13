@@ -14,7 +14,8 @@ from .formatting import PSResultFormatter, PSDownloadResultFormatter, PSSearchRe
     PSHuntSubmissionFormatter, PSStreamFormatter, PSHuntDeletionFormatter
 from .utils import validate_key, validate_uuid, is_valid_uuid, \
                    validate_hash, get_hash_type, is_valid_sha1, \
-                   is_valid_sha256, is_valid_md5
+                   is_valid_sha256, is_valid_md5, remove_invalid_hashes, \
+                   get_hashes_from_file
 
 CONTEXT_SETTINGS = dict(help_option_names=['-h', '--help'])
 
@@ -185,33 +186,17 @@ def hashes(ctx, hashes, hash_file, hash_type):
     Search PolySwarm for files matching hashes
     """
 
-    def _get_hashes_from_file(file):
-        return [h.strip() for h in file.readlines()]
-
-    # filter before API call so it does not raise exception
-    # and break execution
-    def _remove_invalid_hashes(hash_candidates):
-        valid_hashes = []
-        for candidate in hash_candidates:
-            # check if are correct default hashes [sha1|sha256|md5]
-            hash_type = get_hash_type(candidate)
-            if hash_type:
-                valid_hashes.append(candidate)
-            else:
-                logger.warning('Invalid hash %s, ignoring.', candidate)
-        return valid_hashes
-
     api = ctx.obj['api']
 
     hashes = list(hashes)
 
     if hash_file:
-        hashes += _get_hashes_from_file(hash_file)
+        hashes += get_hashes_from_file(hash_file)
 
     # validate default hashes [sha1|sha256|md5]
     if not hash_type or hash_type == 'sha1' or \
        hash_type == 'sha256' or hash_type == 'md5':
-        hashes = _remove_invalid_hashes(hashes)
+        hashes = remove_invalid_hashes(hashes)
 
     results = api.search_hashes(hashes, hash_type)
 
@@ -293,37 +278,20 @@ def download(ctx, metadata, hash_file, hash_type, hash, destination):
     """
     Download files from matching hashes
     """
-
-    def _get_hashes_from_file(file):
-        return [h.strip() for h in file.readlines()]
-
-    # filter before API call so it does not raise exception
-    # and break execution
-    def _remove_invalid_hashes(hash_candidates):
-        valid_hashes = []
-        for candidate in hash_candidates:
-            # check if are correct default hashes [sha1|sha256|md5]
-            hash_type = get_hash_type(candidate)
-            if hash_type:
-                valid_hashes.append(candidate)
-            else:
-                logger.warning('Invalid hash %s, ignoring.', candidate)
-        return valid_hashes
-
-    if not os.path.exists(destination):
-        os.makedirs(destination)
-
     api = ctx.obj['api']
 
     hashes = list(hash)
 
+    if not os.path.exists(destination):
+        os.makedirs(destination)
+
     if hash_file:
-        hashes += _get_hashes_from_file(hash_file)
+        hashes += get_hashes_from_file(hash_file)
 
     # validate default hashes [sha1|sha256|md5]
     if not hash_type or hash_type == 'sha1' or \
        hash_type == 'sha256' or hash_type == 'md5':
-        hashes = _remove_invalid_hashes(hashes)
+        hashes = remove_invalid_hashes(hashes)
 
     rf = PSDownloadResultFormatter(api.download_files(hashes, destination, metadata, hash_type),
                                    color=ctx.obj['color'], output_format=ctx.obj['output_format'])
@@ -340,34 +308,17 @@ def rescan(ctx, hash_file, hash_type, hash):
     """
     Rescan files with matched hashes
     """
-
-    def _get_hashes_from_file(file):
-        return [h.strip() for h in file.readlines()]
-
-    # filter before API call so it does not raise exception
-    # and break execution
-    def _remove_invalid_hashes(hash_candidates):
-        valid_hashes = []
-        for candidate in hash_candidates:
-            # check if are correct default hashes [sha1|sha256|md5]
-            hash_type = get_hash_type(candidate)
-            if hash_type:
-                valid_hashes.append(candidate)
-            else:
-                logger.warning('Invalid hash %s, ignoring.', candidate)
-        return valid_hashes
-
     api = ctx.obj['api']
 
     hashes = list(hash)
 
     if hash_file:
-        hashes += _get_hashes_from_file(hash_file)
+        hashes += get_hashes_from_file(hash_file)
 
     # validate default hashes [sha1|sha256|md5]
     if not hash_type or hash_type == 'sha1' or \
        hash_type == 'sha256' or hash_type == 'md5':
-        hashes = _remove_invalid_hashes(hashes)
+        hashes = remove_invalid_hashes(hashes)
 
     rf = PSResultFormatter(api.rescan_files(hashes, hash_type), color=ctx.obj['color'],
                            output_format=ctx.obj['output_format'])

@@ -65,3 +65,17 @@ def validate_key(ctx, param, value):
     if not is_hex(value) or len(value) != 32:
         raise click.BadParameter('Invalid API key. Make sure you specified your key via -a or environment variable and try again.')
     return value
+
+def get_hashes_from_file(file):
+    return [h.strip() for h in file.readlines()]
+
+def remove_invalid_hashes(hash_candidates):
+    valid_hashes = []
+    for candidate in hash_candidates:
+        # check if are correct default hashes [sha1|sha256|md5]
+        hash_type = get_hash_type(candidate)
+        if hash_type:
+            valid_hashes.append(candidate)
+        else:
+            logger.warning('Invalid hash %s, ignoring.', candidate)
+    return valid_hashes
