@@ -575,16 +575,25 @@ class PolyswarmAsyncAPI(object):
 
         return results
 
-    async def download_file(self, h, destination_dir, with_metadata=False, hash_type='sha256'):
+    async def download_file(self, h, destination_dir, with_metadata=False, hash_type=None):
         """
         Download a file via the PS API
 
         :param h: Hash of the file you wish to download
         :param destination_dir: Directory you wish to save the file in
         :param with_metadata: Whether to save related file metadata into an associated JSON file
-        :param hash_type: Hash type [sha256|sha1|md5]
+        :param hash_type: Hash type [default:sha256|sha1|md5]
         :return: Dictionary containing path to the downloaded file if successful, error message if not
         """
+        if not hash_type or hash_type == 'sha1' or \
+           hash_type == 'sha256' or hash_type == 'md5':
+                # get/validate hash type if None and
+                # validate defaults if not None
+                hash_type = get_hash_type(h)
+
+        if not hash_type:
+            raise Exception('Invalid Hash')
+
         results = await self.get_file_data(h, hash_type)
 
         out_path = os.path.join(destination_dir, h)
@@ -605,14 +614,14 @@ class PolyswarmAsyncAPI(object):
 
         return {'file_path': out_path, 'status': 'OK', 'file_hash': h}
 
-    async def download_files(self, hashes, destination_dir, with_metadata=True, hash_type='sha256'):
+    async def download_files(self, hashes, destination_dir, with_metadata=True, hash_type=None):
         """
         Download files  via the PS API
 
         :param hashes: Hashes of the files you wish to download
         :param destination_dir: Directory you wish to save the files in
         :param with_metadata: Whether to save related file metadata into an associated JSON files
-        :param hash_type: Hash type [sha256|sha1|md5]
+        :param hash_type: Hash type [default:sha256|sha1|md5]
 
         :return: Dictionary containing path to the downloaded file if successful, error message if not
         """
@@ -1111,7 +1120,7 @@ class PolyswarmAPI(object):
         """
         return self.loop.run_until_complete(self.ps_api.post_url(url))
 
-    def download_file(self, h, destination_dir, with_metadata=False, hash_type='sha256'):
+    def download_file(self, h, destination_dir, with_metadata=False, hash_type=None):
         """
         Download a file via the PS API
 
@@ -1124,7 +1133,7 @@ class PolyswarmAPI(object):
         return self.loop.run_until_complete(self.ps_api.download_file(h, destination_dir,
                                                                       with_metadata, hash_type))
 
-    def download_files(self, hashes, destination_dir, with_metadata=False, hash_type='sha256'):
+    def download_files(self, hashes, destination_dir, with_metadata=False, hash_type=None):
         """
         Download files  via the PS API
 
