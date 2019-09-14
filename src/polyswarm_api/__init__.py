@@ -378,7 +378,7 @@ class PolyswarmAsyncAPI(object):
         Search for a single hash using the PS API asynchronously.
 
         :param to_scan: Hash to search for
-        :param hash_type: Hash type [default:sha256|sha1|md5]
+        :param hash_type: Hash type [autodetect:sha256|sha1|md5]
         :return: JSON report file
         """
         if not hash_type or hash_type == 'sha1' or \
@@ -466,7 +466,7 @@ class PolyswarmAsyncAPI(object):
         Start a rescan for single hash using the PS API asynchronously.
 
         :param to_rescan: hash of the file to rescan
-        :param hash_type: Hash type [default:sha256|sha1|md5]
+        :param hash_type: Hash type [autodetect:sha256|sha1|md5]
         :return: JSON report file
         """
         if not hash_type or hash_type == 'sha1' or \
@@ -582,7 +582,7 @@ class PolyswarmAsyncAPI(object):
         :param h: Hash of the file you wish to download
         :param destination_dir: Directory you wish to save the file in
         :param with_metadata: Whether to save related file metadata into an associated JSON file
-        :param hash_type: Hash type [default:sha256|sha1|md5]
+        :param hash_type: Hash type [autodetect:sha256|sha1|md5]
         :return: Dictionary containing path to the downloaded file if successful, error message if not
         """
         if not hash_type or hash_type == 'sha1' or \
@@ -621,7 +621,7 @@ class PolyswarmAsyncAPI(object):
         :param hashes: Hashes of the files you wish to download
         :param destination_dir: Directory you wish to save the files in
         :param with_metadata: Whether to save related file metadata into an associated JSON files
-        :param hash_type: Hash type [default:sha256|sha1|md5]
+        :param hash_type: Hash type [autodetect:sha256|sha1|md5]
 
         :return: Dictionary containing path to the downloaded file if successful, error message if not
         """
@@ -635,7 +635,7 @@ class PolyswarmAsyncAPI(object):
         Rescan a file by its hash
 
         :param h: Hash of the file to rescan
-        :param hash_type: Hash type [default:sha256|sha1|md5]
+        :param hash_type: Hash type [autodetect:sha256|sha1|md5]
         :return: JSON report file
         """
         result = await self.rescan_hash(h, hash_type)
@@ -650,7 +650,7 @@ class PolyswarmAsyncAPI(object):
         Rescan files by its hash
 
         :param hashes: Hashes of the files to rescan
-        :param hash_type: Hash type [default:sha256|sha1|md5]
+        :param hash_type: Hash type [autodetect:sha256|sha1|md5]
         :return: JSON report file
         """
         return await asyncio.gather(*[self.rescan_file(h, hash_type) for h in hashes])
@@ -1056,7 +1056,7 @@ class PolyswarmAPI(object):
         Scan a collection of hashes using the PS API synchronously.
 
         :param hashes: Hashes to scan.
-        :param hash_type: Hash type [default:sha256|sha1|md5]
+        :param hash_type: Hash type [autodetect:sha256|sha1|md5]
         :param rescan: Whether to initiate a rescan for fresh results
         :return: JSON report file
         """
@@ -1067,7 +1067,7 @@ class PolyswarmAPI(object):
         Scan a single hash using the PS API asynchronously.
 
         :param to_scan:
-        :param hash_type: Hash type [default:sha256|sha1|md5]
+        :param hash_type: Hash type [autodetect:sha256|sha1|md5]
         :param rescan: Whether to initiate a rescan for fresh results
         :return: JSON report file
         """
@@ -1152,7 +1152,7 @@ class PolyswarmAPI(object):
         Rescan a file by its hash
 
         :param h: Hash of the file to rescan
-        :param hash_type: Hash type [default:sha256|sha1|md5]
+        :param hash_type: Hash type [autodetect:sha256|sha1|md5]
         :return: JSON report file
         """
         return self.loop.run_until_complete(self.ps_api.rescan_file(h, hash_type))
@@ -1162,7 +1162,7 @@ class PolyswarmAPI(object):
         Rescan a file by its hash
 
         :param hashes: Hashes of the files to rescan
-        :param hash_type: Hash type [default:sha256|sha1|md5]
+        :param hash_type: Hash type [autodetect:sha256|sha1|md5]
         :return: JSON report file
         """
         return self.loop.run_until_complete(self.ps_api.rescan_files(hashes, hash_type))
