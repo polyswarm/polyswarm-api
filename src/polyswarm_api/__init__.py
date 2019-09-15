@@ -215,42 +215,45 @@ class PolyswarmAsyncAPI(object):
         :return: Dictionary of the result code and the UUID of the upload (if successful)
         """
         # TODO check file-size. For now, we need to handle error.
-        data = aiohttp.FormData()
-        printable_artifact_names = ', '.join(artifact_data_names)
-        for artifact_data_obj, artifact_data_name in zip(artifact_data_objs, artifact_data_names):
-            logger.debug('Adding file %s to request', artifact_data_name)
-            data.add_field('file', artifact_data_obj, filename=artifact_data_name)
-        data.add_field('artifact-type', artifact_type.name)
+        try:
+            data = aiohttp.FormData()
+            printable_artifact_names = ', '.join(artifact_data_names)
+            for artifact_data_obj, artifact_data_name in zip(artifact_data_objs, artifact_data_names):
+                logger.debug('Adding file %s to request', artifact_data_name)
+                data.add_field('file', artifact_data_obj, filename=artifact_data_name)
+            data.add_field('artifact-type', artifact_type.name)
 
-        params = {'force': 'true'} if self.force else {}
-        async with self.post_semaphore:
-            logger.debug('Posting artifacts %s with api-key %s', printable_artifact_names, self.api_key)
-            async with aiohttp.ClientSession() as session:
-                # prepare the failure message in case it is needed
-                failure_message = 'Failed to get UUID for scan of files %s'.format(printable_artifact_names)
-                try:
-                    async with session.post(self.community_uri, data=data, params=params,
-                                            headers={'Authorization': self.api_key}) as raw_response:
-                        try:
-                            response = await raw_response.json()
-                        except Exception as e:
-                            response = await raw_response.read() if raw_response else 'None'
-                            logger.error('Received non-json response from PolySwarm API: %s', response)
-                            raise exceptions.BadFormatException(failure_message) from e
-                        # check for non-200-ish responses
-                        if raw_response.status // 100 != 2:
-                            errors = response.get('errors')
-                            logger.error('Error posting to PolySwarm API: %s', errors)
-                            raise exceptions.ServerErrorException(failure_message)
-                        # check if the server responded with anything but "OK"
-                        if response['status'] != 'OK':
-                            logger.error('Failed to get UUID for scan')
-                            raise exceptions.ServerErrorException(failure_message)
-                        logger.info('Successfully submitted %s, UUID %s', printable_artifact_names, response['result'])
-                        return response
-                except Exception:
-                    logger.error('Server request failed')
-                    raise exceptions.RequestFailedException(failure_message)
+            params = {'force': 'true'} if self.force else {}
+            async with self.post_semaphore:
+                logger.debug('Posting artifacts %s with api-key %s', printable_artifact_names, self.api_key)
+                async with aiohttp.ClientSession() as session:
+                    # prepare the failure message in case it is needed
+                    failure_message = 'Failed to get UUID for scan of files %s'.format(printable_artifact_names)
+                    try:
+                        async with session.post(self.community_uri, data=data, params=params,
+                                                headers={'Authorization': self.api_key}) as raw_response:
+                            try:
+                                response = await raw_response.json()
+                            except Exception as e:
+                                response = await raw_response.read() if raw_response else 'None'
+                                logger.error('Received non-json response from PolySwarm API: %s', response)
+                                raise exceptions.BadFormatException(failure_message) from e
+                            # check for non-200-ish responses
+                            if raw_response.status // 100 != 2:
+                                errors = response.get('errors')
+                                logger.error('Error posting to PolySwarm API: %s', errors)
+                                raise exceptions.ServerErrorException(failure_message)
+                            # check if the server responded with anything but "OK"
+                            if response['status'] != 'OK':
+                                logger.error('Failed to get UUID for scan')
+                                raise exceptions.ServerErrorException(failure_message)
+                            logger.info('Successfully submitted %s, UUID %s', printable_artifact_names, response['result'])
+                            return response
+                    except Exception:
+                        logger.error('Server request failed')
+                        raise exceptions.RequestFailedException(failure_message)
+        except exceptions.PolyswarmAPIException as e:
+            return {'filename': str(e), 'files': []}
 
     async def lookup_uuid(self, uuid):
         """
@@ -344,8 +347,13 @@ class PolyswarmAsyncAPI(object):
         try:
             file_objs = [io.StringIO(url) for url in to_scan]
             file_names = ['url'] * len(to_scan)
-            result = await self.scan_fileobjs(file_objs, file_names, artifact_type=ArtifactType.URL)
-            return await self.wait_for_results(result)
+            results = await self.scan_fileobjs(file_objs, file_names, artifact_type=ArtifactType.URL)
+            # iterate over the batched calls to the api and check if there was an error
+            # stop at the first error found and return its value in case of a failed submission
+            for result in results:
+                if result.get('status') != 'OK':
+                    return result
+            return await self.wait_for_results(results)
         except exceptions.PolyswarmAPIException as e:
             return {'filename': str(e), 'files': []}
 
@@ -361,8 +369,13 @@ class PolyswarmAsyncAPI(object):
         try:
             file_objs = [open(file_name, 'rb') for file_name in to_scan]
             file_names = [os.path.basename(file_name) for file_name in to_scan]
-            result = await self.scan_fileobjs(file_objs, file_names, artifact_type=ArtifactType.FILE)
-            return await self.wait_for_results(result)
+            results = await self.scan_fileobjs(file_objs, file_names, artifact_type=ArtifactType.FILE)
+            # iterate over the batched calls to the api and check if there was an error
+            # stop at the first error found and return its value in case of a failed submission
+            for result in results:
+                if result.get('status') != 'OK':
+                    return result
+            return await self.wait_for_results(results)
         except exceptions.PolyswarmAPIException as e:
             return {'filename': str(e), 'files': []}
         finally:
