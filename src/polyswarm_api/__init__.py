@@ -954,7 +954,6 @@ class PolyswarmAPI(object):
         Scan a single file-like object using the PS API asynchronously.
 
         :param to_scan: File-like object to scan.
-        decorator to be used for rate limiting ind
         :param filename: Filename to use
         :return: JSON report
         """
