@@ -217,9 +217,9 @@ api = polyswarm_api.PolyswarmAPI(key=api_key)
 ```python
 results = api.scan_directory("/path/to/directory")
 
-results = api.scan_file("/path/to/eicar")
+results = api.scan_files(["/path/to/eicar"])
 
-results = api.scan_url("http://bad.com")
+results = api.scan_urls(["http://bad.com"])
 ```
 
 #### Perform Searches
