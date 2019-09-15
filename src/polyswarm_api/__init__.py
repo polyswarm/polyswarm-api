@@ -205,7 +205,7 @@ class PolyswarmAsyncAPI(object):
                     logger.error('Server request failed')
                     return {'reason': 'unknown_error', 'status': 'error'}
 
-    async def post_artifacts(self, artifact_data_objs, artifact_data_names, artifact_type=ArtifactType.FILE):
+    async def _post_artifacts(self, artifacts_data, artifact_type=ArtifactType.FILE):
         """
         POST artifact to the PS API to be scanned asynchronously.
 
@@ -217,8 +217,8 @@ class PolyswarmAsyncAPI(object):
         # TODO check file-size. For now, we need to handle error.
         try:
             data = aiohttp.FormData()
-            printable_artifact_names = ', '.join(artifact_data_names)
-            for artifact_data_obj, artifact_data_name in zip(artifact_data_objs, artifact_data_names):
+            printable_artifact_names = ', '.join(artifact_data[1] for artifact_data in artifacts_data)
+            for artifact_data_obj, artifact_data_name in artifacts_data:
                 logger.debug('Adding file %s to request', artifact_data_name)
                 data.add_field('file', artifact_data_obj, filename=artifact_data_name)
             data.add_field('artifact-type', artifact_type.name)
@@ -316,19 +316,17 @@ class PolyswarmAsyncAPI(object):
         logger.warning('Failed to get results for uuid %s in time.', uuid)
         return {'files': result['files'], 'uuid': uuid}
 
-    async def scan_fileobjs(self, file_objs, file_names, artifact_type):
+    async def scan_fileobjs(self, file_objs, artifact_type):
         """
         Scan a collection of file-like object using the PS API asynchronously.
 
-        :param to_scan: A list of file-like objects to scan.
-        :param filenames: A list of filenames to use
+        :param to_scan: A list of (file-like object, filename) tuples to scan.
         :return: JSON report
         """
         futures = []
         file_objs = grouper(MAX_ARTIFACT_BATCH_SIZE, file_objs)
-        file_names = grouper(MAX_ARTIFACT_BATCH_SIZE, file_names)
-        for artifacts, names in zip(file_objs, file_names):
-            futures.append(self.post_artifacts(artifacts, names, artifact_type=artifact_type))
+        for files_chunck in file_objs:
+            futures.append(self._post_artifacts(files_chunck, artifact_type=artifact_type))
         return await asyncio.gather(*futures)
 
     async def wait_for_results(self, results):
@@ -345,9 +343,8 @@ class PolyswarmAsyncAPI(object):
         :return: JSON report
         """
         try:
-            file_objs = [io.StringIO(url) for url in to_scan]
-            file_names = ['url'] * len(to_scan)
-            results = await self.scan_fileobjs(file_objs, file_names, artifact_type=ArtifactType.URL)
+            file_objs = [(io.StringIO(url), 'url') for url in to_scan]
+            results = await self.scan_fileobjs(file_objs, artifact_type=ArtifactType.URL)
             # iterate over the batched calls to the api and check if there was an error
             # stop at the first error found and return its value in case of a failed submission
             for result in results:
@@ -367,9 +364,8 @@ class PolyswarmAsyncAPI(object):
         # early definition to avoid exceptions in try..catch in the finally clause
         file_objs = []
         try:
-            file_objs = [open(file_name, 'rb') for file_name in to_scan]
-            file_names = [os.path.basename(file_name) for file_name in to_scan]
-            results = await self.scan_fileobjs(file_objs, file_names, artifact_type=ArtifactType.FILE)
+            file_objs = [(open(file_name, 'rb'), os.path.basename(file_name)) for file_name in to_scan]
+            results = await self.scan_fileobjs(file_objs, artifact_type=ArtifactType.FILE)
             # iterate over the batched calls to the api and check if there was an error
             # stop at the first error found and return its value in case of a failed submission
             for result in results:
