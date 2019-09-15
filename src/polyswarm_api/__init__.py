@@ -945,25 +945,14 @@ class PolyswarmAPI(object):
         """
         return self.loop.run_until_complete(self.ps_api.get_file_data(sha256))
 
-    def scan_fileobj(self, to_scan, filename='data'):
+    def scan_fileobjs(self, to_scan):
         """
-        Scan a single file-like object using the PS API asynchronously.
+        Scan a collection of file-like object using the PS API asynchronously.
 
-        :param to_scan: File-like object to scan.
-        :param filename: Filename to use
+        :param to_scan: A list of (file-like object, filename) tuples to scan.
         :return: JSON report
         """
-        return self.loop.run_until_complete(self.ps_api.scan_fileobj(to_scan, filename))
-
-    def scan_file(self, to_scan):
-        """
-        Scan a single file using the PS API synchronously.
-
-        :param to_scan: Path of file to scan.
-        :return: JSON report file
-        """
-
-        return self.loop.run_until_complete(self.ps_api.scan_file(to_scan))
+        return self.loop.run_until_complete(self.ps_api.scan_fileobjs(to_scan))
 
     def scan_files(self, files):
         """
@@ -973,16 +962,6 @@ class PolyswarmAPI(object):
         :return: JSON report file
         """
         return self.loop.run_until_complete(self.ps_api.scan_files(files))
-
-    def scan_url(self, to_scan, name='url'):
-        """
-        Scan a single URL using the PS API synchronously
-
-        :param to_scan: URL to scan
-        :param name: name to associate with the artifact
-        :return: JSON report
-        """
-        return self.loop.run_until_complete(self.ps_api.scan_url(to_scan, name))
 
     def scan_urls(self, to_scan):
         """
@@ -1052,25 +1031,6 @@ class PolyswarmAPI(object):
         :return: JSON report file
         """
         return self.loop.run_until_complete(self.ps_api.lookup_uuids(uuids))
-
-    def post_file(self, file_obj, filename):
-        """
-        POST file to the PS API to be scanned synchronously.
-
-        :param file_obj: File-like object to POST to the API
-        :param filename: Name of file to be given to the API
-        :return: Dictionary of the result code and the UUID of the upload (if successful)
-        """
-        return self.loop.run_until_complete(self.ps_api.post_file(file_obj, filename))
-
-    def post_url(self, url):
-        """
-        POST URL to the PS API to be scanned synchronously
-
-        :param url: URL to scan
-        :return: Dictionary of the result code and the UUID of the scan (if successful)
-        """
-        return self.loop.run_until_complete(self.ps_api.post_url(url))
 
     def download_file(self, h, destination_dir, with_metadata=False, hash_type='sha256'):
         """
