@@ -93,25 +93,25 @@ class ScanTestCase(TestCase):
         client = PolyswarmAPI(self.test_api_key)
         urls = ['google.com', 'polyswarm.io']
         error_msg = ', '.join(urls)
-        with mock.patch('polyswarm_api.PolyswarmAsyncAPI.post_artifacts',
+        with mock.patch('polyswarm_api.PolyswarmAsyncAPI._post_artifacts',
                         side_effect=exceptions.RequestFailedException(error_msg)):
             results = client.scan_urls(urls)
-            assert results == {'filename': error_msg, 'files': []}
+            assert results == {'filename': error_msg, 'files': [], 'result': 'error', 'status': 'error'}
 
     def test_file_request_failed_exception(self):
         client = PolyswarmAPI(self.test_api_key)
         with temp_dir({'test1': '123', 'test2': '456'}) as (_, files):
             error_msg = ', '.join(files)
-            with mock.patch('polyswarm_api.PolyswarmAsyncAPI.post_artifacts',
+            with mock.patch('polyswarm_api.PolyswarmAsyncAPI._post_artifacts',
                             side_effect=exceptions.RequestFailedException(error_msg)):
                 results = client.scan_files(files)
-                assert results == {'filename': error_msg, 'files': []}
+                assert results == {'filename': error_msg, 'files': [], 'result': 'error', 'status': 'error'}
 
     def test_file_request_successful(self):
         client = PolyswarmAPI(self.test_api_key)
         with temp_dir({'test1': '123', 'test2': '456'}) as (_, files):
             with mock.patch(
-                    'polyswarm_api.PolyswarmAsyncAPI.post_artifacts',
+                    'polyswarm_api.PolyswarmAsyncAPI._post_artifacts',
                     return_value=async_return({
                         'status': 'OK',
                         'result': '00000000-0000-0000-0000-000000000000'})
@@ -126,7 +126,7 @@ class ScanTestCase(TestCase):
         client = PolyswarmAPI(self.test_api_key)
         urls = ['google.com', 'polyswarm.io']
         with mock.patch(
-                'polyswarm_api.PolyswarmAsyncAPI.post_artifacts',
+                'polyswarm_api.PolyswarmAsyncAPI._post_artifacts',
                 return_value=async_return({
                     'status': 'OK',
                     'result': '00000000-0000-0000-0000-000000000000'})
