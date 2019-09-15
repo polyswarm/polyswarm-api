@@ -253,7 +253,7 @@ class PolyswarmAsyncAPI(object):
                         logger.error('Server request failed')
                         raise exceptions.RequestFailedException(failure_message)
         except exceptions.PolyswarmAPIException as e:
-            return {'filename': str(e), 'files': []}
+            return {'filename': str(e), 'files': [], 'status': 'error', 'result': 'error'}
 
     async def lookup_uuid(self, uuid):
         """
@@ -355,7 +355,7 @@ class PolyswarmAsyncAPI(object):
                     return result
             return await self.wait_for_results(results)
         except exceptions.PolyswarmAPIException as e:
-            return {'filename': str(e), 'files': []}
+            return {'filename': str(e), 'files': [], 'status': 'error', 'result': 'error'}
 
     async def scan_files(self, to_scan):
         """
@@ -377,7 +377,7 @@ class PolyswarmAsyncAPI(object):
                     return result
             return await self.wait_for_results(results)
         except exceptions.PolyswarmAPIException as e:
-            return {'filename': str(e), 'files': []}
+            return {'filename': str(e), 'files': [], 'status': 'error', 'result': 'error'}
         finally:
             # attempt to close files if they were opened, ignore errors if unable to close
             # they will later be garbage collected and properly closed if necessary
