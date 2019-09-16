@@ -175,7 +175,7 @@ def search():
 
 
 @click.option('-r', '--hash-file', help='File of hashes, one per line.', type=click.File('r'))
-@click.option('--hash-type', help='Hash type to search [autodetect:sha256|sha1|md5]', default=None)
+@click.option('--hash-type', help='Hash type to search [default:autodetect, sha256|sha1|md5]', default=None)
 @click.argument('hashes', nargs=-1)
 @search.command('hash', short_help='search for hashes separated by space')
 @click.pass_context
@@ -261,7 +261,7 @@ def lookup(ctx, uuid, uuid_file):
 
 @click.option('-r', '--hash-file', help='File of hashes, one per line.', type=click.File('r'))
 @click.option('-m', '--metadata', is_flag=True, default=False, help='Save file metadata into associated JSON file')
-@click.option('--hash-type', help='Hash type to search [autodetect:sha256|sha1|md5]', default=None)
+@click.option('--hash-type', help='Hash type to search [default:autodetect, sha256|sha1|md5]', default=None)
 @click.argument('hash', 'hash', nargs=-1, callback=validate_hash)
 @click.argument('destination', 'destination', nargs=1, type=click.Path(file_okay=False))
 @polyswarm.command('download', short_help='download file(s)')
@@ -287,7 +287,7 @@ def download(ctx, metadata, hash_file, hash_type, hash, destination):
         raise click.BadParameter('Hash not valid, must be sha256|md5|sha1 in hexadecimal format')
 
 @click.option('-r', '--hash-file', help='File of hashes, one per line.', type=click.File('r'))
-@click.option('--hash-type', help='Hash type to search [autodetect:sha256|sha1|md5]', default=None)
+@click.option('--hash-type', help='Hash type to search [default:autodetect, sha256|sha1|md5]', default=None)
 @click.argument('hash', 'hash', nargs=-1, callback=validate_hash)
 @polyswarm.command('rescan', short_help='rescan files(s) by hash')
 @click.pass_context
