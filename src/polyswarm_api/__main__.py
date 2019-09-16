@@ -13,9 +13,7 @@ from . import PolyswarmAPI, MAX_HUNT_RESULTS
 from .formatting import PSResultFormatter, PSDownloadResultFormatter, PSSearchResultFormatter, PSHuntResultFormatter, \
     PSHuntSubmissionFormatter, PSStreamFormatter, PSHuntDeletionFormatter
 from .utils import validate_key, validate_uuid, is_valid_uuid, \
-                   validate_hash, get_hash_type, is_valid_sha1, \
-                   is_valid_sha256, is_valid_md5, remove_invalid_hashes, \
-                   get_hashes_from_file
+                   validate_hash, parse_hashes
 
 CONTEXT_SETTINGS = dict(help_option_names=['-h', '--help'])
 
@@ -188,23 +186,18 @@ def hashes(ctx, hashes, hash_file, hash_type):
 
     api = ctx.obj['api']
 
-    hashes = list(hashes)
+    hashes, hash_type = parse_hashes(hashes,
+                                     hash_type,
+                                     hash_file)
+    if hashes:
+        results = api.search_hashes(hashes, hash_type)
 
-    if hash_file:
-        hashes += get_hashes_from_file(hash_file)
+        rf = PSSearchResultFormatter(results, color=ctx.obj['color'],
+                                     output_format=ctx.obj['output_format'])
 
-    # validate default hashes [sha1|sha256|md5]
-    if not hash_type or hash_type == 'sha1' or \
-       hash_type == 'sha256' or hash_type == 'md5':
-        hashes = remove_invalid_hashes(hashes)
-
-    results = api.search_hashes(hashes, hash_type)
-
-    rf = PSSearchResultFormatter(results, color=ctx.obj['color'],
-                                 output_format=ctx.obj['output_format'])
-
-    ctx.obj['output'].write(str(rf))
-
+        ctx.obj['output'].write(str(rf))
+    else:
+        raise click.BadParameter('Hash not valid, must be sha256|md5|sha1 in hexadecimal format')
 
 @click.option('-r', '--query-file', help='Properly formatted JSON search file', type=click.File('r'))
 @click.argument('query_string', nargs=-1)
@@ -266,7 +259,6 @@ def lookup(ctx, uuid, uuid_file):
     rf = PSResultFormatter(api.lookup_uuids(uuids), color=ctx.obj['color'], output_format=ctx.obj['output_format'])
     ctx.obj['output'].write(str(rf))
 
-
 @click.option('-r', '--hash-file', help='File of hashes, one per line.', type=click.File('r'))
 @click.option('-m', '--metadata', is_flag=True, default=False, help='Save file metadata into associated JSON file')
 @click.option('--hash-type', help='Hash type to search [autodetect:sha256|sha1|md5]', default=None)
@@ -280,24 +272,19 @@ def download(ctx, metadata, hash_file, hash_type, hash, destination):
     """
     api = ctx.obj['api']
 
-    hashes = list(hash)
+    hashes, hash_type = parse_hashes(hash,
+                                     hash_type,
+                                     hash_file)
+    if hashes:
+        if not os.path.exists(destination):
+            os.makedirs(destination)
 
-    if not os.path.exists(destination):
-        os.makedirs(destination)
+        rf = PSDownloadResultFormatter(api.download_files(hashes, destination, metadata, hash_type),
+                                       color=ctx.obj['color'], output_format=ctx.obj['output_format'])
 
-    if hash_file:
-        hashes += get_hashes_from_file(hash_file)
-
-    # validate default hashes [sha1|sha256|md5]
-    if not hash_type or hash_type == 'sha1' or \
-       hash_type == 'sha256' or hash_type == 'md5':
-        hashes = remove_invalid_hashes(hashes)
-
-    rf = PSDownloadResultFormatter(api.download_files(hashes, destination, metadata, hash_type),
-                                   color=ctx.obj['color'], output_format=ctx.obj['output_format'])
-
-    ctx.obj['output'].write((str(rf)))
-
+        ctx.obj['output'].write((str(rf)))
+    else:
+        raise click.BadParameter('Hash not valid, must be sha256|md5|sha1 in hexadecimal format')
 
 @click.option('-r', '--hash-file', help='File of hashes, one per line.', type=click.File('r'))
 @click.option('--hash-type', help='Hash type to search [autodetect:sha256|sha1|md5]', default=None)
@@ -310,19 +297,17 @@ def rescan(ctx, hash_file, hash_type, hash):
     """
     api = ctx.obj['api']
 
-    hashes = list(hash)
+    hashes, hash_type = parse_hashes(hash,
+                                     hash_type,
+                                     hash_file)
+    if hashes:
+        rf = PSResultFormatter(api.rescan_files(hashes, hash_type), color=ctx.obj['color'],
+                               output_format=ctx.obj['output_format'])
 
-    if hash_file:
-        hashes += get_hashes_from_file(hash_file)
+        ctx.obj['output'].write(str(rf))
 
-    # validate default hashes [sha1|sha256|md5]
-    if not hash_type or hash_type == 'sha1' or \
-       hash_type == 'sha256' or hash_type == 'md5':
-        hashes = remove_invalid_hashes(hashes)
-
-    rf = PSResultFormatter(api.rescan_files(hashes, hash_type), color=ctx.obj['color'],
-                           output_format=ctx.obj['output_format'])
-    ctx.obj['output'].write(str(rf))
+    else:
+        raise click.BadParameter('Hash not valid, must be sha256|md5|sha1 in hexadecimal format')
 
 
 @polyswarm.group(short_help='interact with live scans')

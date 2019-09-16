@@ -1,4 +1,10 @@
 import click
+import logging
+
+from .const import SUPPORTED_HASH_TYPES
+
+logger = logging.getLogger(__name__)
+
 
 def is_hex(value):
     try:
@@ -42,6 +48,12 @@ def is_valid_hash(hash_candidate, candidates_hash_type):
     else:
         return False
 
+def is_supported_hash_type(hash_type):
+    if hash_type in SUPPORTED_HASH_TYPES:
+        return True
+
+    return False
+
 def is_valid_uuid(value):
     try:
         val = UUID(value, version=4)
@@ -79,3 +91,20 @@ def remove_invalid_hashes(hash_candidates):
         else:
             logger.warning('Invalid hash %s, ignoring.', candidate)
     return valid_hashes
+
+def parse_hashes(hash, hash_type, hash_file=None):
+
+    hashes = list(hash)
+
+    # validate 'hash_type' if not None
+    if hash_type and not is_supported_hash_type(hash_type):
+        logger.error('Hash type not supported.')
+        return (None, None)
+
+    if hash_file:
+        hashes += get_hashes_from_file(hash_file)
+
+    # return only valid hashes
+    hashes = remove_invalid_hashes(hashes)
+
+    return (hashes, hash_type)

@@ -13,7 +13,7 @@ from urllib import parse
 from polyswarmartifact import ArtifactType
 
 from .engine_resolver import EngineResolver
-from .utils import get_hash_type
+from .utils import get_hash_type, is_supported_hash_type
 from ._version import __version__, __release_url__
 
 logger = logging.getLogger(__name__)
@@ -381,14 +381,11 @@ class PolyswarmAsyncAPI(object):
         :param hash_type: Hash type [autodetect:sha256|sha1|md5]
         :return: JSON report file
         """
-        if not hash_type or hash_type == 'sha1' or \
-           hash_type == 'sha256' or hash_type == 'md5':
-                # get/validate hash type if None and
-                # validate defaults if not None
-                hash_type = get_hash_type(to_scan)
-
         if not hash_type:
-            raise Exception('Invalid Hash')
+            hash_type = get_hash_type(to_scan)
+
+        if not is_supported_hash_type(hash_type):
+            raise Exception('Invalid Hash Type')
 
         async with self.get_semaphore:
             async with aiohttp.ClientSession() as session:
@@ -469,14 +466,11 @@ class PolyswarmAsyncAPI(object):
         :param hash_type: Hash type [autodetect:sha256|sha1|md5]
         :return: JSON report file
         """
-        if not hash_type or hash_type == 'sha1' or \
-           hash_type == 'sha256' or hash_type == 'md5':
-                # get/validate hash type if None and
-                # validate defaults if not None
-                hash_type = get_hash_type(to_rescan)
-
         if not hash_type:
-            raise Exception('Invalid Hash')
+            hash_type = get_hash_type(to_rescan)
+
+        if not is_supported_hash_type(hash_type):
+            raise Exception('Invalid Hash Type')
 
         # TODO check file-size. For now, we need to handle error.
         async with self.get_semaphore:
@@ -585,14 +579,11 @@ class PolyswarmAsyncAPI(object):
         :param hash_type: Hash type [autodetect:sha256|sha1|md5]
         :return: Dictionary containing path to the downloaded file if successful, error message if not
         """
-        if not hash_type or hash_type == 'sha1' or \
-           hash_type == 'sha256' or hash_type == 'md5':
-                # get/validate hash type if None and
-                # validate defaults if not None
-                hash_type = get_hash_type(h)
-
         if not hash_type:
-            raise Exception('Invalid Hash')
+            hash_type = get_hash_type(h)
+
+        if not is_supported_hash_type(hash_type):
+            raise Exception('Invalid Hash Type')
 
         results = await self.get_file_data(h, hash_type)
 
