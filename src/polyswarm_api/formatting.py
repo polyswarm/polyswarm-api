@@ -111,7 +111,7 @@ class PSResultFormatter(object):
                                                         extended_type=file_info['extended_type'],
                                                         filenames=','.join(set(file_info['filenames'])))))
                     if 'assertions' not in f or len(f['assertions']) == 0:
-                        if 'failed' in f and f['failed']:
+                        if result['status'] == 'Bounty Failed' or ('failed' in f and f['failed']):
                             output.append(self._bad('Bounty failed, please resubmit'))
                         elif 'window_closed' in f and f['window_closed']:
                             output.append(self._warn('Bounty closed without any engine assertions. Try again later.'))
