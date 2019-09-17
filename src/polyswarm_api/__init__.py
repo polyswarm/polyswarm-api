@@ -13,6 +13,7 @@ from urllib import parse
 from polyswarmartifact import ArtifactType
 
 from .engine_resolver import EngineResolver
+from .utils import get_hash_type, is_supported_hash_type
 from ._version import __version__, __release_url__
 
 logger = logging.getLogger(__name__)
@@ -372,14 +373,20 @@ class PolyswarmAsyncAPI(object):
         with open(to_scan, 'rb') as fobj:
             return await self.scan_fileobj(fobj, os.path.basename(to_scan))
 
-    async def search_hash(self, to_scan, hash_type='sha256'):
+    async def search_hash(self, to_scan, hash_type=None):
         """
         Search for a single hash using the PS API asynchronously.
 
         :param to_scan: Hash to search for
-        :param hash_type: Hash type [sha256|sha1|md5]
+        :param hash_type: Hash type [default:autodetect, sha256|sha1|md5]
         :return: JSON report file
         """
+        if not hash_type:
+            hash_type = get_hash_type(to_scan)
+
+        if not is_supported_hash_type(hash_type):
+            raise Exception('Invalid Hash Type')
+
         async with self.get_semaphore:
             async with aiohttp.ClientSession() as session:
                 try:
@@ -451,14 +458,20 @@ class PolyswarmAsyncAPI(object):
         response['search'] = query
         return response
 
-    async def rescan_hash(self, to_rescan, hash_type='sha256'):
+    async def rescan_hash(self, to_rescan, hash_type=None):
         """
         Start a rescan for single hash using the PS API asynchronously.
 
         :param to_rescan: hash of the file to rescan
-        :param hash_type: Hash type [sha256|sha1|md5]
+        :param hash_type: Hash type [default:autodetect, sha256|sha1|md5]
         :return: JSON report file
         """
+        if not hash_type:
+            hash_type = get_hash_type(to_rescan)
+
+        if not is_supported_hash_type(hash_type):
+            raise Exception('Invalid Hash Type')
+
         # TODO check file-size. For now, we need to handle error.
         async with self.get_semaphore:
             async with aiohttp.ClientSession() as session:
@@ -556,16 +569,22 @@ class PolyswarmAsyncAPI(object):
 
         return results
 
-    async def download_file(self, h, destination_dir, with_metadata=False, hash_type='sha256'):
+    async def download_file(self, h, destination_dir, with_metadata=False, hash_type=None):
         """
         Download a file via the PS API
 
         :param h: Hash of the file you wish to download
         :param destination_dir: Directory you wish to save the file in
         :param with_metadata: Whether to save related file metadata into an associated JSON file
-        :param hash_type: Hash type [sha256|sha1|md5]
+        :param hash_type: Hash type [default:autodetect, sha256|sha1|md5]
         :return: Dictionary containing path to the downloaded file if successful, error message if not
         """
+        if not hash_type:
+            hash_type = get_hash_type(h)
+
+        if not is_supported_hash_type(hash_type):
+            raise Exception('Invalid Hash Type')
+
         results = await self.get_file_data(h, hash_type)
 
         out_path = os.path.join(destination_dir, h)
@@ -586,14 +605,14 @@ class PolyswarmAsyncAPI(object):
 
         return {'file_path': out_path, 'status': 'OK', 'file_hash': h}
 
-    async def download_files(self, hashes, destination_dir, with_metadata=True, hash_type='sha256'):
+    async def download_files(self, hashes, destination_dir, with_metadata=True, hash_type=None):
         """
         Download files  via the PS API
 
         :param hashes: Hashes of the files you wish to download
         :param destination_dir: Directory you wish to save the files in
         :param with_metadata: Whether to save related file metadata into an associated JSON files
-        :param hash_type: Hash type [sha256|sha1|md5]
+        :param hash_type: Hash type [default:autodetect, sha256|sha1|md5]
 
         :return: Dictionary containing path to the downloaded file if successful, error message if not
         """
@@ -602,12 +621,12 @@ class PolyswarmAsyncAPI(object):
 
         return results
 
-    async def rescan_file(self, h, hash_type='sha256'):
+    async def rescan_file(self, h, hash_type=None):
         """
-        Rescan a file by its sha256/sha1/md5 hash
+        Rescan a file by its hash
 
         :param h: Hash of the file to rescan
-        :param hash_type: Hash type [sha256|sha1|md5]
+        :param hash_type: Hash type [default:autodetect, sha256|sha1|md5]
         :return: JSON report file
         """
         result = await self.rescan_hash(h, hash_type)
@@ -617,12 +636,12 @@ class PolyswarmAsyncAPI(object):
 
         return await self._wait_for_uuid(result['result'])
 
-    async def rescan_files(self, hashes, hash_type='sha256'):
+    async def rescan_files(self, hashes, hash_type=None):
         """
-        Rescan files by sha256/sha1/md5 hash
+        Rescan files by its hash
 
         :param hashes: Hashes of the files to rescan
-        :param hash_type: Hash type [sha256|sha1|md5]
+        :param hash_type: Hash type [default:autodetect, sha256|sha1|md5]
         :return: JSON report file
         """
         return await asyncio.gather(*[self.rescan_file(h, hash_type) for h in hashes])
@@ -1023,23 +1042,23 @@ class PolyswarmAPI(object):
         """
         return self.loop.run_until_complete(self.ps_api.scan_directory(directory, recursive))
 
-    def search_hashes(self, hashes, hash_type='sha256'):
+    def search_hashes(self, hashes, hash_type=None):
         """
         Scan a collection of hashes using the PS API synchronously.
 
         :param hashes: Hashes to scan.
-        :param hash_type: Hash type [sha256|sha1|md5]
+        :param hash_type: Hash type [default:autodetect, sha256|sha1|md5]
         :param rescan: Whether to initiate a rescan for fresh results
         :return: JSON report file
         """
         return self.loop.run_until_complete(self.ps_api.search_hashes(hashes, hash_type))
 
-    def search_hash(self, to_scan, hash_type='sha256'):
+    def search_hash(self, to_scan, hash_type=None):
         """
         Scan a single hash using the PS API asynchronously.
 
         :param to_scan:
-        :param hash_type: Hash type [sha256|sha1|md5]
+        :param hash_type: Hash type [default:autodetect, sha256|sha1|md5]
         :param rescan: Whether to initiate a rescan for fresh results
         :return: JSON report file
         """
@@ -1092,7 +1111,7 @@ class PolyswarmAPI(object):
         """
         return self.loop.run_until_complete(self.ps_api.post_url(url))
 
-    def download_file(self, h, destination_dir, with_metadata=False, hash_type='sha256'):
+    def download_file(self, h, destination_dir, with_metadata=False, hash_type=None):
         """
         Download a file via the PS API
 
@@ -1105,7 +1124,7 @@ class PolyswarmAPI(object):
         return self.loop.run_until_complete(self.ps_api.download_file(h, destination_dir,
                                                                       with_metadata, hash_type))
 
-    def download_files(self, hashes, destination_dir, with_metadata=False, hash_type='sha256'):
+    def download_files(self, hashes, destination_dir, with_metadata=False, hash_type=None):
         """
         Download files  via the PS API
 
@@ -1119,22 +1138,22 @@ class PolyswarmAPI(object):
         return self.loop.run_until_complete(self.ps_api.download_files(hashes, destination_dir,
                                                                        with_metadata, hash_type))
 
-    def rescan_file(self, h, hash_type='sha256'):
+    def rescan_file(self, h, hash_type=None):
         """
-        Rescan a file by its sha256/sha1/md5 hash
+        Rescan a file by its hash
 
         :param h: Hash of the file to rescan
-        :param hash_type: Hash type [sha256|sha1|md5]
+        :param hash_type: Hash type [default:autodetect, sha256|sha1|md5]
         :return: JSON report file
         """
         return self.loop.run_until_complete(self.ps_api.rescan_file(h, hash_type))
 
-    def rescan_files(self, hashes, hash_type='sha256'):
+    def rescan_files(self, hashes, hash_type=None):
         """
-        Rescan a file by its sha256/sha1/md5 hash
+        Rescan a file by its hash
 
         :param hashes: Hashes of the files to rescan
-        :param hash_type: Hash type [sha256|sha1|md5]
+        :param hash_type: Hash type [default:autodetect, sha256|sha1|md5]
         :return: JSON report file
         """
         return self.loop.run_until_complete(self.ps_api.rescan_files(hashes, hash_type))
