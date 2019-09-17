@@ -8,10 +8,12 @@ import time
 import aiofiles
 import json
 import urllib
+import itertools
 from urllib import parse
 
 from polyswarmartifact import ArtifactType
 
+from . import exceptions
 from .engine_resolver import EngineResolver
 from .utils import get_hash_type, is_supported_hash_type
 from ._version import __version__, __release_url__
@@ -19,6 +21,17 @@ from ._version import __version__, __release_url__
 logger = logging.getLogger(__name__)
 
 MAX_HUNT_RESULTS = 20000
+MAX_ARTIFACT_BATCH_SIZE = 256
+
+
+def grouper(n, iterable):
+    it = iter(iterable)
+    while True:
+        chunk = tuple(itertools.islice(it, n))
+        if not chunk:
+            return
+        yield chunk
+
 
 class PolyswarmAsyncAPI(object):
     """
@@ -193,62 +206,54 @@ class PolyswarmAsyncAPI(object):
                     logger.error('Server request failed')
                     return {'reason': 'unknown_error', 'status': 'error'}
 
-    async def post_artifact(self, artifact_data_obj, artifact_data_name, artifact_type=ArtifactType.FILE):
+    async def _post_artifacts(self, artifacts_data, artifact_type=ArtifactType.FILE):
         """
         POST artifact to the PS API to be scanned asynchronously.
 
-        :param artifact_data_obj: File-like object to POST to the API
-        :param artifact_data_name: Name of data to be given to the API
+        :param artifacts_data: List of (file-like, filename) objects to POST to the API
         :param artifact_type: Type of artifact being posted
         :return: Dictionary of the result code and the UUID of the upload (if successful)
         """
         # TODO check file-size. For now, we need to handle error.
-        data = aiohttp.FormData()
-        data.add_field('file', artifact_data_obj, filename=artifact_data_name)
-        data.add_field('artifact-type', artifact_type.name)
+        try:
+            data = aiohttp.FormData()
+            printable_artifact_names = ', '.join(artifact_data[1] for artifact_data in artifacts_data)
+            for artifact_data_obj, artifact_data_name in artifacts_data:
+                logger.debug('Adding file %s to request', artifact_data_name)
+                data.add_field('file', artifact_data_obj, filename=artifact_data_name)
+            data.add_field('artifact-type', artifact_type.name)
 
-        params = {'force': 'true'} if self.force else {}
-        async with self.post_semaphore:
-            logger.debug('Posting artifact %s with api-key %s', artifact_data_name, self.api_key)
-            async with aiohttp.ClientSession() as session:
-                try:
-                    async with session.post(self.community_uri, data=data, params=params,
-                                            headers={'Authorization': self.api_key}) as raw_response:
-                        try:
-                            response = await raw_response.json()
-                        except Exception:
-                            response = await raw_response.read() if raw_response else 'None'
-                            logger.error('Received non-json response from PolySwarm API: %s', response)
-                            response = {'filename': artifact_data_name, 'result': 'error'}
-                        if raw_response.status // 100 != 2:
-                            errors = response.get('errors')
-                            logger.error('Error posting to PolySwarm API: %s', errors)
-                            response = {'filename': artifact_data_name, 'status': 'error'}
-                        return response
-                except Exception:
-                    logger.error('Server request failed')
-                    return {'filename': artifact_data_name, 'status': 'error'}
-
-    async def post_url(self, url, url_name='url'):
-        """
-        POST URL to the PS API to be scanned asynchronously
-
-        :param url: URL to scan
-        :param url_name: Name referring to URL
-        :return: Dictionary of the result code and the UUID of the scan (if successful)
-        """
-        return await self.post_artifact(io.StringIO(url), url_name, ArtifactType.URL)
-
-    async def post_file(self, file_obj, filename):
-        """
-        POST file to the PS API to be scanned asynchronously.
-
-        :param file_obj: File-like object to POST to the API
-        :param filename: Name of file to be given to the API
-        :return: Dictionary of the result code and the UUID of the upload (if successful)
-        """
-        # TODO check file-size. For now, we need to handle error.
-        return await self.post_artifact(file_obj, filename, ArtifactType.FILE)
+            params = {'force': 'true'} if self.force else {}
+            async with self.post_semaphore:
+                logger.debug('Posting artifacts %s with api-key %s', printable_artifact_names, self.api_key)
+                async with aiohttp.ClientSession() as session:
+                    # prepare the failure message in case it is needed
+                    failure_message = 'Failed to get UUID for scan of files %s'.format(printable_artifact_names)
+                    try:
+                        async with session.post(self.community_uri, data=data, params=params,
+                                                headers={'Authorization': self.api_key}) as raw_response:
+                            try:
+                                response = await raw_response.json()
+                            except Exception as e:
+                                response = await raw_response.read() if raw_response else 'None'
+                                logger.error('Received non-json response from PolySwarm API: %s', response)
+                                raise exceptions.BadFormatException(failure_message) from e
+                            # check for non-200-ish responses
+                            if raw_response.status // 100 != 2:
+                                errors = response.get('errors')
+                                logger.error('Error posting to PolySwarm API: %s', errors)
+                                raise exceptions.ServerErrorException(failure_message)
+                            # check if the server responded with anything but "OK"
+                            if response['status'] != 'OK':
+                                logger.error('Failed to get UUID for scan')
+                                raise exceptions.ServerErrorException(failure_message)
+                            logger.info('Successfully submitted %s, UUID %s', printable_artifact_names, response['result'])
+                            return response
+                    except Exception:
+                        logger.error('Server request failed')
+                        raise exceptions.RequestFailedException(failure_message)
+        except exceptions.PolyswarmAPIException as e:
+            return {'filename': str(e), 'files': [], 'status': 'error', 'result': 'error'}
 
     async def lookup_uuid(self, uuid):
         """
@@ -311,24 +316,67 @@ class PolyswarmAsyncAPI(object):
         logger.warning('Failed to get results for uuid %s in time.', uuid)
         return {'files': result['files'], 'uuid': uuid}
 
-    async def scan_url(self, to_scan, name='url'):
+    async def scan_fileobjs(self, file_objs, artifact_type):
+        """
+        Scan a collection of file-like object using the PS API asynchronously.
+
+        :param to_scan: A list of (file-like object, filename) tuples to scan.
+        :return: JSON report
+        """
+        futures = []
+        file_objs = grouper(MAX_ARTIFACT_BATCH_SIZE, file_objs)
+        for files_chunck in file_objs:
+            futures.append(self._post_artifacts(files_chunck, artifact_type=artifact_type))
+        return await asyncio.gather(*futures)
+
+    async def _wait_for_results(self, results):
+        # iterate over the batched calls to the api and check if there was an error
+        # stop at the first error found and return its value in case of a failed submission
+        for result in results:
+            if result.get('status') != 'OK':
+                return result
+        futures = []
+        for result in results:
+            futures.append(self._wait_for_uuid(result['result']))
+        return await asyncio.gather(*futures)
+
+    async def scan_urls(self, to_scan):
         """
         Scan a single URL using the PS API asynchronously
 
-        :param to_scan: URL to scan
-        :param name: name to associate with the artifact
+        :param to_scan: List of URLs to scan
         :return: JSON report
         """
-        result = await self.post_url(to_scan, name)
-        if result['status'] == 'OK':
-            uuid = result['result']
-        else:
-            logger.error('Failed to get UUID for scan of file %s', name)
-            return {'filename': name, 'files': []}
+        try:
+            file_objs = [(io.StringIO(url), 'url') for url in to_scan]
+            results = await self.scan_fileobjs(file_objs, artifact_type=ArtifactType.URL)
+            return await self._wait_for_results(results)
+        except exceptions.PolyswarmAPIException as e:
+            return {'filename': str(e), 'files': [], 'status': 'error', 'result': 'error'}
 
-        logger.info('Successfully submitted file %s, UUID %s', name, uuid)
+    async def scan_files(self, to_scan):
+        """
+        Scan a collection of files using the PS API asynchronously.
 
-        return await self._wait_for_uuid(uuid)
+        :param to_scan: List of paths of files to scan.
+        :return: JSON report file
+        """
+        # early definition to avoid exceptions in try..catch in the finally clause
+        file_objs = []
+        try:
+            file_objs = [(open(file_name, 'rb'), os.path.basename(file_name)) for file_name in to_scan]
+            results = await self.scan_fileobjs(file_objs, artifact_type=ArtifactType.FILE)
+            return await self._wait_for_results(results)
+        except exceptions.PolyswarmAPIException as e:
+            return {'filename': str(e), 'files': [], 'status': 'error', 'result': 'error'}
+        finally:
+            # attempt to close files if they were opened, ignore errors if unable to close
+            # they will later be garbage collected and properly closed if necessary
+            for file in file_objs:
+                try:
+                    file.close()
+                except:
+                    pass
 
     async def scan_fileobj(self, to_scan, filename='data'):
         """
@@ -338,29 +386,28 @@ class PolyswarmAsyncAPI(object):
         :param filename: Filename to use
         :return: JSON report
         """
-
-        result = await self.post_file(to_scan, filename)
-        if result['status'] == 'OK':
-            uuid = result['result']
-        else:
-            logger.error('Failed to get UUID for scan of file %s', filename)
-            return {'filename': filename, 'files': []}
-
-        logger.info('Successfully submitted file %s, UUID %s', filename, uuid)
-
-        return await self._wait_for_uuid(uuid)
+        return await self.scan_fileobjs([(to_scan, filename)], artifact_type=ArtifactType.FILE)[0]
 
     async def scan_data(self, data, filename=None):
         """
         Scan bytes using the PS API asynchronously.
-
         :param data: Data (in bytes) to submit to be scanned
         :param filename: Filename to use in submission
         :return: JSON report
         """
         if filename is None:
             filename = hashlib.sha256(data).hexdigest()
-        return await self.scan_fileobj(io.BytesIO(data), filename)
+        return await self.scan_fileobjs([(io.BytesIO(data), filename)], artifact_type=ArtifactType.FILE)[0]
+
+    async def scan_url(self, to_scan, name='url'):
+        """
+        Scan a single URL using the PS API asynchronously
+
+        :param to_scan: URL to scan
+        :param name: name to associate with the artifact
+        :return: JSON report
+        """
+        return await self.scan_urls([to_scan])[0]
 
     async def scan_file(self, to_scan):
         """
@@ -369,9 +416,44 @@ class PolyswarmAsyncAPI(object):
         :param to_scan: Path of file to scan.
         :return: JSON report file
         """
+        return await self.scan_files([to_scan])[0]
 
-        with open(to_scan, 'rb') as fobj:
-            return await self.scan_fileobj(fobj, os.path.basename(to_scan))
+    async def post_url(self, url):
+        """
+        POST URL to the PS API to be scanned asynchronously
+
+        :param url: URL to scan
+        :return: Dictionary of the result code and the UUID of the scan (if successful)
+        """
+        return await self._post_artifacts([(io.StringIO(url), 'url')], artifact_type=ArtifactType.URL)
+
+    async def post_file(self, file_obj, filename):
+        """
+        POST file to the PS API to be scanned asynchronously.
+
+        :param file_obj: File-like object to POST to the API
+        :param filename: Name of file to be given to the API
+        :return: Dictionary of the result code and the UUID of the upload (if successful)
+        """
+        return await self._post_artifacts([(file_obj, filename)], artifact_type=ArtifactType.FILE)
+
+    async def scan_directory(self, directory, recursive=False):
+        """
+        Scan a directory using the PS API asynchronously.
+
+        :param directory: Directory to scan.
+        :param recursive: Whether or not to scan the directory recursively.
+        :return: JSON report file
+        """
+        if recursive:
+            file_list = [os.path.join(path, file)
+                         for (path, dirs, files) in os.walk(directory)
+                         for file in files if os.path.isfile(os.path.join(path, file))]
+        else:
+            file_list = [os.path.join(directory, file) for file in os.listdir(directory)
+                         if os.path.isfile(os.path.join(directory, file))]
+
+        return await self.scan_files(file_list)
 
     async def search_hash(self, to_scan, hash_type=None):
         """
@@ -505,28 +587,6 @@ class PolyswarmAsyncAPI(object):
 
         return response
 
-    async def scan_files(self, files):
-        """
-        Scan a collection of files using the PS API asynchronously.
-
-        :param files: List of paths of files to scan.
-        :return: JSON report file
-        """
-        results = await asyncio.gather(*[self.scan_file(f) for f in files])
-
-        return results
-
-    async def scan_urls(self, urls):
-        """
-        Scan a collection of URLs using the PS API asynchronously.
-
-        :param urls: List of URLs to scan.
-        :return: JSON report file
-        """
-        results = await asyncio.gather(*[self.scan_url(f) for f in urls])
-
-        return results
-
     async def lookup_uuids(self, uuids):
         """
         Scan a collection of uuids using the PS API asynchronously.
@@ -537,24 +597,6 @@ class PolyswarmAsyncAPI(object):
         results = await asyncio.gather(*[self.lookup_uuid(u) for u in uuids])
 
         return results
-
-    async def scan_directory(self, directory, recursive=False):
-        """
-        Scan a directory using the PS API asynchronously.
-
-        :param directory: Directory to scan.
-        :param recursive: Whether or not to scan the directory recursively.
-        :return: JSON report file
-        """
-        if recursive:
-            file_list = [os.path.join(path, file)
-                         for (path, dirs, files) in os.walk(directory)
-                         for file in files if os.path.isfile(os.path.join(path, file))]
-        else:
-            file_list = [os.path.join(directory, file) for file in os.listdir(directory)
-                         if os.path.isfile(os.path.join(directory, file))]
-
-        return await self.scan_files(file_list)
 
     async def search_hashes(self, hashes, hash_type='sha256'):
         """
@@ -977,7 +1019,7 @@ class PolyswarmAPI(object):
 
     def scan_fileobj(self, to_scan, filename='data'):
         """
-        Scan a single file-like object using the PS API asynchronously.
+        Scan a single file-like object using the PS API synchronously.
 
         :param to_scan: File-like object to scan.
         :param filename: Filename to use
@@ -987,8 +1029,7 @@ class PolyswarmAPI(object):
 
     def scan_data(self, data):
         """
-        Scan bytes using the PS API asynchronously.
-
+        Scan bytes using the PS API synchronously.
         :param data: Data (in bytes) to submit to be scanned
         :return: JSON report
         """
@@ -1055,7 +1096,7 @@ class PolyswarmAPI(object):
 
     def search_hash(self, to_scan, hash_type=None):
         """
-        Scan a single hash using the PS API asynchronously.
+        Scan a single hash using the PS API synchronously.
 
         :param to_scan:
         :param hash_type: Hash type [default:autodetect, sha256|sha1|md5]
@@ -1066,7 +1107,7 @@ class PolyswarmAPI(object):
 
     def search_query(self, query, raw=True):
         """
-        Search by Elasticsearch query using the PS API asynchronously.
+        Search by Elasticsearch query using the PS API synchronously.
 
         :param query: Elasticsearch JSON query or search string
         :param raw: If true, treated as ES JSON query. If false, treated as an ES query_string
