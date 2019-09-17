@@ -136,6 +136,8 @@ class PolyswarmAsyncAPI(object):
             # ignore if not complete
             return result
 
+        result['status'] = 'OK'
+
         return result
 
     async def check_version(self):
