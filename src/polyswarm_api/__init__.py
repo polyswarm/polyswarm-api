@@ -137,8 +137,6 @@ class PolyswarmAsyncAPI(object):
             # ignore if not complete
             return result
 
-        result['status'] = 'OK'
-
         return result
 
     async def check_version(self):
@@ -302,7 +300,7 @@ class PolyswarmAsyncAPI(object):
         while True:
             result = await self.lookup_uuid(uuid)
 
-            if result.get('status', 'error') == 'error':
+            if result.get('status', 'Bounty Failed') == 'Bounty Failed':
                 return result
 
             if self._reveal_closed(result):
