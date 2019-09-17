@@ -400,7 +400,7 @@ class PolyswarmAsyncAPI(object):
 
     async def scan_url(self, to_scan, name='url'):
         """
-        Scan a single URL using the PS API synchronously
+        Scan a single URL using the PS API asynchronously
 
         :param to_scan: URL to scan
         :param name: name to associate with the artifact
@@ -410,7 +410,7 @@ class PolyswarmAsyncAPI(object):
 
     async def scan_file(self, to_scan):
         """
-        Scan a single file using the PS API synchronously.
+        Scan a single file using the PS API asynchronously.
 
         :param to_scan: Path of file to scan.
         :return: JSON report file
@@ -419,7 +419,7 @@ class PolyswarmAsyncAPI(object):
 
     async def post_url(self, url):
         """
-        POST URL to the PS API to be scanned synchronously
+        POST URL to the PS API to be scanned asynchronously
 
         :param url: URL to scan
         :return: Dictionary of the result code and the UUID of the scan (if successful)
@@ -428,7 +428,7 @@ class PolyswarmAsyncAPI(object):
 
     async def post_file(self, file_obj, filename):
         """
-        POST file to the PS API to be scanned synchronously.
+        POST file to the PS API to be scanned asynchronously.
 
         :param file_obj: File-like object to POST to the API
         :param filename: Name of file to be given to the API
