@@ -383,6 +383,54 @@ class PolyswarmAsyncAPI(object):
                 except:
                     pass
 
+    async def scan_fileobj(self, to_scan, filename='data'):
+        """
+        Scan a single file-like object using the PS API asynchronously.
+
+        :param to_scan: File-like object to scan.
+        :param filename: Filename to use
+        :return: JSON report
+        """
+        return await self.scan_fileobjs([(to_scan, filename)], artifact_type=ArtifactType.FILE)
+
+    async def scan_url(self, to_scan, name='url'):
+        """
+        Scan a single URL using the PS API synchronously
+
+        :param to_scan: URL to scan
+        :param name: name to associate with the artifact
+        :return: JSON report
+        """
+        return await self.scan_urls([to_scan])
+
+    async def scan_file(self, to_scan):
+        """
+        Scan a single file using the PS API synchronously.
+
+        :param to_scan: Path of file to scan.
+        :return: JSON report file
+        """
+        return await self.scan_files([to_scan])
+
+    async def post_url(self, url):
+        """
+        POST URL to the PS API to be scanned synchronously
+
+        :param url: URL to scan
+        :return: Dictionary of the result code and the UUID of the scan (if successful)
+        """
+        return await self.scan_urls([url])
+
+    async def post_file(self, file_obj, filename):
+        """
+        POST file to the PS API to be scanned synchronously.
+
+        :param file_obj: File-like object to POST to the API
+        :param filename: Name of file to be given to the API
+        :return: Dictionary of the result code and the UUID of the upload (if successful)
+        """
+        return await self.scan_fileobjs([(file_obj, filename)], artifact_type=ArtifactType.FILE)
+
     async def scan_directory(self, directory, recursive=False):
         """
         Scan a directory using the PS API asynchronously.
