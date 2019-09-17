@@ -1000,7 +1000,7 @@ class PolyswarmAPI(object):
 
     def scan_fileobj(self, to_scan, filename='data'):
         """
-        Scan a single file-like object using the PS API asynchronously.
+        Scan a single file-like object using the PS API synchronously.
 
         :param to_scan: File-like object to scan.
         :param filename: Filename to use
@@ -1010,7 +1010,7 @@ class PolyswarmAPI(object):
 
     def scan_data(self, data):
         """
-        Scan bytes using the PS API asynchronously.
+        Scan bytes using the PS API synchronously.
         :param data: Data (in bytes) to submit to be scanned
         :return: JSON report
         """
@@ -1077,7 +1077,7 @@ class PolyswarmAPI(object):
 
     def search_hash(self, to_scan, hash_type='sha256'):
         """
-        Scan a single hash using the PS API asynchronously.
+        Scan a single hash using the PS API synchronously.
 
         :param to_scan:
         :param hash_type: Hash type [sha256|sha1|md5]
@@ -1088,7 +1088,7 @@ class PolyswarmAPI(object):
 
     def search_query(self, query, raw=True):
         """
-        Search by Elasticsearch query using the PS API asynchronously.
+        Search by Elasticsearch query using the PS API synchronously.
 
         :param query: Elasticsearch JSON query or search string
         :param raw: If true, treated as ES JSON query. If false, treated as an ES query_string
