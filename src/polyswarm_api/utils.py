@@ -1,5 +1,6 @@
 import click
 import logging
+import uuid
 
 from .const import SUPPORTED_HASH_TYPES
 
@@ -56,7 +57,7 @@ def is_supported_hash_type(hash_type):
 
 def is_valid_uuid(value):
     try:
-        val = UUID(value, version=4)
+        val = uuid.UUID(value, version=4)
         return True
     except:
         return False
