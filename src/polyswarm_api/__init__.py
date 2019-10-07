@@ -346,7 +346,7 @@ class PolyswarmAsyncAPI(object):
         :return: JSON report
         """
         try:
-            file_objs = [(io.StringIO(url), 'url') for url in to_scan]
+            file_objs = [(io.StringIO(url), url) for url in to_scan]
             results = await self.scan_fileobjs(file_objs, artifact_type=ArtifactType.URL)
             return await self._wait_for_results(results)
         except exceptions.PolyswarmAPIException as e:
