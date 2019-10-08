@@ -114,31 +114,6 @@ class PolyswarmAsyncAPI(object):
         """
         self.timeout = timeout
 
-    def _fix_result(self, result):
-        """
-        For now, since the name-ETH address mappings are not added by consumer, we add them using
-        a hardcoded dict. This function does that for us. It also adds in a permalink to the scan.
-        These changes will be moved into consumer soon.
-
-        :param result: The JSON we got from consumer API
-        :return: JSON updated with name-ETH address mappings for microengines and arbiters
-        """
-        if 'uuid' in result:
-            result['permalink'] = self.portal_uri + result['uuid']
-        try:
-            for file in result['files']:
-                if 'assertions' in file:
-                    for assertion in file['assertions']:
-                        assertion['engine'] = self.engine_resolver.get_engine_name(assertion['author'])
-                if 'votes' in file:
-                    for vote in file['votes']:
-                        vote['engine'] = self.engine_resolver.get_engine_name(vote['arbiter'])
-        except KeyError:
-            # ignore if not complete
-            return result
-
-        return result
-
     async def check_version(self):
         """
         Checks GitHub to see if you have the latest version installed.
@@ -279,7 +254,7 @@ class PolyswarmAsyncAPI(object):
                                 return {'files': [], 'uuid': uuid}
                             logger.error('Error reading from PolySwarm API: %s', errors)
                             return {'files': [], 'uuid': uuid}
-                        return self._fix_result(response['result'])
+                        return response['result']
                 except Exception:
                     logger.error('Server request failed')
                     return {'reason': 'unknown_error', 'status': 'error', 'uuid': uuid}

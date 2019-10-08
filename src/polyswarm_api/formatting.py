@@ -119,14 +119,15 @@ class PSResultFormatter(object):
                             output.append(self._normal('Scan still in progress, please check again later.'))
                     else:
                         for assertion in f['assertions']:
+                            engine_name = assertion['engine'].get('name', assertion['author'])
                             if assertion['verdict'] is False:
-                                response_counts[assertion['engine']] = response_counts.get(assertion['engine'], 0) + 1
-                                output.append('%s: %s' % (self._normal(assertion['engine']), self._good('Clean')))
+                                response_counts[engine_name] = response_counts.get(engine_name, 0) + 1
+                                output.append('%s: %s' % (self._normal(engine_name), self._good('Clean')))
                             elif assertion['verdict'] is None or assertion['mask'] is False:
-                                output.append('%s: %s' % (self._normal(assertion['engine']), self._unknown('Unknown/failed to respond')))
+                                output.append('%s: %s' % (self._normal(engine_name), self._unknown('Unknown/failed to respond')))
                             else:
-                                response_counts[assertion['engine']] = response_counts.get(assertion['engine'], 0) + 1
-                                output.append('%s: %s' % (self._normal(assertion['engine']),
+                                response_counts[engine_name] = response_counts.get(engine_name, 0) + 1
+                                output.append('%s: %s' % (self._normal(engine_name),
                                                           self._bad('Malicious') +
                                                           (self._bad(', metadata: %s' % assertion['metadata'])
                                                           if 'metadata' in assertion and assertion['metadata'] is not None else '')))
