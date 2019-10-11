@@ -1,17 +1,14 @@
 #!/usr/bin/env python3
-import asyncio
 import click
 import logging
 import sys
 import os
-from uuid import UUID
 import json
 
-from aiohttp import ServerDisconnectedError
+from .api import PolyswarmAPI
+from .const import MAX_HUNT_RESULTS
+from .formatters import formatters
 
-from . import PolyswarmAPI, MAX_HUNT_RESULTS
-from .formatting import PSResultFormatter, PSDownloadResultFormatter, PSSearchResultFormatter, PSHuntResultFormatter, \
-    PSHuntSubmissionFormatter, PSStreamFormatter, PSHuntDeletionFormatter
 from .utils import validate_key, validate_uuid, is_valid_uuid, \
                    validate_hash, parse_hashes
 
@@ -26,7 +23,7 @@ logger = logging.getLogger(__name__)
 @click.option('-u', '--api-uri', default='https://api.polyswarm.network/v1',
               envvar='POLYSWARM_API_URI', help='The API endpoint (ADVANCED)')
 @click.option('-o', '--output-file', default=sys.stdout, type=click.File('w'), help='Path to output file.')
-@click.option('--fmt', '--output-format', default='text', type=click.Choice(['text', 'json']),
+@click.option('--output-format', '--fmt', default='text', type=click.Choice(formatters.keys()),
               help='Output format. Human-readable text or JSON.')
 @click.option('--color/--no-color', default=True, help='Use colored output in text mode.')
 @click.option('-v', '--verbose', default=0, count=True)
@@ -60,62 +57,11 @@ def polyswarm(ctx, api_key, api_uri, output_file, output_format, color, verbose,
         color = False
 
     logging.debug('Creating API instance: api_key:%s, api_uri:%s', api_key, api_uri)
-    ctx.obj['api'] = PolyswarmAPI(api_key, api_uri, community=community,
-                                  check_version=(not advanced_disable_version_check))
-    ctx.obj['color'] = color
-    ctx.obj['output_format'] = output_format
+    ctx.obj['api'] = PolyswarmAPI(api_key, api_uri, community=community)
+
+    ctx.obj['formatter'] = formatters[output_format](color=color)
+
     ctx.obj['output'] = output_file
-
-
-def _do_scan(api, paths, recursive=False):
-    # separate into paths and directories
-    # TODO do this async so we don't have dumb edge cases
-
-    # TODO dedupe
-
-    directories, files = [], []
-    for path in paths:
-        if os.path.isfile(path):
-            files.append(path)
-        elif os.path.isdir(path):
-            directories.append(path)
-        else:
-            logger.warning('Path %s is neither a file nor a directory, ignoring.', path)
-
-    results = api.scan_files(files)
-
-    for d in directories:
-        results.extend(api.scan_directory(d, recursive=recursive))
-
-    return results
-
-
-async def get_results(ctx, tasks):
-    results = []
-    failed_bounty, server_disconnects, other_exceptions, success = 0, 0, 0, 0
-    for r in asyncio.as_completed(tasks):
-        try:
-            final = None
-            final = await r
-            results.append(final)
-
-            zeroth_file = final['files'][0]
-            if not zeroth_file.get('bounty_guid'):
-                ctx.obj['output'].write('Failed to get bounty guid on {}\n'.format(final.get('uuid')))
-
-            elif not zeroth_file.get('assertions'):
-                ctx.obj['output'].write('Failed to get assertions on bounty guid on {}\n'.format(zeroth_file.get('bounty_guid')))
-            success += 1
-        except IndexError:
-            ctx.obj['output'].write('Failed on bounty uuid {}\n'.format(final.get('uuid')))
-            failed_bounty += 1
-        except ServerDisconnectedError as e:
-            ctx.obj['output'].write('Server disconnected error {}\n'.format(e))
-            server_disconnects += 1
-        except Exception as e:
-            ctx.obj['output'].write('Failed on bounty with exception {}\n'.format(e))
-            other_exceptions +=1
-    return results, (failed_bounty, server_disconnects, other_exceptions, success)
 
 
 @click.option('-f', '--force', is_flag=True, default=False,
@@ -130,15 +76,30 @@ def scan(ctx, path, force, recursive, timeout):
     Scan files or directories via PolySwarm
     """
     api = ctx.obj['api']
+    formatter = ctx.obj['formatter']
+    out = ctx.obj['output']
 
     api.timeout = timeout
 
-    api.set_force(force)
+    paths = path
 
-    results = _do_scan(api, path, recursive)
+    directories, files = [], []
+    for path in paths:
+        if os.path.isfile(path):
+            files.append(path)
+        elif os.path.isdir(path):
+            directories.append(path)
+        else:
+            logger.warning('Path %s is neither a file nor a directory, ignoring.', path)
 
-    rf = PSResultFormatter(results, color=ctx.obj['color'], output_format=ctx.obj['output_format'])
-    ctx.obj['output'].write(str(rf))
+    for result in api.scan(*files):
+        out.write(formatter.format_scan_result(result))
+        out.write('\n')
+
+    for d in directories:
+        for result in api.scan_directory(d, recursive=recursive):
+            out.write(formatter.format_scan_result(result))
+            out.write('\n')
 
 
 @click.option('-r', '--url-file', help='File of URLs, one per line.', type=click.File('r'))
@@ -153,20 +114,19 @@ def url_scan(ctx, url, url_file, force, timeout):
     Scan files or directories via PolySwarm
     """
     api = ctx.obj['api']
+    formatter = ctx.obj['formatter']
+    out = ctx.obj['output']
 
     api.timeout = timeout
-
-    api.set_force(force)
 
     urls = list(url)
 
     if url_file:
         urls.extend([u.strip() for u in url_file.readlines()])
 
-    results = api.scan_urls(urls)
-
-    rf = PSResultFormatter(results, color=ctx.obj['color'], output_format=ctx.obj['output_format'])
-    ctx.obj['output'].write(str(rf))
+    for result in api.scan_urls(*urls):
+        out.write(formatter.format_scan_result(result))
+        out.write('\n')
 
 
 @polyswarm.group(short_help='interact with PolySwarm search api')
@@ -176,28 +136,34 @@ def search():
 
 @click.option('-r', '--hash-file', help='File of hashes, one per line.', type=click.File('r'))
 @click.option('--hash-type', help='Hash type to search [default:autodetect, sha256|sha1|md5]', default=None)
+@click.option('-m', '--with-metadata', is_flag=True, default=False,
+              help='Request metadata associated with artifacts as well.')
+@click.option('-b', '--with-bounties', is_flag=True, default=False,
+              help='Request bounty results associated with artifacts as well')
 @click.argument('hashes', nargs=-1)
 @search.command('hash', short_help='search for hashes separated by space')
 @click.pass_context
-def hashes(ctx, hashes, hash_file, hash_type):
+def hashes(ctx, hashes, hash_file, hash_type, with_metadata, with_bounties):
     """
     Search PolySwarm for files matching hashes
     """
 
     api = ctx.obj['api']
+    formatter = ctx.obj['formatter']
 
-    hashes, hash_type = parse_hashes(hashes,
-                                     hash_type,
-                                     hash_file)
+    hashes = parse_hashes(hashes, hash_type, hash_file)
     if hashes:
-        results = api.search_hashes(hashes, hash_type)
+        results = api.search(*hashes, with_instances=with_bounties, with_metadata=with_metadata)
 
-        rf = PSSearchResultFormatter(results, color=ctx.obj['color'],
-                                     output_format=ctx.obj['output_format'])
+        out = ctx.obj['output']
 
-        ctx.obj['output'].write(str(rf))
+        # for json, this is effectively jsonlines
+        for result in results:
+            out.write(formatter.format_search_result(result))
+            out.write("\n")
     else:
         raise click.BadParameter('Hash not valid, must be sha256|md5|sha1 in hexadecimal format')
+
 
 @click.option('-r', '--query-file', help='Properly formatted JSON search file', type=click.File('r'))
 @click.argument('query_string', nargs=-1)
@@ -236,7 +202,7 @@ def metadata(ctx, query_string, query_file):
 
 
 @click.option('-r', '--uuid-file', help='File of UUIDs, one per line.', type=click.File('r'))
-@click.argument('uuid', 'uuid', nargs=-1, callback=validate_uuid)
+@click.argument('uuid', nargs=-1, callback=validate_uuid)
 @polyswarm.command('lookup', short_help='lookup UUID(s)')
 @click.pass_context
 def lookup(ctx, uuid, uuid_file):
@@ -244,6 +210,8 @@ def lookup(ctx, uuid, uuid_file):
     Lookup a PolySwarm scan by UUID for current status.
     """
     api = ctx.obj['api']
+    formatter = ctx.obj['formatter']
+    out = ctx.obj['output']
 
     uuids = list(uuid)
 
@@ -256,14 +224,16 @@ def lookup(ctx, uuid, uuid_file):
             else:
                 logger.warning('Invalid uuid %s in file, ignoring.', u)
 
-    rf = PSResultFormatter(api.lookup_uuids(uuids), color=ctx.obj['color'], output_format=ctx.obj['output_format'])
-    ctx.obj['output'].write(str(rf))
+    for result in api.lookup(*uuids):
+        out.write(formatter.format_scan_result(result))
+        out.write('\n')
+
 
 @click.option('-r', '--hash-file', help='File of hashes, one per line.', type=click.File('r'))
 @click.option('-m', '--metadata', is_flag=True, default=False, help='Save file metadata into associated JSON file')
 @click.option('--hash-type', help='Hash type to search [default:autodetect, sha256|sha1|md5]', default=None)
-@click.argument('hash', 'hash', nargs=-1, callback=validate_hash)
-@click.argument('destination', 'destination', nargs=1, type=click.Path(file_okay=False))
+@click.argument('hash', nargs=-1, callback=validate_hash)
+@click.argument('destination', nargs=1, type=click.Path(file_okay=False))
 @polyswarm.command('download', short_help='download file(s)')
 @click.pass_context
 def download(ctx, metadata, hash_file, hash_type, hash, destination):
@@ -286,9 +256,10 @@ def download(ctx, metadata, hash_file, hash_type, hash, destination):
     else:
         raise click.BadParameter('Hash not valid, must be sha256|md5|sha1 in hexadecimal format')
 
+
 @click.option('-r', '--hash-file', help='File of hashes, one per line.', type=click.File('r'))
 @click.option('--hash-type', help='Hash type to search [default:autodetect, sha256|sha1|md5]', default=None)
-@click.argument('hash', 'hash', nargs=-1, callback=validate_hash)
+@click.argument('hash', nargs=-1, callback=validate_hash)
 @polyswarm.command('rescan', short_help='rescan files(s) by hash')
 @click.pass_context
 def rescan(ctx, hash_file, hash_type, hash):
@@ -296,16 +267,16 @@ def rescan(ctx, hash_file, hash_type, hash):
     Rescan files with matched hashes
     """
     api = ctx.obj['api']
+    formatter = ctx.obj['formatter']
+    out = ctx.obj['output']
 
-    hashes, hash_type = parse_hashes(hash,
-                                     hash_type,
-                                     hash_file)
+    hashes = parse_hashes(hash, hash_type, hash_file)
+    print(hashes)
+
     if hashes:
-        rf = PSResultFormatter(api.rescan_files(hashes, hash_type), color=ctx.obj['color'],
-                               output_format=ctx.obj['output_format'])
-
-        ctx.obj['output'].write(str(rf))
-
+        for result in api.rescan(*hashes):
+            out.write(formatter.format_scan_result(result))
+            out.write('\n')
     else:
         raise click.BadParameter('Hash not valid, must be sha256|md5|sha1 in hexadecimal format')
 
@@ -448,6 +419,30 @@ def stream(ctx, download_path, since):
                            output_format=ctx.obj['output_format'])
 
     ctx.obj['output'].write((str(rf)))
+
+
+def _fix_result(self, result):
+    """
+    For now, since the name-ETH address mappings are not added by consumer, we add them using
+    a hardcoded dict. This function does that for us. It also adds in a permalink to the scan.
+    These changes will be moved into consumer soon.
+
+    :param result: The JSON we got from consumer API
+    :return: JSON updated with name-ETH address mappings for microengines and arbiters
+    """
+    try:
+        for file in result['files']:
+            if 'assertions' in file:
+                for assertion in file['assertions']:
+                    assertion['engine'] = self.engine_resolver.get_engine_name(assertion['author'])
+            if 'votes' in file:
+                for vote in file['votes']:
+                    vote['engine'] = self.engine_resolver.get_engine_name(vote['arbiter'])
+    except KeyError:
+        # ignore if not complete
+        return result
+
+    return result
 
 
 if __name__ == '__main__':
