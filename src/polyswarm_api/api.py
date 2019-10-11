@@ -195,64 +195,7 @@ class PolyswarmAPI(object):
 
         :return: True,latest_version tuple if latest, False,latest_version tuple if not
         """
-        return self.loop.run_until_complete(self.ps_api.check_version())
-
-    def get_file_data(self, sha256):
-        """
-        Get file data of a file from the PS API
-
-        :param sha256: SHA256 of the file
-        :return: Response dict containing file_data if successful, and status message about success/failure
-        """
-        return self.loop.run_until_complete(self.ps_api.get_file_data(sha256))
-
-
-    def download_file(self, h, destination_dir, with_metadata=False, hash_type=None):
-        """
-        Download a file via the PS API
-
-        :param h: Hash of the file you wish to download
-        :param destination_dir: Directory you wish to save the file in
-        :param with_metadata: Whether to save related file metadata into an associated JSON file
-        :param hash_type: Hash type [sha256|sha1|md5]
-        :return: Dictionary containing path to the downloaded file if successful, error message if not
-        """
-        return self.loop.run_until_complete(self.ps_api.download_file(h, destination_dir,
-                                                                      with_metadata, hash_type))
-
-    def download_files(self, hashes, destination_dir, with_metadata=False, hash_type=None):
-        """
-        Download files  via the PS API
-
-        :param hashes: Hashes of the files you wish to download
-        :param destination_dir: Directory you wish to save the files in
-        :param with_metadata: Whether to save related file metadata into an associated JSON files
-        :param hash_type: Hash type [sha256|sha1|md5]
-
-        :return: Dictionary containing path to the downloaded file if successful, error message if not
-        """
-        return self.loop.run_until_complete(self.ps_api.download_files(hashes, destination_dir,
-                                                                       with_metadata, hash_type))
-
-    def rescan_file(self, h, hash_type=None):
-        """
-        Rescan a file by its hash
-
-        :param h: Hash of the file to rescan
-        :param hash_type: Hash type [default:autodetect, sha256|sha1|md5]
-        :return: JSON report file
-        """
-        return self.loop.run_until_complete(self.ps_api.rescan_file(h, hash_type))
-
-    def rescan_files(self, hashes, hash_type=None):
-        """
-        Rescan a file by its hash
-
-        :param hashes: Hashes of the files to rescan
-        :param hash_type: Hash type [default:autodetect, sha256|sha1|md5]
-        :return: JSON report file
-        """
-        return self.loop.run_until_complete(self.ps_api.rescan_files(hashes, hash_type))
+        raise NotImplemented
 
     def new_live_hunt(self, rules):
         """
@@ -261,7 +204,7 @@ class PolyswarmAPI(object):
         :param rules: String containing YARA rules to install
         :return: ID of the new hunt.
         """
-        return self.loop.run_until_complete(self.ps_api.new_live_hunt(rules))
+        raise NotImplemented
 
     def new_historical_hunt(self, rules):
         """
@@ -270,7 +213,7 @@ class PolyswarmAPI(object):
         :param rules: String containing YARA rules to install
         :return: ID of the new hunt.
         """
-        return self.loop.run_until_complete(self.ps_api.new_historical_hunt(rules))
+        raise NotImplemented
 
     def delete_live_hunt(self, hunt_id):
         """
@@ -278,7 +221,7 @@ class PolyswarmAPI(object):
 
         :param hunt_id: String containing hunt id
         """
-        return self.loop.run_until_complete(self.ps_api.delete_live_hunt(hunt_id))
+        raise NotImplemented
 
     def delete_historical_hunt(self, hunt_id):
         """
@@ -286,7 +229,7 @@ class PolyswarmAPI(object):
 
         :param hunt_id: String containing hunt id
         """
-        return self.loop.run_until_complete(self.ps_api.delete_historical_hunt(hunt_id))
+        raise NotImplemented
 
     def get_live_results(self, hunt_id=None, limit=const.MAX_HUNT_RESULTS, offset=0,
                                 all_results=False, with_metadata=False, with_bounties=False):
@@ -301,8 +244,7 @@ class PolyswarmAPI(object):
         :param with_bounties: Whether to include bounty results in the results
         :return: Matches to the rules
         """
-        return self.loop.run_until_complete(self.ps_api.get_live_results(hunt_id, limit, offset, all_results,
-                                                                         with_metadata, with_bounties))
+        raise NotImplemented
 
     def get_historical_results(self, hunt_id=None, limit=const.MAX_HUNT_RESULTS, offset=0,
                                 all_results=False, with_metadata=False, with_bounties=False):
@@ -317,8 +259,7 @@ class PolyswarmAPI(object):
         :param with_bounties: Whether to include bounty results in the results
         :return: Matches to the rules
         """
-        return self.loop.run_until_complete(self.ps_api.get_historical_results(hunt_id, limit, offset, all_results,
-                                                                               with_metadata, with_bounties))
+        raise NotImplemented
 
     def get_stream(self, destination_dir=None, since=1440):
         """
@@ -330,4 +271,4 @@ class PolyswarmAPI(object):
 
         :return: List of signed S3 URLs for tarballs over the last two days
         """
-        return self.loop.run_until_complete(self.ps_api.get_stream(destination_dir, since))
+        raise NotImplemented
