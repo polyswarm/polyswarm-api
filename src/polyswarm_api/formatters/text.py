@@ -54,7 +54,6 @@ class TextFormatter(base.BaseFormatter):
 
             # only report information if we have scanned the file before
             last_scan = artifact.last_scan
-            print(last_scan)
 
             if last_scan:
                 detections = artifact.detections

@@ -274,7 +274,6 @@ def rescan(ctx, hash_file, hash_type, hash):
     out = ctx.obj['output']
 
     hashes = parse_hashes(hash, hash_type, hash_file)
-    print(hashes)
 
     if hashes:
         for result in api.rescan(*hashes):
