@@ -123,7 +123,8 @@ class Artifact(Hashable, BasePSJSONType):
 
     @property
     def scans(self):
-        return list(filter(None, [bounty.get_file_by_hash(self.sha256) for bounty in self.bounties]))
+        print(self.bounties[0].get_file_by_hash(self.sha256))
+        return list(filter(None, [bounty.get_file_by_hash(self) for bounty in self.bounties]))
 
     @property
     def bounties(self):

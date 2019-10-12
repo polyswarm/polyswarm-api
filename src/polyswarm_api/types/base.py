@@ -6,16 +6,17 @@ from .. import exceptions
 
 
 class BasePSType(object):
-    pass
+    def __init__(self, polyswarm=None):
+        self.polyswarm = polyswarm
 
 
-class BasePSJSONType(object):
+class BasePSJSONType(BasePSType):
     SCHEMA = {
         'type': ['object', 'array']
     }
 
     def __init__(self, json=None, polyswarm=None):
-        self.polyswarm = polyswarm
+        super(BasePSJSONType, self).__init__(polyswarm)
         self.validate(json)
         self.json = json
 

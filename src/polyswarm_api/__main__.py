@@ -6,6 +6,8 @@ import os
 import json
 
 from .api import PolyswarmAPI
+from .types.query import MetadataQuery
+
 from .const import MAX_HUNT_RESULTS
 from .formatters import formatters
 
@@ -166,20 +168,25 @@ def hashes(ctx, hashes, hash_file, hash_type, with_metadata, with_bounties):
 
 
 @click.option('-r', '--query-file', help='Properly formatted JSON search file', type=click.File('r'))
+@click.option('-m', '--with-metadata', is_flag=True, default=False,
+              help='Request metadata associated with artifacts as well.')
+@click.option('-b', '--with-bounties', is_flag=True, default=False,
+              help='Request bounty results associated with artifacts as well')
 @click.argument('query_string', nargs=-1)
 @search.command('metadata', short_help='search metadata of files')
 @click.pass_context
-def metadata(ctx, query_string, query_file):
+def metadata(ctx, query_string, query_file, with_metadata, with_bounties):
 
     api = ctx.obj['api']
+    formatter = ctx.obj['formatter']
+    out = ctx.obj['output']
 
     try:
         if len(query_string) >= 1:
-            query = query_string[0]
-            raw = False
+            queries = [MetadataQuery(q, False, api) for q in query_string]
         elif query_file:
-            query = json.load(query_file)
-            raw = True
+            # TODO support multiple queries in a file?
+            queries = [MetadataQuery(json.load(query_file), True, api)]
         else:
             logger.error('No query specified')
             return 0
@@ -190,13 +197,9 @@ def metadata(ctx, query_string, query_file):
         logger.error('Failed to parse JSON due to Unicode error')
         return 0
 
-    results = api.search_query(query, raw)
-
-    # TODO handle the difference here better, will address in refactor
-    rf = PSSearchResultFormatter([results], color=ctx.obj['color'],
-                                 output_format=ctx.obj['output_format'])
-
-    ctx.obj['output'].write(str(rf))
+    for result in api.search_by_metadata(*queries, with_instances=with_bounties, with_metadata=with_metadata):
+        out.write(formatter.format_search_result(result))
+        out.write("\n")
 
     return 0
 

@@ -57,6 +57,16 @@ class PolyswarmRequestGenerator(object):
             'timeout': self.timeout,
         }
 
+    @update_with_kwargs(["with_instances", "with_metadata"])
+    def search_metadata(self, q, **kwargs):
+        return {
+            'method': 'GET',
+            'url': self.search_base,
+            'params': {'type': 'metadata'},
+            'json': q.query,
+            'timeout': self.timeout,
+        }
+
     @update_with_kwargs([])
     def submit(self, artifact, **kwargs):
         return {

@@ -26,6 +26,9 @@ class Assertion(BasePSJSONType):
         self.metadata = json['metadata'] if json['metadata'] else {}
         self.verdict = json['verdict']
 
+    def __str__(self):
+        return "Assertion-%s: %s" % (self.engine_name, self.verdict)
+
 
 class Vote(BasePSJSONType):
     SCHEMA = schemas.vote_schema
@@ -35,6 +38,9 @@ class Vote(BasePSJSONType):
         self.scanfile = scanfile
         self.arbiter = json['arbiter']
         self.vote = json['vote']
+
+    def __str__(self):
+        return "Vote-%s: %s" % (self.arbiter, self.vote)
 
 
 class Scan(BasePSJSONType):
@@ -63,6 +69,9 @@ class Scan(BasePSJSONType):
     def permalink(self):
         return self.scan.permalink
 
+    def __str__(self):
+        return "Scan <%s>" % self.hash
+
 
 class Bounty(BasePSJSONType):
     SCHEMA = schemas.bounty_schema
@@ -82,7 +91,7 @@ class Bounty(BasePSJSONType):
         # TODO this ignores a case where bounties could contain the same file multiple times
         # do we care?
         for f in self.files:
-            if f.hash == f:
+            if f.hash == h:
                 return f
         return None
 
@@ -96,3 +105,6 @@ class Bounty(BasePSJSONType):
 
         # this assumes that if any file reports closed, they all are. This should always be true
         return files[0].window_closed
+
+    def __str__(self):
+        return "Bounty-%s [%s]" % (self.uuid, ",".join(str(s) for s in self.files))

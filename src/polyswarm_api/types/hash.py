@@ -20,6 +20,7 @@ class Hashable(BasePSType):
     def __eq__(self, other):
         return self.hash == other
 
+
 class Hash(Hashable):
     SCHEMA = {'type': ['string', 'null']}
 

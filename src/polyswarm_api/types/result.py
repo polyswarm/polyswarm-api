@@ -40,8 +40,8 @@ class ApiResponse(BasePSJSONType):
 
     @property
     def _bad_status_exception(self):
-        print(self.result)
-        return exceptions.ServerErrorException("Got unexpected result code %s" % self.status_code)
+        return exceptions.ServerErrorException("Got unexpected result code {}, message {}".format(self.status_code,
+                                                                                                  self.result))
 
 
 class DownloadResult(ApiResponse):

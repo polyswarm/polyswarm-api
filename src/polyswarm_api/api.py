@@ -5,6 +5,7 @@ from . import const
 from .endpoint import PolyswarmEndpointFutures
 from .types.artifact import Artifact, ArtifactType, LocalArtifact
 from .types.hash import Hash, to_hash
+from .types.query import MetadataQuery
 from .types import result
 
 
@@ -48,18 +49,25 @@ class PolyswarmAPI(object):
 
         :param artifacts: List of LocalArtifact objects
         :param feature: Feature to use
-        :return: List of SearchResult objects
+        :return: SearchResult generator
         """
         raise NotImplemented
 
-    def search_by_metadata(self, query):
+    def search_by_metadata(self, *queries, **kwargs):
         """
         Search artifacts by metadata
 
-        :param query: MetadataQuery object
-        :return: SearchResult object
+        :param queries: List of MetadataQuery objects (or query_strings)
+        :return: SearchResult generator
         """
-        pass
+        futures = []
+        for query in queries:
+            if not isinstance(query, MetadataQuery):
+                query = MetadataQuery(query, polyswarm=self)
+            futures.append((query, self.endpoint.search_metadata(query, **kwargs)))
+
+        for query, future in futures:
+            yield result.SearchResult(query, future.result(), polyswarm=self)
 
     def download(self, out_dir, *hashes):
         pass
