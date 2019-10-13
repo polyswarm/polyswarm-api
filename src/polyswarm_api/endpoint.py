@@ -9,8 +9,8 @@ from .log import logger
 
 def update_with_kwargs(supported_arguments=[]):
     def decorator(func):
-        def wrapper(self, x, **kwargs):
-            out_args = func(self, x, **kwargs)
+        def wrapper(self, *args, **kwargs):
+            out_args = func(self, *args, **kwargs)
             for arg in kwargs:
                 if arg not in supported_arguments:
                     logger.warning("Argument %s not supported", arg)
@@ -99,21 +99,37 @@ class PolyswarmRequestGenerator(object):
             'url': '{}/microengines/list'.format(self.uri)
         }
 
-    @update_with_kwargs
-    def live_hunt_install(self, rule, ):
-        pass
+    @update_with_kwargs([])
+    def submit_live_hunt(self, rule):
+        return {
+            'method': 'POST',
+            'url': '{}/live'.format(self.hunt_base),
+            'json': {'yara': rule.ruleset},
+        }
 
-    @update_with_kwargs
-    def live_hunt_results(self):
-        pass
+    @update_with_kwargs(['with_bounty_results', 'with_metadata', 'limit', 'offset', 'id'])
+    def live_lookup(self, *args, **kwargs):
+        return {
+            'method': 'GET',
+            'url': '{}/live/results'.format(self.hunt_base),
+            'params': {},
+        }
 
-    @update_with_kwargs
-    def historical_hunt_results(self):
-        pass
+    @update_with_kwargs([])
+    def submit_historical_hunt(self, rule):
+        return {
+            'method': 'POST',
+            'url': '{}/historical'.format(self.hunt_base),
+            'json': {'yara': rule.ruleset},
+        }
 
-    @update_with_kwargs
-    def historical_hunt_start(self):
-        pass
+    @update_with_kwargs(['with_bounty_results', 'with_metadata', 'limit', 'offset', 'id'])
+    def historical_lookup(self, *args, **kwargs):
+        return {
+            'method': 'GET',
+            'url': '{}/historical/results'.format(self.hunt_base),
+            'params': {},
+        }
 
 
 class PolyswarmEndpointBase(object):
@@ -125,7 +141,7 @@ class PolyswarmEndpointBase(object):
         self.unauth_session = None
         self.req_gen = None
 
-        raise NotImplemented
+        raise NotImplementedError
 
     def search_hash(self, h, **kwargs):
         """
@@ -151,21 +167,20 @@ class PolyswarmEndpointBase(object):
         """ This will be deprecated soon """
         return self.unauth_session.request(**self.req_gen._get_engine_names())
 
-    ## TODO
-    def historical_start(self, rule, **kwargs):
-        return self.session.request(**self.req_gen.submit(rule, **kwargs))
+    def submit_historical_hunt(self, rule, **kwargs):
+        return self.session.request(**self.req_gen.submit_historical_hunt(rule, **kwargs))
 
-    def historical_lookup(self, rule, **kwargs):
-        return self.session.request(**self.req_gen.submit(rule, **kwargs))
+    def historical_lookup(self, **kwargs):
+        return self.session.request(**self.req_gen.historical_lookup(**kwargs))
 
     def historical_list(self, **kwargs):
         return self.session.request(**self.req_gen.submit(**kwargs))
 
-    def live_start(self, rule, **kwargs):
-        return self.session.request(**self.req_gen.submit(rule, **kwargs))
+    def submit_live_hunt(self, rule, **kwargs):
+        return self.session.request(**self.req_gen.submit_live_hunt(rule, **kwargs))
 
-    def live_lookup(self, rule, **kwargs):
-        return self.session.request(**self.req_gen.live_lookup(rule, **kwargs))
+    def live_lookup(self, **kwargs):
+        return self.session.request(**self.req_gen.live_lookup(**kwargs))
 
     def live_list(self, **kwargs):
         return self.session.request(**self.req_gen.submit(**kwargs))

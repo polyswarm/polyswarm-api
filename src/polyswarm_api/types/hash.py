@@ -11,11 +11,11 @@ from .base import BasePSType
 class Hashable(BasePSType):
     @property
     def hash(self):
-        raise NotImplemented
+        raise NotImplementedError
 
     @property
     def hash_type(self):
-        raise NotImplemented
+        raise NotImplementedError
 
     def __eq__(self, other):
         return self.hash == other

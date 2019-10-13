@@ -7,22 +7,26 @@ from .types.artifact import Artifact, ArtifactType, LocalArtifact
 from .types.hash import Hash, to_hash
 from .types.query import MetadataQuery
 from .types import result
-
+from .types.hunt import YaraRuleset, Hunt
+from utils import chunks
 
 class PolyswarmAPI(object):
     """A synchronous interface to the public and private PolySwarm APIs."""
 
-    def __init__(self, key, uri='https://api.polyswarm.network/v1', timeout=600, community='lima'):
+    def __init__(self, key, uri='https://api.polyswarm.network/v1', timeout=600, community='lima',
+                 validate_schemas=False):
         """
 
         :param key: PolySwarm API key
         :param uri: PolySwarm API URI
         :param timeout: How long to wait for operations to complete.
         :param community: Community to scan against.
+        :param validate_schemas: Validate JSON objects when creating response objects. Will impact performance.
         """
         self.endpoint = PolyswarmEndpointFutures(key, uri, community)
         self.timeout = timeout
         self._engine_map = None
+        self.validate = validate_schemas
 
     def search(self, *hashes, **kwargs):
         """
@@ -51,7 +55,7 @@ class PolyswarmAPI(object):
         :param feature: Feature to use
         :return: SearchResult generator
         """
-        raise NotImplemented
+        raise NotImplementedError
 
     def search_by_metadata(self, *queries, **kwargs):
         """
@@ -203,73 +207,103 @@ class PolyswarmAPI(object):
 
         :return: True,latest_version tuple if latest, False,latest_version tuple if not
         """
-        raise NotImplemented
+        raise NotImplementedError
 
-    def new_live_hunt(self, rules):
+    def live(self, rules):
         """
         Create a new live hunt, and replace the currently running YARA rules.
 
-        :param rules: String containing YARA rules to install
-        :return: ID of the new hunt.
+        :param rules: YaraRuleset object or string containing YARA rules to install
+        :return: HuntSubmissionResult object
         """
-        raise NotImplemented
+        if not isinstance(rules, YaraRuleset):
+            rules = YaraRuleset(rules, polyswarm=self)
 
-    def new_historical_hunt(self, rules):
+        future = self.endpoint.submit_live_hunt(rules)
+
+        return result.HuntSubmissionResult(rules, future.result(), self)
+
+    def historical(self, rules):
         """
         Run a new historical hunt.
 
-        :param rules: String containing YARA rules to install
-        :return: ID of the new hunt.
+        :param rules: YaraRuleset object or string containing YARA rules to install
+        :return: HuntSubmissionResult object
         """
-        raise NotImplemented
+        if not isinstance(rules, YaraRuleset):
+            rules = YaraRuleset(rules, polyswarm=self)
 
-    def delete_live_hunt(self, hunt_id):
+        future = self.endpoint.submit_historical_hunt(rules)
+
+        return result.HuntSubmissionResult(rules, future.result(), self)
+
+    def delete_live(self, hunt_id):
         """
         Delete a live scan.
 
         :param hunt_id: String containing hunt id
         """
-        raise NotImplemented
+        raise NotImplementedError
 
-    def delete_historical_hunt(self, hunt_id):
+    def delete_historical(self, hunt_id):
         """
         Delete a historical scan.
 
         :param hunt_id: String containing hunt id
         """
-        raise NotImplemented
+        raise NotImplementedError
 
-    def get_live_results(self, hunt_id=None, limit=const.MAX_HUNT_RESULTS, offset=0,
-                                all_results=False, with_metadata=False, with_bounties=False):
+    def _lookup_hunt(self, hunt, endpoint_func, **kwargs):
+        if hunt and not isinstance(hunt, Hunt):
+            hunt = Hunt.from_id(hunt, self)
+
+        if hunt:
+            kwargs['id'] = hunt.hunt_id
+
+        # at least make this consistent in the API
+        # should change this
+        if 'with_instances' in kwargs:
+            kwargs['with_bounty_results'] = kwargs['with_instances']
+            del kwargs['with_instances']
+
+        # to provide streaming of results in large result sets, we chunk the
+        # requests into pieces. this makes the UI significantly more responsive
+        # and reduces the risk of timeouts under load. This does however mean that,
+        # unlike other functions in this API, requests are not fully resolved when the
+        # object is returned.
+        kwargs['offset'] = 0
+        kwargs['limit'] = const.RESULT_CHUNK_SIZE
+
+        # need to get count before we get all chunks
+        reqs = [endpoint_func(**kwargs)]
+        first = result.HuntResultPart(hunt, reqs[0].result(), self)
+        total = first.result.total
+
+        for offset in range(const.RESULT_CHUNK_SIZE, total, const.RESULT_CHUNK_SIZE):
+            kwargs['offset'] = offset
+            reqs.append(endpoint_func(**kwargs))
+
+        return result.HuntResult(hunt, reqs, self)
+
+    def lookup_live(self, hunt=None, **kwargs):
         """
         Get results from a live hunt
 
         :param hunt_id: ID of the hunt (None if latest rule results are desired)
-        :param limit: Limit the number of scan results, returns the most recent hits
-        :param offset: Offset into the result set to return
-        :param all_results: Boolean on whether to fetch all results. Note: this ignores limit/offset and can take awhile.
-        :param with_metadata: Whether to include metadata in the results
-        :param with_bounties: Whether to include bounty results in the results
-        :return: Matches to the rules
+        :return: HuntResult object
         """
-        raise NotImplemented
+        return self._lookup_hunt(hunt, self.endpoint.live_lookup, **kwargs)
 
-    def get_historical_results(self, hunt_id=None, limit=const.MAX_HUNT_RESULTS, offset=0,
-                                all_results=False, with_metadata=False, with_bounties=False):
+    def lookup_historical(self, hunt=None, **kwargs):
         """
         Get results from a historical hunt
 
         :param hunt_id: ID of the hunt (None if latest hunt results are desired)
-        :param limit: Limit the number of scan results, returns the most recent hits
-        :param offset: Offset into the result set to return
-        :param all_results: Boolean on whether to fetch all results. Note: this ignores limit/offset and can take awhile.
-        :param with_metadata: Whether to include metadata in the results
-        :param with_bounties: Whether to include bounty results in the results
         :return: Matches to the rules
         """
-        raise NotImplemented
+        return self._lookup_hunt(hunt, self.endpoint.historical_lookup, **kwargs)
 
-    def get_stream(self, destination_dir=None, since=1440):
+    def stream(self, destination_dir=None, since=1440):
         """
         Get stream of tarballs from communities you have the stream privilege on.
         Contact us at info@polyswarm.io for more info on enabling this feature.
@@ -279,4 +313,4 @@ class PolyswarmAPI(object):
 
         :return: List of signed S3 URLs for tarballs over the last two days
         """
-        raise NotImplemented
+        raise NotImplementedError

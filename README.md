@@ -55,6 +55,8 @@ From source:
 ```bash
 $ export POLYSWARM_API_KEY=<Your API key from polyswarm.network>
 $ export POLYSWARM_COMMUNITY=lima
+# for tab completion
+$ eval "$(_POLYSWARM_COMPLETE=source polyswarm)"
 $ polyswarm
 Usage: polyswarm [OPTIONS] COMMAND [ARGS]...
 

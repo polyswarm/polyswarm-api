@@ -1,17 +1,17 @@
+class BaseOutput(object):
+    name = 'base'
 
+    def __init__(self, output, **kwargs):
+        self.out = output
 
-class BaseFormatter(object):
-    def __init__(self, **kwargs):
-        pass
+    def search_result(self, result):
+        raise NotImplementedError
 
-    def format_search_result(self, result):
-        raise NotImplemented
+    def hunt_result(self, result):
+        raise NotImplementedError
 
-    def format_hunt_result(self, result):
-        raise NotImplemented
+    def scan_result(self, result):
+        raise NotImplementedError
 
-    def format_scan_result(self, result):
-        raise NotImplemented
-
-    def format_hunt_creation(self, result):
-        raise NotImplemented
+    def hunt_submission(self, result):
+        raise NotImplementedError

@@ -1,3 +1,4 @@
+import sys
 from . import base
 
 # TODO rewrite some of this to be not terrible
@@ -19,60 +20,77 @@ def is_grouped(fn):
     return lambda self, text: self._depth*'\t'+fn(self, text)
 
 
-class TextFormatter(base.BaseFormatter):
-    def __init__(self, color=True, **kwargs):
+class TextOutput(base.BaseOutput):
+    name = 'text'
+
+    def __init__(self, color=True, output=sys.stdout, **kwargs):
+        super(TextOutput, self).__init__(output)
         self.color = color
         self._depth = 0
         self.color = color
 
-    def format_search_result(self, search):
+    def _format_artifact(self, artifact):
+        output = []
+        output.append(self._unknown('File %s' % artifact.sha256))
+        output.append(
+            self._info(self._open_group(
+                self._info('File type: mimetype: {mimetype}, extended_info: {extended_type}'.
+                           format(mimetype=artifact.mimetype,
+                                  extended_type=artifact.extended_type)))))
+        output.append(self._info('SHA256: {hash}'.format(hash=artifact.sha256)))
+        output.append(self._info('SHA1: {hash}'.format(hash=artifact.sha1)))
+        output.append(self._info('MD5: {hash}'.format(hash=artifact.md5)))
+        output.append(self._info('First seen: {first_seen}'.format(first_seen=artifact.first_seen)))
+
+        countries, filenames, = artifact.countries, artifact.filenames
+
+        if countries:
+            output.append(self._info('Observed countries: {countries}'.format(countries=','.join(countries))))
+
+        if filenames:
+            output.append(self._info('Observed filenames: {filenames}'.format(filenames=','.join(filenames))))
+
+        # only report information if we have scanned the file before
+        last_scan = artifact.last_scan
+
+        if last_scan:
+            detections = artifact.detections
+            if len(detections) > 0:
+                output.append(self._normal(self._bad('Detections: {}/{} engines reported malicious'
+                                                     .format(len(detections), len(last_scan.assertions)))))
+            else:
+                output.append(self._info('Detections: {}/{} engines reported malicious'
+                                         .format(0, len(last_scan.assertions))))
+
+        output.append(self._close_group())
+        return '\n'.join(output)
+
+    def _format_hunt_match(self, match):
+        output = []
+        output.append(self._good('Match on rule {name}'.format(name=match.rule_name) +
+                                 (', tags: {result_tags}'.format(
+                                     result_tags=match.tags) if match.tags != '' else '')))
+        output.append(self._format_artifact(match.artifact))
+        return '\n'.join(output)
+
+    def search_result(self, search):
         if len(search) == 0:
             return self._bad('(Did not find any files matching search: %s.)\n' % repr(search.query))
 
         output = []
         output.append(self._good('Found {count} matches to the search query.'.format(count=len(search))))
         output.append(self._normal('Search results for {search}'.format(search=repr(search.query))))
+        self.out.write("\n".join(output)+'\n')
         for artifact in search:
-            output.append(self._unknown('File %s' % artifact.sha256))
-            output.append(
-                self._info(self._open_group(
-                    self._info('File type: mimetype: {mimetype}, extended_info: {extended_type}'.
-                               format(mimetype=artifact.mimetype,
-                                      extended_type=artifact.extended_type)))))
-            output.append(self._info('SHA256: {hash}'.format(hash=artifact.sha256)))
-            output.append(self._info('SHA1: {hash}'.format(hash=artifact.sha1)))
-            output.append(self._info('MD5: {hash}'.format(hash=artifact.md5)))
-            output.append(self._info('First seen: {first_seen}'.format(first_seen=artifact.first_seen)))
+            self.out.write(self._format_artifact(artifact)+'\n')
 
-            countries, filenames,  = artifact.countries, artifact.filenames
-
-            if countries:
-                output.append(self._info('Observed countries: {countries}'.format(countries=','.join(countries))))
-
-            if filenames:
-                output.append(self._info('Observed filenames: {filenames}'.format(filenames=','.join(filenames))))
-
-            # only report information if we have scanned the file before
-            last_scan = artifact.last_scan
-
-            if last_scan:
-                detections = artifact.detections
-                if len(detections) > 0:
-                    output.append(self._normal(self._bad('Detections: {}/{} engines reported malicious'
-                                               .format(len(detections), len(last_scan.assertions)))))
-                else:
-                    output.append(self._info('Detections: {}/{} engines reported malicious'
-                                             .format(0, len(last_scan.assertions))))
-
-            output.append(self._close_group())
-        return "\n".join(output)
-
-    def format_scan_result(self, result):
+    def scan_result(self, result):
         output = []
         bounty = result.result
 
         if not bounty.uuid:
-            return self._error('(Did not get a UUID for scan)\n')
+            self.out.write(self._error('(Did not get a UUID for scan)\n'))
+            return
 
         output.append(self._normal('Scan report for GUID %s\n========================================================='
                                    % bounty.uuid))
@@ -84,7 +102,7 @@ class TextFormatter(base.BaseFormatter):
             if f:
                 files = [f]
 
-        return "\n".join([self._format_bounty_file(f) for f in files])
+        self.out.write("\n".join([self._format_bounty_file(f) for f in files]) + '\n')
 
     def _format_bounty_file(self, f):
         output = [self._open_group('Report for artifact %s, hash: %s' %
@@ -122,6 +140,36 @@ class TextFormatter(base.BaseFormatter):
 
         output.append(self._close_group())
         return '\n'.join(output)
+
+    def hunt_submission(self, result):
+        if result.status != 'OK':
+            self.out.write(self._bad('Failed to install rules.\n'))
+            return
+        self.out.write('Successfully submitted rules, hunt id: {hunt_id}\n'.
+                          format(hunt_id=result.result.hunt_id))
+
+    def hunt_result(self, result):
+        output = []
+        status = result.hunt_status
+
+        if status.status not in ['PENDING', 'RUNNING', 'SUCCESS', 'FAILED']:
+            self.out.write(self._bad('An unspecified error occurred fetching hunt records.\n'))
+            return
+
+        output.append(self._info('Scan status: {status}\n'.format(status=status.status)))
+
+        if status.total == 0:
+            output.append(self._bad('(Did not find any results yet for this hunt.)\n'))
+            self.out.write('\n'.join(output))
+            return
+
+        output.append(self._good('Found {} samples in this hunt.'.format(status.total)))
+
+        self.out.write('\n'.join(output) + '\n')
+
+        for match in result:
+            self.out.write(self._format_hunt_match(match)+'\n')
+
 
     @is_grouped
     @is_colored

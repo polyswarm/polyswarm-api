@@ -61,9 +61,7 @@ def polyswarm(ctx, api_key, api_uri, output_file, output_format, color, verbose,
     logging.debug('Creating API instance: api_key:%s, api_uri:%s', api_key, api_uri)
     ctx.obj['api'] = PolyswarmAPI(api_key, api_uri, community=community)
 
-    ctx.obj['formatter'] = formatters[output_format](color=color)
-
-    ctx.obj['output'] = output_file
+    ctx.obj['output'] = formatters[output_format](color=color, output=output_file)
 
 
 @click.option('-f', '--force', is_flag=True, default=False,
@@ -78,8 +76,7 @@ def scan(ctx, path, force, recursive, timeout):
     Scan files or directories via PolySwarm
     """
     api = ctx.obj['api']
-    formatter = ctx.obj['formatter']
-    out = ctx.obj['output']
+    output = ctx.obj['output']
 
     api.timeout = timeout
 
@@ -95,13 +92,11 @@ def scan(ctx, path, force, recursive, timeout):
             logger.warning('Path %s is neither a file nor a directory, ignoring.', path)
 
     for result in api.scan(*files):
-        out.write(formatter.format_scan_result(result))
-        out.write('\n')
+        output.scan_result(result)
 
     for d in directories:
         for result in api.scan_directory(d, recursive=recursive):
-            out.write(formatter.format_scan_result(result))
-            out.write('\n')
+            output.scan_result(result)
 
 
 @click.option('-r', '--url-file', help='File of URLs, one per line.', type=click.File('r'))
@@ -116,9 +111,7 @@ def url_scan(ctx, url, url_file, force, timeout):
     Scan files or directories via PolySwarm
     """
     api = ctx.obj['api']
-    formatter = ctx.obj['formatter']
-    out = ctx.obj['output']
-
+    output = ctx.obj['output']
     api.timeout = timeout
 
     urls = list(url)
@@ -127,8 +120,7 @@ def url_scan(ctx, url, url_file, force, timeout):
         urls.extend([u.strip() for u in url_file.readlines()])
 
     for result in api.scan_urls(*urls):
-        out.write(formatter.format_scan_result(result))
-        out.write('\n')
+        output.scan_result(result)
 
 
 @polyswarm.group(short_help='interact with PolySwarm search api')
@@ -140,29 +132,26 @@ def search():
 @click.option('--hash-type', help='Hash type to search [default:autodetect, sha256|sha1|md5]', default=None)
 @click.option('-m', '--with-metadata', is_flag=True, default=False,
               help='Request metadata associated with artifacts as well.')
-@click.option('-b', '--with-bounties', is_flag=True, default=False,
+@click.option('-b', '--without-bounties', is_flag=True, default=False,
               help='Request bounty results associated with artifacts as well')
 @click.argument('hashes', nargs=-1)
 @search.command('hash', short_help='search for hashes separated by space')
 @click.pass_context
-def hashes(ctx, hashes, hash_file, hash_type, with_metadata, with_bounties):
+def hashes(ctx, hashes, hash_file, hash_type, with_metadata, without_bounties):
     """
     Search PolySwarm for files matching hashes
     """
 
     api = ctx.obj['api']
-    formatter = ctx.obj['formatter']
+    output = ctx.obj['output']
 
     hashes = parse_hashes(hashes, hash_type, hash_file)
     if hashes:
-        results = api.search(*hashes, with_instances=with_bounties, with_metadata=with_metadata)
-
-        out = ctx.obj['output']
+        results = api.search(*hashes, with_instances=not without_bounties, with_metadata=with_metadata)
 
         # for json, this is effectively jsonlines
         for result in results:
-            out.write(formatter.format_search_result(result))
-            out.write("\n")
+            output.search_result(result)
     else:
         raise click.BadParameter('Hash not valid, must be sha256|md5|sha1 in hexadecimal format')
 
@@ -170,16 +159,15 @@ def hashes(ctx, hashes, hash_file, hash_type, with_metadata, with_bounties):
 @click.option('-r', '--query-file', help='Properly formatted JSON search file', type=click.File('r'))
 @click.option('-m', '--with-metadata', is_flag=True, default=False,
               help='Request metadata associated with artifacts as well.')
-@click.option('-b', '--with-bounties', is_flag=True, default=False,
+@click.option('-b', '--without-bounties', is_flag=True, default=False,
               help='Request bounty results associated with artifacts as well')
 @click.argument('query_string', nargs=-1)
 @search.command('metadata', short_help='search metadata of files')
 @click.pass_context
-def metadata(ctx, query_string, query_file, with_metadata, with_bounties):
+def metadata(ctx, query_string, query_file, with_metadata, without_bounties):
 
     api = ctx.obj['api']
-    formatter = ctx.obj['formatter']
-    out = ctx.obj['output']
+    output = ctx.obj['output']
 
     try:
         if len(query_string) >= 1:
@@ -197,9 +185,8 @@ def metadata(ctx, query_string, query_file, with_metadata, with_bounties):
         logger.error('Failed to parse JSON due to Unicode error')
         return 0
 
-    for result in api.search_by_metadata(*queries, with_instances=with_bounties, with_metadata=with_metadata):
-        out.write(formatter.format_search_result(result))
-        out.write("\n")
+    for result in api.search_by_metadata(*queries, with_instances=not without_bounties, with_metadata=with_metadata):
+        output.search_result(result)
 
     return 0
 
@@ -213,8 +200,7 @@ def lookup(ctx, uuid, uuid_file):
     Lookup a PolySwarm scan by UUID for current status.
     """
     api = ctx.obj['api']
-    formatter = ctx.obj['formatter']
-    out = ctx.obj['output']
+    output = ctx.obj['output']
 
     uuids = list(uuid)
 
@@ -228,8 +214,7 @@ def lookup(ctx, uuid, uuid_file):
                 logger.warning('Invalid uuid %s in file, ignoring.', u)
 
     for result in api.lookup(*uuids):
-        out.write(formatter.format_scan_result(result))
-        out.write('\n')
+        output.scan_result(result)
 
 
 @click.option('-r', '--hash-file', help='File of hashes, one per line.', type=click.File('r'))
@@ -270,15 +255,13 @@ def rescan(ctx, hash_file, hash_type, hash):
     Rescan files with matched hashes
     """
     api = ctx.obj['api']
-    formatter = ctx.obj['formatter']
-    out = ctx.obj['output']
+    output = ctx.obj['output']
 
     hashes = parse_hashes(hash, hash_type, hash_file)
 
     if hashes:
         for result in api.rescan(*hashes):
-            out.write(formatter.format_scan_result(result))
-            out.write('\n')
+            output.scan_result(result)
     else:
         raise click.BadParameter('Hash not valid, must be sha256|md5|sha1 in hexadecimal format')
 
@@ -298,12 +281,11 @@ def historical():
 @click.pass_context
 def live_install(ctx, rule_file):
     api = ctx.obj['api']
+    output = ctx.obj['output']
 
     rules = rule_file.read()
 
-    rf = PSHuntSubmissionFormatter(api.new_live_hunt(rules), color=ctx.obj['color'],
-                                   output_format=ctx.obj['output_format'])
-    ctx.obj['output'].write((str(rf)))
+    output.hunt_submission(api.live(rules))
 
 
 @live.command('delete', short_help='Delete the live hunt associate with the given hunt_id')
@@ -321,30 +303,24 @@ def live_delete(ctx, hunt_id):
 @click.option('--download-path', '-d', type=click.Path(file_okay=False),
               help='In addition to fetching the results, download the files that matched.')
 @live.command('results', short_help='get results from live hunt')
-@click.option('-a', '--all', is_flag=True, default=False,
-              help='Request all historical results (could take awhile).')
-@click.option('-l', '--limit', type=int, help='Number of results to request (maximum 20000, default 5000)', default=5000)
-@click.option('-o', '--offset', type=int, help='Offset into results to start request from .', default=0)
 @click.option('-m', '--with-metadata', is_flag=True, default=False,
               help='Request metadata associated with artifacts as well.')
-@click.option('-b', '--with-bounties', is_flag=True, default=False,
+@click.option('-b', '--without-bounties', is_flag=True, default=False,
               help='Request bounty results associated with artifacts as well')
 @click.pass_context
-def live_results(ctx, hunt_id, download_path, all, limit, offset, with_metadata, with_bounties):
+def live_results(ctx, hunt_id, download_path, with_metadata, without_bounties):
     api = ctx.obj['api']
+    output = ctx.obj['output']
 
-    results = api.get_live_results(hunt_id, limit, offset, all, with_metadata, with_bounties)
+    result = api.lookup_live(hunt_id, with_metadata=with_metadata, with_instances=without_bounties)
 
-    rf = PSHuntResultFormatter(results, color=ctx.obj['color'],
-                               output_format=ctx.obj['output_format'])
+    output.hunt_result(result)
 
-    if download_path and results['status'] == 'OK':
+    if download_path and result.status == 'OK':
         if not os.path.exists(download_path):
             os.makedirs(download_path)
-        hashes = [match['artifact']['sha256'] for match in results['result']]
-        api.download_files(hashes, download_path, False, 'sha256')
-
-    ctx.obj['output'].write((str(rf)))
+        download_result = api.download(download_path, *[match.artifact.sha256 for match in result.result.results])
+        output.download_result(download_result)
 
 
 @click.argument('rule_file', type=click.File('r'))
@@ -352,12 +328,12 @@ def live_results(ctx, hunt_id, download_path, all, limit, offset, with_metadata,
 @click.pass_context
 def historical_start(ctx, rule_file):
     api = ctx.obj['api']
+    output = ctx.obj['output']
+    out = ctx.obj['output']
 
     rules = rule_file.read()
 
-    rf = PSHuntSubmissionFormatter(api.new_historical_hunt(rules), color=ctx.obj['color'],
-                                   output_format=ctx.obj['output_format'])
-    ctx.obj['output'].write((str(rf)))
+    out.write(output.hunt_submission(api.historical(rules)))
 
 
 @historical.command('delete', short_help='Delete the historical hunt associate with the given hunt_id')
@@ -374,32 +350,26 @@ def historical_delete(ctx, hunt_id):
 @click.option('-i', '--hunt-id', type=int, help='ID of the rule file (defaults to latest)')
 @click.option('--download-path', '-d', type=click.Path(file_okay=False),
               help='In addition to fetching the results, download the files that matched.')
-@click.option('-a', '--all', is_flag=True, default=False,
-              help='Request all historical results (could take awhile).')
-@click.option('-l', '--limit', type=int, help='Number of results to request (maximum 20000, default 5000)', default=5000)
-@click.option('-o', '--offset', type=int, help='Offset into results to start request from .', default=0)
 @click.option('-m', '--with-metadata', is_flag=True, default=False,
               help='Request metadata associated with artifacts as well.')
-@click.option('-b', '--with-bounties', is_flag=True, default=False,
+@click.option('-b', '--without-bounties', is_flag=True, default=False,
               help='Request bounty results associated with artifacts as well')
 @historical.command('results', short_help='get results from historical hunt')
 @click.pass_context
-def historical_results(ctx, hunt_id, download_path, all, limit, offset, with_metadata, with_bounties):
+def historical_results(ctx, hunt_id, download_path, with_metadata, without_bounties):
     api = ctx.obj['api']
+    output = ctx.obj['output']
 
-    results = api.get_historical_results(hunt_id, limit, offset, all, with_metadata, with_bounties)
+    result = api.lookup_historical(hunt_id, with_metadata=with_metadata, with_instances=not without_bounties)
 
-    rf = PSHuntResultFormatter(results, color=ctx.obj['color'],
-                               output_format=ctx.obj['output_format'])
+    output.hunt_result(result)
 
-    if download_path and results['status'] in ['OK', 'SUCCESS']:
+    if download_path and result.status == 'OK':
         if not os.path.exists(download_path):
             os.makedirs(download_path)
+        download_result = api.download(download_path, *[match.artifact.sha256 for match in result.result.results])
+        output.download_result(download_result)
 
-        hashes = [match['artifact']['sha256'] for match in results['result']]
-        api.download_files(hashes, download_path, False, 'sha256')
-
-    ctx.obj['output'].write((str(rf)))
 
 
 @click.option('--download-path', '-d', type=click.Path(file_okay=False),

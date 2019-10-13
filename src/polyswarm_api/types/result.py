@@ -1,5 +1,8 @@
-from .base import BasePSJSONType
+from itertools import chain
+
+from .base import BasePSJSONType, BasePSType
 from .artifact import Artifact, Bounty
+from .hunt import Hunt, HuntStatus
 from . import schemas
 from .. import exceptions
 from ..log import logger
@@ -44,6 +47,18 @@ class ApiResponse(BasePSJSONType):
                                                                                                   self.result))
 
 
+class IndexableResult(ApiResponse):
+    # convenience function, make SearchResult act as list
+    def __len__(self):
+        return len(self.result)
+
+    def __getitem__(self, i):
+        return self.result[i]
+
+    def __setitem__(self, key, value):
+        self.result[key] = value
+
+
 class DownloadResult(ApiResponse):
     SCHEMA = {'type': 'null'}
     """ This is an artificially constructed result object, to track downloads. """
@@ -54,7 +69,7 @@ class DownloadResult(ApiResponse):
         self.result = artifacts
 
 
-class SearchResult(ApiResponse):
+class SearchResult(IndexableResult):
     """ This is a result object for representing searches """
     def __init__(self, query, result, polyswarm=None):
         self.query = query
@@ -67,16 +82,6 @@ class SearchResult(ApiResponse):
             self.result = [Artifact(j, polyswarm) for j in self.result]
         else:
             raise self._bad_status_exception
-
-    # convenience function, make SearchResult act as list
-    def __len__(self):
-        return len(self.result)
-
-    def __getitem__(self, i):
-        return self.result[i]
-
-    def __setitem__(self, key, value):
-        self.result[key] = value
 
 
 class ScanResult(ApiResponse):
@@ -96,10 +101,12 @@ class ScanResult(ApiResponse):
 
         return self.result.ready
 
+
 class SubmitResult(ApiResponse):
     def __init__(self, artifact, result, polyswarm=None):
         super(SubmitResult, self).__init__(result, polyswarm)
         self.artifact = artifact
+
         if self.status_code // 100 != 2:
             raise self._bad_status_exception
 
@@ -109,11 +116,66 @@ class SubmitResult(ApiResponse):
 
 
 class HuntSubmissionResult(ApiResponse):
-    pass
+    def __init__(self, rules, result, polyswarm=None):
+        super(HuntSubmissionResult, self).__init__(result, polyswarm)
+        self.rules = rules
+
+        if self.status_code // 100 != 2:
+            raise self._bad_status_exception
+
+        self.result = Hunt(self.result)
 
 
-class HuntLookupResult(ApiResponse):
-    pass
+class HuntResultPart(IndexableResult):
+    def __init__(self, hunt, result, polyswarm=None):
+        self.hunt = hunt
+
+        super(HuntResultPart, self).__init__(result, polyswarm)
+
+        if self.status_code // 100 == 2:
+            self.result = HuntStatus(self.result)
+        else:
+            raise self._bad_status_exception
+
+
+class ResultAggregator(BasePSType):
+    RESULT_CLS = None
+
+    """ This is a special class that aggregates multiple iterable results into one """
+    def __init__(self, request_list, polyswarm=None, **kwargs):
+        super(ResultAggregator, self).__init__(polyswarm)
+        self.request_list = request_list
+        self.kwargs = kwargs
+        self.parts = []
+        self.resolved = False
+
+    def __iter__(self):
+        def iterator():
+            if self.resolved:
+                for part in self.parts:
+                    for res in part:
+                        yield res
+            else:
+                for req in self.request_list:
+                    res = self.RESULT_CLS(result=req.result(), polyswarm=self.polyswarm, **self.kwargs)
+                    self.parts.append(res)
+                    for result in res:
+                        yield result
+                self.resolved = True
+        return iterator()
+
+    @property
+    def result(self):
+        return self.__iter__()
+
+
+class HuntResult(ResultAggregator):
+    RESULT_CLS = HuntResultPart
+
+    def __init__(self, hunt, request_list, polyswarm=None):
+        super(HuntResult, self).__init__(request_list, polyswarm=polyswarm, hunt=hunt)
+        self.hunt = hunt
+        self.hunt_status = HuntResultPart(hunt, self.request_list[0].result(), polyswarm).result
 
 
 class HuntDeletionResult(ApiResponse):

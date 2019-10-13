@@ -17,7 +17,10 @@ class BasePSJSONType(BasePSType):
 
     def __init__(self, json=None, polyswarm=None):
         super(BasePSJSONType, self).__init__(polyswarm)
-        self.validate(json)
+        # this is expensive on thousands of objects
+        # avoid if disabled
+        if polyswarm and polyswarm.validate:
+            self.validate(json)
         self.json = json
 
     def validate(self, json, schema=None):

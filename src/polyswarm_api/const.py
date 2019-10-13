@@ -6,6 +6,7 @@ DEFAULT_GLOBAL_API = 'https://api.polyswarm.network/v1'
 DEFAULT_PERMALINK_BASE = 'https://polyswarm.network/scan/results'
 DEFAULT_COMMUNITY = 'lima'
 DEFAULT_SCAN_TIMEOUT = 60*10
+RESULT_CHUNK_SIZE = 100
 
 # HTTP settings
 DEFAULT_HTTP_TIMEOUT = 30
