@@ -295,27 +295,19 @@ def live_delete(ctx, hunt_id):
 
 
 @click.option('-i', '--hunt-id', type=int, help='ID of the rule file (defaults to latest)')
-@click.option('--download-path', '-d', type=click.Path(file_okay=False),
-              help='In addition to fetching the results, download the files that matched.')
 @live.command('results', short_help='get results from live hunt')
 @click.option('-m', '--with-metadata', is_flag=True, default=False,
               help='Request metadata associated with artifacts as well.')
 @click.option('-b', '--without-bounties', is_flag=True, default=False,
               help='Request bounty results associated with artifacts as well')
 @click.pass_context
-def live_results(ctx, hunt_id, download_path, with_metadata, without_bounties):
+def live_results(ctx, hunt_id, with_metadata, without_bounties):
     api = ctx.obj['api']
     output = ctx.obj['output']
 
-    result = api.lookup_live(hunt_id, with_metadata=with_metadata, with_instances=without_bounties)
+    result = api.live_results(hunt_id, with_metadata=with_metadata, with_instances=without_bounties)
 
     output.hunt_result(result)
-
-    if download_path and result.status == 'OK':
-        if not os.path.exists(download_path):
-            os.makedirs(download_path)
-        download_result = api.download(download_path, *[match.artifact.sha256 for match in result.result.results])
-        output.download_result(download_result)
 
 
 @click.argument('rule_file', type=click.File('r'))
@@ -343,28 +335,19 @@ def historical_delete(ctx, hunt_id):
 
 
 @click.option('-i', '--hunt-id', type=int, help='ID of the rule file (defaults to latest)')
-@click.option('--download-path', '-d', type=click.Path(file_okay=False),
-              help='In addition to fetching the results, download the files that matched.')
 @click.option('-m', '--with-metadata', is_flag=True, default=False,
               help='Request metadata associated with artifacts as well.')
 @click.option('-b', '--without-bounties', is_flag=True, default=False,
               help='Request bounty results associated with artifacts as well')
 @historical.command('results', short_help='get results from historical hunt')
 @click.pass_context
-def historical_results(ctx, hunt_id, download_path, with_metadata, without_bounties):
+def historical_results(ctx, hunt_id, with_metadata, without_bounties):
     api = ctx.obj['api']
     output = ctx.obj['output']
 
-    result = api.lookup_historical(hunt_id, with_metadata=with_metadata, with_instances=not without_bounties)
+    result = api.historical_results(hunt_id, with_metadata=with_metadata, with_instances=not without_bounties)
 
     output.hunt_result(result)
-
-    if download_path and result.status == 'OK':
-        if not os.path.exists(download_path):
-            os.makedirs(download_path)
-        download_result = api.download(download_path, *[match.artifact.sha256 for match in result.result.results])
-        output.download_result(download_result)
-
 
 
 @click.option('--download-path', '-d', type=click.Path(file_okay=False),

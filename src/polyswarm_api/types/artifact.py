@@ -126,6 +126,12 @@ class Artifact(Hashable, BasePSJSONType):
         return list(filter(None, [bounty.get_file_by_hash(self) for bounty in self.bounties]))
 
     @property
+    def scan_permalink(self):
+        if len(self.bounties) == 0:
+            return None
+        return self.bounties[0].permalink
+
+    @property
     def bounties(self):
         return [instance.bounty for instance in self.instances if instance.bounty]
 

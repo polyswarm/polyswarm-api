@@ -55,12 +55,14 @@ class TextOutput(base.BaseOutput):
 
         if last_scan:
             detections = artifact.detections
+            output.append(self._info('Scan permalink: {}'.format(artifact.scan_permalink)))
             if len(detections) > 0:
                 output.append(self._normal(self._bad('Detections: {}/{} engines reported malicious'
                                                      .format(len(detections), len(last_scan.assertions)))))
             else:
                 output.append(self._info('Detections: {}/{} engines reported malicious'
                                          .format(0, len(last_scan.assertions))))
+
 
         output.append(self._close_group())
         return '\n'.join(output)
@@ -88,6 +90,10 @@ class TextOutput(base.BaseOutput):
         output = []
         bounty = result.result
 
+        if result.status_code == 404:
+            self.out.write(self._error('(Could not find UUID)\n'))
+            return
+
         if not bounty.uuid:
             self.out.write(self._error('(Did not get a UUID for scan)\n'))
             return
@@ -108,15 +114,17 @@ class TextOutput(base.BaseOutput):
         output = [self._open_group('Report for artifact %s, hash: %s' %
                                    (f.filename, f.hash))]
         if not f.ready:
-            output.append(self._warn("Scan is still in progress, check back later."))
+            output.append(self._warn("Scan is still in progress, check back later. Reference: %s" % f.permalink))
         elif len(f.assertions) == 0:
             if f.bounty.status == 'Bounty Failed' or f.failed:
-                output.append(self._bad('Bounty failed, please resubmit'))
+                output.append(self._bad('Bounty failed, please resubmit. Reference: %s' % f.permalink))
             else:
-                output.append(self._bad('Bounty closed without any engine assertions. Try again later.'))
+                output.append(self._bad('Bounty closed without any engine assertions. Try again later. Reference: %s' % f.permalink))
         else:
             detections = f.detections
             assertions = f.assertions
+
+
 
             if len(detections) > 0:
                 output.append(self._normal('') + self._bad('{} out of {} engines reported this as malicious'.format(
@@ -137,6 +145,8 @@ class TextOutput(base.BaseOutput):
                                               self._bad('Malicious') +
                                               (self._bad(', metadata: %s' % assertion.metadata)
                                               if assertion.metadata is not None else '')))
+
+            output.append('%s: %s' % (self._normal('Scan permalink'), self._good(f.permalink)))
 
         output.append(self._close_group())
         return '\n'.join(output)

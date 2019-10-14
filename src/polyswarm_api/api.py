@@ -3,12 +3,12 @@ import os
 
 from . import const
 from .endpoint import PolyswarmEndpointFutures
-from .types.artifact import Artifact, ArtifactType, LocalArtifact
-from .types.hash import Hash, to_hash
+from .types.artifact import ArtifactType, LocalArtifact
+from .types.hash import to_hash
 from .types.query import MetadataQuery
 from .types import result
 from .types.hunt import YaraRuleset, Hunt
-from utils import chunks
+
 
 class PolyswarmAPI(object):
     """A synchronous interface to the public and private PolySwarm APIs."""
@@ -191,7 +191,8 @@ class PolyswarmAPI(object):
 
         for url in urls:
             if not isinstance(url, LocalArtifact):
-                url = LocalArtifact(content=url.encode("utf8"), artifact_name=url, artifact_type=ArtifactType.URL,
+                # TODO artifact_name will be the actual url once we address blocking issue
+                url = LocalArtifact(content=url.encode("utf8"), artifact_name='url', artifact_type=ArtifactType.URL,
                                     analyze=False, polyswarm=self)
             _urls.append(url)
 
@@ -241,7 +242,7 @@ class PolyswarmAPI(object):
 
         return result.HuntSubmissionResult(rules, future.result(), self)
 
-    def delete_live(self, hunt_id):
+    def live_delete(self, hunt_id):
         """
         Delete a live scan.
 
@@ -249,7 +250,7 @@ class PolyswarmAPI(object):
         """
         raise NotImplementedError
 
-    def delete_historical(self, hunt_id):
+    def historical_delete(self, hunt_id):
         """
         Delete a historical scan.
 
@@ -257,7 +258,7 @@ class PolyswarmAPI(object):
         """
         raise NotImplementedError
 
-    def _lookup_hunt(self, hunt, endpoint_func, **kwargs):
+    def _get_hunt_results(self, hunt, endpoint_func, **kwargs):
         if hunt and not isinstance(hunt, Hunt):
             hunt = Hunt.from_id(hunt, self)
 
@@ -289,23 +290,23 @@ class PolyswarmAPI(object):
 
         return result.HuntResult(hunt, reqs, self)
 
-    def lookup_live(self, hunt=None, **kwargs):
+    def live_results(self, hunt=None, **kwargs):
         """
         Get results from a live hunt
 
         :param hunt_id: ID of the hunt (None if latest rule results are desired)
         :return: HuntResult object
         """
-        return self._lookup_hunt(hunt, self.endpoint.live_lookup, **kwargs)
+        return self._get_hunt_results(hunt, self.endpoint.live_lookup, **kwargs)
 
-    def lookup_historical(self, hunt=None, **kwargs):
+    def historical_results(self, hunt=None, **kwargs):
         """
         Get results from a historical hunt
 
         :param hunt_id: ID of the hunt (None if latest hunt results are desired)
         :return: Matches to the rules
         """
-        return self._lookup_hunt(hunt, self.endpoint.historical_lookup, **kwargs)
+        return self._get_hunt_results(hunt, self.endpoint.historical_lookup, **kwargs)
 
     def stream(self, destination_dir=None, since=1440):
         """

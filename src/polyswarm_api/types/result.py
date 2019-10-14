@@ -78,7 +78,6 @@ class DownloadResult(ApiResponse):
         self.direction = None
 
 
-
 class SearchResult(IndexableResult):
     """ This is a result object for representing searches """
     def __init__(self, query, result, polyswarm=None):
@@ -101,6 +100,8 @@ class ScanResult(ApiResponse):
         if self.status_code // 100 == 2:
             if self.result:
                 self.result = Bounty(None, self.result, polyswarm=polyswarm)
+        elif self.status_code == 404:
+            self.result = "UUID not found"
         else:
             raise self._bad_status_exception
 

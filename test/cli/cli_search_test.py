@@ -3,8 +3,17 @@ from polyswarm_api.__main__ import polyswarm
 from pkg_resources import resource_string
 import json
 from click.testing import CliRunner
-from unittest.mock import patch
 import os
+
+try:
+    from unittest.mock import patch
+except NameError:
+    from mock import patch
+
+try:
+    FileNotFoundError
+except NameError:
+    FileNotFoundError = IOError
 
 TestCase.maxDiff = None
 

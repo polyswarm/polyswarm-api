@@ -67,7 +67,7 @@ class Scan(BasePSJSONType):
 
     @property
     def permalink(self):
-        return self.scan.permalink
+        return self.bounty.permalink
 
     def __str__(self):
         return "Scan <%s>" % self.hash

@@ -1,11 +1,14 @@
 import os
 import tempfile
 from contextlib import contextmanager
-import asyncio
 
-from polyswarm_api import PolyswarmAPI
+from polyswarm_api.api import PolyswarmAPI
 from polyswarm_api import exceptions
-from unittest import TestCase, mock
+
+try:
+    from unittest import TestCase, mock
+except NameError:
+    import mock
 
 FILE_SUBMISSION_RESULT = {
     'files': [
@@ -66,12 +69,6 @@ FILE_SUBMISSION_RESULT = {
 URL_SUBMISSION_RESULT = FILE_SUBMISSION_RESULT
 
 
-def async_return(result):
-    f = asyncio.Future()
-    f.set_result(result)
-    return f
-
-
 @contextmanager
 def temp_dir(files_dict):
     with tempfile.TemporaryDirectory() as tmp_dir:
@@ -104,7 +101,7 @@ class ScanTestCase(TestCase):
             error_msg = ', '.join(files)
             with mock.patch('polyswarm_api.PolyswarmAsyncAPI._post_artifacts',
                             side_effect=exceptions.RequestFailedException(error_msg)):
-                results = client.scan_files(files)
+                results = client.scan(files)
                 assert results == {'filename': error_msg, 'files': [], 'result': 'error', 'status': 'error'}
 
     def test_file_request_successful(self):
@@ -112,14 +109,14 @@ class ScanTestCase(TestCase):
         with temp_dir({'test1': '123', 'test2': '456'}) as (_, files):
             with mock.patch(
                     'polyswarm_api.PolyswarmAsyncAPI._post_artifacts',
-                    return_value=async_return({
+                    return_value={
                         'status': 'OK',
-                        'result': '00000000-0000-0000-0000-000000000000'})
+                        'result': '00000000-0000-0000-0000-000000000000'}
             ), mock.patch(
                 'polyswarm_api.PolyswarmAsyncAPI.lookup_uuid',
-                return_value=async_return(FILE_SUBMISSION_RESULT)
+                return_value=FILE_SUBMISSION_RESULT
             ):
-                results = client.scan_files(files)
+                results = client.scan(files)
                 assert results == [FILE_SUBMISSION_RESULT]
 
     def test_url_request_successful(self):
@@ -132,7 +129,7 @@ class ScanTestCase(TestCase):
                     'result': '00000000-0000-0000-0000-000000000000'})
         ), mock.patch(
             'polyswarm_api.PolyswarmAsyncAPI.lookup_uuid',
-            return_value=async_return(URL_SUBMISSION_RESULT)
+            return_value=URL_SUBMISSION_RESULT
         ):
             results = client.scan_urls(urls)
             assert results == [URL_SUBMISSION_RESULT]

@@ -34,7 +34,7 @@
 
 An interface to the public and private PolySwarm APIs.
 
-Supports python3.5 >= 3.5.4 and python3.6 >= 3.6.5
+Supports Python 2.7 and greater.
 
 ## Installation
 
@@ -44,7 +44,7 @@ From PyPI:
 
 From source:
 
-    python3 setup.py install
+    python setup.py install
 
 ## Usage
 
@@ -68,46 +68,62 @@ Options:
                                   (required)
   -u, --api-uri TEXT              The API endpoint (ADVANCED)
   -o, --output-file FILENAME      Path to output file.
-  --fmt, --output-format [text|json]
+  --output-format, --fmt [text|json|sha256|sha1|md5]
                                   Output format. Human-readable text or JSON.
   --color / --no-color            Use colored output in text mode.
   -v, --verbose
   -c, --community TEXT            Community to use.
+  --advanced-disable-version-check / --advanced-enable-version-check
+                                  Enable/disable GitHub release version check.
   -h, --help                      Show this message and exit.
 
 Commands:
   download    download file(s)
-  historical  interact with historical scans
+  historical  interact with historical scans)
   live        interact with live scans
   lookup      lookup UUID(s)
   rescan      rescan files(s) by hash
   scan        scan files/directories
-  search      search for hash or query
+  search      interact with PolySwarm search api
   stream      access the polyswarm file stream
+  url         scan url
 ```
 
 #### Perform Scans
 
 ```bash
 $ polyswarm scan /tmp/eicar
-Scan report for GUID 39b04176-51eb-4431-82d0-a0a3176164f0
-=========================================================
-Report for file eicar, hash: 131f95c51cc819465fa1797f6ccacf9d494aaaff46fa3eac73ae63ffbdfd8267
-        tachyon: Clean
-        nanoav: Malicious, metadata: {"infections": [{"name": "Marker.Dos.EICAR-Test-File.dyb"}]}
-        zillya: Malicious
-        clamav-engine: Malicious, metadata: Eicar-Test-Signature
-        k7-engine: Malicious, metadata: Trojan ( 000139291 )
-        ikarus: Malicious, metadata: EICAR-Test-File
-        xvirus: Malicious, metadata: 
-        drweb: Malicious, metadata: infected with EICAR Test File (NOT a Virus!)
-        lionic: Clean
+Report for artifact eicar, hash: 131f95c51cc819465fa1797f6ccacf9d494aaaff46fa3eac73ae63ffbdfd8267
+        16 out of 19 engines reported this as malicious
+        XVirus: Malicious, metadata: {'malware_family': '', 'scanner': {'environment': {'architecture': 'AMD64', 'operating_system': 'Windows'}, 'vendor_version': '3.0.2.0', 'version': '0.2.0'}}
+        Trustlook: Clean
+        Virusdie: Malicious, metadata: {'malware_family': 'EICAR.TEST', 'scanner': {'environment': {'architecture': 'x86_64', 'operating_system': 'Linux'}, 'vendor_version': '1.3.0', 'version': '0.3.0'}}
+        Ikarus: Malicious, metadata: {'malware_family': 'EICAR-Test-File', 'scanner': {'environment': {'architecture': 'x86_64', 'operating_system': 'Linux'}, 'signatures_version': '13.10.2019 18:20:55 (102021)', 'vendor_version': '5.2.9.0', 'version': '0.2.0'}}
+        Nucleon: Clean
+        Alibaba: Malicious, metadata: {'malware_family': 'Virus:Any/EICAR_Test_File.534838ff', 'scanner': {'environment': {'architecture': 'AMD64', 'operating_system': 'Windows'}}, 'type': 'eicar'}
+        Jiangmin: Malicious, metadata: {'malware_family': 'Find Virus EICAR-Test-File in C:\\Users\\ContainerAdministrator\\AppData\\Local\\Temp\\polyswarm-artifact_2k4sehx', 'scanner': {'environment': {'architecture': 'AMD64', 'operating_system': 'Windows'}, 'signatures_version': '', 'vendor_version': '16.0.100 ', 'version': '0.2.0'}}
+        K7: Malicious, metadata: {'malware_family': 'Trojan ( 000139291 )', 'scanner': {'environment': {'architecture': 'AMD64', 'operating_system': 'Windows'}, 'signatures_version': '11.66.31997|12/Sep/2019', 'vendor_version': '15.2.0.42', 'version': '0.2.0'}}
+        ClamAV: Malicious, metadata: {'malware_family': 'Eicar-Test-Signature', 'scanner': {'environment': {'architecture': 'x86_64', 'operating_system': 'Linux'}, 'vendor_version': 'ClamAV 0.100.3/25601/Sun Oct 13 08:51:55 2019\n'}}
+        Quick Heal: Malicious, metadata: {'malware_family': 'EICAR.TestFile', 'scanner': {'environment': {'architecture': 'AMD64', 'operating_system': 'Windows'}, 'signatures_version': '09 September, 2019', 'version': '0.1.0'}}
+        Rising: Malicious, metadata: {'malware_family': 'Virus.EICAR_Test_File!8.D9E', 'scanner': {'environment': {'architecture': 'x86_64', 'operating_system': 'Linux'}}}
+        NanoAV: Malicious, metadata: {'malware_family': 'Marker.Dos.EICAR-Test-File.dyb', 'scanner': {'environment': {'architecture': 'AMD64', 'operating_system': 'Windows'}, 'signatures_version': '0.14.32.16015|1568318271000', 'vendor_version': '1.0.134.90395', 'version': '0.1.0'}}
+        0xBAFcaF4504FCB3608686b40eB1AEe09Ae1dd2bc3: Malicious, metadata: {'malware_family': 'infected with EICAR Test File (NOT a Virus!)', 'scanner': {'environment': {'architecture': 'x86_64', 'operating_system': 'Linux'}, 'signatures_version': 'Core engine version: 7.00.41.07240\nVirus database timestamp: 2019-Oct-13 22:55:51\nVirus database fingerprint: 8AC41842F33C025F71031B23CD5E104B\nVirus databases loaded: 170\nVirus records: 8212364\nAnti-spam core is not loaded\nLast successful update: 2019-Oct-14 00:56:00\nNext scheduled update: 2019-Oct-14 01:26:00\n', 'vendor_version': 'drweb-ctl 11.1.2.1907091642\n', 'version': '0.3.0'}}
+        Lionic: Malicious, metadata: {'malware_family': '{"infections": [{"name": "Test.File.EICAR.y!c", "location": "polyswarm-artifactqlel80c6", "path": "C:/Users/ContainerAdministrator/AppData/Local/Temp/polyswarm-artifactqlel80c6", "time": "2019/10/14 01:10:11"}]}', 'scanner': {'environment': {'architecture': 'AMD64', 'operating_system': 'Windows'}}}
+        SecureAge: Malicious, metadata: {'malware_family': '', 'scanner': {'environment': {'architecture': 'AMD64', 'operating_system': 'Windows'}, 'signatures_version': '5.73', 'version': '0.3.0'}}
+        VenusEye: Malicious, metadata: {'malware_family': '', 'scanner': {'environment': {'architecture': 'x86_64', 'operating_system': 'Linux'}, 'version': '0.1.0'}}
+        Tachyon: Malicious, metadata: {'malware_family': 'EICAR-Test-File', 'scanner': {'environment': {'architecture': 'AMD64', 'operating_system': 'Windows'}, 'vendor_version': '2018.11.28.1', 'version': '0.1.0'}}
+        Qihoo 360: Malicious, metadata: {'malware_family': 'qex.eicar.gen.gen', 'scanner': {'environment': {'architecture': 'AMD64', 'operating_system': 'Windows'}}}
+        ZeroCERT: Clean
 
-$ polyswarm url https://www.XXXXXX.XXXX/admin.php?f=1.gif
-Scan report for GUID 550bcbfe-7d75-4de0-8d23-8b490e7ee58b
-=========================================================
-Report for file admin.php?f=1.gif, hash: c9d2152432e5ed53513c510b5ce94557313af965ba93f7819651542408344dae
-	Trustlook: Malicious, metadata: [{'malware_family': 'Malware', 'scanner': {'environment': {'operating_system': 'Linux', 'architecture': 'x86_64'}}}]
+$ polyswarm url https://google.com
+Report for artifact url, hash: 05046f26c83e8c88b3ddab2eab63d0d16224ac1e564535fc75cdceee47a0938d
+        All 5 engines reported this as benign or did not respond
+        Virusdie: Clean
+        Trustlook: Clean
+        Nucleon: Clean
+        Cyradar: Clean
+        ZeroCERT: Clean
+        Scan permalink: https://polyswarm.network/scan/results/1377b0e4-d54a-41b8-87bf-a0885d67cf3c
 ```
 
 #### Perform Searches
@@ -118,94 +134,102 @@ $ cat /tmp/test.txt
 Found 1 matches to the search query.
 Search results for sha256=131f95c51cc819465fa1797f6ccacf9d494aaaff46fa3eac73ae63ffbdfd8267
 File 131f95c51cc819465fa1797f6ccacf9d494aaaff46fa3eac73ae63ffbdfd8267
-	File type: mimetype: text/plain, extended_info: EICAR virus test files
-	SHA256: 131f95c51cc819465fa1797f6ccacf9d494aaaff46fa3eac73ae63ffbdfd8267
-	SHA1: cf8bd9dfddff007f75adf4c2be48005cea317c62
-	MD5: 69630e4574ec6798239b091cda43dca0
-	Observed countries: US,PR
-	Observed filenames: 131f95c51cc819465fa1797f6ccacf9d494aaaff46fa3eac73ae63ffbdfd8267,eicar.com.txt,eicar.txt
+        File type: mimetype: text/plain, extended_info: EICAR virus test files
+        SHA256: 131f95c51cc819465fa1797f6ccacf9d494aaaff46fa3eac73ae63ffbdfd8267
+        SHA1: cf8bd9dfddff007f75adf4c2be48005cea317c62
+        MD5: 69630e4574ec6798239b091cda43dca0
+        First seen: Wed, 22 May 2019 15:25:47 GMT
+        Observed countries: PR,US
+        Observed filenames: 131f95c51cc819465fa1797f6ccacf9d494aaaff46fa3eac73ae63ffbdfd8267,eicar.com,eicar.txt,cf8bd9dfddff007f75adf4c2be48005cea317c62,eicar.com.txt
+        Scan permalink: https://polyswarm.network/scan/results/8f51790a-4e30-48ad-b0a2-036c7306168f
+        Detections: 16/19 engines reported malicious
 ```
 
 ```bash
 $ polyswarm -o /tmp/test.txt search metadata "strings.domains:en.wikipedia.org AND exiftool.ZipFileName:AndroidManifest.xml AND exiftool.ZipRequiredVersion:>19"
 $ cat /tmp/test.txt | more
-Found 18 matches to the search query.
-Search results for {'query': {'query_string': {'query': 'strings.domains:en.wikipedia.org AND exift
-ool.ZipFileName:AndroidManifest.xml AND exiftool.ZipRequiredVersion:>19'}}}
-File 1d38780c2327086816d0a87d878d57b943d6ad5109b9389b5d5ffe3f9065698b
-	File type: mimetype: application/java-archive, extended_info: Java archive data (JAR)
-	SHA256: 1d38780c2327086816d0a87d878d57b943d6ad5109b9389b5d5ffe3f9065698b
-	SHA1: 76f5b2c6abbd6b30dc00fbe797001bf7247f423b
-	MD5: 12a1028e90696d9f3926ac3ab150950c
-	First seen: Sun, 24 Mar 2019 15:27:32 GMT
-	Observed countries: 
-	Observed filenames: 1d38780c2327086816d0a87d878d57b943d6ad5109b9389b5d5ffe3f9065698b
-
-
-File d8e6ac2884597021479796d252fcd61dbbfd71f7c07af54d71478af377e0bfb9
-	File type: mimetype: application/java-archive, extended_info: Java archive data (JAR)
-	SHA256: d8e6ac2884597021479796d252fcd61dbbfd71f7c07af54d71478af377e0bfb9
-	SHA1: a5b267cd66d0da885d252b279d28cb887f8b901c
-	MD5: bb0dd7f93ef2eaacfde18d07909fac0b
-	First seen: Sun, 31 Mar 2019 08:58:17 GMT
-	Observed countries: 
-	Observed filenames: d8e6ac2884597021479796d252fcd61dbbfd71f7c07af54d71478af377e0bfb9
-
-
-File 041044068eb8295a4d80786c3f55c77c641b6f3eb33187bbf504aa923ec5db78
-	File type: mimetype: application/java-archive, extended_info: Java archive data (JAR)
-	SHA256: 041044068eb8295a4d80786c3f55c77c641b6f3eb33187bbf504aa923ec5db78
-	SHA1: 5ab68f339ddf9d8701d2c3947cc0596652b92cb0
-	MD5: c93a8476c16cc7e044be305b71fe1b1f
-	First seen: Wed, 27 Mar 2019 07:02:24 GMT
-	Observed countries: 
+Found 1000 matches to the search query.
+Search results for {'query': {'query_string': {'query': 'strings.domains:en.wikipedia.org AND exiftool.ZipFileName:AndroidManifest.xml'}}}
+File 55f9d374e0d16ecaa047f2af9f2dcbb0a6576847caee0a2cbdc36a079961a991 
+        File type: mimetype: application/x-dosexec, extended_info: PE32 executable (GUI) Intel 80386, for MS Windows
+        SHA256: 55f9d374e0d16ecaa047f2af9f2dcbb0a6576847caee0a2cbdc36a079961a991
+        SHA1: 4a0da13003a36fc299ea5c7ebd54d59e42854f22
+        MD5: ba72c9d80b336ae481a3eceaace1844e                                                                                 
+        First seen: Mon, 02 Sep 2019 13:48:06 GMT
+        Observed countries: US                                           
+        Observed filenames: 55f9d374e0d16ecaa047f2af9f2dcbb0a6576847caee0a2cbdc36a079961a991
+        Scan permalink: https://polyswarm.network/scan/results/9c50c2ca-31a8-42cd-b067-b864eff57409
+        Detections: 12/19 engines reported malicious
 --More--
 ```
 
 #### Lookup UUIDs
 
 ```bash
-$ polyswarm -vvv -o /tmp/test.json --fmt json lookup 39b04176-51eb-4431-82d0-a0a3176164f0
-DEBUG:root:Creating API instance: api_key:<redacted>
-DEBUG:asyncio:Using selector: EpollSelector
-
+$ polyswarm -vvv -o /tmp/test.json --fmt json lookup ac331689-c4a1-400c-be79-98268c182c88
+DEBUG:root:Creating API instance: api_key:<redacted>, api_uri:https://api.polyswarm.network/v1
+DEBUG:urllib3.connectionpool:Starting new HTTPS connection (1): api.polyswarm.network:443
+DEBUG:urllib3.connectionpool:https://api.polyswarm.network:443 "GET /v1/consumer/lima/uuid/ac331689-c4a1-400c-be79-98268c182c88 HTTP/1.1" 200 610
+DEBUG:urllib3.connectionpool:Starting new HTTPS connection (1): api.polyswarm.network:443
+DEBUG:urllib3.connectionpool:https://api.polyswarm.network:443 "GET /v1/microengines/list HTTP/1.1" 200 1887
 $ cat /tmp/test.json
-[{"files": [{"assertions": [{"author": "0x1EdF29c0977aF06215032383F93deB9899D90118", "bid": 62500000000000000, "mask": true, "metadata": "", "verdict": false, "engine": "tachyon"}, {"author": "0x2b4C240B376E5406C5e2559C27789d776AE97EFD", "bid": 62500000000000000, "mask": true, "metadata": "{\"infections\": [{\"name\": \"Marker.Dos.EICAR-Test-File.dyb\"}]}", "verdict": true, "engine": "nanoav"}, {"author": "0xf6019C1f057D26FFB2b41C221E0DB4Ef88931C86", "bid": 62500000000000000, "mask": true, "metadata": null, "verdict": null, "engine": "zillya"}, {"author": "0x3750266F07E0590aA16e55c32e08e48878010f8f", "bid": 62500000000000000, "mask": true, "metadata": "Eicar-Test-Signature", "verdict": true, "engine": "clamav-engine"}, {"author": "0xbE0B3ec289aaf9206659F8214c49D083Dc1a9E17", "bid": 62500000000000000, "mask": true, "metadata": "Trojan ( 000139291 )", "verdict": true, "engine": "k7-engine"}, {"author": "0xA4815D9b8f710e610E8957F4aD13F725a4331cbB", "bid": 62500000000000000, "mask": true, "metadata": "EICAR-Test-File", "verdict": true, "engine": "ikarus"}, {"author": "0x59Af39803354Bd08971Ac8e7C6dB7410a25Ab8DA", "bid": 62500000000000000, "mask": true, "metadata": "", "verdict": true, "engine": "xvirus"}, {"author": "0x7c6A9f9f9f1a67774999FF0e26ffdBa2c9347eeB", "bid": 62500000000000000, "mask": true, "metadata": "infected with EICAR Test File (NOT a Virus!)", "verdict": true, "engine": "drweb"}, {"author": "0x0457C40dBA29166c1D2485F93946688C1FC6Cc58", "bid": 62500000000000000, "mask": true, "metadata": "", "verdict": false, "engine": "lionic"}], "bounty_guid": "dee1769b-0428-4e98-a39d-aa1c230435bf", "bounty_status": "Settled", "failed": false, "filename": "eicar", "hash": "131f95c51cc819465fa1797f6ccacf9d494aaaff46fa3eac73ae63ffbdfd8267", "result": true, "size": 69, "votes": [{"arbiter": "0xdC6a0F9C3AF726Ba05AaC14605Ac9B3b958512d7", "vote": true, "engine": "clamav-arbiter"}, {"arbiter": "0x2E03565b735E2343F7F0501A7772A42B1C0E8893", "vote": true, "engine": "psarbiter"}, {"arbiter": "0x1f50Cf288b5d19a55ac4c6514e5bA6a704BD03EC", "vote": false, "engine": "hatchingarb"}], "window_closed": true}], "forced": false, "status": "Duplicate", "uuid": "39b04176-51eb-4431-82d0-a0a3176164f0"}]
+{"files": [{"assertions": [{"author": "0x80Ed773972d8BA0A4FacF2401Aca5CEba52F76dc", "bid": 500000000000000000, "mask": true, "metadata": {"malware_family": "", "scanner": {"environment": {"architecture": "x86_64", "operating_system": "Linux"}, "vendor_version": "", "version": "0.1.0"}}, "verdict": false, "engine_name": "Nucleon"}, {"author": "0x8d80CEe474b9004949Cf7e4BfA28460AC8e370a1", "bid": 500000000000000000, "mask": true, "metadata": {"malware_family": "", "scanner": {"environment": {"architecture": "x86_64", "operating_system": "Linux"}, "version": "0.3.0"}}, "verdict": false, "engine_name": "Virusdie"}, {"author": "0xF598F7dA0D00D9AD21fb00663a7D62a19D43Ea61", "bid": 500000000000000000, "mask": true, "metadata": {"malware_family": "Search engine", "scanner": {"environment": {"architecture": "x86_64", "operating_system": "Linux"}, "vendor_version": "2", "version": "0.1.0"}}, "verdict": false, "engine_name": "Trustlook"}, {"author": "0x8434434991A61dAcE1544a7FC1B0F8d83523B778", "bid": 500000000000000000, "mask": true, "metadata": {"malware_family": "", "scanner": {"environment": {"architecture": "x86_64", "operating_system": "Linux"}, "vendor_version": "", "version": "0.1.0"}}, "verdict": false, "engine_name": "Cyradar"}, {"author": "0xdCc9064325c1aa24E08182676AD23B3D78b39E05", "bid": 500000000000000000, "mask": true, "metadata": {"malware_family": "", "scanner": {"environment": {"architecture": "x86_64", "operating_system": "Linux"}, "vendor_version": "1.1", "version": "0.1.0"}}, "verdict": false, "engine_name": "ZeroCERT"}], "bounty_guid": "423a680a-ebf5-41a1-ba66-c64a84924091", "bounty_status": "Bounty Settled", "failed": false, "filename": "url", "hash": "05046f26c83e8c88b3ddab2eab63d0d16224ac1e564535fc75cdceee47a0938d", "result": null, "size": 18, "submission_guid": "ac331689-c4a1-400c-be79-98268c182c88", "votes": [], "window_closed": true}], "forced": false, "status": "Bounty Settled", "uuid": "ac331689-c4a1-400c-be79-98268c182c88"}
 ```
 
 #### Download Files
 
 ```bash
 $ polyswarm download test/ 131f95c51cc819465fa1797f6ccacf9d494aaaff46fa3eac73ae63ffbdfd8267
-Downloaded 131f95c51cc819465fa1797f6ccacf9d494aaaff46fa3eac73ae63ffbdfd8267: test/131f95c51cc819465fa1797f6ccacf9d494aaaff46fa3eac73ae63ffbdfd8267
+Successfully ownloaded artifact 131f95c51cc819465fa1797f6ccacf9d494aaaff46fa3eac73ae63ffbdfd8267 to /home/user/test/131f95c51cc819465fa1797f6ccacf9d494aaaff46fa3eac73ae63ffbdfd8267
 ```
 
 #### Perform Rescans
 
 ```bash
 $ polyswarm rescan 131f95c51cc819465fa1797f6ccacf9d494aaaff46fa3eac73ae63ffbdfd8267
-Scan report for GUID 46a112f2-a368-4b59-96b0-0dffac5306a6
-=========================================================
-Report for file 131f95c51cc819465fa1797f6ccacf9d494aaaff46fa3eac73ae63ffbdfd8267, hash: 131f95c51cc819465fa1797f6ccacf9d494aaaff46fa3eac73ae63ffbdfd8267
-        lionic: Malicious, metadata: {"infections": [{"path": "C:/Windows/TEMP/polyswarm-artifactn8mjdwm9", "time": "2019/02/21 20:04:37", "name": "Test.File.EICAR.y!c", "location": "polyswarm-artifactn8mjdwm9"}]}
-        ikarus: Malicious, metadata: EICAR-Test-File
-        clamav-engine: Malicious, metadata: Eicar-Test-Signature
-        drweb: Malicious, metadata: infected with EICAR Test File (NOT a Virus!)
-        xvirus: Unknown/failed to respond
-        tachyon: Clean
-        nanoav: Malicious, metadata: {"infections": [{"name": "Marker.Dos.EICAR-Test-File.dyb"}]}
-        zillya: Malicious, metadata: Status:Infected EICAR.TestFile
-        k7-engine: Malicious, metadata: Trojan ( 000139291 )
+Report for artifact 131f95c51cc819465fa1797f6ccacf9d494aaaff46fa3eac73ae63ffbdfd8267, hash: 131f95c51cc819465fa1797f6ccacf9d494aaaff46fa3eac73ae63ffbdfd8267
+        17 out of 20 engines reported this as malicious
+        VenusEye: Malicious, metadata: {'malware_family': '', 'scanner': {'environment': {'architecture': 'x86_64', 'operating_system': 'Linux'}, 'version': '0.1.0'}}
+        K7: Malicious, metadata: {'malware_family': 'Trojan ( 000139291 )', 'scanner': {'environment': {'architecture': 'AMD64', 'operating_system': 'Windows'}, 'signatures_version': '11.66.31997|12/Sep/2019', 'vendor_version': '15.2.0.42', 'version': '0.2.0'}}
+        Jiangmin: Malicious, metadata: {'malware_family': 'Find Virus EICAR-Test-File in C:\\Users\\ContainerAdministrator\\AppData\\Local\\Temp\\polyswarm-artifactztoecu5h', 'scanner': {'environment': {'architecture': 'AMD64', 'operating_system': 'Windows'}, 'signatures_version': '', 'vendor_version': '16.0.100 ', 'version': '0.2.0'}}
+        Virusdie: Malicious, metadata: {'malware_family': 'EICAR.TEST', 'scanner': {'environment': {'architecture': 'x86_64', 'operating_system': 'Linux'}, 'vendor_version': '1.3.0', 'version': '0.3.0'}}
+        Trustlook: Clean
+        0xBAFcaF4504FCB3608686b40eB1AEe09Ae1dd2bc3: Malicious, metadata: {'malware_family': 'infected with EICAR Test File (NOT a Virus!)', 'scanner': {'environment': {'architecture': 'x86_64', 'operating_system': 'Linux'}, 'signatures_version': 'Core engine version: 7.00.41.07240\nVirus database timestamp: 2019-Oct-14 00:10:21\nVirus database fingerprint: 95CC1F8E066874DCF48E898334572198\nVirus databases loaded: 170\nVirus records: 8212567\nAnti-spam core is not loaded\nLast successful update: 2019-Oct-14 01:56:03\nNext scheduled update: 2019-Oct-14 02:26:03\n', 'vendor_version': 'drweb-ctl 11.1.2.1907091642\n', 'version': '0.3.0'}}
+        Nucleon: Clean
+        Alibaba: Malicious, metadata: {'malware_family': 'Virus:Any/EICAR_Test_File.534838ff', 'scanner': {'environment': {'architecture': 'AMD64', 'operating_system': 'Windows'}}, 'type': 'eicar'}
+        NanoAV: Malicious, metadata: {'malware_family': 'Marker.Dos.EICAR-Test-File.dyb', 'scanner': {'environment': {'architecture': 'AMD64', 'operating_system': 'Windows'}, 'signatures_version': '0.14.32.16015|1568318271000', 'vendor_version': '1.0.134.90395', 'version': '0.1.0'}}
+        Quick Heal: Malicious, metadata: {'malware_family': 'EICAR.TestFile', 'scanner': {'environment': {'architecture': 'AMD64', 'operating_system': 'Windows'}, 'signatures_version': '09 September, 2019', 'version': '0.1.0'}}
+        Qihoo 360: Malicious, metadata: {'malware_family': 'qex.eicar.gen.gen', 'scanner': {'environment': {'architecture': 'AMD64', 'operating_system': 'Windows'}}}
+        ZeroCERT: Clean
+        XVirus: Malicious, metadata: {'malware_family': '', 'scanner': {'environment': {'architecture': 'AMD64', 'operating_system': 'Windows'}, 'vendor_version': '3.0.2.0', 'version': '0.2.0'}}
+        Ikarus: Malicious, metadata: {'malware_family': 'EICAR-Test-File', 'scanner': {'environment': {'architecture': 'x86_64', 'operating_system': 'Linux'}, 'signatures_version': '13.10.2019 18:20:55 (102021)', 'vendor_version': '5.2.9.0', 'version': '0.2.0'}}
+        ClamAV: Malicious, metadata: {'malware_family': 'Eicar-Test-Signature', 'scanner': {'environment': {'architecture': 'x86_64', 'operating_system': 'Linux'}, 'vendor_version': 'ClamAV 0.100.3/25601/Sun Oct 13 08:51:55 2019\n'}}
+        SecureAge: Malicious, metadata: {'malware_family': '', 'scanner': {'environment': {'architecture': 'AMD64', 'operating_system': 'Windows'}, 'signatures_version': '5.73', 'version': '0.3.0'}}
+        Lionic: Malicious, metadata: {'malware_family': '{"infections": [{"name": "Test.File.EICAR.y!c", "location": "polyswarm-artifact52c_247x", "path": "C:/Users/ContainerAdministrator/AppData/Local/Temp/polyswarm-artifact52c_247x", "time": "2019/10/14 02:00:47"}]}', 'scanner': {'environment': {'architecture': 'AMD64', 'operating_system': 'Windows'}}}
+        Antiy-AVL: Malicious, metadata: {'malware_family': 'Virus/DOS.EICAR_Test_File', 'scanner': {'environment': {'architecture': 'x86_64', 'operating_system': 'Linux'}}}
+        Tachyon: Malicious, metadata: {'malware_family': 'EICAR-Test-File', 'scanner': {'environment': {'architecture': 'AMD64', 'operating_system': 'Windows'}, 'vendor_version': '2018.11.28.1', 'version': '0.1.0'}}
+        Rising: Malicious, metadata: {'malware_family': 'Virus.EICAR_Test_File!8.D9E', 'scanner': {'environment': {'architecture': 'x86_64', 'operating_system': 'Linux'}}}
+        Scan permalink: https://polyswarm.network/scan/results/ce290fc6-77c1-4dd2-944d-2dc52b6ea722
 ```
 
 For information regarding the JSON format, please see [API.md](https://github.com/polyswarm/polyswarm-api/blob/master/API.md).
+
+#### Chain commands
+Some commands in the CLI are composable using the `sha256` format option. For instance, if we wanted to download all the results matching a metadata query:
+
+```bash
+$ polyswarm --fmt sha256 search metadata 'strings.domains:malicious.com' | polyswarm download malicious -r -
+Successfully downloaded artifact 131f95c51cc819465fa1797f6ccacf9d494aaaff46fa3eac73ae63ffbdfd8267 to /home/user/malicious/131f95c51cc819465fa1797f6ccacf9d494aaaff46fa3eac73ae63ffbdfd8267
+``` 
+
+Currently, this supports anything that takes a hash argument.
 
 ### Use the library:
 
 #### Create an API Client
 
 ```python
-import polyswarm_api
+from polyswarm_api.api import PolyswarmAPI
 
 api_key = "317b21cb093263b701043cb0831a53b9"
 
@@ -219,17 +243,16 @@ api = polyswarm_api.PolyswarmAPI(key=api_key)
 ```python
 results = api.scan_directory("/path/to/directory")
 
-results = api.scan_file("/path/to/eicar")
+results = api.scan("/path/to/eicar")
 
-results = api.scan_url("http://bad.com")
+results = api.scan_urls("http://bad.com")
 ```
 
 #### Perform Searches
 
 ```python
-results = api.search_hash("275a021bbfb6489e54d471899f7db9d1663fc695ec2fe2a2c4538aabf651fd0f")
+results = api.search("275a021bbfb6489e54d471899f7db9d1663fc695ec2fe2a2c4538aabf651fd0f")
 
-results = api.search_hashes(["275a021bbfb6489e54d471899f7db9d1663fc695ec2fe2a2c4538aabf651fd0f"])
 
 query = { "query": {
                 "exists": {
@@ -237,8 +260,7 @@ query = { "query": {
                 }
             }
         }
-results = api.search_query(query)
-
+results = api.search_by_metadata(*[query])
 ```
 
 ##### Metadata Terms
@@ -385,43 +407,31 @@ Do note: some characters, like backslashes, must be escaped with a backslash.
 #### Download Files
 
 ```python
-results = api.download_file("275a021bbfb6489e54d471899f7db9d1663fc695ec2fe2a2c4538aabf651fd0f", "test/")
-
-results = api.rescan_file("275a021bbfb6489e54d471899f7db9d1663fc695ec2fe2a2c4538aabf651fd0f")
-
-results = api.new_live_hunt(open("eicar.yara").read()) 
-
-results = api.get_live_results(hunt_id=results['result']['hunt_id'])
-
-results = api.new_historical_hunt(open("eicar.yara").read()) 
-
-results = api.get_historical_results(hunt_id=results['result']['hunt_id'])
-
-results = api.get_stream(destination_dir="/my/malware/path")
+results = api.download("download/", "275a021bbfb6489e54d471899f7db9d1663fc695ec2fe2a2c4538aabf651fd0f")
 ```
 
 #### Perform Hunts
 
 ```python
-results = api.new_live_hunt(open("eicar.yara").read()) 
+response = api.live(open("eicar.yara").read()) 
 
-results = api.get_live_results(hunt_id=results['result']['hunt_id'])
+results = api.live_results(hunt_id=response.result.id)
 
-results = api.new_historical_hunt(open("eicar.yara").read()) 
+response = api.historical(open("eicar.yara").read()) 
 
-results = api.get_historical_results(hunt_id=results['result']['hunt_id'])
+results = api.historical_results(hunt_id=response.result.id)
 ```
 
 #### Perform Rescans
 
 ```python
-results = api.rescan_file("275a021bbfb6489e54d471899f7db9d1663fc695ec2fe2a2c4538aabf651fd0f")
-``````
+results = api.rescan("275a021bbfb6489e54d471899f7db9d1663fc695ec2fe2a2c4538aabf651fd0f")
+```
 
 #### Get a Stream
 
 ```python
-results = api.get_stream(destination_dir="/my/malware/path")
+results = api.stream(destination_dir="/my/malware/path")
 ```
 
 ## Questions? Problems?
