@@ -15,3 +15,6 @@ class BaseOutput(object):
 
     def hunt_submission(self, result):
         raise NotImplementedError
+
+    def download_result(self, result):
+        raise NotImplementedError

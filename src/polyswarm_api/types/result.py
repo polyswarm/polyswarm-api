@@ -60,13 +60,23 @@ class IndexableResult(ApiResponse):
 
 
 class DownloadResult(ApiResponse):
-    SCHEMA = {'type': 'null'}
     """ This is an artificially constructed result object, to track downloads. """
-    def __init__(self, artifacts, status='OK', polyswarm=None):
-        # no associated json
-        super(ApiResponse, self).__init__(None, polyswarm)
-        self.status = status
-        self.result = artifacts
+    def __init__(self, artifact, result, polyswarm=None):
+        self.polyswarm = polyswarm
+        self.status_code = result.status_code
+
+        if self.status_code // 100 != 2:
+            raise self._bad_status_exception
+
+        self.status = 'OK'
+        self.result = artifact
+        self.errors = None
+        self.total = None
+        self.limit = None
+        self.page = None
+        self.order_by = None
+        self.direction = None
+
 
 
 class SearchResult(IndexableResult):

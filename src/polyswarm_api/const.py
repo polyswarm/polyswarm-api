@@ -26,5 +26,5 @@ MAX_ARTIFACT_BATCH_SIZE = 256
 # Filesystem constants
 FILE_CHUNK_SIZE = 8192
 MAX_OPEN_FDS = 256
-# this results in worst case 8MB memory usage during downloads
-DOWNLOAD_CHUNK_SIZE = 1024*1024
+# this results in worst case 32MB memory usage during downloads
+DOWNLOAD_CHUNK_SIZE = 1024*1024*4

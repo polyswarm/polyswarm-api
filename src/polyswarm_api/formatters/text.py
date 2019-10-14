@@ -170,6 +170,11 @@ class TextOutput(base.BaseOutput):
         for match in result:
             self.out.write(self._format_hunt_match(match)+'\n')
 
+    def download_result(self, result):
+        artifact = result.result
+        self.out.write(self._good('Successfully downloaded artifact {} to {}\n'.format(artifact.artifact_name,
+                                                                                       artifact.path)))
+        self.out.flush()
 
     @is_grouped
     @is_colored

@@ -40,13 +40,13 @@ class PolyswarmRequestGenerator(object):
 
         self.timeout = timeout
 
-    @update_with_kwargs
+    @update_with_kwargs([])
     def download(self, h, **kwargs):
-        args = {
+        return {
+            'method': 'GET',
             'url': self.download_fmt.format(self.download_base, h.hash_type, h.hash),
+            'stream': True,
         }
-
-        return args
 
     @update_with_kwargs(["with_instances", "with_metadata"])
     def search(self, h, **kwargs):
@@ -143,6 +143,21 @@ class PolyswarmEndpointBase(object):
 
         raise NotImplementedError
 
+    def _download_to_fh(self, req, fh):
+        raise NotImplementedError
+
+    def download(self, h, out_path):
+        """
+        Download a series of PSHashes to files
+
+        :return: A future
+        """
+        in_progress, done = [], []
+
+        fh = open(out_path, 'wb')
+        req = self.session.request(**self.req_gen.download(h))
+        return self._download_to_fh(req, fh)
+
     def search_hash(self, h, **kwargs):
         """
         Download a series of
@@ -198,38 +213,17 @@ class PolyswarmEndpointFutures(PolyswarmEndpointBase):
         self.unauth_session = PolyswarmHTTPFutures(None, retries)
         self.timeout = timeout
 
-    def _download_to_fh(self, url, fh):
+    def _download_to_fh(self, req, fh):
         # this is unfortunately the cleanest way I think I can do this with requests-futures
         # derived partially from https://github.com/ross/requests-futures/issues/54
         def do_download(r, f):
             for chunk in r.iter_content(chunk_size=const.DOWNLOAD_CHUNK_SIZE):
                 f.write(chunk)
             return r
-        resp = self.session.get(url, stream=True).result()
+        resp = req.result()
         resp.raise_for_status()
         return self.session.executor.submit(do_download, resp, fh)
 
-    def download(self, hashes, out_directory):
-        """
-        Download a series of PSHashes to files
-
-        :return: Dict of hash->path mappings.
-        """
-        in_progress, done = [], []
-
-        # TODO this will be bursty when number of files > MAX_OPEN_FDS, but at least won't crash
-        for chunk in utils.chunks(hashes, const.MAX_OPEN_FDS):
-            for h in chunk:
-                out_path = os.path.join(out_directory, h.hash)
-                fh = open(out_path, 'wb')
-                in_progress.append((self._download_to_fh(self.uri_map.download_uri(h), fh), fh,
-                                    out_path))
-            for future, fh, out_path in in_progress:
-                future.result()
-                fh.close()
-                done.append(Artifact())
-
-        return {h: future.result() for h, future in in_progress}
 
 
 class PolyswarmEndpoint(PolyswarmEndpointBase):
@@ -243,3 +237,7 @@ class PolyswarmEndpoint(PolyswarmEndpointBase):
         self.session = PolyswarmHTTP(key, retries)
         self.unauth_session = PolyswarmHTTP(None, retries)
         self.timeout = timeout
+
+    def _download_to_fh(self, req, fh):
+        for chunk in req.iter_content(chunk_size=const.DOWNLOAD_CHUNK_SIZE):
+            fh.write(chunk)

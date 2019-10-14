@@ -74,13 +74,17 @@ class PolyswarmAPI(object):
             yield result.SearchResult(query, future.result(), polyswarm=self)
 
     def download(self, out_dir, *hashes):
-        pass
+        hashes = [to_hash(h) for h in hashes]
 
-    def download_by_feature(self, *artifacts):
-        pass
+        if not os.path.exists(out_dir):
+            os.makedirs(out_dir)
 
-    def download_by_metadata(self, query):
-        pass
+        futures = [(h, os.path.join(out_dir, h.hash),
+                    self.endpoint.download(h, os.path.join(out_dir, h.hash))) for h in hashes]
+
+        for h, path, f in futures:
+            artifact = LocalArtifact(path=path, artifact_name=h.hash, analyze=False, polyswarm=self)
+            yield result.DownloadResult(artifact, f.result())
 
     def submit(self, *artifacts):
         """

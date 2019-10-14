@@ -229,18 +229,13 @@ def download(ctx, metadata, hash_file, hash_type, hash, destination):
     Download files from matching hashes
     """
     api = ctx.obj['api']
+    output = ctx.obj['output']
 
-    hashes, hash_type = parse_hashes(hash,
-                                     hash_type,
-                                     hash_file)
+    hashes = parse_hashes(hash, hash_type, hash_file)
+
     if hashes:
-        if not os.path.exists(destination):
-            os.makedirs(destination)
-
-        rf = PSDownloadResultFormatter(api.download_files(hashes, destination, metadata, hash_type),
-                                       color=ctx.obj['color'], output_format=ctx.obj['output_format'])
-
-        ctx.obj['output'].write((str(rf)))
+        for result in api.download(destination, *hashes):
+            output.download_result(result)
     else:
         raise click.BadParameter('Hash not valid, must be sha256|md5|sha1 in hexadecimal format')
 
