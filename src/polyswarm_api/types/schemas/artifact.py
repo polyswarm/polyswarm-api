@@ -58,3 +58,8 @@ artifact_schema = {
     },
     'required': ['extended_type', 'first_seen', 'id', 'sha256', 'sha1', 'md5', 'mimetype'],
 }
+
+# TODO fill out more
+artifact_metadata = {
+    'type': 'object',
+}

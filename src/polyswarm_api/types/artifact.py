@@ -26,6 +26,19 @@ def not_deleted(func):
     return wrapper
 
 
+class ArtifactMetadata(BasePSJSONType):
+    SCHEMA = schemas.artifact_metadata
+
+    def __init__(self, artifact, json, polyswarm=None):
+        super(ArtifactMetadata, self).__init__(json, polyswarm)
+
+        self.artifact = artifact
+        self.hash = json.get('hash', {})
+        self.exiftool = json.get('exiftool', {})
+        self.lief = json.get('lief', {})
+        self.pefile = json.get('pefile', {})
+
+
 class ArtifactInstance(BasePSJSONType):
     SCHEMA = schemas.artifact_instance_schema
 
@@ -76,7 +89,7 @@ class Artifact(Hashable, BasePSJSONType):
 
         # for now, we don't have a special Metadata object, but if something differentiates this
         # in the future from a simple dict, we can
-        self.metadata = json.get('artifact_metadata', {})
+        self.metadata = ArtifactMetadata(self, json.get('artifact_metadata', {}), polyswarm)
 
     @property
     def hash(self):

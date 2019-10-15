@@ -40,6 +40,25 @@ class TextOutput(base.BaseOutput):
         output.append(self._info('SHA256: {hash}'.format(hash=artifact.sha256)))
         output.append(self._info('SHA1: {hash}'.format(hash=artifact.sha1)))
         output.append(self._info('MD5: {hash}'.format(hash=artifact.md5)))
+
+        if artifact.metadata:
+            if artifact.metadata.hash:
+                h = artifact.metadata.hash
+
+                if 'ssdeep' in h:
+                    output.append(self._info('SSDEEP: {}'.format(h['ssdeep'])))
+
+                if 'tlsh' in h:
+                    output.append(self._info('TLSH: {}'.format(h['tlsh'])))
+
+                if 'authentihash' in h:
+                    output.append(self._info('Authentihash: {}'.format(h['authentihash'])))
+            if artifact.metadata.pefile:
+                p = artifact.metadata.pefile
+
+                if 'imphash' in p:
+                    output.append(self._info('Imphash: {}'.format(p['imphash'])))
+
         output.append(self._info('First seen: {first_seen}'.format(first_seen=artifact.first_seen)))
 
         countries, filenames, = artifact.countries, artifact.filenames
@@ -62,6 +81,9 @@ class TextOutput(base.BaseOutput):
             else:
                 output.append(self._info('Detections: {}/{} engines reported malicious'
                                          .format(0, len(last_scan.assertions))))
+
+
+
 
 
         output.append(self._close_group())

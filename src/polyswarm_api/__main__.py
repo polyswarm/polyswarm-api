@@ -132,14 +132,14 @@ def search():
 
 @click.option('-r', '--hash-file', help='File of hashes, one per line.', type=click.File('r'))
 @click.option('--hash-type', help='Hash type to search [default:autodetect, sha256|sha1|md5]', default=None)
-@click.option('-m', '--with-metadata', is_flag=True, default=False,
-              help='Request metadata associated with artifacts as well.')
+@click.option('-m', '--without-metadata', is_flag=True, default=False,
+              help='Don\'t request artifact metadata.')
 @click.option('-b', '--without-bounties', is_flag=True, default=False,
-              help='Request bounty results associated with artifacts as well')
+              help='Don\'t request bounties.')
 @click.argument('hashes', nargs=-1)
 @search.command('hash', short_help='search for hashes separated by space')
 @click.pass_context
-def hashes(ctx, hashes, hash_file, hash_type, with_metadata, without_bounties):
+def hashes(ctx, hashes, hash_file, hash_type, without_metadata, without_bounties):
     """
     Search PolySwarm for files matching hashes
     """
@@ -149,7 +149,7 @@ def hashes(ctx, hashes, hash_file, hash_type, with_metadata, without_bounties):
 
     hashes = parse_hashes(hashes, hash_type, hash_file)
     if hashes:
-        results = api.search(*hashes, with_instances=not without_bounties, with_metadata=with_metadata)
+        results = api.search(*hashes, with_instances=not without_bounties, with_metadata=not without_metadata)
 
         # for json, this is effectively jsonlines
         for result in results:
@@ -159,14 +159,14 @@ def hashes(ctx, hashes, hash_file, hash_type, with_metadata, without_bounties):
 
 
 @click.option('-r', '--query-file', help='Properly formatted JSON search file', type=click.File('r'))
-@click.option('-m', '--with-metadata', is_flag=True, default=False,
-              help='Request metadata associated with artifacts as well.')
+@click.option('-m', '--without-metadata', is_flag=True, default=False,
+              help='Don\'t request artifact metadata.')
 @click.option('-b', '--without-bounties', is_flag=True, default=False,
-              help='Request bounty results associated with artifacts as well')
+              help='Don\'t request bounties.')
 @click.argument('query_string', nargs=-1)
 @search.command('metadata', short_help='search metadata of files')
 @click.pass_context
-def metadata(ctx, query_string, query_file, with_metadata, without_bounties):
+def metadata(ctx, query_string, query_file, without_metadata, without_bounties):
 
     api = ctx.obj['api']
     output = ctx.obj['output']
@@ -187,7 +187,8 @@ def metadata(ctx, query_string, query_file, with_metadata, without_bounties):
         logger.error('Failed to parse JSON due to Unicode error')
         return 0
 
-    for result in api.search_by_metadata(*queries, with_instances=not without_bounties, with_metadata=with_metadata):
+    for result in api.search_by_metadata(*queries, with_instances=not without_bounties,
+                                         with_metadata=not without_metadata):
         output.search_result(result)
 
     return 0
@@ -298,16 +299,16 @@ def live_delete(ctx, hunt_id):
 
 @click.option('-i', '--hunt-id', type=int, help='ID of the rule file (defaults to latest)')
 @live.command('results', short_help='get results from live hunt')
-@click.option('-m', '--with-metadata', is_flag=True, default=False,
-              help='Request metadata associated with artifacts as well.')
+@click.option('-m', '--without-metadata', is_flag=True, default=False,
+              help='Don\'t request artifact metadata.')
 @click.option('-b', '--without-bounties', is_flag=True, default=False,
-              help='Request bounty results associated with artifacts as well')
+              help='Don\'t request bounties.')
 @click.pass_context
-def live_results(ctx, hunt_id, with_metadata, without_bounties):
+def live_results(ctx, hunt_id, without_metadata, without_bounties):
     api = ctx.obj['api']
     output = ctx.obj['output']
 
-    result = api.live_results(hunt_id, with_metadata=with_metadata, with_instances=without_bounties)
+    result = api.live_results(hunt_id, with_metadata=not without_metadata, with_instances=not without_bounties)
 
     output.hunt_result(result)
 
@@ -337,17 +338,17 @@ def historical_delete(ctx, hunt_id):
 
 
 @click.option('-i', '--hunt-id', type=int, help='ID of the rule file (defaults to latest)')
-@click.option('-m', '--with-metadata', is_flag=True, default=False,
-              help='Request metadata associated with artifacts as well.')
+@click.option('-m', '--without-metadata', is_flag=True, default=False,
+              help='Don\'t request artifact metadata.')
 @click.option('-b', '--without-bounties', is_flag=True, default=False,
-              help='Request bounty results associated with artifacts as well')
+              help='Don\'t request bounties.')
 @historical.command('results', short_help='get results from historical hunt')
 @click.pass_context
-def historical_results(ctx, hunt_id, with_metadata, without_bounties):
+def historical_results(ctx, hunt_id, without_metadata, without_bounties):
     api = ctx.obj['api']
     output = ctx.obj['output']
 
-    result = api.historical_results(hunt_id, with_metadata=with_metadata, with_instances=not without_bounties)
+    result = api.historical_results(hunt_id, with_metadata=without_metadata, with_instances=not without_bounties)
 
     output.hunt_result(result)
 
