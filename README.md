@@ -36,6 +36,10 @@ An interface to the public and private PolySwarm APIs.
 
 Supports Python 2.7 and greater.
 
+## Dependencies
+
+You may need to install your platforms' equivalent `python-dev` package.
+
 ## Installation
 
 From PyPI:

@@ -35,7 +35,7 @@ class ArtifactInstance(BasePSJSONType):
         self.bounty_id = json['bounty_id']
         # rename this to make it clearer, and avoid the word 'Result' which has a specific meaning in this project
         # using Scan here instead of Bounty
-        self.bounty = Bounty(self, json['bounty_result']) if json['bounty_result'] else None
+        self.bounty = Bounty(self, json['bounty_result'], polyswarm=polyswarm) if json['bounty_result'] else None
         self.community = json['community']
         self.consumer_guid = json.get('consumer_guid', None)
         self.country = json['country']
@@ -71,7 +71,8 @@ class Artifact(Hashable, BasePSJSONType):
         self.sha1 = Hash(json['sha1'], 'sha1', polyswarm)
         self.md5 = Hash(json['md5'], 'md5', polyswarm)
 
-        self.instances = [ArtifactInstance(self, instance) for instance in json.get('artifact_instances', [])]
+        self.instances = [ArtifactInstance(self, instance,
+                                           polyswarm=polyswarm) for instance in json.get('artifact_instances', [])]
 
         # for now, we don't have a special Metadata object, but if something differentiates this
         # in the future from a simple dict, we can
@@ -123,7 +124,8 @@ class Artifact(Hashable, BasePSJSONType):
 
     @property
     def scans(self):
-        return list(filter(None, [bounty.get_file_by_hash(self) for bounty in self.bounties]))
+        # do not report scans as they are running, only once window has closed
+        return list(filter(None, [bounty.get_file_by_hash(self) for bounty in self.bounties if bounty.ready]))
 
     @property
     def scan_permalink(self):

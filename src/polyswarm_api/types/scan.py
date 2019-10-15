@@ -14,11 +14,11 @@ class Assertion(BasePSJSONType):
 
         # TODO this needs to go away, but we are forced to until we do this resolution server-side
         # we also are forced to modify the json in place so that this information is included in JSON formatting
-        if 'engine_name' in json:
-            self.engine_name = json['engine_name']
-        else:
+        if 'engine_name' not in json or 'engine_name'.startswith("0x"):
             self.engine_name = self.polyswarm._resolve_engine_name(self.author) if self.polyswarm else self.author
             self.json['engine_name'] = self.engine_name
+        else:
+            self.engine_name = json['engine_name']
 
         self.bid = int(json['bid'])
         self.mask = json['mask']
@@ -60,6 +60,9 @@ class Scan(BasePSJSONType):
         self.votes = [Vote(self, v, polyswarm) for v in json['votes']]
         self.window_closed = json['window_closed']
         self.ready = self.window_closed
+        self.submission_guid = json.get('submission_guid', None)
+        self._permalink = "{}/{}".format(const.DEFAULT_PERMALINK_BASE, self.submission_guid) if self.submission_guid\
+            else None
 
     @property
     def detections(self):
@@ -67,6 +70,8 @@ class Scan(BasePSJSONType):
 
     @property
     def permalink(self):
+        if self._permalink:
+            return self._permalink
         return self.bounty.permalink
 
     def __str__(self):
@@ -82,10 +87,17 @@ class Bounty(BasePSJSONType):
         self.artifact_type = ArtifactType.from_string(json['artifact_type']) if json.get('artifact_type') else \
             ArtifactType.FILE
         self.status = json['status']
-        self.uuid = json['uuid']
-        self.permalink = json['permalink'] if json.get('permalink') else "{}/{}".format(const.DEFAULT_PERMALINK_BASE,
-                                                                                        self.uuid)
+        self.uuid = json.get('uuid')
+        self._permalink = json['permalink'] if json.get('permalink') else None
         self.files = [Scan(self, f, polyswarm) for f in json['files']]
+
+    @property
+    def permalink(self):
+        # default to first bounty, but in general Bounty and can associated with multiple submissions
+        # this will be removed in near future
+        if not self._permalink and len(self.files) > 0:
+            return self.files[0].permalink
+        return self._permalink
 
     def get_file_by_hash(self, h):
         # TODO this ignores a case where bounties could contain the same file multiple times
