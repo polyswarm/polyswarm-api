@@ -24,6 +24,21 @@ class PolyswarmRequestGenerator(object):
             'stream': True,
         }, fh
 
+    def download_archive(self, u, fh):
+        """ This method is special, in that it is simply for downloading from S3 """
+        return {
+            'method': 'GET',
+            'url': u,
+            'stream': True,
+        }, fh
+
+    def stream(self, since=const.MAX_SINCE_TIME_STREAM):
+        return {
+            'method': 'GET',
+            'url': '{}/download/stream'.format(self.consumer_base),
+            'params': {'since': since},
+        }
+
     def search_hash(self, h, with_instances=True, with_metadata=True):
         return {
             'method': 'GET',
@@ -188,6 +203,14 @@ class PolyswarmRequestExecutor(object):
             fh = open(fh, 'wb')
 
         req = self.execute(request)
+        return self._download_to_fh(req, fh)
+
+    def download_archive(self, request):
+        request, fh = request
+        if isinstance(fh, str):
+            fh = open(fh, 'wb')
+
+        req = self.unauth_execute(request)
         return self._download_to_fh(req, fh)
 
 

@@ -369,25 +369,21 @@ def historical_results(ctx, hunt_id, without_metadata, without_bounties):
     output.hunt_result(result)
 
 
-@click.option('--download-path', '-d', type=click.Path(file_okay=False),
-              help='In addition to fetching the results, download the archives.')
 @click.option('-s', '--since', type=click.IntRange(1, 2880), default=1440,
               help='Request archives X minutes into the past. Default: 1440, Max: 2880')
+@click.argument('destination', nargs=1, type=click.Path(file_okay=False))
 @polyswarm.command('stream', short_help='access the polyswarm file stream')
 @click.pass_context
-def stream(ctx, download_path, since):
+def stream(ctx, since, destination):
     api = ctx.obj['api']
+    out = ctx.obj['output']
 
-    if download_path is not None:
-        if not os.path.exists(download_path):
-            os.makedirs(download_path)
+    if destination is not None:
+        if not os.path.exists(destination):
+            os.makedirs(destination)
 
-    results = api.get_stream(download_path, since=since)
-
-    rf = PSStreamFormatter(results, color=ctx.obj['color'],
-                           output_format=ctx.obj['output_format'])
-
-    ctx.obj['output'].write((str(rf)))
+    for download in api.stream(destination, since=since):
+        out.download_result(download)
 
 
 @click.option('--hash-type', help='Hash type to search [default:autodetect, sha256|sha1|md5]', default=None)

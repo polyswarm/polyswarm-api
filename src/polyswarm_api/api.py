@@ -1,6 +1,11 @@
 import time
 import os
 
+try:
+    from urllib.parse import urlparse
+except NameError:
+    from urlparse import urlparse
+
 from . import const
 from .endpoint import PolyswarmEndpoint
 from .types.artifact import ArtifactType, LocalArtifact
@@ -319,14 +324,13 @@ class PolyswarmAPI(object):
         """
         return self._get_hunt_results(hunt, self.endpoint.historical_lookup, **kwargs)
 
-    def stream(self, destination_dir=None, since=1440):
-        """
-        Get stream of tarballs from communities you have the stream privilege on.
-        Contact us at info@polyswarm.io for more info on enabling this feature.
+    def stream(self, destination=None, since=const.MAX_SINCE_TIME_STREAM):
+        stream = result.StreamResult(self.endpoint.stream(since=since).result(), self)
 
-        :param destination_dir: Directory to down files to. None if you just want the list of URLs.
-        :param since: Fetch all archives that are `since` minutes old or newer
+        futures = []
+        for url in stream:
+            fn = os.path.join(destination, os.path.basename(urlparse(url).path))
+            futures.append((fn, self.endpoint.download_archive(url, fn)))
 
-        :return: List of signed S3 URLs for tarballs over the last two days
-        """
-        raise NotImplementedError
+        for fn, f in futures:
+            yield result.DownloadResult(LocalArtifact(path=fn, analyze=False), f.result(), polyswarm=self)

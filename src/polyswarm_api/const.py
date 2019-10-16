@@ -29,3 +29,5 @@ FILE_CHUNK_SIZE = 8192
 MAX_OPEN_FDS = 256
 # this results in worst case 32MB memory usage during downloads
 DOWNLOAD_CHUNK_SIZE = 1024*1024*4
+
+MAX_SINCE_TIME_STREAM = 60*24*2

@@ -48,7 +48,7 @@ class ApiResponse(BasePSJSONType):
 
     @property
     def _bad_status_exception(self):
-        return exceptions.ServerErrorException("Got unexpected result code {}, message {}".format(self.status_code,
+        return exceptions.ServerErrorException("Got unexpected result code: {}, message: {}".format(self.status_code,
                                                                                                   self.result))
 
 
@@ -213,3 +213,12 @@ class HuntListResult(IndexableResult):
 
         self.result = [HuntStatus(r, polyswarm) for r in self.result]
 
+
+class StreamResult(IndexableResult):
+    def __init__(self, result, polyswarm=None):
+        super(StreamResult, self).__init__(result, polyswarm)
+
+        if self.status_code // 100 != 2:
+            raise self._bad_status_exception
+
+        self.result = self.result['stream']
