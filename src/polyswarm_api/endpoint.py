@@ -1,5 +1,7 @@
+import os
 from .http import PolyswarmHTTP, PolyswarmHTTPFutures
 from . import const, utils
+from requests.exceptions import HTTPError
 
 class PolyswarmRequestGenerator(object):
     """ This class will return requests-compatible arguments for the API """
@@ -198,12 +200,23 @@ class PolyswarmRequestExecutor(object):
         raise NotImplementedError
 
     def download(self, request):
-        request, fh = request
-        if isinstance(fh, str):
-            fh = open(fh, 'wb')
+        request, fh_or_fn = request
+        cleanup = False
+        if isinstance(fh_or_fn, str):
+            cleanup = True
+            fh = open(fh_or_fn, 'wb')
+        else:
+            fh = fh_or_fn
 
         req = self.execute(request)
-        return self._download_to_fh(req, fh)
+        try:
+            return self._download_to_fh(req, fh)
+        except HTTPError:
+            if cleanup:
+                fh.close()
+                os.remove(fh_or_fn)
+            return req
+
 
     def download_archive(self, request):
         request, fh = request
@@ -226,7 +239,6 @@ class PolyswarmFuturesExecutor(PolyswarmRequestExecutor):
                 f.write(chunk)
             return r
         resp = req.result()
-        resp.raise_for_status()
         return self.session.executor.submit(do_download, resp, fh)
 
 

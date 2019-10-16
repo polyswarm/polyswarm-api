@@ -1,4 +1,3 @@
-from aiohttp.test_utils import AioHTTPTestCase
 from pkg_resources import resource_string
 import json
 

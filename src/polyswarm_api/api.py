@@ -152,9 +152,12 @@ class PolyswarmAPI(object):
         :return: ScanResult generator
         """
         for submission in self.rescan_submit(*hashes, **kwargs):
-            s = submission.wait_for_scan()
-            s.artifact = submission.artifact
-            yield s
+            if submission.status_code == 200:
+                s = submission.wait_for_scan()
+                s.artifact = submission.artifact
+                yield s
+            else:
+                yield submission
 
     def wait_for(self, *uuids):
         """

@@ -48,7 +48,7 @@ def validate_hash(ctx, param, h):
 
 def validate_hashes(ctx, param, value):
     for h in value:
-        validate_hash(ctx, param, value)
+        validate_hash(ctx, param, h)
     return value
 
 

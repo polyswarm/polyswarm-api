@@ -15,7 +15,16 @@ class SHA256Output(base.BaseOutput):
     
     def scan_result(self, result):
         """ Only returns sha256s of malicious results """
-        self.out.write('\n'.join([artifact.sha256.hash for artifact in result if len(artifact.detections) > 0])+'\n')
+        if result.status_code == 404:
+            return
+
+        bounty = result.result
+        artifact = result.artifact
+
+        f = bounty.get_file_by_hash(artifact.hash)
+
+        if f and len(f.detections) > 0:
+            self.out.write('{}\n'.format(artifact.hash.hash))
 
     def hunt_result(self, result):
         for match in result:

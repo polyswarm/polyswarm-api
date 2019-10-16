@@ -113,7 +113,7 @@ class TextOutput(base.BaseOutput):
         bounty = result.result
 
         if result.status_code == 404:
-            self.out.write(self._error('(Could not find UUID)\n'))
+            self.out.write(self._error('(Could not find artifact or UUID)\n'))
             return
 
         if not bounty.uuid:
@@ -211,7 +211,11 @@ class TextOutput(base.BaseOutput):
 
     def download_result(self, result):
         artifact = result.result
-        self.out.write(self._good('Successfully downloaded artifact {} to {}\n'.format(artifact.artifact_name,
+
+        if result.status_code == 404:
+            self.out.write(self._bad('Artifact {} was not found\n'.format(artifact.artifact_name)))
+        else:
+            self.out.write(self._good('Successfully downloaded artifact {} to {}\n'.format(artifact.artifact_name,
                                                                                        artifact.path)))
         self.out.flush()
 

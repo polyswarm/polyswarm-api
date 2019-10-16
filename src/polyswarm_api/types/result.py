@@ -70,7 +70,9 @@ class DownloadResult(ApiResponse):
         self.polyswarm = polyswarm
         self.status_code = result.status_code
 
-        if self.status_code // 100 != 2:
+        if self.status_code == 404:
+            self.status = 'Not found.'
+        elif self.status_code // 100 != 2:
             raise self._bad_status_exception
 
         self.status = 'OK'
@@ -123,7 +125,10 @@ class SubmitResult(ApiResponse):
         super(SubmitResult, self).__init__(result, polyswarm)
         self.artifact = artifact
 
-        if self.status_code // 100 != 2:
+        if self.status_code == 404:
+            # happens if rescan file wasn't found
+            self.status = 'Not found'
+        elif self.status_code // 100 != 2:
             raise self._bad_status_exception
 
     def wait_for_scan(self):
