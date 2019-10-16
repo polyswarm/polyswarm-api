@@ -226,4 +226,4 @@ class StreamResult(IndexableResult):
         if self.status_code // 100 != 2:
             raise self._bad_status_exception
 
-        self.result = self.result['stream']
+        self.result = self.result.get('stream', [])
