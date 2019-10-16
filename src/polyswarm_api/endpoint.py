@@ -24,7 +24,7 @@ def update_with_kwargs(supported_arguments=[]):
 
 class PolyswarmRequestGenerator(object):
     """ This class will return requests-compatible arguments for the API """
-    def __init__(self, uri, community, timeout):
+    def __init__(self, uri, community):
         self.uri = uri
         self.community = community
 
@@ -38,23 +38,20 @@ class PolyswarmRequestGenerator(object):
         self.download_fmt = '{}/{}/{}'
         self.hash_search_fmt = '{}/{}/{}'
 
-        self.timeout = timeout
-
     @update_with_kwargs([])
-    def download(self, h, **kwargs):
+    def download(self, h, fh, **kwargs):
         return {
             'method': 'GET',
             'url': self.download_fmt.format(self.download_base, h.hash_type, h.hash),
             'stream': True,
-        }
+        }, fh
 
     @update_with_kwargs(["with_instances", "with_metadata"])
-    def search(self, h, **kwargs):
+    def search_hash(self, h, **kwargs):
         return {
             'method': 'GET',
             'url': self.search_base,
             'params': {'type': h.hash_type, 'hash': h.hash},
-            'timeout': self.timeout,
         }
 
     @update_with_kwargs(["with_instances", "with_metadata"])
@@ -64,7 +61,6 @@ class PolyswarmRequestGenerator(object):
             'url': self.search_base,
             'params': {'type': 'metadata'},
             'json': q.query,
-            'timeout': self.timeout,
         }
 
     @update_with_kwargs([])
@@ -132,86 +128,42 @@ class PolyswarmRequestGenerator(object):
         }
 
 
-class PolyswarmEndpointBase(object):
-    """ This is the base class for PolyswarmEndpoint classes. Do not use directly. """
-    def __init__(self,  key, uri=const.DEFAULT_GLOBAL_API, community=const.DEFAULT_COMMUNITY,
-                 timeout=const.DEFAULT_HTTP_TIMEOUT, retries=const.DEFAULT_RETRIES):
-        self.session = None
-        # this will likely be removed once we can get rid of engine resolution
-        self.unauth_session = None
-        self.req_gen = None
+class PolyswarmRequestExecutor(object):
+    """ This class accepts requests from a PolyswarmRequestGenerator and executes it """
+    def __init__(self, key, timeout=const.DEFAULT_HTTP_TIMEOUT, retries=const.DEFAULT_RETRIES, request_cls=None):
+        self.session = request_cls(key, retries)
+        self.unauth_session = request_cls(key=None, retries=retries)
+        self.timeout = timeout
 
-        raise NotImplementedError
+    def execute(self, request):
+        if 'timeout' not in request:
+            request['timeout'] = self.timeout
+        return self.session.request(**request)
+
+    def unauth_execute(self, request):
+        return self.unauth_session.request(**request)
+
+    def _get_engine_names(self, request):
+        return self.unauth_session.request(**request)
+
+    def __getattr__(self, name):
+        if name in self.__dict__:
+            return self.__dict__[name]
+        return self.execute
 
     def _download_to_fh(self, req, fh):
         raise NotImplementedError
 
-    def download(self, h, out_path):
-        """
-        Download a series of PSHashes to files
-
-        :return: A future
-        """
-        in_progress, done = [], []
-
-        fh = open(out_path, 'wb')
-        req = self.session.request(**self.req_gen.download(h))
+    def download(self, request):
+        request, path = request
+        fh = open(path, 'wb')
+        req = self.execute(request)
         return self._download_to_fh(req, fh)
 
-    def search_hash(self, h, **kwargs):
-        """
-        Download a series of
-        :param h: A Hash object
-        :return: A request Future
-        """
-        return self.session.request(**self.req_gen.search(h, **kwargs))
 
-    def search_metadata(self, query, **kwargs):
-        return self.session.request(**self.req_gen.search_metadata(query, **kwargs))
-
-    def lookup_uuid(self, uuid, **kwargs):
-        return self.session.request(**self.req_gen.lookup_uuid(uuid, **kwargs))
-
-    def submit(self, artifact, **kwargs):
-        return self.session.request(**self.req_gen.submit(artifact, **kwargs))
-
-    def rescan(self, h, **kwargs):
-        return self.session.request(**self.req_gen.rescan(h, **kwargs))
-
-    def _get_engine_names(self):
-        """ This will be deprecated soon """
-        return self.unauth_session.request(**self.req_gen._get_engine_names())
-
-    def submit_historical_hunt(self, rule, **kwargs):
-        return self.session.request(**self.req_gen.submit_historical_hunt(rule, **kwargs))
-
-    def historical_lookup(self, **kwargs):
-        return self.session.request(**self.req_gen.historical_lookup(**kwargs))
-
-    def historical_list(self, **kwargs):
-        return self.session.request(**self.req_gen.submit(**kwargs))
-
-    def submit_live_hunt(self, rule, **kwargs):
-        return self.session.request(**self.req_gen.submit_live_hunt(rule, **kwargs))
-
-    def live_lookup(self, **kwargs):
-        return self.session.request(**self.req_gen.live_lookup(**kwargs))
-
-    def live_list(self, **kwargs):
-        return self.session.request(**self.req_gen.submit(**kwargs))
-
-
-class PolyswarmEndpointFutures(PolyswarmEndpointBase):
-    """
-    This class is used to perform actions via the Polyswarm API endpoint. Each function encapsulates a particular
-    action on the API (search, download, hunt creation/results, etc) and returns a future for the tasks' completion.
-    """
-    def __init__(self,  key, uri=const.DEFAULT_GLOBAL_API, community=const.DEFAULT_COMMUNITY,
-                 timeout=const.DEFAULT_HTTP_TIMEOUT, retries=const.DEFAULT_RETRIES):
-        self.req_gen = PolyswarmRequestGenerator(uri, community, timeout)
-        self.session = PolyswarmHTTPFutures(key, retries)
-        self.unauth_session = PolyswarmHTTPFutures(None, retries)
-        self.timeout = timeout
+class PolyswarmFuturesExecutor(PolyswarmRequestExecutor):
+    def __init__(self, key, timeout=const.DEFAULT_HTTP_TIMEOUT, retries=const.DEFAULT_RETRIES):
+        super(PolyswarmFuturesExecutor, self).__init__(key, timeout, retries, PolyswarmHTTPFutures)
 
     def _download_to_fh(self, req, fh):
         # this is unfortunately the cleanest way I think I can do this with requests-futures
@@ -225,19 +177,25 @@ class PolyswarmEndpointFutures(PolyswarmEndpointBase):
         return self.session.executor.submit(do_download, resp, fh)
 
 
-
-class PolyswarmEndpoint(PolyswarmEndpointBase):
-    """
-    This class is used to perform actions via the Polyswarm API endpoint. Each function encapsulates a particular
-    action on the API (search, download, hunt creation/results, etc) and returns a requests response object
-    """
-    def __init__(self,  key, uri=const.DEFAULT_GLOBAL_API, community=const.DEFAULT_COMMUNITY,
-                 timeout=const.DEFAULT_HTTP_TIMEOUT, retries=const.DEFAULT_RETRIES):
-        self.req_gen = PolyswarmRequestGenerator(uri, community, timeout)
-        self.session = PolyswarmHTTP(key, retries)
-        self.unauth_session = PolyswarmHTTP(None, retries)
-        self.timeout = timeout
+class PolyswarmSynchronousExecutor(PolyswarmRequestExecutor):
+    def __init__(self, key, timeout=const.DEFAULT_HTTP_TIMEOUT, retries=const.DEFAULT_RETRIES):
+        super(PolyswarmSynchronousExecutor, self).__init__(key, timeout, retries, PolyswarmHTTP)
 
     def _download_to_fh(self, req, fh):
         for chunk in req.iter_content(chunk_size=const.DOWNLOAD_CHUNK_SIZE):
             fh.write(chunk)
+        return req
+
+
+class PolyswarmEndpoint(object):
+    """ This is the base class for PolyswarmEndpoint classes. Do not use directly. """
+    def __init__(self,  key, uri=const.DEFAULT_GLOBAL_API, community=const.DEFAULT_COMMUNITY,
+                 timeout=const.DEFAULT_HTTP_TIMEOUT, retries=const.DEFAULT_RETRIES,
+                 request_gen_cls=PolyswarmRequestGenerator, request_exec_cls=PolyswarmFuturesExecutor):
+        self.executor = request_exec_cls(key, timeout, retries)
+        self.generator = request_gen_cls(uri, community)
+
+    def __getattr__(self, name):
+        def endpoint_wrapper(*args, **kwargs):
+            return getattr(self.executor, name)(getattr(self.generator, name)(*args, **kwargs))
+        return endpoint_wrapper

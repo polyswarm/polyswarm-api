@@ -2,7 +2,7 @@ import time
 import os
 
 from . import const
-from .endpoint import PolyswarmEndpointFutures
+from .endpoint import PolyswarmEndpoint
 from .types.artifact import ArtifactType, LocalArtifact
 from .types.hash import to_hash
 from .types.query import MetadataQuery
@@ -23,7 +23,7 @@ class PolyswarmAPI(object):
         :param community: Community to scan against.
         :param validate_schemas: Validate JSON objects when creating response objects. Will impact performance.
         """
-        self.endpoint = PolyswarmEndpointFutures(key, uri, community)
+        self.endpoint = PolyswarmEndpoint(key, uri, community)
         self.timeout = timeout
         self._engine_map = None
         self.validate = validate_schemas
