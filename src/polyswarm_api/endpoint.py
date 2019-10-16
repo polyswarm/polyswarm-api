@@ -1,9 +1,5 @@
-import os
-
 from .http import PolyswarmHTTP, PolyswarmHTTPFutures
-from .types.artifact import Artifact
-
-from . import const, exceptions, utils
+from . import const, utils
 from .log import logger
 
 
@@ -155,8 +151,10 @@ class PolyswarmRequestExecutor(object):
         raise NotImplementedError
 
     def download(self, request):
-        request, path = request
-        fh = open(path, 'wb')
+        request, fh = request
+        if isinstance(fh, str):
+            fh = open(fh, 'wb')
+
         req = self.execute(request)
         return self._download_to_fh(req, fh)
 

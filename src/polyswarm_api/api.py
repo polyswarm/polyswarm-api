@@ -86,6 +86,12 @@ class PolyswarmAPI(object):
             artifact = LocalArtifact(path=path, artifact_name=h.hash, analyze=False, polyswarm=self)
             yield result.DownloadResult(artifact, f.result())
 
+    def download_to_filehandle(self, h, fh):
+        """ Download to a specific file handle """
+        h = to_hash(h)
+
+        yield result.DownloadResult(h, self.endpoint.download(h, fh).result())
+
     def submit(self, *artifacts):
         """
         Submit artifacts to polyswarm and return UUIDs

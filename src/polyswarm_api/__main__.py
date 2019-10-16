@@ -12,7 +12,7 @@ from .const import MAX_HUNT_RESULTS
 from .formatters import formatters
 
 from .utils import validate_key, validate_uuid, is_valid_uuid, \
-                   validate_hash, parse_hashes
+                   validate_hashes, validate_hash, parse_hashes
 
 CONTEXT_SETTINGS = dict(help_option_names=['-h', '--help'])
 
@@ -223,7 +223,7 @@ def lookup(ctx, uuid, uuid_file):
 @click.option('-r', '--hash-file', help='File of hashes, one per line.', type=click.File('r'))
 @click.option('-m', '--metadata', is_flag=True, default=False, help='Save file metadata into associated JSON file')
 @click.option('--hash-type', help='Hash type to search [default:autodetect, sha256|sha1|md5]', default=None)
-@click.argument('hash', nargs=-1, callback=validate_hash)
+@click.argument('hash', nargs=-1, callback=validate_hashes)
 @click.argument('destination', nargs=1, type=click.Path(file_okay=False))
 @polyswarm.command('download', short_help='download file(s)')
 @click.pass_context
@@ -245,7 +245,7 @@ def download(ctx, metadata, hash_file, hash_type, hash, destination):
 
 @click.option('-r', '--hash-file', help='File of hashes, one per line.', type=click.File('r'))
 @click.option('--hash-type', help='Hash type to search [default:autodetect, sha256|sha1|md5]', default=None)
-@click.argument('hash', nargs=-1, callback=validate_hash)
+@click.argument('hash', nargs=-1, callback=validate_hashes)
 @polyswarm.command('rescan', short_help='rescan files(s) by hash')
 @click.pass_context
 def rescan(ctx, hash_file, hash_type, hash):
@@ -372,6 +372,15 @@ def stream(ctx, download_path, since):
                            output_format=ctx.obj['output_format'])
 
     ctx.obj['output'].write((str(rf)))
+
+
+@click.option('--hash-type', help='Hash type to search [default:autodetect, sha256|sha1|md5]', default=None)
+@click.argument('hash', nargs=1, callback=validate_hash)
+@polyswarm.command('cat', short_help='cat artifact to stdout')
+@click.pass_context
+def cat(ctx, hash_type, hash):
+    api = ctx.obj['api']
+    result = next(api.download_to_filehandle(hash, sys.stdout.buffer))
 
 
 def _fix_result(self, result):

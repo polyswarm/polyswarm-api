@@ -1,9 +1,10 @@
+import os
 import platform
 from . import _version
 
 # API constants
 DEFAULT_GLOBAL_API = 'https://api.polyswarm.network/v1'
-DEFAULT_PERMALINK_BASE = 'https://polyswarm.network/scan/results'
+DEFAULT_PERMALINK_BASE = os.getenv('POLYSWARM_PORTAL_URI', 'https://polyswarm.network/scan/results')
 DEFAULT_COMMUNITY = 'lima'
 DEFAULT_SCAN_TIMEOUT = 60*10
 RESULT_CHUNK_SIZE = 100

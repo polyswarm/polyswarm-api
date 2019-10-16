@@ -40,10 +40,15 @@ def validate_uuid(ctx, param, value):
     return value
 
 
-def validate_hash(ctx, param, value):
+def validate_hash(ctx, param, h):
+    if not (is_valid_sha256(h) or is_valid_md5(h) or is_valid_sha1(h)):
+        raise click.BadParameter('Hash {} not valid, must be sha256|md5|sha1 in hexadecimal format'.format(h))
+    return h
+
+
+def validate_hashes(ctx, param, value):
     for h in value:
-        if not (is_valid_sha256(h) or is_valid_md5(h) or is_valid_sha1(h)):
-            raise click.BadParameter('Hash {} not valid, must be sha256|md5|sha1 in hexadecimal format'.format(h))
+        validate_hash(ctx, param, value)
     return value
 
 
