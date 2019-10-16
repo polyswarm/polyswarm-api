@@ -33,9 +33,9 @@ class ApiResponse(BasePSJSONType):
             raise e
 
         if self.status_code == 429:
-            raise exceptions.UsageLimitsExceeded("Usage limits were exceeded. This may mean you need to purchase a"
-                                                 "larger package, or that you have exceeded rate limits."
-                                                 "If you continue to have issues, please contact us at info@polyswarm.io")
+            raise exceptions.UsageLimitsExceeded("Usage limits were exceeded. This may mean you need to purchase a "
+                                                 "larger package, or that you have exceeded rate limits. "
+                                                 "If you continue to have issues, please contact us at info@polyswarm.io.")
 
         self.status = json['status']
         self.result = json['result']
