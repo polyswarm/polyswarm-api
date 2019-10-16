@@ -134,7 +134,7 @@ class HuntSubmissionResult(ApiResponse):
         if self.status_code // 100 != 2:
             raise self._bad_status_exception
 
-        self.result = Hunt(self.result)
+        self.result = Hunt(self.result, polyswarm)
 
 
 class HuntResultPart(IndexableResult):
@@ -144,7 +144,7 @@ class HuntResultPart(IndexableResult):
         super(HuntResultPart, self).__init__(result, polyswarm)
 
         if self.status_code // 100 == 2:
-            self.result = HuntStatus(self.result)
+            self.result = HuntStatus(self.result, polyswarm)
         else:
             raise self._bad_status_exception
 
@@ -190,8 +190,21 @@ class HuntResult(ResultAggregator):
 
 
 class HuntDeletionResult(ApiResponse):
-    pass
+    def __init__(self, hunt_id, result, polyswarm=None):
+        super(HuntDeletionResult, self).__init__(result, polyswarm)
+
+        if self.status_code // 100 != 2 and self.status_code != 404:
+            raise self._bad_status_exception
+
+        self.result = hunt_id
 
 
-class HuntCreationResult(ApiResponse):
-    pass
+class HuntListResult(IndexableResult):
+    def __init__(self, result, polyswarm=None):
+        super(HuntListResult, self).__init__(result, polyswarm)
+
+        if self.status_code // 100 != 2:
+            raise self._bad_status_exception
+
+        self.result = [HuntStatus(r, polyswarm) for r in self.result]
+

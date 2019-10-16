@@ -123,6 +123,38 @@ class PolyswarmRequestGenerator(object):
             'params': {},
         }
 
+    @update_with_kwargs([])
+    def historical_delete(self, hunt_id):
+        return {
+            'method': 'DELETE',
+            'url': '{}/historical'.format(self.hunt_base),
+            'json': {'hunt_id': hunt_id}
+        }
+
+    @update_with_kwargs([])
+    def live_delete(self, hunt_id):
+        return {
+            'method': 'DELETE',
+            'url': '{}/live'.format(self.hunt_base),
+            'json': {'hunt_id': hunt_id}
+        }
+
+    @update_with_kwargs([])
+    def historical_list(self):
+        return {
+            'method': 'GET',
+            'url': '{}/historical'.format(self.hunt_base),
+            'params': {'all': 'true'},
+        }
+
+    @update_with_kwargs([])
+    def live_list(self):
+        return {
+            'method': 'GET',
+            'url': '{}/live'.format(self.hunt_base),
+            'params': {'all': 'true'},
+        }
+
 
 class PolyswarmRequestExecutor(object):
     """ This class accepts requests from a PolyswarmRequestGenerator and executes it """

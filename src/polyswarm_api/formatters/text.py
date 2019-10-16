@@ -178,7 +178,14 @@ class TextOutput(base.BaseOutput):
             self.out.write(self._bad('Failed to install rules.\n'))
             return
         self.out.write('Successfully submitted rules, hunt id: {hunt_id}\n'.
-                          format(hunt_id=result.result.hunt_id))
+                       format(hunt_id=result.result.hunt_id))
+
+    def hunt_deletion(self, result):
+        if result.status != 'OK':
+            self.out.write(self._bad('Failed to delete hunt.\n'))
+            return
+        self.out.write(self._info('Successfully deleted hunt id: {hunt_id}\n'.
+                       format(hunt_id=result.result)))
 
     def hunt_result(self, result):
         output = []
@@ -207,6 +214,12 @@ class TextOutput(base.BaseOutput):
         self.out.write(self._good('Successfully downloaded artifact {} to {}\n'.format(artifact.artifact_name,
                                                                                        artifact.path)))
         self.out.flush()
+
+    def hunt_list(self, result):
+        for hunt in result:
+            self.out.write(self._info("Hunt: {:17}, total results: {:5}, created: {}\n".format(hunt.id, hunt.total,
+                                                                                        hunt.created)))
+
 
     @is_grouped
     @is_colored

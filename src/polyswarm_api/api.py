@@ -252,17 +252,23 @@ class PolyswarmAPI(object):
         """
         Delete a live scan.
 
-        :param hunt_id: String containing hunt id
+        :param hunt_id: Hunt ID
         """
-        raise NotImplementedError
+        return result.HuntDeletionResult(hunt_id, self.endpoint.live_delete(hunt_id).result(), self)
+
+    def live_list(self):
+        return result.HuntListResult(self.endpoint.live_list().result(), self)
 
     def historical_delete(self, hunt_id):
         """
         Delete a historical scan.
 
-        :param hunt_id: String containing hunt id
+        :param hunt_id: Hunt ID
         """
-        raise NotImplementedError
+        return result.HuntDeletionResult(hunt_id, self.endpoint.historical_delete(hunt_id).result(), self)
+
+    def historical_list(self):
+        return result.HuntListResult(self.endpoint.historical_list().result(), self)
 
     def _get_hunt_results(self, hunt, endpoint_func, **kwargs):
         if hunt and not isinstance(hunt, Hunt):

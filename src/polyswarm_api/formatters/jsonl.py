@@ -23,6 +23,13 @@ class JSONOutput(base.BaseOutput):
     def hunt_submission(self, result):
         self.out.write(self._to_json(result)+'\n')
 
+    def hunt_deletion(self, result):
+        self.out.write(self._to_json(result)+'\n')
+
+    def hunt_list(self, result):
+        for hunt in result:
+            self.out.write(json.dumps(hunt.json, sort_keys=True)+'\n')
+
     def download_result(self, result):
         artifact = result.result
         self.out.write(json.dumps({'hash': artifact.artifact_name, 'path': artifact.path}, sort_keys=True)+'\n')

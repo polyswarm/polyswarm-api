@@ -35,7 +35,7 @@ class HuntStatus(BasePSJSONType):
 
         self.created = json['created']
         self.id = json['id']
-        self.results = [HuntMatch(match, polyswarm) for match in json['results']]
+        self.results = [HuntMatch(match, polyswarm) for match in json['results']] if json['results'] else None
         self.total = json.get('total', 0)
         self.status = json['status']
 

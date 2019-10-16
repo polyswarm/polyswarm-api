@@ -291,10 +291,18 @@ def live_install(ctx, rule_file):
 @click.pass_context
 def live_delete(ctx, hunt_id):
     api = ctx.obj['api']
+    output = ctx.obj['output']
 
-    rf = PSHuntDeletionFormatter(api.delete_live_hunt(hunt_id), color=ctx.obj['color'],
-                                 output_format=ctx.obj['output_format'])
-    ctx.obj['output'].write((str(rf)))
+    output.hunt_deletion(api.live_delete(hunt_id))
+
+
+@live.command('list', short_help='List all live hunts performed')
+@click.pass_context
+def live_list(ctx):
+    api = ctx.obj['api']
+    output = ctx.obj['output']
+
+    output.hunt_list(api.live_list())
 
 
 @click.option('-i', '--hunt-id', type=int, help='ID of the rule file (defaults to latest)')
@@ -331,10 +339,18 @@ def historical_start(ctx, rule_file):
 @click.pass_context
 def historical_delete(ctx, hunt_id):
     api = ctx.obj['api']
+    output = ctx.obj['output']
 
-    rf = PSHuntDeletionFormatter(api.delete_historical_hunt(hunt_id), color=ctx.obj['color'],
-                                 output_format=ctx.obj['output_format'])
-    ctx.obj['output'].write((str(rf)))
+    output.hunt_deletion(api.historical_delete(hunt_id))
+
+
+@historical.command('list', short_help='List all historical hunts performed')
+@click.pass_context
+def historical_list(ctx):
+    api = ctx.obj['api']
+    output = ctx.obj['output']
+
+    output.hunt_list(api.historical_list())
 
 
 @click.option('-i', '--hunt-id', type=int, help='ID of the rule file (defaults to latest)')
