@@ -40,3 +40,7 @@ class InvalidArgument(PolyswarmAPIException):
 
 class ArtifactDeleted(PolyswarmAPIException):
     pass
+
+
+class UsageLimitsExceeded(PolyswarmAPIException):
+    pass

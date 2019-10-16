@@ -364,7 +364,7 @@ def historical_results(ctx, hunt_id, without_metadata, without_bounties):
     api = ctx.obj['api']
     output = ctx.obj['output']
 
-    result = api.historical_results(hunt_id, with_metadata=without_metadata, with_instances=not without_bounties)
+    result = api.historical_results(hunt_id, with_metadata=not without_metadata, with_instances=not without_bounties)
 
     output.hunt_result(result)
 
