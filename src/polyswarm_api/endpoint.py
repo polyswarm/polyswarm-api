@@ -1,22 +1,5 @@
 from .http import PolyswarmHTTP, PolyswarmHTTPFutures
 from . import const, utils
-from .log import logger
-
-
-def update_with_kwargs(supported_arguments=[]):
-    def decorator(func):
-        def wrapper(self, *args, **kwargs):
-            out_args = func(self, *args, **kwargs)
-            for arg in kwargs:
-                if arg not in supported_arguments:
-                    logger.warning("Argument %s not supported", arg)
-                    continue
-                out_args['params'][arg] = kwargs[arg] if not isinstance(kwargs[arg], bool) \
-                    else utils.bool_to_int[kwargs[arg]]
-            return out_args
-        return wrapper
-    return decorator
-
 
 class PolyswarmRequestGenerator(object):
     """ This class will return requests-compatible arguments for the API """
@@ -34,33 +17,38 @@ class PolyswarmRequestGenerator(object):
         self.download_fmt = '{}/{}/{}'
         self.hash_search_fmt = '{}/{}/{}'
 
-    @update_with_kwargs([])
-    def download(self, h, fh, **kwargs):
+    def download(self, h, fh):
         return {
             'method': 'GET',
             'url': self.download_fmt.format(self.download_base, h.hash_type, h.hash),
             'stream': True,
         }, fh
 
-    @update_with_kwargs(["with_instances", "with_metadata"])
-    def search_hash(self, h, **kwargs):
+    def search_hash(self, h, with_instances=True, with_metadata=True):
         return {
             'method': 'GET',
             'url': self.search_base,
-            'params': {'type': h.hash_type, 'hash': h.hash},
+            'params': {
+                'type': h.hash_type,
+                'hash': h.hash,
+                'with_instances': utils.bool_to_int[with_instances],
+                'with_metadata': utils.bool_to_int[with_metadata]
+            },
         }
 
-    @update_with_kwargs(["with_instances", "with_metadata"])
-    def search_metadata(self, q, **kwargs):
+    def search_metadata(self, q, with_instances=True, with_metadata=True):
         return {
             'method': 'GET',
             'url': self.search_base,
-            'params': {'type': 'metadata'},
+            'params': {
+                'type': 'metadata',
+                'with_instances': utils.bool_to_int[with_instances],
+                'with_metadata': utils.bool_to_int[with_metadata]
+            },
             'json': q.query,
         }
 
-    @update_with_kwargs([])
-    def submit(self, artifact, **kwargs):
+    def submit(self, artifact):
         return {
             'method': 'POST',
             'url': self.community_base,
@@ -71,14 +59,12 @@ class PolyswarmRequestGenerator(object):
             'data': {'artifact-type': artifact.artifact_type.name}
         }
 
-    @update_with_kwargs([])
     def rescan(self, h, **kwargs):
         return {
             'method': 'POST',
             'url': '{}/rescan/{}/{}'.format(self.community_base, h.hash_type, h.hash)
         }
 
-    @update_with_kwargs([])
     def lookup_uuid(self, uuid, **kwargs):
         return {
             'method': 'GET',
@@ -91,7 +77,6 @@ class PolyswarmRequestGenerator(object):
             'url': '{}/microengines/list'.format(self.uri)
         }
 
-    @update_with_kwargs([])
     def submit_live_hunt(self, rule):
         return {
             'method': 'POST',
@@ -99,15 +84,24 @@ class PolyswarmRequestGenerator(object):
             'json': {'yara': rule.ruleset},
         }
 
-    @update_with_kwargs(['with_bounty_results', 'with_metadata', 'limit', 'offset', 'id'])
-    def live_lookup(self, *args, **kwargs):
-        return {
+    def live_lookup(self, with_bounty_results=True, with_metadata=True,
+                    limit=const.RESULT_CHUNK_SIZE, offset=0, id=None):
+        req = {
             'method': 'GET',
             'url': '{}/live/results'.format(self.hunt_base),
-            'params': {},
+            'params': {
+                'with_bounty_results': utils.bool_to_int[with_bounty_results],
+                'with_metadata': utils.bool_to_int[with_metadata],
+                'limit': limit,
+                'offset': offset,
+            },
         }
 
-    @update_with_kwargs([])
+        if id:
+            req['params']['id'] = id
+
+        return req
+
     def submit_historical_hunt(self, rule):
         return {
             'method': 'POST',
@@ -115,15 +109,24 @@ class PolyswarmRequestGenerator(object):
             'json': {'yara': rule.ruleset},
         }
 
-    @update_with_kwargs(['with_bounty_results', 'with_metadata', 'limit', 'offset', 'id'])
-    def historical_lookup(self, *args, **kwargs):
-        return {
+    def historical_lookup(self, with_bounty_results=True, with_metadata=True,
+                    limit=const.RESULT_CHUNK_SIZE, offset=0, id=None):
+        req = {
             'method': 'GET',
             'url': '{}/historical/results'.format(self.hunt_base),
-            'params': {},
+            'params': {
+                'with_bounty_results': utils.bool_to_int[with_bounty_results],
+                'with_metadata': utils.bool_to_int[with_metadata],
+                'limit': limit,
+                'offset': offset,
+            },
         }
 
-    @update_with_kwargs([])
+        if id:
+            req['params']['id'] = id
+
+        return req
+
     def historical_delete(self, hunt_id):
         return {
             'method': 'DELETE',
@@ -131,7 +134,6 @@ class PolyswarmRequestGenerator(object):
             'json': {'hunt_id': hunt_id}
         }
 
-    @update_with_kwargs([])
     def live_delete(self, hunt_id):
         return {
             'method': 'DELETE',
@@ -139,7 +141,6 @@ class PolyswarmRequestGenerator(object):
             'json': {'hunt_id': hunt_id}
         }
 
-    @update_with_kwargs([])
     def historical_list(self):
         return {
             'method': 'GET',
@@ -147,7 +148,6 @@ class PolyswarmRequestGenerator(object):
             'params': {'all': 'true'},
         }
 
-    @update_with_kwargs([])
     def live_list(self):
         return {
             'method': 'GET',

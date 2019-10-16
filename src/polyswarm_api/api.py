@@ -197,8 +197,7 @@ class PolyswarmAPI(object):
 
         for url in urls:
             if not isinstance(url, LocalArtifact):
-                # TODO artifact_name will be the actual url once we address blocking issue
-                url = LocalArtifact(content=url.encode("utf8"), artifact_name='url', artifact_type=ArtifactType.URL,
+                url = LocalArtifact(content=url.encode("utf8"), artifact_name=url, artifact_type=ArtifactType.URL,
                                     analyze=False, polyswarm=self)
             _urls.append(url)
 
