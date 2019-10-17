@@ -155,6 +155,8 @@ class HuntResultPart(IndexableResult):
 
         if self.status_code // 100 == 2:
             self.result = HuntStatus(self.result, polyswarm)
+        elif self.status_code == 404:
+            self.result = []
         else:
             raise self._bad_status_exception
 
@@ -196,7 +198,7 @@ class HuntResult(ResultAggregator):
     def __init__(self, hunt, request_list, polyswarm=None):
         super(HuntResult, self).__init__(request_list, polyswarm=polyswarm, hunt=hunt)
         self.hunt = hunt
-        self.hunt_status = HuntResultPart(hunt, self.request_list[0].result(), polyswarm).result
+        self.hunt_status = HuntResultPart(hunt, self.request_list[0].result(), polyswarm)
 
 
 class HuntDeletionResult(ApiResponse):

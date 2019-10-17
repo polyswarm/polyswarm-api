@@ -177,8 +177,8 @@ class TextOutput(base.BaseOutput):
         if result.status != 'OK':
             self.out.write(self._bad('Failed to install rules.\n'))
             return
-        self.out.write('Successfully submitted rules, hunt id: {hunt_id}\n'.
-                       format(hunt_id=result.result.hunt_id))
+        self.out.write(self._info('Successfully submitted rules, hunt id: {hunt_id}\n'.
+                       format(hunt_id=result.result.hunt_id)))
 
     def hunt_deletion(self, result):
         if result.status != 'OK':
@@ -189,7 +189,14 @@ class TextOutput(base.BaseOutput):
 
     def hunt_result(self, result):
         output = []
-        status = result.hunt_status
+
+        status_response = result.hunt_status
+
+        if status_response.status_code == 404:
+            self.out.write(self._bad('Hunt {} was not found\n'.format(result.hunt.hunt_id)))
+            return
+
+        status = status_response.result
 
         if status.status not in ['PENDING', 'RUNNING', 'SUCCESS', 'FAILED']:
             self.out.write(self._bad('An unspecified error occurred fetching hunt records.\n'))

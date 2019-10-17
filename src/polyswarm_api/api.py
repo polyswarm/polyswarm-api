@@ -346,7 +346,11 @@ class PolyswarmAPI(object):
 
         # need to get count before we get all chunks
         reqs = [endpoint_func(**kwargs)]
-        first = result.HuntResultPart(hunt, reqs[0].result(), self)
+        r = reqs[0].result()
+        first = result.HuntResultPart(hunt, r, self)
+        if first.status_code == 404:
+            return result.HuntResult(hunt, [reqs[0]], self)
+
         total = first.result.total
 
         for offset in range(const.RESULT_CHUNK_SIZE, total, const.RESULT_CHUNK_SIZE):
