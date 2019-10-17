@@ -49,6 +49,8 @@ class SearchTest(TestCase):
             os.remove(file_path)
         except FileNotFoundError:
             print('File {file_path} does not exist'.format(**{'file_path': file_path}))
+        except OSError:
+            print('File {file_path} does not exist'.format(**{'file_path': file_path}))
 
     @staticmethod
     def _get_file_content(file_path):
