@@ -3,6 +3,7 @@
 **Table of Contents**
 
 - [polyswarm-api](#polyswarm-api)
+  - [Dependencies](#dependencies)
   - [Installation](#installation)
   - [Usage](#usage)
     - [Use the provided CLI](#use-the-provided-cli)
@@ -12,6 +13,7 @@
       - [Lookup UUIDs](#lookup-uuids)
       - [Download Files](#download-files)
       - [Perform Rescans](#perform-rescans)
+      - [Chain commands](#chain-commands)
     - [Use the library:](#use-the-library)
       - [Create an API Client](#create-an-api-client)
       - [Perform Scans](#perform-scans-1)

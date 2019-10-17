@@ -22,7 +22,6 @@ class PolyswarmAPI(object):
     def __init__(self, key, uri='https://api.polyswarm.network/v1', timeout=600, community='lima',
                  validate_schemas=False):
         """
-
         :param key: PolySwarm API key
         :param uri: PolySwarm API URI
         :param timeout: How long to wait for operations to complete.
@@ -44,7 +43,7 @@ class PolyswarmAPI(object):
 
         :param hashes: A list of Hashable objects (Artifact, LocalArtifact, Hash) or hex-encoded SHA256/SHA1/MD5
         :param kwargs: Arguments to pass to search. Supported: with_instances, with_metadata (booleans)
-        :return: List of ApiResponse objects
+        :return: Generator of SearchResult objects
         """
 
         hashes = [to_hash(h) for h in hashes]
@@ -108,7 +107,12 @@ class PolyswarmAPI(object):
             yield result.DownloadResult(artifact, r)
 
     def download_to_filehandle(self, h, fh):
-        """ Download to a specific file handle """
+        """
+        Grab the data of artifact indentified by hash, and write the data to a file handle
+        :param h: hash
+        :param fh: file handle
+        :return: DownloadResult object
+        """
         h = to_hash(h)
 
         return result.DownloadResult(h, self.endpoint.download(h, fh).result())
@@ -206,6 +210,13 @@ class PolyswarmAPI(object):
             yield result.ScanResult(f.result(), polyswarm=self)
 
     def scan_directory(self, directory, recursive=False):
+        """
+        Scan a directory of files via PolySwarm
+
+        :param directory: Directory to scan
+        :param recursive: Whether to look for files recursively
+        :return: ScanResult generator
+        """
         if recursive:
             file_list = [os.path.join(path, file)
                          for (path, dirs, files) in os.walk(directory)
@@ -217,6 +228,12 @@ class PolyswarmAPI(object):
         return self.scan(*file_list)
 
     def scan_urls(self, *urls):
+        """
+        Scan URLs via PolySwarm
+
+        :param urls: URLs to scan
+        :return: ScanResult generator
+        """
         _urls = []
 
         for url in urls:
@@ -238,6 +255,7 @@ class PolyswarmAPI(object):
     def check_version(self):
         """
         Checks GitHub to see if you have the latest version installed.
+        TODO this will be re-enabled when better version info is available in the API
 
         :return: True,latest_version tuple if latest, False,latest_version tuple if not
         """
@@ -273,24 +291,36 @@ class PolyswarmAPI(object):
 
     def live_delete(self, hunt_id):
         """
-        Delete a live scan.
+        Delete a live hunt.
 
         :param hunt_id: Hunt ID
+        :return: HuntDeletionResult object
         """
         return result.HuntDeletionResult(hunt_id, self.endpoint.live_delete(hunt_id).result(), self)
 
     def live_list(self):
+        """
+        List all the live hunts
+
+        :return: HuntListResult object
+        """
         return result.HuntListResult(self.endpoint.live_list().result(), self)
 
     def historical_delete(self, hunt_id):
         """
-        Delete a historical scan.
+        Delete a historical hunts.
 
         :param hunt_id: Hunt ID
+        :return: HuntDeletionResult object
         """
         return result.HuntDeletionResult(hunt_id, self.endpoint.historical_delete(hunt_id).result(), self)
 
     def historical_list(self):
+        """
+        List all historical hunts
+
+        :return: HuntListResult object
+        """
         return result.HuntListResult(self.endpoint.historical_list().result(), self)
 
     def _get_hunt_results(self, hunt, endpoint_func, **kwargs):
@@ -339,11 +369,18 @@ class PolyswarmAPI(object):
         Get results from a historical hunt
 
         :param hunt_id: ID of the hunt (None if latest hunt results are desired)
-        :return: Matches to the rules
+        :return: HuntResult object
         """
         return self._get_hunt_results(hunt, self.endpoint.historical_lookup, **kwargs)
 
     def stream(self, destination=None, since=const.MAX_SINCE_TIME_STREAM):
+        """
+        Access the stream of artifacts (ask info@polyswarm.io about access)
+
+        :param destination: Directory to save the files
+        :param since: How far back to grab artifacts in minutes (up to 2 days)
+        :return: DownloadResult generator
+        """
         if not os.path.exists(destination):
             os.makedirs(destination)
 
