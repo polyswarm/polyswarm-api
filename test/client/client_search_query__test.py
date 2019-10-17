@@ -3,7 +3,7 @@ from test.utils import PolyApiBaseTestCase
 
 try:
     from unittest.mock import patch
-except NameError:
+except ImportError:
     from mock import patch
 
 """

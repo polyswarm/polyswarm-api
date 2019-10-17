@@ -7,7 +7,7 @@ from polyswarm_api import exceptions
 
 try:
     from unittest import TestCase, mock
-except NameError:
+except ImportError:
     import mock
 
 FILE_SUBMISSION_RESULT = {
