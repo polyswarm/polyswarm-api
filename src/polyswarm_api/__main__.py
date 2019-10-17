@@ -392,7 +392,7 @@ def stream(ctx, since, destination):
 @click.pass_context
 def cat(ctx, hash_type, hash):
     api = ctx.obj['api']
-    result = next(api.download_to_filehandle(hash, sys.stdout.buffer))
+    result = api.download_to_filehandle(hash, sys.stdout.buffer)
 
 
 def _fix_result(self, result):

@@ -7,7 +7,8 @@ except NameError:
     from urlparse import urlparse
 
 from . import const
-from .endpoint import PolyswarmEndpoint
+from .endpoint import PolyswarmEndpoint, PolyswarmFuturesExecutor, PolyswarmRequestGenerator
+from .http import PolyswarmHTTPFutures
 from .types.artifact import ArtifactType, LocalArtifact
 from .types.hash import to_hash
 from .types.query import MetadataQuery
@@ -28,7 +29,11 @@ class PolyswarmAPI(object):
         :param community: Community to scan against.
         :param validate_schemas: Validate JSON objects when creating response objects. Will impact performance.
         """
-        self.endpoint = PolyswarmEndpoint(key, uri, community)
+        executor = PolyswarmFuturesExecutor(PolyswarmHTTPFutures(key, retries=const.DEFAULT_RETRIES))
+        generator = PolyswarmRequestGenerator(uri, community)
+
+        self.endpoint = PolyswarmEndpoint(generator, executor)
+
         self.timeout = timeout
         self._engine_map = None
         self.validate = validate_schemas
@@ -84,18 +89,29 @@ class PolyswarmAPI(object):
         if not os.path.exists(out_dir):
             os.makedirs(out_dir)
 
-        futures = [(h, os.path.join(out_dir, h.hash),
-                    self.endpoint.download(h, os.path.join(out_dir, h.hash))) for h in hashes]
+        futures = []
+        for h in hashes:
+            path = os.path.join(out_dir, h.hash)
+            fh = open(path, 'wb')
+            futures.append((h, fh, path, self.endpoint.download(h, fh)))
 
-        for h, path, f in futures:
-            artifact = LocalArtifact(path=path, artifact_name=h.hash, analyze=False, polyswarm=self)
-            yield result.DownloadResult(artifact, f.result())
+        for h, fh, path, f in futures:
+            r = f.result()
+
+            if r.status_code == 200:
+                artifact = LocalArtifact(path=path, artifact_name=h.hash, analyze=False, polyswarm=self)
+            else:
+                fh.close()
+                os.remove(path)
+                # dummy dl result
+                artifact = LocalArtifact(content=b'error', artifact_name=h.hash)
+            yield result.DownloadResult(artifact, r)
 
     def download_to_filehandle(self, h, fh):
         """ Download to a specific file handle """
         h = to_hash(h)
 
-        yield result.DownloadResult(h, self.endpoint.download(h, fh).result())
+        return result.DownloadResult(h, self.endpoint.download(h, fh).result())
 
     def submit(self, *artifacts):
         """
@@ -328,12 +344,25 @@ class PolyswarmAPI(object):
         return self._get_hunt_results(hunt, self.endpoint.historical_lookup, **kwargs)
 
     def stream(self, destination=None, since=const.MAX_SINCE_TIME_STREAM):
+        if not os.path.exists(destination):
+            os.makedirs(destination)
+
         stream = result.StreamResult(self.endpoint.stream(since=since).result(), self)
 
         futures = []
         for url in stream:
-            fn = os.path.join(destination, os.path.basename(urlparse(url).path))
-            futures.append((fn, self.endpoint.download_archive(url, fn)))
+            path = os.path.join(destination, os.path.basename(urlparse(url).path))
+            fh = open(path, 'wb')
+            futures.append((fh, path, self.endpoint.download_archive(url, fh)))
 
-        for fn, f in futures:
-            yield result.DownloadResult(LocalArtifact(path=fn, analyze=False), f.result(), polyswarm=self)
+        for fh, path, f in futures:
+            r = f.result()
+
+            if r.status_code == 200:
+                artifact = LocalArtifact(path=path, artifact_name=os.path.basename(path),
+                                         analyze=False, polyswarm=self)
+            else:
+                fh.close()
+                os.remove(path)
+                artifact = LocalArtifact(content=b'error', artifact_name=os.path.basename(path), analyze=False)
+            yield result.DownloadResult(artifact, r)

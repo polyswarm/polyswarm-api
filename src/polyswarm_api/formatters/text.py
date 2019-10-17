@@ -99,7 +99,7 @@ class TextOutput(base.BaseOutput):
 
     def search_result(self, search):
         if len(search) == 0:
-            return self._bad('(Did not find any files matching search: %s.)\n' % repr(search.query))
+            return self.out.write(self._bad('(Did not find any files matching search: %s.)\n' % repr(search.query)))
 
         output = []
         output.append(self._good('Found {count} matches to the search query.'.format(count=len(search))))

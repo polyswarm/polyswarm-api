@@ -3,6 +3,7 @@ from .http import PolyswarmHTTP, PolyswarmHTTPFutures
 from . import const, utils
 from requests.exceptions import HTTPError
 
+
 class PolyswarmRequestGenerator(object):
     """ This class will return requests-compatible arguments for the API """
     def __init__(self, uri, community):
@@ -24,7 +25,8 @@ class PolyswarmRequestGenerator(object):
             'method': 'GET',
             'url': self.download_fmt.format(self.download_base, h.hash_type, h.hash),
             'stream': True,
-        }, fh
+            'output_file': fh,
+        }
 
     def download_archive(self, u, fh):
         """ This method is special, in that it is simply for downloading from S3 """
@@ -32,7 +34,9 @@ class PolyswarmRequestGenerator(object):
             'method': 'GET',
             'url': u,
             'stream': True,
-        }, fh
+            'output_file': fh,
+            'headers': {'Authorization': None}
+        }
 
     def stream(self, since=const.MAX_SINCE_TIME_STREAM):
         return {
@@ -91,7 +95,8 @@ class PolyswarmRequestGenerator(object):
     def _get_engine_names(self):
         return {
             'method': 'GET',
-            'url': '{}/microengines/list'.format(self.uri)
+            'url': '{}/microengines/list'.format(self.uri),
+            'headers': {'Authorization': None},
         }
 
     def submit_live_hunt(self, rule):
@@ -175,62 +180,32 @@ class PolyswarmRequestGenerator(object):
 
 class PolyswarmRequestExecutor(object):
     """ This class accepts requests from a PolyswarmRequestGenerator and executes it """
-    def __init__(self, key, timeout=const.DEFAULT_HTTP_TIMEOUT, retries=const.DEFAULT_RETRIES, request_cls=None):
-        self.session = request_cls(key, retries)
-        self.unauth_session = request_cls(key=None, retries=retries)
+    def __init__(self, session=None, timeout=const.DEFAULT_HTTP_TIMEOUT):
+        self.session = session
         self.timeout = timeout
 
     def execute(self, request):
         if 'timeout' not in request:
             request['timeout'] = self.timeout
-        return self.session.request(**request)
 
-    def unauth_execute(self, request):
-        return self.unauth_session.request(**request)
+        # this is a special case for handling output to a file
+        output = request.get('output_file', None)
 
-    def _get_engine_names(self, request):
-        return self.unauth_session.request(**request)
+        if 'output_file' in request:
+            del request['output_file']
 
-    def __getattr__(self, name):
-        if name in self.__dict__:
-            return self.__dict__[name]
-        return self.execute
+        req = self.session.request(**request)
+
+        if output:
+            return self._download_to_fh(req, output)
+
+        return req
 
     def _download_to_fh(self, req, fh):
         raise NotImplementedError
 
-    def download(self, request):
-        request, fh_or_fn = request
-        cleanup = False
-        if isinstance(fh_or_fn, str):
-            cleanup = True
-            fh = open(fh_or_fn, 'wb')
-        else:
-            fh = fh_or_fn
-
-        req = self.execute(request)
-        try:
-            return self._download_to_fh(req, fh)
-        except HTTPError:
-            if cleanup:
-                fh.close()
-                os.remove(fh_or_fn)
-            return req
-
-
-    def download_archive(self, request):
-        request, fh = request
-        if isinstance(fh, str):
-            fh = open(fh, 'wb')
-
-        req = self.unauth_execute(request)
-        return self._download_to_fh(req, fh)
-
 
 class PolyswarmFuturesExecutor(PolyswarmRequestExecutor):
-    def __init__(self, key, timeout=const.DEFAULT_HTTP_TIMEOUT, retries=const.DEFAULT_RETRIES):
-        super(PolyswarmFuturesExecutor, self).__init__(key, timeout, retries, PolyswarmHTTPFutures)
-
     def _download_to_fh(self, req, fh):
         # this is unfortunately the cleanest way I think I can do this with requests-futures
         # derived partially from https://github.com/ross/requests-futures/issues/54
@@ -243,9 +218,6 @@ class PolyswarmFuturesExecutor(PolyswarmRequestExecutor):
 
 
 class PolyswarmSynchronousExecutor(PolyswarmRequestExecutor):
-    def __init__(self, key, timeout=const.DEFAULT_HTTP_TIMEOUT, retries=const.DEFAULT_RETRIES):
-        super(PolyswarmSynchronousExecutor, self).__init__(key, timeout, retries, PolyswarmHTTP)
-
     def _download_to_fh(self, req, fh):
         for chunk in req.iter_content(chunk_size=const.DOWNLOAD_CHUNK_SIZE):
             fh.write(chunk)
@@ -253,14 +225,27 @@ class PolyswarmSynchronousExecutor(PolyswarmRequestExecutor):
 
 
 class PolyswarmEndpoint(object):
-    """ This is the base class for PolyswarmEndpoint classes. Do not use directly. """
-    def __init__(self,  key, uri=const.DEFAULT_GLOBAL_API, community=const.DEFAULT_COMMUNITY,
-                 timeout=const.DEFAULT_HTTP_TIMEOUT, retries=const.DEFAULT_RETRIES,
-                 request_gen_cls=PolyswarmRequestGenerator, request_exec_cls=PolyswarmFuturesExecutor):
-        self.executor = request_exec_cls(key, timeout, retries)
-        self.generator = request_gen_cls(uri, community)
+    """ This is the PolyswarmEndpoint class, that handles talking with the PolySwarm API"""
+    def __init__(self,  request_generator=None, request_executor=None):
+        self.generator = request_generator
+        self.executor = request_executor
 
     def __getattr__(self, name):
+        """
+        This function is the black magic behind PolyswarmEndpoint. The goal of the function is to
+        return a callable that chains together a RequestGenerator and a RequestExecutor, but to do
+        this dynamically so that we don't have to manually define a new method for every possible
+        RequestGenerator method.
+
+        As such, we return a closure here, and this closure simply calls the given function name
+        in the RequestGenerator, and passes this into the RequestExecutor's execute function to
+        be run. The end result is a simple calling convention for all methods supported by
+        the provided RequestGenerator, e.g. endpoint.search() -> returns a result.
+
+
+        :param name: unresolved attribute name
+        :return: closure that calls the RequestGenerator then executes it with a RequestExecutor
+        """
         def endpoint_wrapper(*args, **kwargs):
-            return getattr(self.executor, name)(getattr(self.generator, name)(*args, **kwargs))
+            return self.executor.execute(getattr(self.generator, name)(*args, **kwargs))
         return endpoint_wrapper
