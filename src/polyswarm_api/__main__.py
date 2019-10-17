@@ -327,11 +327,10 @@ def live_results(ctx, hunt_id, without_metadata, without_bounties):
 def historical_start(ctx, rule_file):
     api = ctx.obj['api']
     output = ctx.obj['output']
-    out = ctx.obj['output']
 
     rules = rule_file.read()
 
-    out.write(output.hunt_submission(api.historical(rules)))
+    output.hunt_submission(output.hunt_submission(api.historical(rules)))
 
 
 @historical.command('delete', short_help='Delete the historical hunt associate with the given hunt_id')
