@@ -7,6 +7,18 @@ stages:
   - test
   - release
 
+test-run27:
+  tags:
+    - kube
+  image: python:2.7
+  stage: test
+  before_script:
+    - pip install --upgrade pip
+  script:
+    - pip install .
+    - polyswarm -h
+    - pytest -s -v
+
 test-run35:
   tags:
     - kube
