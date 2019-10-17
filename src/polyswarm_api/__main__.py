@@ -330,7 +330,7 @@ def historical_start(ctx, rule_file):
 
     rules = rule_file.read()
 
-    output.hunt_submission(output.hunt_submission(api.historical(rules)))
+    output.hunt_submission(api.historical(rules))
 
 
 @historical.command('delete', short_help='Delete the historical hunt associate with the given hunt_id')
