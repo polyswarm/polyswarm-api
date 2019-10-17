@@ -94,7 +94,10 @@ class SearchResult(IndexableResult):
 
         if self.status_code == 404:
             self.result = []
+            # ordinarily we shouldn't do this, TODO fix in AI
+            self.json['result'] = []
         elif self.status_code // 100 == 2:
+            # special case this error
             self.result = [Artifact(j, polyswarm) for j in self.result]
         else:
             raise self._bad_status_exception

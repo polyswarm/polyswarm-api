@@ -1,5 +1,6 @@
 import os
 from .http import PolyswarmHTTP, PolyswarmHTTPFutures
+from .log import logger
 from . import const, utils
 from requests.exceptions import HTTPError
 
@@ -197,7 +198,10 @@ class PolyswarmRequestExecutor(object):
         req = self.session.request(**request)
 
         if output:
-            return self._download_to_fh(req, output)
+            try:
+                return self._download_to_fh(req, output)
+            except HTTPError:
+                return req
 
         return req
 
@@ -214,11 +218,13 @@ class PolyswarmFuturesExecutor(PolyswarmRequestExecutor):
                 f.write(chunk)
             return r
         resp = req.result()
+        resp.raise_for_status()
         return self.session.executor.submit(do_download, resp, fh)
 
 
 class PolyswarmSynchronousExecutor(PolyswarmRequestExecutor):
     def _download_to_fh(self, req, fh):
+        req.raise_for_status()
         for chunk in req.iter_content(chunk_size=const.DOWNLOAD_CHUNK_SIZE):
             fh.write(chunk)
         return req
