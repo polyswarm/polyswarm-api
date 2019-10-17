@@ -12,7 +12,7 @@ import os
 import traceback
 try:
     from unittest.mock import patch
-except NameError:
+except ImportError:
     from mock import patch
 
 try:
@@ -42,7 +42,7 @@ class SearchTest(TestCase):
     def test_everything_is_ok(self):
         # yes, everything is ok
         pass
-    
+
     @staticmethod
     def _remove_file(file_path):
         try:
