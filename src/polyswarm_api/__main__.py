@@ -1,75 +1,23 @@
 #!/usr/bin/env python3
-import asyncio
 import click
 import logging
 import sys
 import os
-from uuid import UUID
 import json
 
-from aiohttp import ServerDisconnectedError
+from .api import PolyswarmAPI
+from .types.query import MetadataQuery
+from . import const
 
-from . import PolyswarmAPI, MAX_HUNT_RESULTS
-from .formatting import PSResultFormatter, PSDownloadResultFormatter, PSSearchResultFormatter, PSHuntResultFormatter, \
-    PSHuntSubmissionFormatter, PSStreamFormatter, PSHuntDeletionFormatter
+from .formatters import formatters
+from . import exceptions
+
+from .utils import validate_key, validate_uuid, is_valid_uuid, \
+                   validate_hashes, validate_hash, parse_hashes
 
 CONTEXT_SETTINGS = dict(help_option_names=['-h', '--help'])
 
 logger = logging.getLogger(__name__)
-
-
-def is_hex(value):
-    try:
-        a = int(value, 16)
-        return True
-    except ValueError:
-        return False
-
-
-def _is_valid_sha1(value):
-    if len(value) != 40:
-        return False
-    return is_hex(value)
-
-
-def _is_valid_md5(value):
-    if len(value) != 32:
-        return False
-    return is_hex(value)
-
-
-def _is_valid_sha256(value):
-    if len(value) != 64:
-        return False
-    return is_hex(value)
-
-
-def _is_valid_uuid(value):
-    try:
-        val = UUID(value, version=4)
-        return True
-    except:
-        return False
-
-
-def validate_uuid(ctx, param, value):
-    for uuid in value:
-        if not _is_valid_uuid(uuid):
-            raise click.BadParameter('UUID {} not valid, please check and try again.'.format(uuid))
-    return value
-
-
-def validate_hash(ctx, param, value):
-    for h in value:
-        if not (_is_valid_sha256(h) or _is_valid_md5(h) or _is_valid_sha1(h)):
-            raise click.BadParameter('Hash {} not valid, must be sha256|md5|sha1 in hexadecimal format'.format(h))
-    return value
-
-
-def validate_key(ctx, param, value):
-    if not is_hex(value) or len(value) != 32:
-        raise click.BadParameter('Invalid API key. Make sure you specified your key via -a or environment variable and try again.')
-    return value
 
 
 @click.group(context_settings=CONTEXT_SETTINGS)
@@ -78,16 +26,18 @@ def validate_key(ctx, param, value):
 @click.option('-u', '--api-uri', default='https://api.polyswarm.network/v1',
               envvar='POLYSWARM_API_URI', help='The API endpoint (ADVANCED)')
 @click.option('-o', '--output-file', default=sys.stdout, type=click.File('w'), help='Path to output file.')
-@click.option('--fmt', '--output-format', default='text', type=click.Choice(['text', 'json']),
+@click.option('--output-format', '--fmt', default='text', type=click.Choice(formatters.keys()),
               help='Output format. Human-readable text or JSON.')
 @click.option('--color/--no-color', default=True, help='Use colored output in text mode.')
 @click.option('-v', '--verbose', default=0, count=True)
 @click.option('-c', '--community', default='lima', envvar='POLYSWARM_COMMUNITY', help='Community to use.')
 @click.option('--advanced-disable-version-check/--advanced-enable-version-check', default=False,
               help='Enable/disable GitHub release version check.')
+@click.option('--validate', default=False, is_flag=True,
+              envvar='POLYSWARM_VALIDATE', help='Validate incoming schemas (note: slow).')
 @click.pass_context
 def polyswarm(ctx, api_key, api_uri, output_file, output_format, color, verbose, community,
-              advanced_disable_version_check):
+              advanced_disable_version_check, validate):
     """
     This is a PolySwarm CLI client, which allows you to interact directly
     with the PolySwarm network to scan files, search hashes, and more.
@@ -112,18 +62,29 @@ def polyswarm(ctx, api_key, api_uri, output_file, output_format, color, verbose,
         color = False
 
     logging.debug('Creating API instance: api_key:%s, api_uri:%s', api_key, api_uri)
-    ctx.obj['api'] = PolyswarmAPI(api_key, api_uri, community=community,
-                                  check_version=(not advanced_disable_version_check))
-    ctx.obj['color'] = color
-    ctx.obj['output_format'] = output_format
-    ctx.obj['output'] = output_file
+    ctx.obj['api'] = PolyswarmAPI(api_key, api_uri, community=community, validate_schemas=validate)
+
+    ctx.obj['output'] = formatters[output_format](color=color, output=output_file)
 
 
-def _do_scan(api, paths, recursive=False):
-    # separate into paths and directories
-    # TODO do this async so we don't have dumb edge cases
+@click.option('-f', '--force', is_flag=True, default=False,
+              help='Force re-scan even if file has already been analyzed.')
+@click.option('-r', '--recursive', is_flag=True, default=False, help='Scan directories recursively')
+@click.option('-t', '--timeout', type=click.INT, default=const.DEFAULT_SCAN_TIMEOUT,
+              help='How long to wait for results (default: {})'.format(const.DEFAULT_SCAN_TIMEOUT))
+@click.argument('path', nargs=-1, type=click.Path(exists=True))
+@polyswarm.command('scan', short_help='scan files/directories')
+@click.pass_context
+def scan(ctx, path, force, recursive, timeout):
+    """
+    Scan files or directories via PolySwarm
+    """
+    api = ctx.obj['api']
+    output = ctx.obj['output']
 
-    # TODO dedupe
+    api.timeout = timeout
+
+    paths = path
 
     directories, files = [], []
     for path in paths:
@@ -134,63 +95,16 @@ def _do_scan(api, paths, recursive=False):
         else:
             logger.warning('Path %s is neither a file nor a directory, ignoring.', path)
 
-    results = api.scan_files(files)
+    try:
+        for result in api.scan(*files):
+            output.scan_result(result)
 
-    for d in directories:
-        results.extend(api.scan_directory(d, recursive=recursive))
-
-    return results
-
-
-async def get_results(ctx, tasks):
-    results = []
-    failed_bounty, server_disconnects, other_exceptions, success = 0, 0, 0, 0
-    for r in asyncio.as_completed(tasks):
-        try:
-            final = None
-            final = await r
-            results.append(final)
-
-            zeroth_file = final['files'][0]
-            if not zeroth_file.get('bounty_guid'):
-                ctx.obj['output'].write('Failed to get bounty guid on {}\n'.format(final.get('uuid')))
-
-            elif not zeroth_file.get('assertions'):
-                ctx.obj['output'].write('Failed to get assertions on bounty guid on {}\n'.format(zeroth_file.get('bounty_guid')))
-            success += 1
-        except IndexError:
-            ctx.obj['output'].write('Failed on bounty uuid {}\n'.format(final.get('uuid')))
-            failed_bounty += 1
-        except ServerDisconnectedError as e:
-            ctx.obj['output'].write('Server disconnected error {}\n'.format(e))
-            server_disconnects += 1
-        except Exception as e:
-            ctx.obj['output'].write('Failed on bounty with exception {}\n'.format(e))
-            other_exceptions +=1
-    return results, (failed_bounty, server_disconnects, other_exceptions, success)
-
-
-@click.option('-f', '--force', is_flag=True, default=False,
-              help='Force re-scan even if file has already been analyzed.')
-@click.option('-r', '--recursive', is_flag=True, default=False, help='Scan directories recursively')
-@click.option('-t', '--timeout', type=click.INT, default=-1, help='How long to wait for results (default: forever, -1)')
-@click.argument('path', nargs=-1, type=click.Path(exists=True))
-@polyswarm.command('scan', short_help='scan files/directories')
-@click.pass_context
-def scan(ctx, path, force, recursive, timeout):
-    """
-    Scan files or directories via PolySwarm
-    """
-    api = ctx.obj['api']
-
-    api.timeout = timeout
-
-    api.set_force(force)
-
-    results = _do_scan(api, path, recursive)
-
-    rf = PSResultFormatter(results, color=ctx.obj['color'], output_format=ctx.obj['output_format'])
-    ctx.obj['output'].write(str(rf))
+        for d in directories:
+            for result in api.scan_directory(d, recursive=recursive):
+                output.scan_result(result)
+    except exceptions.UsageLimitsExceeded:
+        output.usage_exceeded()
+        sys.exit(1)
 
 
 @click.option('-r', '--url-file', help='File of URLs, one per line.', type=click.File('r'))
@@ -205,20 +119,20 @@ def url_scan(ctx, url, url_file, force, timeout):
     Scan files or directories via PolySwarm
     """
     api = ctx.obj['api']
-
+    output = ctx.obj['output']
     api.timeout = timeout
 
-    api.set_force(force)
-
-    urls = url
+    urls = list(url)
 
     if url_file:
-        urls.extend([u.strip() for u in open(url_file).readlines()])
+        urls.extend([u.strip() for u in url_file.readlines()])
 
-    results = api.scan_urls(urls)
-
-    rf = PSResultFormatter(results, color=ctx.obj['color'], output_format=ctx.obj['output_format'])
-    ctx.obj['output'].write(str(rf))
+    try:
+        for result in api.scan_urls(*urls):
+           output.scan_result(result)
+    except exceptions.UsageLimitsExceeded:
+        output.usage_exceeded()
+        sys.exit(1)
 
 
 @polyswarm.group(short_help='interact with PolySwarm search api')
@@ -227,63 +141,56 @@ def search():
 
 
 @click.option('-r', '--hash-file', help='File of hashes, one per line.', type=click.File('r'))
-@click.option('--hash-type', help='Hash type to search [sha256|sha1|md5], default=sha256', default='sha256')
+@click.option('--hash-type', help='Hash type to search [default:autodetect, sha256|sha1|md5]', default=None)
+@click.option('-m', '--without-metadata', is_flag=True, default=False,
+              help='Don\'t request artifact metadata.')
+@click.option('-b', '--without-bounties', is_flag=True, default=False,
+              help='Don\'t request bounties.')
 @click.argument('hashes', nargs=-1)
 @search.command('hash', short_help='search for hashes separated by space')
 @click.pass_context
-def hashes(ctx, hashes, hash_file, hash_type):
+def hashes(ctx, hashes, hash_file, hash_type, without_metadata, without_bounties):
     """
-    Search PolySwarm for files matching sha256 hashes
+    Search PolySwarm for files matching hashes
     """
-
-    def _get_hashes_from_file(file):
-        return [h.strip() for h in file.readlines()]
-
-    def _remove_invalid_hashes(hash_candidates, candidates_hash_type):
-
-        def is_valid_hash(hash_candidate):
-            return (candidates_hash_type == 'sha256' and _is_valid_sha256(hash_candidate)) or \
-                   (candidates_hash_type == 'sha1' and _is_valid_sha1(hash_candidate)) or \
-                   (candidates_hash_type == 'md5' and _is_valid_md5(hash_candidate))
-
-        valid_hashes = []
-        for candidate in hash_candidates:
-            if is_valid_hash(candidate):
-                valid_hashes.append(candidate)
-            else:
-                logger.warning('Invalid hash %s, ignoring.', candidate)
-        return valid_hashes
 
     api = ctx.obj['api']
+    output = ctx.obj['output']
 
-    hashes = list(hashes)
+    hashes = parse_hashes(hashes, hash_type, hash_file)
+    try:
+        if hashes:
+            results = api.search(*hashes, with_instances=not without_bounties, with_metadata=not without_metadata)
 
-    if hash_file:
-        hashes += _get_hashes_from_file(hash_file)
-
-    hashes = _remove_invalid_hashes(hashes, hash_type)
-    results = api.search_hashes(hashes, hash_type)
-
-    rf = PSSearchResultFormatter(results, color=ctx.obj['color'],
-                                 output_format=ctx.obj['output_format'])
-    ctx.obj['output'].write(str(rf))
+            # for json, this is effectively jsonlines
+            for result in results:
+                output.search_result(result)
+        else:
+            raise click.BadParameter('Hash not valid, must be sha256|md5|sha1 in hexadecimal format')
+    except exceptions.UsageLimitsExceeded:
+        output.usage_exceeded()
+        sys.exit(1)
 
 
 @click.option('-r', '--query-file', help='Properly formatted JSON search file', type=click.File('r'))
+@click.option('-m', '--without-metadata', is_flag=True, default=False,
+              help='Don\'t request artifact metadata.')
+@click.option('-b', '--without-bounties', is_flag=True, default=False,
+              help='Don\'t request bounties.')
 @click.argument('query_string', nargs=-1)
 @search.command('metadata', short_help='search metadata of files')
 @click.pass_context
-def metadata(ctx, query_string, query_file):
+def metadata(ctx, query_string, query_file, without_metadata, without_bounties):
 
     api = ctx.obj['api']
+    output = ctx.obj['output']
 
     try:
         if len(query_string) >= 1:
-            query = query_string[0]
-            raw = False
+            queries = [MetadataQuery(q, False, api) for q in query_string]
         elif query_file:
-            query = json.load(query_file)
-            raw = True
+            # TODO support multiple queries in a file?
+            queries = [MetadataQuery(json.load(query_file), True, api)]
         else:
             logger.error('No query specified')
             return 0
@@ -294,19 +201,17 @@ def metadata(ctx, query_string, query_file):
         logger.error('Failed to parse JSON due to Unicode error')
         return 0
 
-    results = api.search_query(query, raw)
-
-    # TODO handle the difference here better, will address in refactor
-    rf = PSSearchResultFormatter([results], color=ctx.obj['color'],
-                                 output_format=ctx.obj['output_format'])
-
-    ctx.obj['output'].write(str(rf))
-
-    return 0
+    try:
+        for result in api.search_by_metadata(*queries, with_instances=not without_bounties,
+                                             with_metadata=not without_metadata):
+            output.search_result(result)
+    except exceptions.UsageLimitsExceeded:
+        output.usage_exceeded()
+        sys.exit(1)
 
 
 @click.option('-r', '--uuid-file', help='File of UUIDs, one per line.', type=click.File('r'))
-@click.argument('uuid', 'uuid', nargs=-1, callback=validate_uuid)
+@click.argument('uuid', nargs=-1, callback=validate_uuid)
 @polyswarm.command('lookup', short_help='lookup UUID(s)')
 @click.pass_context
 def lookup(ctx, uuid, uuid_file):
@@ -314,6 +219,7 @@ def lookup(ctx, uuid, uuid_file):
     Lookup a PolySwarm scan by UUID for current status.
     """
     api = ctx.obj['api']
+    output = ctx.obj['output']
 
     uuids = list(uuid)
 
@@ -321,71 +227,69 @@ def lookup(ctx, uuid, uuid_file):
     if uuid_file:
         for u in uuid_file.readlines():
             u = u.strip()
-            if _is_valid_uuid(u):
+            if is_valid_uuid(u):
                 uuids.append(u)
             else:
                 logger.warning('Invalid uuid %s in file, ignoring.', u)
 
-    rf = PSResultFormatter(api.lookup_uuids(uuids), color=ctx.obj['color'], output_format=ctx.obj['output_format'])
-    ctx.obj['output'].write(str(rf))
+    try:
+        for result in api.lookup(*uuids):
+            output.scan_result(result)
+    except exceptions.UsageLimitsExceeded:
+        output.usage_exceeded()
+        sys.exit(1)
 
 
 @click.option('-r', '--hash-file', help='File of hashes, one per line.', type=click.File('r'))
 @click.option('-m', '--metadata', is_flag=True, default=False, help='Save file metadata into associated JSON file')
-@click.option('--hash-type', help='Hash type to search [sha256|sha1|md5], default=sha256', default='sha256')
-@click.argument('hash', 'hash', nargs=-1, callback=validate_hash)
-@click.argument('destination', 'destination', nargs=1, type=click.Path(file_okay=False))
+@click.option('--hash-type', help='Hash type to search [default:autodetect, sha256|sha1|md5]', default=None)
+@click.argument('hash', nargs=-1, callback=validate_hashes)
+@click.argument('destination', nargs=1, type=click.Path(file_okay=False))
 @polyswarm.command('download', short_help='download file(s)')
 @click.pass_context
 def download(ctx, metadata, hash_file, hash_type, hash, destination):
-    if not os.path.exists(destination):
-        os.makedirs(destination)
-
+    """
+    Download files from matching hashes
+    """
     api = ctx.obj['api']
+    output = ctx.obj['output']
 
-    hashes = list(hash)
+    hashes = parse_hashes(hash, hash_type, hash_file)
 
-    # TODO dedupe
-    if hash_file:
-        for h in hash_file.readlines():
-            h = h.strip()
-            if (hash_type == 'sha256' and _is_valid_sha256(h)) or \
-                    (hash_type == 'sha1' and _is_valid_sha1(h)) or \
-                    (hash_type == 'md5' and _is_valid_md5(h)):
-                hashes.append(h)
-            else:
-                logger.warning('Invalid hash %s in file, ignoring.', h)
-
-    rf = PSDownloadResultFormatter(api.download_files(hashes, destination, metadata, hash_type),
-                                   color=ctx.obj['color'], output_format=ctx.obj['output_format'])
-
-    ctx.obj['output'].write((str(rf)))
+    if hashes:
+        try:
+            for result in api.download(destination, *hashes):
+                output.download_result(result)
+        except exceptions.UsageLimitsExceeded:
+            output.usage_exceeded()
+            sys.exit(1)
+    else:
+        raise click.BadParameter('Hash not valid, must be sha256|md5|sha1 in hexadecimal format')
 
 
 @click.option('-r', '--hash-file', help='File of hashes, one per line.', type=click.File('r'))
-@click.option('--hash-type', help='Hash type to search [sha256|sha1|md5], default=sha256', default='sha256')
-@click.argument('hash', 'hash', nargs=-1, callback=validate_hash)
+@click.option('--hash-type', help='Hash type to search [default:autodetect, sha256|sha1|md5]', default=None)
+@click.argument('hash', nargs=-1, callback=validate_hashes)
 @polyswarm.command('rescan', short_help='rescan files(s) by hash')
 @click.pass_context
 def rescan(ctx, hash_file, hash_type, hash):
+    """
+    Rescan files with matched hashes
+    """
     api = ctx.obj['api']
+    output = ctx.obj['output']
 
-    hashes = list(hash)
+    hashes = parse_hashes(hash, hash_type, hash_file)
 
-    # TODO dedupe
-    if hash_file:
-        for h in hash_file.readlines():
-            h = h.strip()
-            if (hash_type == 'sha256' and _is_valid_sha256(h)) or \
-                    (hash_type == 'sha1' and _is_valid_sha1(h)) or \
-                    (hash_type == 'md5' and _is_valid_md5(h)):
-                hashes.append(h)
-            else:
-                logger.warning('Invalid hash %s in file, ignoring.', h)
-
-    rf = PSResultFormatter(api.rescan_files(hashes, hash_type), color=ctx.obj['color'],
-                           output_format=ctx.obj['output_format'])
-    ctx.obj['output'].write(str(rf))
+    if hashes:
+        try:
+            for result in api.rescan(*hashes):
+                output.scan_result(result)
+        except exceptions.UsageLimitsExceeded:
+            output.usage_exceeded()
+            sys.exit(1)
+    else:
+        raise click.BadParameter('Hash not valid, must be sha256|md5|sha1 in hexadecimal format')
 
 
 @polyswarm.group(short_help='interact with live scans')
@@ -403,53 +307,64 @@ def historical():
 @click.pass_context
 def live_install(ctx, rule_file):
     api = ctx.obj['api']
+    output = ctx.obj['output']
 
     rules = rule_file.read()
 
-    rf = PSHuntSubmissionFormatter(api.new_live_hunt(rules), color=ctx.obj['color'],
-                                   output_format=ctx.obj['output_format'])
-    ctx.obj['output'].write((str(rf)))
+    try:
+        output.hunt_submission(api.live(rules))
+    except exceptions.UsageLimitsExceeded:
+        output.usage_exceeded()
+        sys.exit(1)
+    except exceptions.InvalidYaraRules as e:
+        output.invalid_rule(e)
+        sys.exit(2)
 
 
 @live.command('delete', short_help='Delete the live hunt associate with the given hunt_id')
-@click.argument('hunt_id')
+@click.argument('hunt_id', type=int)
 @click.pass_context
 def live_delete(ctx, hunt_id):
     api = ctx.obj['api']
+    output = ctx.obj['output']
 
-    rf = PSHuntDeletionFormatter(api.delete_live_hunt(hunt_id), color=ctx.obj['color'],
-                                 output_format=ctx.obj['output_format'])
-    ctx.obj['output'].write((str(rf)))
+    try:
+        output.hunt_deletion(api.live_delete(hunt_id))
+    except exceptions.UsageLimitsExceeded:
+        output.usage_exceeded()
+        sys.exit(1)
+
+
+@live.command('list', short_help='List all live hunts performed')
+@click.pass_context
+def live_list(ctx):
+    api = ctx.obj['api']
+    output = ctx.obj['output']
+
+    try:
+        output.hunt_list(api.live_list())
+    except exceptions.UsageLimitsExceeded:
+        output.usage_exceeded()
+        sys.exit(1)
 
 
 @click.option('-i', '--hunt-id', type=int, help='ID of the rule file (defaults to latest)')
-@click.option('--download-path', '-d', type=click.Path(file_okay=False),
-              help='In addition to fetching the results, download the files that matched.')
 @live.command('results', short_help='get results from live hunt')
-@click.option('-a', '--all', is_flag=True, default=False,
-              help='Request all historical results (could take awhile).')
-@click.option('-l', '--limit', type=int, help='Number of results to request (maximum 20000, default 5000)', default=5000)
-@click.option('-o', '--offset', type=int, help='Offset into results to start request from .', default=0)
-@click.option('-m', '--with-metadata', is_flag=True, default=False,
-              help='Request metadata associated with artifacts as well.')
-@click.option('-b', '--with-bounties', is_flag=True, default=False,
-              help='Request bounty results associated with artifacts as well')
+@click.option('-m', '--without-metadata', is_flag=True, default=False,
+              help='Don\'t request artifact metadata.')
+@click.option('-b', '--without-bounties', is_flag=True, default=False,
+              help='Don\'t request bounties.')
 @click.pass_context
-def live_results(ctx, hunt_id, download_path, all, limit, offset, with_metadata, with_bounties):
+def live_results(ctx, hunt_id, without_metadata, without_bounties):
     api = ctx.obj['api']
+    output = ctx.obj['output']
 
-    results = api.get_live_results(hunt_id, limit, offset, all, with_metadata, with_bounties)
-
-    rf = PSHuntResultFormatter(results, color=ctx.obj['color'],
-                               output_format=ctx.obj['output_format'])
-
-    if download_path and results['status'] == 'OK':
-        if not os.path.exists(download_path):
-            os.makedirs(download_path)
-        hashes = [match['artifact']['sha256'] for match in results['result']]
-        api.download_files(hashes, download_path, False, 'sha256')
-
-    ctx.obj['output'].write((str(rf)))
+    try:
+        result = api.live_results(hunt_id, with_metadata=not without_metadata, with_instances=not without_bounties)
+        output.hunt_result(result)
+    except exceptions.UsageLimitsExceeded:
+        output.usage_exceeded()
+        sys.exit(1)
 
 
 @click.argument('rule_file', type=click.File('r'))
@@ -457,75 +372,128 @@ def live_results(ctx, hunt_id, download_path, all, limit, offset, with_metadata,
 @click.pass_context
 def historical_start(ctx, rule_file):
     api = ctx.obj['api']
+    output = ctx.obj['output']
 
     rules = rule_file.read()
 
-    rf = PSHuntSubmissionFormatter(api.new_historical_hunt(rules), color=ctx.obj['color'],
-                                   output_format=ctx.obj['output_format'])
-    ctx.obj['output'].write((str(rf)))
+    try:
+        output.hunt_submission(api.historical(rules))
+    except exceptions.UsageLimitsExceeded:
+        output.usage_exceeded()
+        sys.exit(1)
+    except exceptions.InvalidYaraRules as e:
+        output.invalid_rule(e)
+        sys.exit(2)
 
 
 @historical.command('delete', short_help='Delete the historical hunt associate with the given hunt_id')
-@click.argument('hunt_id')
+@click.argument('hunt_id', type=int)
 @click.pass_context
 def historical_delete(ctx, hunt_id):
     api = ctx.obj['api']
+    output = ctx.obj['output']
 
-    rf = PSHuntDeletionFormatter(api.delete_historical_hunt(hunt_id), color=ctx.obj['color'],
-                                 output_format=ctx.obj['output_format'])
-    ctx.obj['output'].write((str(rf)))
+    try:
+        output.hunt_deletion(api.historical_delete(hunt_id))
+    except exceptions.UsageLimitsExceeded:
+        output.usage_exceeded()
+        sys.exit(1)
+
+
+@historical.command('list', short_help='List all historical hunts performed')
+@click.pass_context
+def historical_list(ctx):
+    api = ctx.obj['api']
+    output = ctx.obj['output']
+
+    try:
+        output.hunt_list(api.historical_list())
+    except exceptions.UsageLimitsExceeded:
+        output.usage_exceeded()
+        sys.exit(1)
 
 
 @click.option('-i', '--hunt-id', type=int, help='ID of the rule file (defaults to latest)')
-@click.option('--download-path', '-d', type=click.Path(file_okay=False),
-              help='In addition to fetching the results, download the files that matched.')
-@click.option('-a', '--all', is_flag=True, default=False,
-              help='Request all historical results (could take awhile).')
-@click.option('-l', '--limit', type=int, help='Number of results to request (maximum 20000, default 5000)', default=5000)
-@click.option('-o', '--offset', type=int, help='Offset into results to start request from .', default=0)
-@click.option('-m', '--with-metadata', is_flag=True, default=False,
-              help='Request metadata associated with artifacts as well.')
-@click.option('-b', '--with-bounties', is_flag=True, default=False,
-              help='Request bounty results associated with artifacts as well')
+@click.option('-m', '--without-metadata', is_flag=True, default=False,
+              help='Don\'t request artifact metadata.')
+@click.option('-b', '--without-bounties', is_flag=True, default=False,
+              help='Don\'t request bounties.')
 @historical.command('results', short_help='get results from historical hunt')
 @click.pass_context
-def historical_results(ctx, hunt_id, download_path, all, limit, offset, with_metadata, with_bounties):
+def historical_results(ctx, hunt_id, without_metadata, without_bounties):
     api = ctx.obj['api']
+    output = ctx.obj['output']
 
-    results = api.get_historical_results(hunt_id, limit, offset, all, with_metadata, with_bounties)
+    try:
+        result = api.historical_results(hunt_id, with_metadata=not without_metadata, with_instances=not without_bounties)
 
-    rf = PSHuntResultFormatter(results, color=ctx.obj['color'],
-                               output_format=ctx.obj['output_format'])
-
-    if download_path and results['status'] in ['OK', 'SUCCESS']:
-        if not os.path.exists(download_path):
-            os.makedirs(download_path)
-
-        hashes = [match['artifact']['sha256'] for match in results['result']]
-        api.download_files(hashes, download_path, False, 'sha256')
-
-    ctx.obj['output'].write((str(rf)))
+        output.hunt_result(result)
+    except exceptions.UsageLimitsExceeded:
+        output.usage_exceeded()
+        sys.exit(1)
 
 
-@click.option('--download-path', '-d', type=click.Path(file_okay=False),
-              help='In addition to fetching the results, download the archives.')
 @click.option('-s', '--since', type=click.IntRange(1, 2880), default=1440,
               help='Request archives X minutes into the past. Default: 1440, Max: 2880')
+@click.argument('destination', nargs=1, type=click.Path(file_okay=False))
 @polyswarm.command('stream', short_help='access the polyswarm file stream')
 @click.pass_context
-def stream(ctx, download_path, since):
+def stream(ctx, since, destination):
     api = ctx.obj['api']
+    out = ctx.obj['output']
 
-    if download_path is not None:
-        if not os.path.exists(download_path):
-            os.makedirs(download_path)
+    if destination is not None:
+        if not os.path.exists(destination):
+            os.makedirs(destination)
 
-    results = api.get_stream(download_path, since=since)
+    try:
+        for download in api.stream(destination, since=since):
+            out.download_result(download)
+    except exceptions.UsageLimitsExceeded:
+        out.usage_exceeded()
+        sys.exit(1)
 
-    rf = PSStreamFormatter(results, color=ctx.obj['color'],
-                           output_format=ctx.obj['output_format'])
 
-    ctx.obj['output'].write((str(rf)))
+@click.option('--hash-type', help='Hash type to search [default:autodetect, sha256|sha1|md5]', default=None)
+@click.argument('hash', nargs=1, callback=validate_hash)
+@polyswarm.command('cat', short_help='cat artifact to stdout')
+@click.pass_context
+def cat(ctx, hash_type, hash):
+    api = ctx.obj['api']
+    output = ctx.obj['output']
+    # handle 2.7
+    out = sys.stdout
+    if hasattr(sys.stdout, 'buffer'):
+        out = sys.stdout.buffer
+    try:
+        result = api.download_to_filehandle(hash, out)
+    except exceptions.UsageLimitsExceeded:
+        output.usage_exceeded()
+        sys.exit(1)
+
+
+def _fix_result(self, result):
+    """
+    For now, since the name-ETH address mappings are not added by consumer, we add them using
+    a hardcoded dict. This function does that for us. It also adds in a permalink to the scan.
+    These changes will be moved into consumer soon.
+
+    :param result: The JSON we got from consumer API
+    :return: JSON updated with name-ETH address mappings for microengines and arbiters
+    """
+    try:
+        for file in result['files']:
+            if 'assertions' in file:
+                for assertion in file['assertions']:
+                    assertion['engine'] = self.engine_resolver.get_engine_name(assertion['author'])
+            if 'votes' in file:
+                for vote in file['votes']:
+                    vote['engine'] = self.engine_resolver.get_engine_name(vote['arbiter'])
+    except KeyError:
+        # ignore if not complete
+        return result
+
+    return result
 
 
 if __name__ == '__main__':
