@@ -125,6 +125,10 @@ class TextOutput(base.BaseOutput):
             self.out.write(self._error('(Did not get a response for {} in time, check again later)\n'.format(bounty.uuid)))
             return
 
+        if bounty.failed:
+            self.out.write(self._error('(Bounty creation failed for submission {}. Please resubmit.\n'.format(bounty.uuid)))
+            return
+
         output.append(self._normal('Scan report for GUID %s\n========================================================='
                                    % bounty.uuid))
 

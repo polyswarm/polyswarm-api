@@ -90,6 +90,7 @@ class Bounty(BasePSJSONType):
         self.uuid = json.get('uuid')
         self._permalink = json['permalink'] if json.get('permalink') else None
         self.files = [Scan(self, f, polyswarm) for f in json['files']]
+        self.failed = self.status == 'Bounty Failed'
 
     @property
     def permalink(self):
@@ -116,7 +117,7 @@ class Bounty(BasePSJSONType):
             return True
 
         # this assumes that if any file reports closed, they all are. This should always be true
-        return files[0].window_closed
+        return files[0].window_closed or self.failed
 
     def __str__(self):
         return "Bounty-%s [%s]" % (self.uuid, ",".join(str(s) for s in self.files))

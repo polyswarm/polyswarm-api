@@ -239,7 +239,7 @@ from polyswarm_api.api import PolyswarmAPI
 
 api_key = "317b21cb093263b701043cb0831a53b9"
 
-api = polyswarm_api.PolyswarmAPI(key=api_key)
+api = PolyswarmAPI(key=api_key)
 ```
 
 **Note:** You will need to get your own API key from [`polyswarm.network/profile/apiKeys`](https://polyswarm.network/profile/apiKeys)
@@ -266,7 +266,7 @@ query = { "query": {
                 }
             }
         }
-results = api.search_by_metadata(*[query])
+results = api.search_by_metadata(query)
 ```
 
 ##### Metadata Terms

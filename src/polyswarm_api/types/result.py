@@ -117,7 +117,7 @@ class ScanResult(ApiResponse):
 
     @property
     def ready(self):
-        if not self.result:
+        if not self.result or isinstance(self.result, str):
             return False
 
         return self.result.ready
