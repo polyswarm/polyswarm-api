@@ -19,8 +19,8 @@ from .types.hunt import YaraRuleset, Hunt
 class PolyswarmAPI(object):
     """A synchronous interface to the public and private PolySwarm APIs."""
 
-    def __init__(self, key, uri='https://api.polyswarm.network/v1', timeout=600, community='lima',
-                 validate_schemas=False):
+    def __init__(self, key, uri='https://api.polyswarm.network/v1', timeout=const.DEFAULT_BOUNTY_TIMEOUT,
+                 community='lima', validate_schemas=False):
         """
         :param key: PolySwarm API key
         :param uri: PolySwarm API URI
@@ -188,10 +188,15 @@ class PolyswarmAPI(object):
         """
 
         for uuid in uuids:
+            start = time.time()
             while True:
                 scan_result = next(self.lookup(uuid))
 
                 if scan_result.ready:
+                    yield scan_result
+                    break
+                elif -1 < self.timeout < time.time() - start:
+                    scan_result.timeout = True
                     yield scan_result
                     break
                 else:

@@ -8,7 +8,7 @@ from io import BytesIO
 import os
 from . import schemas
 from .scan import Bounty
-from .. import utils
+from . import date
 
 
 def requires_analysis(func):
@@ -55,7 +55,7 @@ class ArtifactInstance(BasePSJSONType):
         self.country = json['country']
         self.id = json['id']
         self.name = json['name']
-        self.submitted = utils.parse_date(json['submitted'])
+        self.submitted = date.parse_date(json['submitted'])
         self.artifact = artifact
 
 
@@ -79,7 +79,7 @@ class Artifact(Hashable, BasePSJSONType):
 
         self.mimetype = json['mimetype']
         self.extended_type = json['extended_type']
-        self.first_seen = utils.parse_date(json['first_seen'])
+        self.first_seen = date.parse_date(json['first_seen'])
         self.id = json['id']
         self.sha256 = Hash(json['sha256'], 'sha256', polyswarm)
         self.sha1 = Hash(json['sha1'], 'sha1', polyswarm)

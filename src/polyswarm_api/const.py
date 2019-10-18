@@ -35,3 +35,5 @@ MAX_SINCE_TIME_STREAM = 60*24*2
 USAGE_EXCEEDED_MESSAGE = 'Usage limits were exceeded. This may mean you need to purchase a ' \
                          'larger package, or that you have exceeded rate limits.\n' \
                          'If you continue to have issues, please contact us at info@polyswarm.io.'
+
+DEFAULT_BOUNTY_TIMEOUT = 60*5

@@ -103,8 +103,9 @@ class SearchResult(IndexableResult):
 
 
 class ScanResult(ApiResponse):
-    def __init__(self, result, artifact=None, polyswarm=None):
+    def __init__(self, result, artifact=None, polyswarm=None, timeout=False):
         super(ScanResult, self).__init__(result, polyswarm)
+        self.timeout = timeout
         self.artifact = artifact
         if self.status_code // 100 == 2:
             if self.result:
