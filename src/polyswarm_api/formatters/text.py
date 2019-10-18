@@ -194,8 +194,10 @@ class TextOutput(base.BaseOutput):
         status_response = result.hunt_status
 
         if status_response.status_code == 404:
-            self.out.write(self._bad('Hunt {} was not found\n'.format(result.hunt.hunt_id)))
+            self.out.write(self._bad('Hunt {}was not found\n'.format(result.hunt.hunt_id+' ' if result.hunt else '')))
             return
+
+        print(result)
 
         status = status_response.result
 

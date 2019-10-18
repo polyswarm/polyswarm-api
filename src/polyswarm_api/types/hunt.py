@@ -1,4 +1,5 @@
 import yara
+import datetime
 
 from .base import BasePSType, BasePSJSONType
 from ..exceptions import InvalidArgument, InvalidYaraRules
@@ -36,10 +37,10 @@ class HuntStatus(BasePSJSONType):
 
         # active only present for live hunts
         self.active = json.get('active', '')
-
         self.created = utils.parse_date(json['created'])
         self.id = json['id']
-        self.results = [HuntMatch(match, polyswarm) for match in json['results']] if json['results'] else None
+        self.results = list(sorted([HuntMatch(match, polyswarm) for match in json['results']],
+                                   key=lambda x: x.created, reverse=True)) if json['results'] else None
         self.total = json.get('total', 0)
         self.status = json['status']
 
@@ -62,6 +63,7 @@ class HuntMatch(BasePSJSONType):
         self.rule_name = json['rule_name']
         self.tags = json['tags']
         self.artifact = Artifact(json['artifact'], polyswarm)
+        self.created = utils.parse_date(json['created']) if 'created' in json else datetime.datetime.now()
 
 
 class Hunt(BasePSJSONType):

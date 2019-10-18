@@ -154,14 +154,14 @@ class PolyswarmRequestGenerator(object):
         return {
             'method': 'DELETE',
             'url': '{}/historical'.format(self.hunt_base),
-            'json': {'hunt_id': hunt_id}
+            'params': {'hunt_id': hunt_id}
         }
 
     def live_delete(self, hunt_id):
         return {
             'method': 'DELETE',
             'url': '{}/live'.format(self.hunt_base),
-            'json': {'hunt_id': hunt_id}
+            'params': {'hunt_id': hunt_id}
         }
 
     def historical_list(self):
