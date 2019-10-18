@@ -19,7 +19,7 @@ from .types.hunt import YaraRuleset, Hunt
 class PolyswarmAPI(object):
     """A synchronous interface to the public and private PolySwarm APIs."""
 
-    def __init__(self, key, uri='https://api.polyswarm.network/v1', timeout=const.DEFAULT_BOUNTY_TIMEOUT,
+    def __init__(self, key, uri='https://api.polyswarm.network/v1', timeout=const.DEFAULT_SCAN_TIMEOUT,
                  community='lima', validate_schemas=False):
         """
         :param key: PolySwarm API key

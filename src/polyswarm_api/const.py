@@ -6,7 +6,7 @@ from . import _version
 DEFAULT_GLOBAL_API = 'https://api.polyswarm.network/v1'
 DEFAULT_PERMALINK_BASE = os.getenv('POLYSWARM_PORTAL_URI', 'https://polyswarm.network/scan/results')
 DEFAULT_COMMUNITY = 'lima'
-DEFAULT_SCAN_TIMEOUT = 60*10
+DEFAULT_SCAN_TIMEOUT = 60*15
 RESULT_CHUNK_SIZE = 100
 
 # HTTP settings
@@ -36,4 +36,3 @@ USAGE_EXCEEDED_MESSAGE = 'Usage limits were exceeded. This may mean you need to 
                          'larger package, or that you have exceeded rate limits.\n' \
                          'If you continue to have issues, please contact us at info@polyswarm.io.'
 
-DEFAULT_BOUNTY_TIMEOUT = 60*15

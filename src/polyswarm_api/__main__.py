@@ -70,8 +70,8 @@ def polyswarm(ctx, api_key, api_uri, output_file, output_format, color, verbose,
 @click.option('-f', '--force', is_flag=True, default=False,
               help='Force re-scan even if file has already been analyzed.')
 @click.option('-r', '--recursive', is_flag=True, default=False, help='Scan directories recursively')
-@click.option('-t', '--timeout', type=click.INT, default=const.DEFAULT_BOUNTY_TIMEOUT,
-              help='How long to wait for results (default: {})'.format(const.DEFAULT_BOUNTY_TIMEOUT))
+@click.option('-t', '--timeout', type=click.INT, default=const.DEFAULT_SCAN_TIMEOUT,
+              help='How long to wait for results (default: {})'.format(const.DEFAULT_SCAN_TIMEOUT))
 @click.argument('path', nargs=-1, type=click.Path(exists=True))
 @polyswarm.command('scan', short_help='scan files/directories')
 @click.pass_context
