@@ -320,7 +320,7 @@ def live_install(ctx, rule_file):
 
 
 @live.command('delete', short_help='Delete the live hunt associate with the given hunt_id')
-@click.argument('hunt_id')
+@click.argument('hunt_id', type=int)
 @click.pass_context
 def live_delete(ctx, hunt_id):
     api = ctx.obj['api']
@@ -385,7 +385,7 @@ def historical_start(ctx, rule_file):
 
 
 @historical.command('delete', short_help='Delete the historical hunt associate with the given hunt_id')
-@click.argument('hunt_id')
+@click.argument('hunt_id', type=int)
 @click.pass_context
 def historical_delete(ctx, hunt_id):
     api = ctx.obj['api']
