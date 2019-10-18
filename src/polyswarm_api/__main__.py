@@ -8,8 +8,8 @@ import json
 from .api import PolyswarmAPI
 from .types.query import MetadataQuery
 
-from .const import MAX_HUNT_RESULTS
 from .formatters import formatters
+from . import exceptions
 
 from .utils import validate_key, validate_uuid, is_valid_uuid, \
                    validate_hashes, validate_hash, parse_hashes
@@ -93,12 +93,16 @@ def scan(ctx, path, force, recursive, timeout):
         else:
             logger.warning('Path %s is neither a file nor a directory, ignoring.', path)
 
-    for result in api.scan(*files):
-        output.scan_result(result)
-
-    for d in directories:
-        for result in api.scan_directory(d, recursive=recursive):
+    try:
+        for result in api.scan(*files):
             output.scan_result(result)
+
+        for d in directories:
+            for result in api.scan_directory(d, recursive=recursive):
+                output.scan_result(result)
+    except exceptions.UsageLimitsExceeded:
+        output.usage_exceeded()
+        return 1
 
 
 @click.option('-r', '--url-file', help='File of URLs, one per line.', type=click.File('r'))
@@ -121,8 +125,12 @@ def url_scan(ctx, url, url_file, force, timeout):
     if url_file:
         urls.extend([u.strip() for u in url_file.readlines()])
 
-    for result in api.scan_urls(*urls):
-        output.scan_result(result)
+    try:
+        for result in api.scan_urls(*urls):
+           output.scan_result(result)
+    except exceptions.UsageLimitsExceeded:
+        output.usage_exceeded()
+        return 1
 
 
 @polyswarm.group(short_help='interact with PolySwarm search api')
@@ -148,14 +156,18 @@ def hashes(ctx, hashes, hash_file, hash_type, without_metadata, without_bounties
     output = ctx.obj['output']
 
     hashes = parse_hashes(hashes, hash_type, hash_file)
-    if hashes:
-        results = api.search(*hashes, with_instances=not without_bounties, with_metadata=not without_metadata)
+    try:
+        if hashes:
+            results = api.search(*hashes, with_instances=not without_bounties, with_metadata=not without_metadata)
 
-        # for json, this is effectively jsonlines
-        for result in results:
-            output.search_result(result)
-    else:
-        raise click.BadParameter('Hash not valid, must be sha256|md5|sha1 in hexadecimal format')
+            # for json, this is effectively jsonlines
+            for result in results:
+                output.search_result(result)
+        else:
+            raise click.BadParameter('Hash not valid, must be sha256|md5|sha1 in hexadecimal format')
+    except exceptions.UsageLimitsExceeded:
+        output.usage_exceeded()
+        return 1
 
 
 @click.option('-r', '--query-file', help='Properly formatted JSON search file', type=click.File('r'))
@@ -187,11 +199,13 @@ def metadata(ctx, query_string, query_file, without_metadata, without_bounties):
         logger.error('Failed to parse JSON due to Unicode error')
         return 0
 
-    for result in api.search_by_metadata(*queries, with_instances=not without_bounties,
-                                         with_metadata=not without_metadata):
-        output.search_result(result)
-
-    return 0
+    try:
+        for result in api.search_by_metadata(*queries, with_instances=not without_bounties,
+                                             with_metadata=not without_metadata):
+            output.search_result(result)
+    except exceptions.UsageLimitsExceeded:
+        output.usage_exceeded()
+        return 1
 
 
 @click.option('-r', '--uuid-file', help='File of UUIDs, one per line.', type=click.File('r'))
@@ -216,8 +230,12 @@ def lookup(ctx, uuid, uuid_file):
             else:
                 logger.warning('Invalid uuid %s in file, ignoring.', u)
 
-    for result in api.lookup(*uuids):
-        output.scan_result(result)
+    try:
+        for result in api.lookup(*uuids):
+            output.scan_result(result)
+    except exceptions.UsageLimitsExceeded:
+        output.usage_exceeded()
+        return 1
 
 
 @click.option('-r', '--hash-file', help='File of hashes, one per line.', type=click.File('r'))
@@ -237,8 +255,12 @@ def download(ctx, metadata, hash_file, hash_type, hash, destination):
     hashes = parse_hashes(hash, hash_type, hash_file)
 
     if hashes:
-        for result in api.download(destination, *hashes):
-            output.download_result(result)
+        try:
+            for result in api.download(destination, *hashes):
+                output.download_result(result)
+        except exceptions.UsageLimitsExceeded:
+            output.usage_exceeded()
+            return 1
     else:
         raise click.BadParameter('Hash not valid, must be sha256|md5|sha1 in hexadecimal format')
 
@@ -258,8 +280,12 @@ def rescan(ctx, hash_file, hash_type, hash):
     hashes = parse_hashes(hash, hash_type, hash_file)
 
     if hashes:
-        for result in api.rescan(*hashes):
-            output.scan_result(result)
+        try:
+            for result in api.rescan(*hashes):
+                output.scan_result(result)
+        except exceptions.UsageLimitsExceeded:
+            output.usage_exceeded()
+            return 1
     else:
         raise click.BadParameter('Hash not valid, must be sha256|md5|sha1 in hexadecimal format')
 
@@ -283,7 +309,11 @@ def live_install(ctx, rule_file):
 
     rules = rule_file.read()
 
-    output.hunt_submission(api.live(rules))
+    try:
+        output.hunt_submission(api.live(rules))
+    except exceptions.UsageLimitsExceeded:
+        output.usage_exceeded()
+        return 1
 
 
 @live.command('delete', short_help='Delete the live hunt associate with the given hunt_id')
@@ -293,7 +323,11 @@ def live_delete(ctx, hunt_id):
     api = ctx.obj['api']
     output = ctx.obj['output']
 
-    output.hunt_deletion(api.live_delete(hunt_id))
+    try:
+        output.hunt_deletion(api.live_delete(hunt_id))
+    except exceptions.UsageLimitsExceeded:
+        output.usage_exceeded()
+        return 1
 
 
 @live.command('list', short_help='List all live hunts performed')
@@ -302,7 +336,11 @@ def live_list(ctx):
     api = ctx.obj['api']
     output = ctx.obj['output']
 
-    output.hunt_list(api.live_list())
+    try:
+        output.hunt_list(api.live_list())
+    except exceptions.UsageLimitsExceeded:
+        output.usage_exceeded()
+        return 1
 
 
 @click.option('-i', '--hunt-id', type=int, help='ID of the rule file (defaults to latest)')
@@ -316,9 +354,12 @@ def live_results(ctx, hunt_id, without_metadata, without_bounties):
     api = ctx.obj['api']
     output = ctx.obj['output']
 
-    result = api.live_results(hunt_id, with_metadata=not without_metadata, with_instances=not without_bounties)
-
-    output.hunt_result(result)
+    try:
+        result = api.live_results(hunt_id, with_metadata=not without_metadata, with_instances=not without_bounties)
+        output.hunt_result(result)
+    except exceptions.UsageLimitsExceeded:
+        output.usage_exceeded()
+        return 1
 
 
 @click.argument('rule_file', type=click.File('r'))
@@ -330,7 +371,11 @@ def historical_start(ctx, rule_file):
 
     rules = rule_file.read()
 
-    output.hunt_submission(api.historical(rules))
+    try:
+        output.hunt_submission(api.historical(rules))
+    except exceptions.UsageLimitsExceeded:
+        output.usage_exceeded()
+        return 1
 
 
 @historical.command('delete', short_help='Delete the historical hunt associate with the given hunt_id')
@@ -340,7 +385,11 @@ def historical_delete(ctx, hunt_id):
     api = ctx.obj['api']
     output = ctx.obj['output']
 
-    output.hunt_deletion(api.historical_delete(hunt_id))
+    try:
+        output.hunt_deletion(api.historical_delete(hunt_id))
+    except exceptions.UsageLimitsExceeded:
+        output.usage_exceeded()
+        return 1
 
 
 @historical.command('list', short_help='List all historical hunts performed')
@@ -349,7 +398,11 @@ def historical_list(ctx):
     api = ctx.obj['api']
     output = ctx.obj['output']
 
-    output.hunt_list(api.historical_list())
+    try:
+        output.hunt_list(api.historical_list())
+    except exceptions.UsageLimitsExceeded:
+        output.usage_exceeded()
+        return 1
 
 
 @click.option('-i', '--hunt-id', type=int, help='ID of the rule file (defaults to latest)')
@@ -363,9 +416,13 @@ def historical_results(ctx, hunt_id, without_metadata, without_bounties):
     api = ctx.obj['api']
     output = ctx.obj['output']
 
-    result = api.historical_results(hunt_id, with_metadata=not without_metadata, with_instances=not without_bounties)
+    try:
+        result = api.historical_results(hunt_id, with_metadata=not without_metadata, with_instances=not without_bounties)
 
-    output.hunt_result(result)
+        output.hunt_result(result)
+    except exceptions.UsageLimitsExceeded:
+        output.usage_exceeded()
+        return 1
 
 
 @click.option('-s', '--since', type=click.IntRange(1, 2880), default=1440,
@@ -381,8 +438,12 @@ def stream(ctx, since, destination):
         if not os.path.exists(destination):
             os.makedirs(destination)
 
-    for download in api.stream(destination, since=since):
-        out.download_result(download)
+    try:
+        for download in api.stream(destination, since=since):
+            out.download_result(download)
+    except exceptions.UsageLimitsExceeded:
+        out.usage_exceeded()
+        return 1
 
 
 @click.option('--hash-type', help='Hash type to search [default:autodetect, sha256|sha1|md5]', default=None)
@@ -391,11 +452,16 @@ def stream(ctx, since, destination):
 @click.pass_context
 def cat(ctx, hash_type, hash):
     api = ctx.obj['api']
+    output = ctx.obj['output']
     # handle 2.7
     out = sys.stdout
     if hasattr(sys.stdout, 'buffer'):
         out = sys.stdout.buffer
-    result = api.download_to_filehandle(hash, out)
+    try:
+        result = api.download_to_filehandle(hash, out)
+    except exceptions.UsageLimitsExceeded:
+        output.usage_exceeded()
+        return 1
 
 
 def _fix_result(self, result):

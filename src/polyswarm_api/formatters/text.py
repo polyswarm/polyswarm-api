@@ -1,5 +1,6 @@
 import sys
 from . import base
+from .. import const
 
 # TODO rewrite some of this to be not terrible
 def is_colored(fn):
@@ -136,7 +137,7 @@ class TextOutput(base.BaseOutput):
         output = [self._open_group('Report for artifact %s, hash: %s' %
                                    (f.filename, f.hash))]
         if not f.ready:
-            output.append(self._warn("Scan is still in progress, check back later. Reference: %s" % f.permalink))
+            output.append(self._warn('Scan is still in progress, check back later. Reference: %s' % f.permalink))
         elif len(f.assertions) == 0:
             if f.bounty.status == 'Bounty Failed' or f.failed:
                 output.append(self._bad('Bounty failed, please resubmit. Reference: %s' % f.permalink))
@@ -228,9 +229,11 @@ class TextOutput(base.BaseOutput):
 
     def hunt_list(self, result):
         for hunt in result:
-            self.out.write(self._info("Hunt: {:17}, total results: {:5}, created: {}\n".format(hunt.id, hunt.total,
+            self.out.write(self._info('Hunt: {:17}, total results: {:5}, created: {}\n'.format(hunt.id, hunt.total,
                                                                                         hunt.created)))
 
+    def usage_exceeded(self):
+        self.out.write(self._bad(const.USAGE_EXCEEDED_MESSAGE)+'\n')
 
     @is_grouped
     @is_colored

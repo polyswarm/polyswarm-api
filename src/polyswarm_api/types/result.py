@@ -6,6 +6,7 @@ from .hunt import Hunt, HuntStatus
 from . import schemas
 from .. import exceptions
 from ..log import logger
+from ..const import USAGE_EXCEEDED_MESSAGE
 
 try:
     from json.decoder import JSONDecodeError
@@ -29,13 +30,11 @@ class ApiResponse(BasePSJSONType):
         try:
             super(ApiResponse, self).__init__(json, polyswarm)
         except exceptions.InvalidJSONResponse as e:
-            logger.error("Invalid JSON result object provided by server.")
+            logger.error('Invalid JSON result object provided by server.')
             raise e
 
         if self.status_code == 429:
-            raise exceptions.UsageLimitsExceeded("Usage limits were exceeded. This may mean you need to purchase a "
-                                                 "larger package, or that you have exceeded rate limits. "
-                                                 "If you continue to have issues, please contact us at info@polyswarm.io.")
+            raise exceptions.UsageLimitsExceeded(USAGE_EXCEEDED_MESSAGE)
 
         self.status = json['status']
         self.result = json['result']

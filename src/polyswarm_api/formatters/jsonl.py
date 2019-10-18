@@ -1,6 +1,7 @@
 import json
 
 from . import base
+from ..const import USAGE_EXCEEDED_MESSAGE
 
 
 class JSONOutput(base.BaseOutput):
@@ -33,3 +34,7 @@ class JSONOutput(base.BaseOutput):
     def download_result(self, result):
         artifact = result.result
         self.out.write(json.dumps({'hash': artifact.artifact_name, 'path': artifact.path}, sort_keys=True)+'\n')
+
+    @staticmethod
+    def usage_exceeded():
+        return json.dumps(USAGE_EXCEEDED_MESSAGE)

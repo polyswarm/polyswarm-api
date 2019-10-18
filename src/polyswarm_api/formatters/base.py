@@ -1,3 +1,6 @@
+from ..const import USAGE_EXCEEDED_MESSAGE
+
+
 class BaseOutput(object):
     name = 'base'
 
@@ -18,3 +21,6 @@ class BaseOutput(object):
 
     def download_result(self, result):
         raise NotImplementedError
+
+    def usage_exceeded(self):
+        print(USAGE_EXCEEDED_MESSAGE)
