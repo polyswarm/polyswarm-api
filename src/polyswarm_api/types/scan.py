@@ -13,12 +13,21 @@ class Assertion(BasePSJSONType):
         self.author = json['author']
 
         # TODO this needs to go away, but we are forced to until we do this resolution server-side
+        # this should be removed after next deploy
         # we also are forced to modify the json in place so that this information is included in JSON formatting
-        if 'engine_name' not in json or 'engine_name'.startswith("0x"):
+        # TODO deprecate engine_name
+        if 'author_name' in json:
+            self.engine_name = json['author_name']
+            self.author_name = json['author_name']
+        elif 'engine_name' in json:
+            self.engine_name = json['engine_name']
+            self.author_name = json['engine_name']
+        else:
+            # TODO deprecate
             self.engine_name = self.polyswarm._resolve_engine_name(self.author) if self.polyswarm else self.author
             self.json['engine_name'] = self.engine_name
-        else:
-            self.engine_name = json['engine_name']
+            self.author_name = self.engine_name
+
 
         self.bid = int(json['bid'])
         self.mask = json['mask']

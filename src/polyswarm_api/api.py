@@ -199,7 +199,7 @@ class PolyswarmAPI(object):
                     yield scan_result
                     break
                 else:
-                    time.sleep(0.25)
+                    time.sleep(3)
 
     def lookup(self, *uuids):
         """
