@@ -197,8 +197,6 @@ class TextOutput(base.BaseOutput):
             self.out.write(self._bad('Hunt {}was not found\n'.format(result.hunt.hunt_id+' ' if result.hunt else '')))
             return
 
-        print(result)
-
         status = status_response.result
 
         if status.status not in ['PENDING', 'RUNNING', 'SUCCESS', 'FAILED']:
