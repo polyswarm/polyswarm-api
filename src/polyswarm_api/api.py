@@ -186,9 +186,8 @@ class PolyswarmAPI(object):
         :param uuids: List of UUIDs to wait for
         :return: ScanResult generator
         """
-
+        start = time.time()
         for uuid in uuids:
-            start = time.time()
             while True:
                 scan_result = next(self.lookup(uuid))
 
