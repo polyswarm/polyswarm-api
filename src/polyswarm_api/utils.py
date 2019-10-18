@@ -1,12 +1,12 @@
 import click
-import logging
+import datetime
 
 from uuid import UUID
 
 from .types.hash import SUPPORTED_HASH_TYPES, Hash, is_hex, is_valid_md5, is_valid_sha1, is_valid_sha256, get_hash_type
 from .exceptions import InvalidHashException
 
-logger = logging.getLogger(__name__)
+from .log import logger
 
 # TODO this is a hack around bad behavior in API. Fix this in AI.
 bool_to_int = {True: 1, False: ""}
@@ -93,3 +93,8 @@ def parse_hashes(hashes, hash_type=None, hash_file=None):
         except InvalidHashException:
             logger.warning("Invalid hash %s provided, ignoring.", h)
     return out
+
+
+def parse_date(date_string):
+    """ Parses the current date format version """
+    return datetime.datetime.strptime(date_string, '%a, %d %b %Y %H:%M:%S %Z')

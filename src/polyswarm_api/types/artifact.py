@@ -8,6 +8,7 @@ from io import BytesIO
 import os
 from . import schemas
 from .scan import Bounty
+from .. import utils
 
 
 def requires_analysis(func):
@@ -54,7 +55,7 @@ class ArtifactInstance(BasePSJSONType):
         self.country = json['country']
         self.id = json['id']
         self.name = json['name']
-        self.submitted = json['submitted']
+        self.submitted = utils.parse_date(json['submitted'])
         self.artifact = artifact
 
 
@@ -78,14 +79,15 @@ class Artifact(Hashable, BasePSJSONType):
 
         self.mimetype = json['mimetype']
         self.extended_type = json['extended_type']
-        self.first_seen = json['first_seen']
+        self.first_seen = utils.parse_date(json['first_seen'])
         self.id = json['id']
         self.sha256 = Hash(json['sha256'], 'sha256', polyswarm)
         self.sha1 = Hash(json['sha1'], 'sha1', polyswarm)
         self.md5 = Hash(json['md5'], 'md5', polyswarm)
 
-        self.instances = [ArtifactInstance(self, instance,
-                                           polyswarm=polyswarm) for instance in json.get('artifact_instances', [])]
+        self.instances = list(sorted([ArtifactInstance(self, instance,
+                                           polyswarm=polyswarm) for instance in json.get('artifact_instances', [])],
+                                     key=lambda x: x.submitted, reverse=True))
 
         # for now, we don't have a special Metadata object, but if something differentiates this
         # in the future from a simple dict, we can

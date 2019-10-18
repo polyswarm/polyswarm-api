@@ -4,6 +4,7 @@ from .base import BasePSType, BasePSJSONType
 from ..exceptions import InvalidArgument, InvalidYaraRules
 from .schemas import hunt
 from .artifact import Artifact
+from .. import utils
 
 
 class YaraRuleset(BasePSType):
@@ -36,7 +37,7 @@ class HuntStatus(BasePSJSONType):
         # active only present for live hunts
         self.active = json.get('active', '')
 
-        self.created = json['created']
+        self.created = utils.parse_date(json['created'])
         self.id = json['id']
         self.results = [HuntMatch(match, polyswarm) for match in json['results']] if json['results'] else None
         self.total = json.get('total', 0)
