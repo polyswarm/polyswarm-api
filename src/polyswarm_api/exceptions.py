@@ -44,3 +44,7 @@ class ArtifactDeleted(PolyswarmAPIException):
 
 class UsageLimitsExceeded(PolyswarmAPIException):
     pass
+
+
+class InvalidYaraRules(PolyswarmAPIException):
+    pass

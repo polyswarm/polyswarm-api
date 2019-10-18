@@ -235,6 +235,9 @@ class TextOutput(base.BaseOutput):
     def usage_exceeded(self):
         self.out.write(self._bad(const.USAGE_EXCEEDED_MESSAGE)+'\n')
 
+    def invalid_rule(self, e):
+        self.out.write(self._bad('Malformed yara file: {}'.format(e.args[0])+'\n'))
+
     @is_grouped
     @is_colored
     def _info(self, text):

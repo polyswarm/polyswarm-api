@@ -314,6 +314,9 @@ def live_install(ctx, rule_file):
     except exceptions.UsageLimitsExceeded:
         output.usage_exceeded()
         return 1
+    except exceptions.InvalidYaraRules as e:
+        output.invalid_rule(e)
+        return 2
 
 
 @live.command('delete', short_help='Delete the live hunt associate with the given hunt_id')
@@ -376,6 +379,9 @@ def historical_start(ctx, rule_file):
     except exceptions.UsageLimitsExceeded:
         output.usage_exceeded()
         return 1
+    except exceptions.InvalidYaraRules as e:
+        output.invalid_rule(e)
+        return 2
 
 
 @historical.command('delete', short_help='Delete the historical hunt associate with the given hunt_id')

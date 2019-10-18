@@ -1,7 +1,7 @@
 import yara
 
 from .base import BasePSType, BasePSJSONType
-from ..exceptions import InvalidArgument
+from ..exceptions import InvalidArgument, InvalidYaraRules
 from .schemas import hunt
 from .artifact import Artifact
 
@@ -18,7 +18,10 @@ class YaraRuleset(BasePSType):
         else:
             self.ruleset = open(path, "r").read()
 
-        self.validate()
+        try:
+            self.validate()
+        except yara.SyntaxError as e:
+            raise InvalidYaraRules(*e.args)
 
     def validate(self):
         yara.compile(source=self.ruleset)
