@@ -140,7 +140,8 @@ class Artifact(Hashable, BasePSJSONType):
     @property
     def scans(self):
         # do not report scans as they are running, only once window has closed
-        return list(filter(None, [bounty.get_file_by_hash(self) for bounty in self.bounties if bounty.ready]))
+        return list(filter(None, [bounty.get_file_by_hash(self) for bounty in self.bounties if bounty.ready
+                                  and not bounty.failed]))
 
     @property
     def scan_permalink(self):
