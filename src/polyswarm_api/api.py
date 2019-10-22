@@ -206,12 +206,24 @@ class PolyswarmAPI(object):
         Lookup a submission by UUID.
 
         :param uuids: UUIDs to lookup
-        :return: ScanResult object
+        :return: ScanResult object generator
         """
         futures = [(uuid, self.endpoint.lookup_uuid(uuid)) for uuid in uuids]
 
         for uuid, f in futures:
             yield result.ScanResult(f.result(), polyswarm=self)
+
+    def score(self, *uuids):
+        """
+        Lookup a PolyScore(s) for a given submission, by UUID
+
+        :param uuids: UUIDs to lookup
+        :return: ScoreResult object generator
+        """
+        futures = [(uuid, self.endpoint.score(uuid)) for uuid in uuids]
+
+        for uuid, f in futures:
+            yield result.ScoreResult(f.result(), polyswarm=self)
 
     def scan_directory(self, directory, recursive=False):
         """
