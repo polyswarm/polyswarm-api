@@ -2,6 +2,20 @@ from .base import BasePSJSONType, ArtifactType
 from . import schemas
 from . import hash
 from .. import const
+from ..log import logger
+from ..exceptions import NotFoundException
+
+
+class PolyScore(BasePSJSONType):
+    SCHEMA = schemas.polyscore_schema
+
+    def __init__(self, json, polyswarm=None):
+        super(PolyScore, self).__init__(json, polyswarm)
+
+        self.scores = json['scores']
+
+    def get_score_by_id(self, instance_id):
+        return self.scores.get(instance_id, None)
 
 
 class Assertion(BasePSJSONType):
@@ -55,7 +69,7 @@ class Vote(BasePSJSONType):
 class Scan(BasePSJSONType):
     SCHEMA = schemas.bounty_file_schema
 
-    def __init__(self, bounty, json, polyswarm=None):
+    def __init__(self, bounty, json, polyswarm=None, polyscore=True):
         super(Scan, self).__init__(json, polyswarm)
         self.bounty = bounty
         self.assertions = [Assertion(self, a, polyswarm) for a in json['assertions']]
@@ -70,8 +84,14 @@ class Scan(BasePSJSONType):
         self.window_closed = json['window_closed']
         self.ready = self.window_closed
         self.submission_guid = json.get('submission_guid', None)
+        self.instance_id = int(json['id'])
         self._permalink = "{}/{}".format(const.DEFAULT_PERMALINK_BASE, self.submission_guid) if self.submission_guid\
             else None
+
+        self._polyscore = None
+
+        if polyswarm and polyscore:
+            self.fetch_polyscore()
 
     @property
     def detections(self):
@@ -82,6 +102,37 @@ class Scan(BasePSJSONType):
         if self._permalink:
             return self._permalink
         return self.bounty.permalink
+
+    def fetch_polyscore(self):
+        if not self.polyswarm:
+            logger.warning('Need associated polyswarm object to fetch polyscore')
+            return None
+
+        if not self.submission_guid:
+            logger.warning('Need submission GUID to get polyscore')
+            return None
+
+        try:
+            resp = next(self.polyswarm.score(self.submission_guid))
+        except NotFoundException:
+            logger.warning("Failed to either find UUID {} or generate a score for it.".format(self.submission_guid))
+            return None
+
+        self._polyscore = resp.result
+
+        # TODO this should probably just be in the result?
+        # how do we want to handle JSON serialization here once we start breaking things
+        # into multiple requests?
+        self.json['polyscore'] = self._polyscore.json
+
+        return self._polyscore.get_score_by_id(self.instance_id)
+
+    @property
+    def polyscore(self):
+        if self._polyscore:
+            return self._polyscore.get_score_by_id(self.instance_id)
+
+        return self.fetch_polyscore()
 
     def __str__(self):
         return "Scan <%s>" % self.hash

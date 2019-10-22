@@ -22,5 +22,6 @@ class BaseOutput(object):
     def download_result(self, result):
         raise NotImplementedError
 
-    def usage_exceeded(self):
+    @staticmethod
+    def usage_exceeded():
         print(USAGE_EXCEEDED_MESSAGE)

@@ -1,6 +1,3 @@
-import os
-from .http import PolyswarmHTTP, PolyswarmHTTPFutures
-from .log import logger
 from . import const, utils
 from requests.exceptions import HTTPError
 
@@ -176,6 +173,12 @@ class PolyswarmRequestGenerator(object):
             'method': 'GET',
             'url': '{}/live'.format(self.hunt_base),
             'params': {'all': 'true'},
+        }
+
+    def score(self, uuid):
+        return {
+            'method': 'GET',
+            'url': '{}/submission/{}/polyscore'.format(self.consumer_base, uuid)
         }
 
 

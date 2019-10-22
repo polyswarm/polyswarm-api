@@ -3,6 +3,8 @@ from itertools import chain
 from .base import BasePSJSONType, BasePSType
 from .artifact import Artifact, Bounty
 from .hunt import Hunt, HuntStatus
+from .scan import PolyScore
+
 from . import schemas
 from .. import exceptions
 from ..log import logger
@@ -232,3 +234,15 @@ class StreamResult(IndexableResult):
             raise self._bad_status_exception
 
         self.result = self.result.get('stream', [])
+
+
+class ScoreResult(ApiResponse):
+    def __init__(self, result, polyswarm=None):
+        super(ScoreResult, self).__init__(result, polyswarm)
+
+        if self.status_code == 404:
+            raise exceptions.NotFoundException('Did not find UUID or score not found')
+        elif self.status_code // 100 != 2:
+            raise self._bad_status_exception
+
+        self.result = PolyScore(self.result, polyswarm)

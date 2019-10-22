@@ -83,6 +83,9 @@ class TextOutput(base.BaseOutput):
                 output.append(self._info('Detections: {}/{} engines reported malicious'
                                          .format(0, len(last_scan.assertions))))
 
+            if last_scan.polyscore:
+                output.append(self._normal('PolyScore: {}'.format(last_scan.polyscore)))
+
 
 
 
@@ -178,6 +181,9 @@ class TextOutput(base.BaseOutput):
                                               if assertion.metadata is not None else '')))
 
             output.append('%s: %s' % (self._normal('Scan permalink'), self._good(f.permalink)))
+
+            if f.polyscore:
+                output.append(self._normal('PolyScore: {}'.format(f.polyscore)))
 
         output.append(self._close_group())
         return '\n'.join(output)

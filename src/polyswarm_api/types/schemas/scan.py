@@ -63,6 +63,7 @@ bounty_file_schema = {
             }
         },
         'window_closed': {'type': 'boolean'},
+        'id': {'type': 'string'},
     },
     'required': ['assertions', 'bounty_guid', 'bounty_status', 'failed', 'filename', 'hash', 'result',
                  'size', 'votes', 'window_closed']
@@ -83,4 +84,12 @@ bounty_schema = {
         'uuid': {'type': 'string'},
     },
     'required': ['files', 'status', 'uuid'],
+}
+
+polyscore_schema = {
+    'type': 'object',
+    'properties': {
+        'scores': {'type': 'object'},
+    },
+    'required': ['scores']
 }
