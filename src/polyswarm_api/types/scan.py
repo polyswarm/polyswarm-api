@@ -69,7 +69,7 @@ class Vote(BasePSJSONType):
 class Scan(BasePSJSONType):
     SCHEMA = schemas.bounty_file_schema
 
-    def __init__(self, bounty, json, polyswarm=None, polyscore=True):
+    def __init__(self, bounty, json, polyswarm=None, polyscore=False):
         super(Scan, self).__init__(json, polyswarm)
         self.bounty = bounty
         self.assertions = [Assertion(self, a, polyswarm) for a in json['assertions']]
@@ -124,8 +124,6 @@ class Scan(BasePSJSONType):
         # how do we want to handle JSON serialization here once we start breaking things
         # into multiple requests?
         self.json['polyscore'] = self._polyscore.json
-        print(self._polyscore.scores)
-        print(self.instance_id)
 
         return self._polyscore.get_score_by_id(self.instance_id)
 
