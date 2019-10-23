@@ -93,6 +93,8 @@ class Artifact(Hashable, BasePSJSONType):
         # in the future from a simple dict, we can
         self.metadata = ArtifactMetadata(self, json.get('artifact_metadata', {}), polyswarm)
 
+        self._polyscore = None
+
     @property
     def hash(self):
         return self.sha256
@@ -171,6 +173,23 @@ class Artifact(Hashable, BasePSJSONType):
         if latest:
             return latest.detections
         return []
+
+    @property
+    def polyscore(self):
+        if self._polyscore:
+            return self._polyscore
+
+        # need polyswarm API to look this up
+        if not self.polyswarm:
+            return None
+
+        latest = self.last_scan
+
+        if not latest:
+            return None
+
+        return latest.polyscore
+
 
 
 class LocalArtifact(Hashable):

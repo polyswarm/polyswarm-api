@@ -15,7 +15,7 @@ with open('README.md', 'r') as readme:
 
 setup(
     name='polyswarm-api',
-    version='1.0.0',
+    version='1.0.1',
     description='Client library to simplify interacting with the PolySwarm consumer API',
     long_description=long_description,
     long_description_content_type='text/markdown',
@@ -29,11 +29,6 @@ setup(
     include_package_data=True,
     packages=find_packages('src'),
     package_dir={'': 'src'},
-    entry_points={
-        'console_scripts': [
-            'polyswarm=polyswarm_api.__main__:polyswarm',
-        ],
-    },
     classifiers=[
         'Intended Audience :: Developers',
         'License :: OSI Approved :: MIT License',

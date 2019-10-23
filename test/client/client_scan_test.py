@@ -80,12 +80,16 @@ def temp_dir(files_dict):
             files.append(file_path)
         yield tmp_dir, files
 
-"""
 class ScanTestCase(TestCase):
     def __init__(self, *args, **kwargs):
         super(ScanTestCase, self).__init__(*args, **kwargs)
         self.test_api_key = '00000000000000000000000000000000'
 
+    def test_everything_is_ok(self):
+        # yes, everything is ok
+        pass
+
+"""
     def test_url_request_failed_exception(self):
         client = PolyswarmAPI(self.test_api_key)
         urls = ['google.com', 'polyswarm.io']

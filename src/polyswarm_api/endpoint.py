@@ -1,6 +1,3 @@
-import os
-from .http import PolyswarmHTTP, PolyswarmHTTPFutures
-from .log import logger
 from . import const, utils
 from requests.exceptions import HTTPError
 
@@ -108,7 +105,8 @@ class PolyswarmRequestGenerator(object):
         }
 
     def live_lookup(self, with_bounty_results=True, with_metadata=True,
-                    limit=const.RESULT_CHUNK_SIZE, offset=0, id=None):
+                    limit=const.RESULT_CHUNK_SIZE, offset=0, id=None,
+                    since=0):
         req = {
             'method': 'GET',
             'url': '{}/live/results'.format(self.hunt_base),
@@ -117,6 +115,7 @@ class PolyswarmRequestGenerator(object):
                 'with_metadata': utils.bool_to_int[with_metadata],
                 'limit': limit,
                 'offset': offset,
+                'since': since,
             },
         }
 
@@ -133,7 +132,8 @@ class PolyswarmRequestGenerator(object):
         }
 
     def historical_lookup(self, with_bounty_results=True, with_metadata=True,
-                    limit=const.RESULT_CHUNK_SIZE, offset=0, id=None):
+                          limit=const.RESULT_CHUNK_SIZE, offset=0, id=None,
+                          since=0):
         req = {
             'method': 'GET',
             'url': '{}/historical/results'.format(self.hunt_base),
@@ -142,6 +142,7 @@ class PolyswarmRequestGenerator(object):
                 'with_metadata': utils.bool_to_int[with_metadata],
                 'limit': limit,
                 'offset': offset,
+                'since': since,
             },
         }
 
@@ -176,6 +177,12 @@ class PolyswarmRequestGenerator(object):
             'method': 'GET',
             'url': '{}/live'.format(self.hunt_base),
             'params': {'all': 'true'},
+        }
+
+    def score(self, uuid):
+        return {
+            'method': 'GET',
+            'url': '{}/submission/{}/polyscore'.format(self.consumer_base, uuid)
         }
 
 

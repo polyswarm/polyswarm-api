@@ -16,7 +16,6 @@ test-run27:
     - pip install --upgrade pip
   script:
     - pip install .
-    - polyswarm -h
     - pytest -s -v
 
 test-run35:
@@ -28,7 +27,6 @@ test-run35:
     - pip3 install --upgrade pip
   script:
     - pip3 install .
-    - polyswarm -h
     - pytest -s -v
 
 test-run36:
@@ -40,7 +38,6 @@ test-run36:
     - pip3 install --upgrade pip
   script:
     - pip3 install .
-    - polyswarm -h
     - pytest -s -v
 
 

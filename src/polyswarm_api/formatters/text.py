@@ -30,6 +30,14 @@ class TextOutput(base.BaseOutput):
         self._depth = 0
         self.color = color
 
+    def _get_score_format(self, score):
+        if score < 0.15:
+            return self._good
+        elif score < 0.4:
+            return self._warn
+        else:
+            return self._bad
+
     def _format_artifact(self, artifact):
         output = []
         output.append(self._unknown('File %s' % artifact.sha256))
@@ -83,9 +91,10 @@ class TextOutput(base.BaseOutput):
                 output.append(self._info('Detections: {}/{} engines reported malicious'
                                          .format(0, len(last_scan.assertions))))
 
-
-
-
+            score = last_scan.polyscore
+            if score is not None:
+                formatter = self._get_score_format(score)
+                output.append(self._normal('PolyScore: '+formatter('{}'.format(score))))
 
         output.append(self._close_group())
         return '\n'.join(output)
@@ -178,6 +187,11 @@ class TextOutput(base.BaseOutput):
                                               if assertion.metadata is not None else '')))
 
             output.append('%s: %s' % (self._normal('Scan permalink'), self._good(f.permalink)))
+
+            score = f.polyscore
+            if score is not None:
+                formatter = self._get_score_format(score)
+                output.append(self._normal('PolyScore: '+formatter('{}'.format(score))))
 
         output.append(self._close_group())
         return '\n'.join(output)
