@@ -15,7 +15,7 @@ class PolyScore(BasePSJSONType):
         self.scores = json['scores']
 
     def get_score_by_id(self, instance_id):
-        return self.scores.get(instance_id, None)
+        return self.scores.get(str(instance_id), None)
 
 
 class Assertion(BasePSJSONType):
@@ -90,7 +90,7 @@ class Scan(BasePSJSONType):
 
         self._polyscore = None
 
-        if polyswarm and polyscore:
+        if self.ready and polyswarm and polyscore:
             self.fetch_polyscore()
 
     @property
@@ -124,6 +124,8 @@ class Scan(BasePSJSONType):
         # how do we want to handle JSON serialization here once we start breaking things
         # into multiple requests?
         self.json['polyscore'] = self._polyscore.json
+        print(self._polyscore.scores)
+        print(self.instance_id)
 
         return self._polyscore.get_score_by_id(self.instance_id)
 
