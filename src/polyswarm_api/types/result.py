@@ -48,9 +48,8 @@ class ApiResponse(BasePSJSONType):
         self.direction = json.get('direction', None)
 
     @property
-    def _bad_status_exception(self):
-        return exceptions.ServerErrorException("Got unexpected result code: {}, message: {}".format(self.status_code,
-                                                                                                  self.result))
+    def _bad_status_message(self):
+        return "Got unexpected result code: {}, message: {}".format(self.status_code, self.result)
 
 
 class IndexableResult(ApiResponse):
@@ -74,7 +73,7 @@ class DownloadResult(ApiResponse):
         if self.status_code == 404:
             self.status = 'Not found.'
         elif self.status_code // 100 != 2:
-            raise self._bad_status_exception
+            raise exceptions.ServerErrorException(self._bad_status_message)
 
         self.status = 'OK'
         self.result = artifact
@@ -101,7 +100,7 @@ class SearchResult(IndexableResult):
             # special case this error
             self.result = [Artifact(j, polyswarm) for j in self.result]
         else:
-            raise self._bad_status_exception
+            raise exceptions.ServerErrorException(self._bad_status_message)
 
 
 class ScanResult(ApiResponse):
@@ -115,7 +114,7 @@ class ScanResult(ApiResponse):
         elif self.status_code == 404:
             self.result = "UUID not found"
         else:
-            raise self._bad_status_exception
+            raise exceptions.ServerErrorException(self._bad_status_message)
 
     @property
     def ready(self):
@@ -134,7 +133,7 @@ class SubmitResult(ApiResponse):
             # happens if rescan file wasn't found
             self.status = 'Not found'
         elif self.status_code // 100 != 2:
-            raise self._bad_status_exception
+            raise exceptions.ServerErrorException(self._bad_status_message)
 
     def wait_for_scan(self):
         # this function will always only return one item
@@ -149,7 +148,7 @@ class HuntSubmissionResult(ApiResponse):
         if self.status_code == 400:
             self.result = 'Syntax error in submission. Please check your rules, or install the yara-python package for more details.'
         elif self.status_code // 100 != 2:
-            raise self._bad_status_exception
+            raise exceptions.ServerErrorException(self._bad_status_message)
         else:
             self.result = Hunt(self.result, polyswarm)
 
@@ -165,7 +164,7 @@ class HuntResultPart(IndexableResult):
         elif self.status_code == 404:
             self.result = []
         else:
-            raise self._bad_status_exception
+            raise exceptions.ServerErrorException(self._bad_status_message)
 
 
 class ResultAggregator(BasePSType):
@@ -213,7 +212,7 @@ class HuntDeletionResult(ApiResponse):
         super(HuntDeletionResult, self).__init__(result, polyswarm)
 
         if self.status_code // 100 != 2 and self.status_code != 404:
-            raise self._bad_status_exception
+            raise exceptions.ServerErrorException(self._bad_status_message)
 
         self.result = hunt_id
 
@@ -223,7 +222,7 @@ class HuntListResult(IndexableResult):
         super(HuntListResult, self).__init__(result, polyswarm)
 
         if self.status_code // 100 != 2:
-            raise self._bad_status_exception
+            raise exceptions.ServerErrorException(self._bad_status_message)
 
         self.result = [HuntStatus(r, polyswarm) for r in self.result]
 
@@ -233,7 +232,7 @@ class StreamResult(IndexableResult):
         super(StreamResult, self).__init__(result, polyswarm)
 
         if self.status_code // 100 != 2:
-            raise self._bad_status_exception
+            raise exceptions.ServerErrorException(self._bad_status_message)
 
         self.result = self.result.get('stream', [])
 
@@ -245,6 +244,6 @@ class ScoreResult(ApiResponse):
         if self.status_code == 404:
             raise exceptions.NotFoundException('Did not find UUID or score not found')
         elif self.status_code // 100 != 2:
-            raise self._bad_status_exception
+            raise exceptions.ServerErrorException(self._bad_status_message)
 
         self.result = PolyScore(self.result, polyswarm)
