@@ -1,9 +1,8 @@
-from aiohttp.test_utils import AioHTTPTestCase
 from pkg_resources import resource_string
 import json
 
 
-class PolyApiBaseTestCase(AioHTTPTestCase):
+class PolyApiBaseTestCase(object):
 
     def __init__(self, *args, **kwargs):
         super(PolyApiBaseTestCase, self).__init__(*args, **kwargs)
