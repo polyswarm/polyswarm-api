@@ -40,7 +40,7 @@ class HuntStatus(BasePSJSONType):
         self.created = date.parse_date(json['created'])
         self.id = json['id']
         self.results = list(sorted([HuntMatch(match, polyswarm) for match in json['results']],
-                                   key=lambda x: x.created, reverse=True)) if json['results'] else None
+                                   key=lambda x: x.created, reverse=True)) if json['results'] else []
         self.total = json.get('total', 0)
         self.status = json['status']
 
