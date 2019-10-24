@@ -30,10 +30,6 @@ For an easy-to-use CLI tool, or as an example of how to use these APIs, please s
 
 Supports Python 2.7 and greater.
 
-## Dependencies
-
-You may need to install your platforms' equivalent `python-dev` package.
-
 ## Installation
 
 From PyPI:
