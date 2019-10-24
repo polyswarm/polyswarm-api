@@ -146,10 +146,12 @@ class HuntSubmissionResult(ApiResponse):
         super(HuntSubmissionResult, self).__init__(result, polyswarm)
         self.rules = rules
 
-        if self.status_code // 100 != 2:
+        if self.status_code == 400:
+            self.result = 'Syntax error in submission. Please check your rules, or install the yara-python package for more details.'
+        elif self.status_code // 100 != 2:
             raise self._bad_status_exception
-
-        self.result = Hunt(self.result, polyswarm)
+        else:
+            self.result = Hunt(self.result, polyswarm)
 
 
 class HuntResultPart(IndexableResult):

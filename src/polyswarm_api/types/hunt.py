@@ -1,4 +1,3 @@
-import yara
 import datetime
 
 from .base import BasePSType, BasePSJSONType
@@ -6,6 +5,11 @@ from ..exceptions import InvalidArgument, InvalidYaraRules
 from .schemas import hunt
 from .artifact import Artifact
 from . import date
+
+try:
+    import yara
+except ImportError:
+    yara = None
 
 
 class YaraRuleset(BasePSType):
@@ -26,6 +30,8 @@ class YaraRuleset(BasePSType):
             raise InvalidYaraRules(*e.args)
 
     def validate(self):
+        if not yara:
+            return True
         yara.compile(source=self.ruleset)
 
 
