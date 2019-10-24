@@ -1,7 +1,7 @@
 import datetime
 
 from .base import BasePSType, BasePSJSONType
-from ..exceptions import InvalidArgument, InvalidYaraRules
+from ..exceptions import InvalidArgument, InvalidYaraRules, NotImportedException
 from .schemas import hunt
 from .artifact import Artifact
 from . import date
@@ -24,15 +24,16 @@ class YaraRuleset(BasePSType):
         else:
             self.ruleset = open(path, "r").read()
 
+    def validate(self):
+        if not yara:
+            raise NotImportedException("Cannot validate rules locally without yara-python")
+
         try:
-            self.validate()
+            yara.compile(source=self.ruleset)
         except yara.SyntaxError as e:
             raise InvalidYaraRules(*e.args)
 
-    def validate(self):
-        if not yara:
-            return True
-        yara.compile(source=self.ruleset)
+        return True
 
 
 class HuntStatus(BasePSJSONType):
