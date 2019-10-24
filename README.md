@@ -3,7 +3,6 @@
 **Table of Contents**
 
 - [polyswarm-api](#polyswarm-api)
-  - [Dependencies](#dependencies)
   - [Installation](#installation)
   - [Usage](#usage)
     - [Create an API Client](#create-an-api-client)
