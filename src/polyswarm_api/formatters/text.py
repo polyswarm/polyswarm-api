@@ -198,7 +198,7 @@ class TextOutput(base.BaseOutput):
 
     def hunt_submission(self, result):
         if result.status != 'OK':
-            self.out.write(self._bad('Failed to install rules.\n'))
+            self.out.write(self._bad('Failed to install rules: {}\n'.format(result.result)))
             return
         self.out.write(self._info('Successfully submitted rules, hunt id: {hunt_id}\n'.
                        format(hunt_id=result.result.hunt_id)))
