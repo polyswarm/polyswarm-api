@@ -24,11 +24,6 @@ class YaraRuleset(BasePSType):
         else:
             self.ruleset = open(path, "r").read()
 
-        try:
-            self.validate()
-        except yara.SyntaxError as e:
-            raise InvalidYaraRules(*e.args)
-
     def validate(self):
         if not yara:
             raise NotImportedException("Cannot validate rules locally without yara-python")
