@@ -83,7 +83,7 @@ class Scan(BasePSJSONType):
         self.votes = [Vote(self, v, polyswarm) for v in json['votes']]
         self.window_closed = json['window_closed']
         self.ready = self.window_closed
-        self.submission_guid = json.get('submission_guid', None)
+        self.submission_guid = json.get('submission_uuid', None)
         self.instance_id = int(json['id'])
         self._permalink = "{}/{}".format(const.DEFAULT_PERMALINK_BASE, self.submission_guid) if self.submission_guid\
             else None
@@ -101,7 +101,7 @@ class Scan(BasePSJSONType):
     def permalink(self):
         if self._permalink:
             return self._permalink
-        return self.bounty.permalink
+        return None
 
     def fetch_polyscore(self):
         if not self.polyswarm:
@@ -149,35 +149,7 @@ class Bounty(BasePSJSONType):
         self.status = json['status']
         self.uuid = json.get('uuid')
         self._permalink = json['permalink'] if json.get('permalink') else None
-        self.files = [Scan(self, f, polyswarm) for f in json['files']]
         self.failed = self.status == 'Bounty Failed'
 
-    @property
-    def permalink(self):
-        # default to first bounty, but in general Bounty and can associated with multiple submissions
-        # this will be removed in near future
-        if not self._permalink and len(self.files) > 0:
-            return self.files[0].permalink
-        return self._permalink
-
-    def get_file_by_hash(self, h):
-        # TODO this ignores a case where bounties could contain the same file multiple times
-        # do we care?
-        for f in self.files:
-            if f.hash == h:
-                return f
-        return None
-
-    @property
-    def ready(self):
-        # TODO we still need a better way to check for submission completion
-        files = self.files
-
-        if len(files) == 0:
-            return True
-
-        # this assumes that if any file reports closed, they all are. This should always be true
-        return files[0].window_closed or self.failed
-
     def __str__(self):
-        return "Bounty-%s [%s]" % (self.uuid, ",".join(str(s) for s in self.files))
+        return "Bounty-%s" % self.uuid

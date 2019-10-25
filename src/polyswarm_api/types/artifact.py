@@ -7,8 +7,9 @@ from .hash import all_hashes, Hash, Hashable
 from io import BytesIO
 import os
 from . import schemas
-from .scan import Bounty
+from .scan import Bounty, Vote, Assertion
 from . import date
+from .. import const
 
 
 def requires_analysis(func):
@@ -43,7 +44,7 @@ class ArtifactMetadata(BasePSJSONType):
 class ArtifactInstance(BasePSJSONType):
     SCHEMA = schemas.artifact_instance_schema
 
-    def __init__(self, artifact, json, polyswarm=None):
+    def __init__(self, artifact, json, polyswarm=None, polyscore=False):
         super(ArtifactInstance, self).__init__(json, polyswarm)
         self.artifact_id = json['artifact_id']
         self.bounty_id = json['bounty_id']
@@ -51,12 +52,62 @@ class ArtifactInstance(BasePSJSONType):
         # using Scan here instead of Bounty
         self.bounty = Bounty(self, json['bounty_result'], polyswarm=polyswarm) if json['bounty_result'] else None
         self.community = json['community']
-        self.consumer_guid = json.get('consumer_guid', None)
+        self.submission_uuid = json['submission_uuid']
+        self.submission_guid = self.submission_uuid
         self.country = json['country']
         self.id = json['id']
         self.name = json['name']
+        self.window_closed = json['window_closed']
+        self.ready = self.window_closed
+        self.failed = json['failed']
+        self.result = json['result']
         self.submitted = date.parse_date(json['submitted'])
         self.artifact = artifact
+        self.votes = [Vote(self, v, polyswarm) for v in json['votes']]
+        self.assertions = [Assertion(self, a, polyswarm) for a in json['assertions']]
+        self._permalink = "{}/{}".format(const.DEFAULT_PERMALINK_BASE, self.submission_guid) if self.submission_guid \
+            else None
+        self._polyscore = None
+
+        if self.ready and polyswarm and polyscore:
+            self.fetch_polyscore()
+
+    @property
+    def polyscore(self):
+        if self._polyscore:
+            return self._polyscore.get_score_by_id(self.instance_id)
+
+        return self.fetch_polyscore()
+
+    @property
+    def permalink(self):
+        if self._permalink:
+            return self._permalink
+        return None
+
+    def fetch_polyscore(self):
+        if not self.polyswarm:
+            logger.warning('Need associated polyswarm object to fetch polyscore')
+            return None
+
+        if not self.submission_guid:
+            logger.warning('Need submission GUID to get polyscore')
+            return None
+
+        try:
+            resp = next(self.polyswarm.score(self.submission_guid))
+        except NotFoundException:
+            logger.warning("Failed to either find UUID {} or generate a score for it.".format(self.submission_guid))
+            return None
+
+        self._polyscore = resp.result
+
+        # TODO this should probably just be in the result?
+        # how do we want to handle JSON serialization here once we start breaking things
+        # into multiple requests?
+        self.json['polyscore'] = self._polyscore.json
+
+        return self._polyscore.get_score_by_id(self.id)
 
 
 class Artifact(Hashable, BasePSJSONType):
@@ -142,14 +193,14 @@ class Artifact(Hashable, BasePSJSONType):
     @property
     def scans(self):
         # do not report scans as they are running, only once window has closed
-        return list(filter(None, [bounty.get_file_by_hash(self) for bounty in self.bounties if bounty.ready
-                                  and not bounty.failed]))
+        return list(filter(None, [instance for instance in self.instances
+                                  if instance.window_closed and not instance.failed]))
 
     @property
     def scan_permalink(self):
         if len(self.bounties) == 0:
             return None
-        return self.bounties[0].permalink
+        return self.instances[0].submission_uuid
 
     @property
     def bounties(self):
@@ -167,12 +218,10 @@ class Artifact(Hashable, BasePSJSONType):
     @property
     def detections(self):
         latest = self.last_scan
-        if not latest:
-            return []
-
         if latest:
-            return latest.detections
-        return []
+            return [a for a in latest.assertions if a.mask and a.verdict]
+        else:
+            return []
 
     @property
     def polyscore(self):
@@ -189,7 +238,6 @@ class Artifact(Hashable, BasePSJSONType):
             return None
 
         return latest.polyscore
-
 
 
 class LocalArtifact(Hashable):
