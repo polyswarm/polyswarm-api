@@ -43,6 +43,7 @@ class PolyswarmHTTPBase(object):
         else:
             self.headers.pop('User-Agent', None)
 
+
 class PolyswarmHTTP(PolyswarmHTTPBase, requests.Session):
     pass
 
