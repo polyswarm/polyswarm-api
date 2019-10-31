@@ -7,8 +7,7 @@ except ImportError:
     from urlparse import urlparse
 
 from . import const
-from .endpoint import PolyswarmEndpoint, PolyswarmFuturesExecutor, PolyswarmRequestGenerator
-from .http import PolyswarmHTTPFutures
+from .endpoint import PolyswarmFuturesExecutor, PolyswarmRequestGenerator
 from .types.artifact import ArtifactType, LocalArtifact
 from .types.hash import to_hash
 from .types.query import MetadataQuery
@@ -28,10 +27,8 @@ class PolyswarmAPI(object):
         :param community: Community to scan against.
         :param validate_schemas: Validate JSON objects when creating response objects. Will impact performance.
         """
-        executor = PolyswarmFuturesExecutor(PolyswarmHTTPFutures(key, retries=const.DEFAULT_RETRIES))
-        generator = PolyswarmRequestGenerator(uri, community)
-
-        self.endpoint = PolyswarmEndpoint(generator, executor)
+        self.executor = PolyswarmFuturesExecutor(key)
+        self.generator = PolyswarmRequestGenerator(self, uri, community)
 
         self.timeout = timeout
         self._engine_map = None
@@ -48,7 +45,7 @@ class PolyswarmAPI(object):
 
         hashes = [to_hash(h) for h in hashes]
 
-        requests = [(h, self.endpoint.search_hash(h, **kwargs)) for h in hashes]
+        requests = [(h, self.generator.search_hash(h, **kwargs)) for h in hashes]
 
         # This allows us to do streaming results
         # We could use as_completed here but it would be out-of-order.
@@ -77,7 +74,7 @@ class PolyswarmAPI(object):
         for query in queries:
             if not isinstance(query, MetadataQuery):
                 query = MetadataQuery(query, polyswarm=self)
-            futures.append((query, self.endpoint.search_metadata(query, **kwargs)))
+            futures.append((query, self.generator.search_metadata(query, **kwargs)))
 
         for query, future in futures:
             yield result.SearchResult(query, future.result(), polyswarm=self)
@@ -92,7 +89,7 @@ class PolyswarmAPI(object):
         for h in hashes:
             path = os.path.join(out_dir, h.hash)
             fh = open(path, 'wb')
-            futures.append((h, fh, path, self.endpoint.download(h, fh)))
+            futures.append((h, fh, path, self.generator.download(h, fh)))
 
         for h, fh, path, f in futures:
             r = f.result()
@@ -115,7 +112,7 @@ class PolyswarmAPI(object):
         """
         h = to_hash(h)
 
-        return result.DownloadResult(h, self.endpoint.download(h, fh).result())
+        return result.DownloadResult(h, self.generator.download(h, fh).result())
 
     def submit(self, *artifacts):
         """
@@ -124,16 +121,14 @@ class PolyswarmAPI(object):
         :param artifacts: List of LocalArtifacts or paths to local files
         :return: SubmitResult generator
         """
-        futures = []
-
         for artifact in artifacts:
             if not isinstance(artifact, LocalArtifact):
                 artifact = LocalArtifact(path=artifact, artifact_name=os.path.basename(artifact),
                                          analyze=False, polyswarm=self)
-            futures.append((artifact, self.endpoint.submit(artifact)))
+            self.executor.push(self.generator.submit(artifact))
 
-        for a, f in futures:
-            yield result.SubmitResult(a, f.result(), self)
+        for request in self.executor.execute():
+            yield request.result
 
     def rescan_submit(self, *hashes, **kwargs):
         """
@@ -145,7 +140,7 @@ class PolyswarmAPI(object):
         """
         hashes = [to_hash(h) for h in hashes]
 
-        futures = [(h, self.endpoint.rescan(h, **kwargs)) for h in hashes]
+        futures = [(h, self.generator.rescan(h, **kwargs)) for h in hashes]
 
         for h, f in futures:
             # artifact_type is not currently supported in rescan
@@ -208,10 +203,11 @@ class PolyswarmAPI(object):
         :param uuids: UUIDs to lookup
         :return: ScanResult object generator
         """
-        futures = [(uuid, self.endpoint.lookup_uuid(uuid)) for uuid in uuids]
+        for uuid in uuids:
+            self.executor.push(self.generator.lookup_uuid(uuid))
 
-        for uuid, f in futures:
-            yield result.ScanResult(f.result(), polyswarm=self)
+        for request in self.executor.execute():
+            yield request.result
 
     def score(self, *uuids):
         """
@@ -220,7 +216,7 @@ class PolyswarmAPI(object):
         :param uuids: UUIDs to lookup
         :return: ScoreResult object generator
         """
-        futures = [(uuid, self.endpoint.score(uuid)) for uuid in uuids]
+        futures = [(uuid, self.generator.score(uuid)) for uuid in uuids]
 
         for uuid, f in futures:
             yield result.ScoreResult(f.result(), polyswarm=self)
@@ -262,7 +258,7 @@ class PolyswarmAPI(object):
 
     def _resolve_engine_name(self, eth_pub):
         if not self._engine_map:
-            resp = self.endpoint._get_engine_names().result()
+            resp = self.generator._get_engine_names().result()
             result = resp.json()
             engines_results = result.get('results', [])
             self._engine_map = dict([(engine.get('address'), engine.get('name')) for engine in engines_results])
@@ -287,7 +283,7 @@ class PolyswarmAPI(object):
         if not isinstance(rules, YaraRuleset):
             rules = YaraRuleset(rules, polyswarm=self)
 
-        future = self.endpoint.submit_live_hunt(rules)
+        future = self.generator.submit_live_hunt(rules)
 
         return result.HuntSubmissionResult(rules, future.result(), self)
 
@@ -301,7 +297,7 @@ class PolyswarmAPI(object):
         if not isinstance(rules, YaraRuleset):
             rules = YaraRuleset(rules, polyswarm=self)
 
-        future = self.endpoint.submit_historical_hunt(rules)
+        future = self.generator.submit_historical_hunt(rules)
 
         return result.HuntSubmissionResult(rules, future.result(), self)
 
@@ -312,7 +308,7 @@ class PolyswarmAPI(object):
         :param hunt_id: Hunt ID
         :return: HuntDeletionResult object
         """
-        return result.HuntDeletionResult(hunt_id, self.endpoint.live_delete(hunt_id).result(), self)
+        return result.HuntDeletionResult(hunt_id, self.generator.live_delete(hunt_id).result(), self)
 
     def live_list(self):
         """
@@ -320,7 +316,7 @@ class PolyswarmAPI(object):
 
         :return: HuntListResult object
         """
-        return result.HuntListResult(self.endpoint.live_list().result(), self)
+        return result.HuntListResult(self.generator.live_list().result(), self)
 
     def historical_delete(self, hunt_id):
         """
@@ -329,7 +325,7 @@ class PolyswarmAPI(object):
         :param hunt_id: Hunt ID
         :return: HuntDeletionResult object
         """
-        return result.HuntDeletionResult(hunt_id, self.endpoint.historical_delete(hunt_id).result(), self)
+        return result.HuntDeletionResult(hunt_id, self.generator.historical_delete(hunt_id).result(), self)
 
     def historical_list(self):
         """
@@ -337,7 +333,7 @@ class PolyswarmAPI(object):
 
         :return: HuntListResult object
         """
-        return result.HuntListResult(self.endpoint.historical_list().result(), self)
+        return result.HuntListResult(self.generator.historical_list().result(), self)
 
     def _get_hunt_results(self, hunt, endpoint_func, **kwargs):
         if hunt and not isinstance(hunt, Hunt):
@@ -382,7 +378,7 @@ class PolyswarmAPI(object):
         :param hunt_id: ID of the hunt (None if latest rule results are desired)
         :return: HuntResult object
         """
-        return self._get_hunt_results(hunt, self.endpoint.live_lookup, **kwargs)
+        return self._get_hunt_results(hunt, self.generator.live_lookup, **kwargs)
 
     def historical_results(self, hunt=None, **kwargs):
         """
@@ -391,7 +387,7 @@ class PolyswarmAPI(object):
         :param hunt_id: ID of the hunt (None if latest hunt results are desired)
         :return: HuntResult object
         """
-        return self._get_hunt_results(hunt, self.endpoint.historical_lookup, **kwargs)
+        return self._get_hunt_results(hunt, self.generator.historical_lookup, **kwargs)
 
     def stream(self, destination=None, since=const.MAX_SINCE_TIME_STREAM):
         """
@@ -404,13 +400,13 @@ class PolyswarmAPI(object):
         if not os.path.exists(destination):
             os.makedirs(destination)
 
-        stream = result.StreamResult(self.endpoint.stream(since=since).result(), self)
+        stream = result.StreamResult(self.generator.stream(since=since).result(), self)
 
         futures = []
         for url in stream:
             path = os.path.join(destination, os.path.basename(urlparse(url).path))
             fh = open(path, 'wb')
-            futures.append((fh, path, self.endpoint.download_archive(url, fh)))
+            futures.append((fh, path, self.generator.download_archive(url, fh)))
 
         for fh, path, f in futures:
             r = f.result()
