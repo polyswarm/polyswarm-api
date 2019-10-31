@@ -16,12 +16,22 @@ class BasePSJSONType(BasePSType):
     }
 
     def __init__(self, json=None, polyswarm=None):
-        super(BasePSJSONType, self).__init__(polyswarm)
+        super(BasePSJSONType, self).__init__(polyswarm=polyswarm)
+        self._json = None
+        if self._json is not None:
+            self.json = json
+
+    @property
+    def json(self):
+        return self._json
+
+    @json.setter
+    def json(self, value):
         # this is expensive on thousands of objects
         # avoid if disabled
-        if polyswarm and polyswarm.validate:
-            self.validate(json)
-        self.json = json
+        if self.polyswarm and self.polyswarm.validate:
+             self.validate(value)
+        self._json = value
 
     def validate(self, json, schema=None):
         if not schema:
