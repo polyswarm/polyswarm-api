@@ -1,5 +1,4 @@
 from requests_futures.sessions import FuturesSession
-from concurrent.futures import ThreadPoolExecutor
 import requests
 from urllib3.util.retry import Retry
 from requests.adapters import HTTPAdapter
@@ -49,10 +48,5 @@ class PolyswarmHTTP(PolyswarmHTTPBase, requests.Session):
 
 
 class PolyswarmHTTPFutures(PolyswarmHTTPBase, FuturesSession):
-    executor = ThreadPoolExecutor(const.DEFAULT_WORKER_COUNT)
-
-    def __init__(self, *args, **kwargs):
-        if 'executor' not in kwargs:
-            kwargs['executor'] = self.executor
-        super(PolyswarmHTTPFutures, self).__init__(*args, **kwargs)
+    pass
 
