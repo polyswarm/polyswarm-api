@@ -1,9 +1,6 @@
-from itertools import chain
-
 from .base import BasePSJSONType, BasePSType
-from .artifact import Artifact, Bounty
+from .artifact import Artifact, Submission, PolyScore
 from .hunt import Hunt, HuntStatus
-from .scan import PolyScore
 
 from . import schemas
 from .. import exceptions
@@ -20,32 +17,32 @@ class ApiResponse(BasePSJSONType):
     """ The base API response class. All results from PolyswarmAPI are subclasses of this """
     SCHEMA = schemas.api_response_schema
 
-    def __init__(self, result, polyswarm=None):
-        self.status_code = result.status_code
-
+    def parse_result(self, result):
         try:
-            json = result.json()
+            self.json = result.json()
         except JSONDecodeError as e:
             logger.error("Server returned non-JSON response.")
             raise e
 
+        self.status_code = result.status_code
+        if self.status_code == 429:
+            raise exceptions.UsageLimitsExceeded(USAGE_EXCEEDED_MESSAGE)
+
+        self.status = self.json['status']
+        self.result = self.json['result']
+        self.errors = self.json.get('errors', None)
+        self.total = self.json.get('total', None)
+        self.limit = self.json.get('limit', None)
+        self.page = self.json.get('page', None)
+        self.order_by = self.json.get('order_by', None)
+        self.direction = self.json.get('direction', None)
         try:
-            super(ApiResponse, self).__init__(json, polyswarm)
+            response = ApiResponse(result, self.polyswarm)
         except exceptions.InvalidJSONResponse as e:
             logger.error('Invalid JSON result object provided by server.')
             raise e
 
-        if self.status_code == 429:
-            raise exceptions.UsageLimitsExceeded(USAGE_EXCEEDED_MESSAGE)
-
-        self.status = json['status']
-        self.result = json['result']
-        self.errors = json.get('errors', None)
-        self.total = json.get('total', None)
-        self.limit = json.get('limit', None)
-        self.page = json.get('page', None)
-        self.order_by = json.get('order_by', None)
-        self.direction = json.get('direction', None)
+        return response
 
     @property
     def _bad_status_exception(self):
@@ -105,13 +102,11 @@ class SearchResult(IndexableResult):
 
 
 class ScanResult(ApiResponse):
-    def __init__(self, result, artifact=None, polyswarm=None, timeout=False):
-        super(ScanResult, self).__init__(result, polyswarm)
-        self.timeout = timeout
-        self.artifact = artifact
+    def parse_result(self, result):
+        super(ScanResult, self).parse_result(result)
         if self.status_code // 100 == 2:
             if self.result:
-                self.result = Bounty(None, self.result, polyswarm=polyswarm)
+                self.result = Submission(None, self.result, polyswarm=self.polyswarm)
         elif self.status_code == 404:
             self.result = "UUID not found"
         else:
@@ -122,13 +117,16 @@ class ScanResult(ApiResponse):
         if not self.result or isinstance(self.result, str):
             return False
 
-        return self.result.ready
+        return self.result.status == 'Bounty Awaiting Arbitration'
 
 
 class SubmitResult(ApiResponse):
-    def __init__(self, artifact, result, polyswarm=None):
-        super(SubmitResult, self).__init__(result, polyswarm)
+    def __init__(self, artifact, polyswarm=None):
+        super(SubmitResult, self).__init__(polyswarm=polyswarm)
         self.artifact = artifact
+
+    def parse_result(self, result):
+        super(SubmitResult, self).parse_result(result)
 
         if self.status_code == 404:
             # happens if rescan file wasn't found
