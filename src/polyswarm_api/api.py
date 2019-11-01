@@ -82,26 +82,12 @@ class PolyswarmAPI(object):
     def download(self, out_dir, *hashes):
         hashes = [to_hash(h) for h in hashes]
 
-        if not os.path.exists(out_dir):
-            os.makedirs(out_dir)
-
-        futures = []
         for h in hashes:
             path = os.path.join(out_dir, h.hash)
-            fh = open(path, 'wb')
-            futures.append((h, fh, path, self.generator.download(h, fh)))
+            self.executor.push(self.generator.download(h.hash, h.hash_type, path, create=True))
 
-        for h, fh, path, f in futures:
-            r = f.result()
-
-            if r.status_code == 200:
-                artifact = LocalArtifact(path=path, artifact_name=h.hash, analyze=False, polyswarm=self)
-            else:
-                fh.close()
-                os.remove(path)
-                # dummy dl result
-                artifact = LocalArtifact(content=b'error', artifact_name=h.hash)
-            yield result.DownloadResult(artifact, r)
+        for request in self.executor.execute():
+            yield request.result
 
     def download_to_filehandle(self, h, fh):
         """
@@ -397,25 +383,11 @@ class PolyswarmAPI(object):
         :param since: How far back to grab artifacts in minutes (up to 2 days)
         :return: DownloadResult generator
         """
-        if not os.path.exists(destination):
-            os.makedirs(destination)
+        self.executor.push(self.generator.stream(since=since))
+        for request in self.executor.execute():
+            for url in request.result:
+                path = os.path.join(destination, os.path.basename(urlparse(url).path))
+                self.executor.push(self.generator.download_archive(url, path, create=True))
 
-        stream = result.StreamResult(self.generator.stream(since=since).result(), self)
-
-        futures = []
-        for url in stream:
-            path = os.path.join(destination, os.path.basename(urlparse(url).path))
-            fh = open(path, 'wb')
-            futures.append((fh, path, self.generator.download_archive(url, fh)))
-
-        for fh, path, f in futures:
-            r = f.result()
-
-            if r.status_code == 200:
-                artifact = LocalArtifact(path=path, artifact_name=os.path.basename(path),
-                                         analyze=False, polyswarm=self)
-            else:
-                fh.close()
-                os.remove(path)
-                artifact = LocalArtifact(content=b'error', artifact_name=os.path.basename(path), analyze=False)
-            yield result.DownloadResult(artifact, r)
+            for request in self.executor.execute():
+                yield request.result

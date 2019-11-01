@@ -8,10 +8,9 @@ from .types import result
 
 class PolyswarmRequest(object):
     """This class holds a requests-compatible dictionary and extra infor we need to parse the reponse."""
-    def __init__(self, api_instance, request_parameters, output_file=None, result=None):
+    def __init__(self, api_instance, request_parameters, result=None):
         self.api_instance = api_instance
         self.request_parameters = request_parameters
-        self.output_file = output_file
         self.result = result
         self.raw_result = None
 
@@ -33,20 +32,20 @@ class PolyswarmRequestGenerator(object):
         self.download_fmt = '{}/{}/{}'
         self.hash_search_fmt = '{}/{}/{}'
 
-    def download(self, h, fh):
+    def download(self, hash_value, hash_type, output_file, file_handle=None, create=False):
         return PolyswarmRequest(
             self.api_instance,
             {
                 'method': 'GET',
                 'timeout': const.DEFAULT_HTTP_TIMEOUT,
-                'url': self.download_fmt.format(self.download_base, h.hash_type, h.hash),
+                'url': self.download_fmt.format(self.download_base, hash_type, hash_value),
                 'stream': True,
             },
-            output_file=fh,
-            result=result.DownloadResult,
+            result=result.DownloadResult(output_file, polyswarm=self.api_instance,
+                                         file_handle=file_handle, create=create),
         )
 
-    def download_archive(self, u, fh):
+    def download_archive(self, u, output_file, file_handle=None, create=False):
         """ This method is special, in that it is simply for downloading from S3 """
         return PolyswarmRequest(
             self.api_instance,
@@ -57,8 +56,8 @@ class PolyswarmRequestGenerator(object):
                 'stream': True,
                 'headers': {'Authorization': None}
             },
-            output_file=fh,
-            result=result.DownloadResult,
+            result=result.DownloadResult(output_file, polyswarm=self.api_instance,
+                                         file_handle=file_handle, create=create),
         )
 
     def stream(self, since=const.MAX_SINCE_TIME_STREAM):
@@ -70,6 +69,7 @@ class PolyswarmRequestGenerator(object):
                 'url': '{}/download/stream'.format(self.consumer_base),
                 'params': {'since': since},
             },
+            result=result.StreamResult()
         )
 
     def search_hash(self, h, with_instances=True, with_metadata=True):
@@ -281,11 +281,7 @@ class PolyswarmRequestExecutor(object):
         request.raw_result = self.session.request(**request.request_parameters)
         request.raw_result.raise_for_status()
 
-        if request.output_file:
-            for chunk in request.raw_result.iter_content(chunk_size=const.DOWNLOAD_CHUNK_SIZE):
-                request.output_file.write(chunk)
-
-        if request.result:
+        if request.result is not None:
             request.result.parse_result(request.raw_result)
 
         return request

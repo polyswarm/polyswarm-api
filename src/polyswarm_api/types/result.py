@@ -1,8 +1,12 @@
+import os
+import os.path
+
 from .base import BasePSJSONType, BasePSType
-from .artifact import Artifact, Submission, PolyScore
+from .artifact import Artifact, Submission, PolyScore, LocalArtifact
 from .hunt import Hunt, HuntStatus
 
 from . import schemas
+from .. import const
 from .. import exceptions
 from ..log import logger
 from ..const import USAGE_EXCEEDED_MESSAGE
@@ -16,6 +20,18 @@ except ImportError:
 class ApiResponse(BasePSJSONType):
     """ The base API response class. All results from PolyswarmAPI are subclasses of this """
     SCHEMA = schemas.api_response_schema
+
+    def __init__(self, *args, **kwargs):
+        super(ApiResponse, self).__init__(*args, **kwargs)
+        self.status_code = None
+        self.status = None
+        self.result = None
+        self.errors = None
+        self.total = None
+        self.limit = None
+        self.page = None
+        self.order_by = None
+        self.direction = None
 
     def parse_result(self, result):
         try:
@@ -64,23 +80,35 @@ class IndexableResult(ApiResponse):
 
 class DownloadResult(ApiResponse):
     """ This is an artificially constructed result object, to track downloads. """
-    def __init__(self, artifact, result, polyswarm=None):
-        self.polyswarm = polyswarm
-        self.status_code = result.status_code
+    def __init__(self, output_file, file_handle=None, polyswarm=None, create=False):
+        super(DownloadResult, self).__init__(polyswarm=polyswarm)
+        self.output_file = output_file
+        self.file_handle = file_handle
+        self.create = create
 
+    def parse_result(self, result):
+        self.status_code = result.status_code
         if self.status_code == 404:
             self.status = 'Not found.'
         elif self.status_code // 100 != 2:
             raise self._bad_status_exception
-
         self.status = 'OK'
-        self.result = artifact
-        self.errors = None
-        self.total = None
-        self.limit = None
-        self.page = None
-        self.order_by = None
-        self.direction = None
+
+        path, file_name = os.path.split(self.output_file)
+        self.result = LocalArtifact(path=self.output_file, artifact_name=file_name, analyze=False, polyswarm=self)
+
+        if result.status_code == 200:
+            if self.file_handle:
+                for chunk in result.raw_result.iter_content(chunk_size=const.DOWNLOAD_CHUNK_SIZE):
+                    self.file_handle.write(chunk)
+            else:
+                if self.create:
+                    os.makedirs(path, exist_ok=True)
+                with open(self.output_file, 'wb') as file_handle:
+                    for chunk in result.iter_content(chunk_size=const.DOWNLOAD_CHUNK_SIZE):
+                        file_handle.write(chunk)
+        else:
+            self.result.content = b'error'
 
 
 class SearchResult(IndexableResult):
@@ -227,8 +255,8 @@ class HuntListResult(IndexableResult):
 
 
 class StreamResult(IndexableResult):
-    def __init__(self, result, polyswarm=None):
-        super(StreamResult, self).__init__(result, polyswarm)
+    def parse_result(self, result):
+        super(StreamResult, self).parse_result(result)
 
         if self.status_code // 100 != 2:
             raise self._bad_status_exception
