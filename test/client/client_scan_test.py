@@ -128,8 +128,6 @@ class ScanTestCase(TestCase):
                 assert f.read() == b'Non malicious'
 
 
-
-
     # def test_url_request_failed_exception(self):
     #     client = PolyswarmAPI(self.test_api_key)
     #     urls = ['google.com', 'polyswarm.io']
