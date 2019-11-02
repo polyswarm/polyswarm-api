@@ -14,6 +14,7 @@ from .types.hash import to_hash
 from .types.query import MetadataQuery
 from .types import result
 from .types.hunt import YaraRuleset, Hunt
+from . import exceptions
 
 
 class PolyswarmAPI(object):
@@ -287,6 +288,12 @@ class PolyswarmAPI(object):
         if not isinstance(rules, YaraRuleset):
             rules = YaraRuleset(rules, polyswarm=self)
 
+        try:
+            rules.validate()
+        except exceptions.NotImportedException:
+            # for now, we do nothing to avoid nagging the user
+            pass
+
         future = self.endpoint.submit_live_hunt(rules)
 
         return result.HuntSubmissionResult(rules, future.result(), self)
@@ -300,6 +307,12 @@ class PolyswarmAPI(object):
         """
         if not isinstance(rules, YaraRuleset):
             rules = YaraRuleset(rules, polyswarm=self)
+
+        try:
+            rules.validate()
+        except exceptions.NotImportedException:
+            # for now, we do nothing to avoid nagging the user
+            pass
 
         future = self.endpoint.submit_historical_hunt(rules)
 
