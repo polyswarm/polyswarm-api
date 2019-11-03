@@ -35,6 +35,9 @@ class JSONOutput(base.BaseOutput):
         artifact = result.result
         self.out.write(json.dumps({'hash': artifact.artifact_name, 'path': artifact.path}, sort_keys=True)+'\n')
 
+    def invalid_rule(self, e):
+        self.out.write(json.dumps('Malformed yara file: {}'.format(e.args[0])))
+
     @staticmethod
     def usage_exceeded():
         return json.dumps(USAGE_EXCEEDED_MESSAGE)

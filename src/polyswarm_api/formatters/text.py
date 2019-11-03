@@ -108,8 +108,9 @@ class TextOutput(base.BaseOutput):
         return '\n'.join(output)
 
     def search_result(self, search):
-        if len(search) == 0:
-            return self.out.write(self._bad('(Did not find any files matching search: %s.)\n' % repr(search.query)))
+        if search.failed:
+            self.out.write(self._bad(search.failure_reason)+'\n')
+            return
 
         output = []
         output.append(self._good('Found {count} matches to the search query.'.format(count=len(search))))
@@ -122,20 +123,8 @@ class TextOutput(base.BaseOutput):
         output = []
         bounty = result.result
 
-        if result.status_code == 404:
-            self.out.write(self._error('(Could not find artifact or UUID)\n'))
-            return
-
-        if not bounty.uuid:
-            self.out.write(self._error('(Did not get a UUID for scan)\n'))
-            return
-
-        if result.timeout == True:
-            self.out.write(self._error('(Did not get a response for {} in time, check again later)\n'.format(bounty.uuid)))
-            return
-
-        if bounty.failed:
-            self.out.write(self._error('(Bounty creation failed for submission {}. Please resubmit.)\n'.format(bounty.uuid)))
+        if result.failed:
+            self.out.write(self._error(result.failure_reason)+'\n')
             return
 
         output.append(self._normal('Scan report for GUID %s\n========================================================='
@@ -156,6 +145,7 @@ class TextOutput(base.BaseOutput):
         if not f.ready:
             output.append(self._warn('Scan is still in progress, check back later. Reference: %s' % f.permalink))
         elif len(f.assertions) == 0:
+            # TODO are these still necessary?
             if f.bounty.status == 'Bounty Failed' or f.failed:
                 output.append(self._bad('Bounty failed, please resubmit. Reference: %s' % f.permalink))
             else:
@@ -197,15 +187,15 @@ class TextOutput(base.BaseOutput):
         return '\n'.join(output)
 
     def hunt_submission(self, result):
-        if result.status != 'OK':
-            self.out.write(self._bad('Failed to install rules: {}\n'.format(result.result)))
+        if result.failed:
+            self.out.write(self._bad(result.failure_reason)+'\n')
             return
         self.out.write(self._info('Successfully submitted rules, hunt id: {hunt_id}\n'.
                        format(hunt_id=result.result.hunt_id)))
 
     def hunt_deletion(self, result):
-        if result.status != 'OK':
-            self.out.write(self._bad('Failed to delete hunt.\n'))
+        if result.failed:
+            self.out.write(self._bad(result.failure_reason)+'\n')
             return
         self.out.write(self._info('Successfully deleted hunt id: {hunt_id}\n'.
                        format(hunt_id=result.result)))
@@ -213,24 +203,15 @@ class TextOutput(base.BaseOutput):
     def hunt_result(self, result):
         output = []
 
-        status_response = result.hunt_status
-
-        if status_response.status_code == 404:
-            self.out.write(self._bad('Hunt {}was not found\n'.format(str(result.hunt.hunt_id)+' ' if result.hunt else '')))
+        if result.failed:
+            self.out.write(self._bad(result.failure_reason)+'\n')
             return
+
+        status_response = result.hunt_status
 
         status = status_response.result
 
-        if status.status not in ['PENDING', 'RUNNING', 'SUCCESS', 'FAILED']:
-            self.out.write(self._bad('An unspecified error occurred fetching hunt records.\n'))
-            return
-
         output.append(self._info('Scan status: {status}\n'.format(status=status.status)))
-
-        if status.total == 0:
-            output.append(self._bad('(Did not find any results yet for this hunt.)\n'))
-            self.out.write('\n'.join(output))
-            return
 
         output.append(self._good('Found {} samples in this hunt.'.format(status.total)))
 
@@ -242,8 +223,8 @@ class TextOutput(base.BaseOutput):
     def download_result(self, result):
         artifact = result.result
 
-        if result.status_code == 404:
-            self.out.write(self._bad('Artifact {} was not found\n'.format(artifact.artifact_name)))
+        if result.failed:
+            self.out.write(self._bad(result.failure_reason)+'\n')
         else:
             self.out.write(self._good('Successfully downloaded artifact {} to {}\n'.format(artifact.artifact_name,
                                                                                        artifact.path)))
