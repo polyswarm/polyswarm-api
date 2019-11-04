@@ -116,16 +116,77 @@ class ScanTestCase(TestCase):
 
     @responses.activate
     def test_live_results(self):
-        responses.add(responses.Response(responses.GET, 'http://localhost:9696/v1/hunt/live/results?limit=3&offset=0&since=0',
+        responses.add(responses.Response(responses.GET, 'http://localhost:9696/v1/hunt/live/results?with_bounty_results=&with_metadata=&limit=3&offset=0&since=0',
                                          json={'result': {'active': True, 'created': 'Mon, 04 Nov 2019 16:03:18 GMT', 'id': '63433636835291189', 'results': [{'artifact': {'extended_type': 'EICAR virus test files', 'first_seen': 'Fri, 01 Nov 2019 21:33:53 GMT', 'id': '11611818710765483', 'last_seen': 'Mon, 04 Nov 2019 13:08:21 GMT', 'md5': '44d88612fea8a8f36de82e1278abb02f', 'mimetype': 'text/plain', 'sha1': '3395856ce81f2b7382dee72602f798b642f14140', 'sha256': '275a021bbfb6489e54d471899f7db9d1663fc695ec2fe2a2c4538aabf651fd0f'}, 'created': 'Mon, 04 Nov 2019 16:08:21 GMT', 'rule_name': 'eicar_substring_test', 'tags': ''}, {'artifact': {'extended_type': 'EICAR virus test files', 'first_seen': 'Fri, 01 Nov 2019 21:33:53 GMT', 'id': '11611818710765483', 'last_seen': 'Mon, 04 Nov 2019 13:08:21 GMT', 'md5': '44d88612fea8a8f36de82e1278abb02f', 'mimetype': 'text/plain', 'sha1': '3395856ce81f2b7382dee72602f798b642f14140', 'sha256': '275a021bbfb6489e54d471899f7db9d1663fc695ec2fe2a2c4538aabf651fd0f'}, 'created': 'Mon, 04 Nov 2019 16:08:21 GMT', 'rule_name': 'eicar_av_test', 'tags': ''}, {'artifact': {'extended_type': 'EICAR virus test files', 'first_seen': 'Fri, 01 Nov 2019 21:33:53 GMT', 'id': '11611818710765483', 'last_seen': 'Mon, 04 Nov 2019 13:08:21 GMT', 'md5': '44d88612fea8a8f36de82e1278abb02f', 'mimetype': 'text/plain', 'sha1': '3395856ce81f2b7382dee72602f798b642f14140', 'sha256': '275a021bbfb6489e54d471899f7db9d1663fc695ec2fe2a2c4538aabf651fd0f'}, 'created': 'Mon, 04 Nov 2019 16:08:18 GMT', 'rule_name': 'eicar_substring_test', 'tags': ''}], 'ruleset_name': None, 'status': 'RUNNING', 'total': 10}, 'status': 'RUNNING'}))
-        responses.add(responses.Response(responses.GET, 'http://localhost:9696/v1/hunt/live/results?limit=3&offset=3&since=0',
+        responses.add(responses.Response(responses.GET, 'http://localhost:9696/v1/hunt/live/results?with_bounty_results=&with_metadata=&limit=3&offset=3&since=0',
                                          json={'result': {'active': True, 'created': 'Mon, 04 Nov 2019 16:03:18 GMT', 'id': '63433636835291189', 'results': [{'artifact': {'extended_type': 'EICAR virus test files', 'first_seen': 'Fri, 01 Nov 2019 21:33:53 GMT', 'id': '11611818710765483', 'last_seen': 'Mon, 04 Nov 2019 13:08:21 GMT', 'md5': '44d88612fea8a8f36de82e1278abb02f', 'mimetype': 'text/plain', 'sha1': '3395856ce81f2b7382dee72602f798b642f14140', 'sha256': '275a021bbfb6489e54d471899f7db9d1663fc695ec2fe2a2c4538aabf651fd0f'}, 'created': 'Mon, 04 Nov 2019 16:08:18 GMT', 'rule_name': 'eicar_av_test', 'tags': ''}, {'artifact': {'extended_type': 'EICAR virus test files', 'first_seen': 'Fri, 01 Nov 2019 21:33:53 GMT', 'id': '11611818710765483', 'last_seen': 'Mon, 04 Nov 2019 13:08:21 GMT', 'md5': '44d88612fea8a8f36de82e1278abb02f', 'mimetype': 'text/plain', 'sha1': '3395856ce81f2b7382dee72602f798b642f14140', 'sha256': '275a021bbfb6489e54d471899f7db9d1663fc695ec2fe2a2c4538aabf651fd0f'}, 'created': 'Mon, 04 Nov 2019 16:08:15 GMT', 'rule_name': 'eicar_substring_test', 'tags': ''}, {'artifact': {'extended_type': 'EICAR virus test files', 'first_seen': 'Fri, 01 Nov 2019 21:33:53 GMT', 'id': '11611818710765483', 'last_seen': 'Mon, 04 Nov 2019 13:08:21 GMT', 'md5': '44d88612fea8a8f36de82e1278abb02f', 'mimetype': 'text/plain', 'sha1': '3395856ce81f2b7382dee72602f798b642f14140', 'sha256': '275a021bbfb6489e54d471899f7db9d1663fc695ec2fe2a2c4538aabf651fd0f'}, 'created': 'Mon, 04 Nov 2019 16:08:15 GMT', 'rule_name': 'eicar_av_test', 'tags': ''}], 'ruleset_name': None, 'status': 'RUNNING', 'total': 10}, 'status': 'RUNNING'}))
-        responses.add(responses.Response(responses.GET, 'http://localhost:9696/v1/hunt/live/results?limit=3&offset=6&since=0',
+        responses.add(responses.Response(responses.GET, 'http://localhost:9696/v1/hunt/live/results?with_bounty_results=&with_metadata=&limit=3&offset=6&since=0',
                                          json={'result': {'active': True, 'created': 'Mon, 04 Nov 2019 16:03:18 GMT', 'id': '63433636835291189', 'results': [{'artifact': {'extended_type': 'EICAR virus test files', 'first_seen': 'Fri, 01 Nov 2019 21:33:53 GMT', 'id': '11611818710765483', 'last_seen': 'Mon, 04 Nov 2019 13:08:21 GMT', 'md5': '44d88612fea8a8f36de82e1278abb02f', 'mimetype': 'text/plain', 'sha1': '3395856ce81f2b7382dee72602f798b642f14140', 'sha256': '275a021bbfb6489e54d471899f7db9d1663fc695ec2fe2a2c4538aabf651fd0f'}, 'created': 'Mon, 04 Nov 2019 16:08:13 GMT', 'rule_name': 'eicar_substring_test', 'tags': ''}, {'artifact': {'extended_type': 'EICAR virus test files', 'first_seen': 'Fri, 01 Nov 2019 21:33:53 GMT', 'id': '11611818710765483', 'last_seen': 'Mon, 04 Nov 2019 13:08:21 GMT', 'md5': '44d88612fea8a8f36de82e1278abb02f', 'mimetype': 'text/plain', 'sha1': '3395856ce81f2b7382dee72602f798b642f14140', 'sha256': '275a021bbfb6489e54d471899f7db9d1663fc695ec2fe2a2c4538aabf651fd0f'}, 'created': 'Mon, 04 Nov 2019 16:08:13 GMT', 'rule_name': 'eicar_av_test', 'tags': ''}, {'artifact': {'extended_type': 'EICAR virus test files', 'first_seen': 'Fri, 01 Nov 2019 21:33:53 GMT', 'id': '11611818710765483', 'last_seen': 'Mon, 04 Nov 2019 13:08:21 GMT', 'md5': '44d88612fea8a8f36de82e1278abb02f', 'mimetype': 'text/plain', 'sha1': '3395856ce81f2b7382dee72602f798b642f14140', 'sha256': '275a021bbfb6489e54d471899f7db9d1663fc695ec2fe2a2c4538aabf651fd0f'}, 'created': 'Mon, 04 Nov 2019 16:08:01 GMT', 'rule_name': 'eicar_substring_test', 'tags': ''}], 'ruleset_name': None, 'status': 'RUNNING', 'total': 10}, 'status': 'RUNNING'}))
-        responses.add(responses.Response(responses.GET, 'http://localhost:9696/v1/hunt/live/results?limit=3&offset=9&since=0',
+        responses.add(responses.Response(responses.GET, 'http://localhost:9696/v1/hunt/live/results?with_bounty_results=&with_metadata=&limit=3&offset=9&since=0',
                                          json={'result': {'active': True, 'created': 'Mon, 04 Nov 2019 16:03:18 GMT', 'id': '63433636835291189', 'results': [{'artifact': {'extended_type': 'EICAR virus test files', 'first_seen': 'Fri, 01 Nov 2019 21:33:53 GMT', 'id': '11611818710765483', 'last_seen': 'Mon, 04 Nov 2019 13:08:21 GMT', 'md5': '44d88612fea8a8f36de82e1278abb02f', 'mimetype': 'text/plain', 'sha1': '3395856ce81f2b7382dee72602f798b642f14140', 'sha256': '275a021bbfb6489e54d471899f7db9d1663fc695ec2fe2a2c4538aabf651fd0f'}, 'created': 'Mon, 04 Nov 2019 16:08:01 GMT', 'rule_name': 'eicar_av_test', 'tags': ''}], 'ruleset_name': None, 'status': 'RUNNING', 'total': 10}, 'status': 'RUNNING'}))
-        responses.add(responses.Response(responses.GET, 'http://localhost:9696/v1/hunt/live/results?limit=3&offset=12&since=0',
+        responses.add(responses.Response(responses.GET, 'http://localhost:9696/v1/hunt/live/results?with_bounty_results=&with_metadata=&limit=3&offset=12&since=0',
                                          json={'result': {'active': True, 'created': 'Mon, 04 Nov 2019 16:03:18 GMT', 'id': '63433636835291189', 'results': [], 'ruleset_name': None, 'status': 'RUNNING', 'total': 10}, 'status': 'RUNNING'}))
         api = PolyswarmAPI(self.test_api_key, uri='http://localhost:9696/v1', community='gamma')
-        result = api.live_results(with_bounty_results=False, with_metadata=False)
+        result = api.live_results(with_bounty_results=False, with_metadata=False, limit=3)
         assert len(result.result.results) == 10
+
+    @responses.activate
+    def test_historical(self):
+        responses.add(responses.Response(responses.POST, 'http://localhost:9696/v1/hunt/historical',
+                                         json={'result': {'hunt_id': '0000000000000000'}, 'status': 'OK'}))
+        api = PolyswarmAPI(self.test_api_key, uri='http://localhost:9696/v1', community='gamma')
+        with open('test/eicar.yara') as yara:
+            result = api.historical(yara.read())
+        assert result.result.hunt_id == '0000000000000000'
+
+    @responses.activate
+    def test_historical_results(self):
+        responses.add(responses.Response(responses.GET, 'http://localhost:9696/v1/hunt/historical/results?with_bounty_results=&with_metadata=&limit=1&offset=0&since=0',
+                                         json={'result': {'created': 'Mon, 04 Nov 2019 19:11:37 GMT', 'id': '87727805741550630', 'results': [{'artifact': {'extended_type': 'EICAR virus test files', 'first_seen': 'Fri, 01 Nov 2019 21:33:53 GMT', 'id': '11611818710765483', 'last_seen': 'Mon, 04 Nov 2019 13:08:21 GMT', 'md5': '44d88612fea8a8f36de82e1278abb02f', 'mimetype': 'text/plain', 'sha1': '3395856ce81f2b7382dee72602f798b642f14140', 'sha256': '275a021bbfb6489e54d471899f7db9d1663fc695ec2fe2a2c4538aabf651fd0f'}, 'created': 'Mon, 04 Nov 2019 19:11:37 GMT', 'rule_name': 'eicar_substring_test', 'tags': ''}], 'ruleset_name': None, 'status': 'SUCCESS', 'total': 2}, 'status': 'SUCCESS'}))
+        responses.add(responses.Response(responses.GET, 'http://localhost:9696/v1/hunt/historical/results?with_bounty_results=&with_metadata=&limit=1&offset=1&since=0',
+                                         json={'result': {'created': 'Mon, 04 Nov 2019 19:11:37 GMT', 'id': '87727805741550630', 'results': [{'artifact': {'extended_type': 'EICAR virus test files', 'first_seen': 'Fri, 01 Nov 2019 21:33:53 GMT', 'id': '11611818710765483', 'last_seen': 'Mon, 04 Nov 2019 13:08:21 GMT', 'md5': '44d88612fea8a8f36de82e1278abb02f', 'mimetype': 'text/plain', 'sha1': '3395856ce81f2b7382dee72602f798b642f14140', 'sha256': '275a021bbfb6489e54d471899f7db9d1663fc695ec2fe2a2c4538aabf651fd0f'}, 'created': 'Mon, 04 Nov 2019 19:11:37 GMT', 'rule_name': 'eicar_av_test', 'tags': ''}], 'ruleset_name': None, 'status': 'SUCCESS', 'total': 2}, 'status': 'SUCCESS'}))
+        responses.add(responses.Response(responses.GET, 'http://localhost:9696/v1/hunt/historical/results?with_bounty_results=&with_metadata=&limit=1&offset=2&since=0',
+                                         json={'result': {'created': 'Mon, 04 Nov 2019 19:11:37 GMT', 'id': '87727805741550630', 'results': [], 'ruleset_name': None, 'status': 'SUCCESS', 'total': 2}, 'status': 'SUCCESS'}))
+        api = PolyswarmAPI(self.test_api_key, uri='http://localhost:9696/v1', community='gamma')
+        result = api.historical_results(with_bounty_results=False, with_metadata=False, limit=1)
+        assert len(result.result.results) == 2
+
+    @responses.activate
+    def test_delete_live(self):
+        responses.add(responses.Response(responses.DELETE, 'http://localhost:9696/v1/hunt/live?hunt_id=00000000000000000',
+                                         json={'result': {'hunt_id': '00000000000000000'}, 'status': 'OK'}))
+        api = PolyswarmAPI(self.test_api_key, uri='http://localhost:9696/v1', community='gamma')
+        result = api.live_delete('00000000000000000')
+        assert result.result == '00000000000000000'
+
+    @responses.activate
+    def test_delete_live(self):
+        responses.add(responses.Response(responses.DELETE, 'http://localhost:9696/v1/hunt/historical?hunt_id=00000000000000000',
+                                         json={'result': {'hunt_id': '00000000000000000'}, 'status': 'OK'}))
+        api = PolyswarmAPI(self.test_api_key, uri='http://localhost:9696/v1', community='gamma')
+        result = api.historical_delete('00000000000000000')
+        assert result.result == '00000000000000000'
+
+    @responses.activate
+    def test_list_live(self):
+        responses.add(responses.Response(responses.GET, 'http://localhost:9696/v1/hunt/live?all=true',
+                                         json={'result': [{'active': True, 'created': 'Mon, 04 Nov 2019 16:03:18 GMT', 'id': '63433636835291189', 'results': None, 'ruleset_name': None, 'status': 'RUNNING', 'total': 10}, {'active': False, 'created': 'Fri, 01 Nov 2019 22:37:38 GMT', 'id': '30278416219087863', 'results': None, 'ruleset_name': None, 'status': 'SUCCESS', 'total': 0}, {'active': False, 'created': 'Fri, 01 Nov 2019 22:35:33 GMT', 'id': '3704780491120403', 'results': None, 'ruleset_name': None, 'status': 'SUCCESS', 'total': 0}, {'active': False, 'created': 'Fri, 01 Nov 2019 22:34:19 GMT', 'id': '27135338495759590', 'results': None, 'ruleset_name': None, 'status': 'SUCCESS', 'total': 0}, {'active': False, 'created': 'Fri, 01 Nov 2019 22:33:37 GMT', 'id': '54592556430064812', 'results': None, 'ruleset_name': None, 'status': 'SUCCESS', 'total': 0}], 'status': 'OK'}))
+        api = PolyswarmAPI(self.test_api_key, uri='http://localhost:9696/v1', community='gamma')
+        result = api.live_list()
+        assert len(result.result) == 5
+
+    @responses.activate
+    def test_list_historical(self):
+        responses.add(responses.Response(responses.GET, 'http://localhost:9696/v1/hunt/historical?all=true',
+                                         json={'result': [{'created': 'Mon, 04 Nov 2019 19:11:37 GMT', 'id': '87727805741550630', 'results': None, 'ruleset_name': None, 'status': 'SUCCESS', 'total': 2}, {'created': 'Mon, 04 Nov 2019 18:40:00 GMT', 'id': '47190397989086018', 'results': None, 'ruleset_name': None, 'status': 'SUCCESS', 'total': 34}, {'created': 'Mon, 04 Nov 2019 18:37:43 GMT', 'id': '86866921610782572', 'results': None, 'ruleset_name': None, 'status': 'SUCCESS', 'total': 0}, {'created': 'Mon, 04 Nov 2019 18:31:07 GMT', 'id': '16122797615766244', 'results': None, 'ruleset_name': None, 'status': 'SUCCESS', 'total': 0}, {'created': 'Mon, 04 Nov 2019 18:05:10 GMT', 'id': '81709619298806644', 'results': None, 'ruleset_name': None, 'status': 'SUCCESS', 'total': 0}, {'created': 'Mon, 04 Nov 2019 17:45:14 GMT', 'id': '49537000409407578', 'results': None, 'ruleset_name': None, 'status': 'SUCCESS', 'total': 0}, {'created': 'Mon, 04 Nov 2019 17:36:03 GMT', 'id': '92075141711091536', 'results': None, 'ruleset_name': None, 'status': 'SUCCESS', 'total': 0}, {'created': 'Mon, 04 Nov 2019 17:34:50 GMT', 'id': '16213998657109226', 'results': None, 'ruleset_name': None, 'status': 'SUCCESS', 'total': 0}, {'created': 'Mon, 04 Nov 2019 17:34:25 GMT', 'id': '46124705929143681', 'results': None, 'ruleset_name': None, 'status': 'SUCCESS', 'total': 0}, {'created': 'Mon, 04 Nov 2019 17:34:17 GMT', 'id': '17264462171967388', 'results': None, 'ruleset_name': None, 'status': 'SUCCESS', 'total': 0}, {'created': 'Mon, 04 Nov 2019 17:33:40 GMT', 'id': '13903550507680813', 'results': None, 'ruleset_name': None, 'status': 'SUCCESS', 'total': 0}], 'status': 'OK'}))
+        api = PolyswarmAPI(self.test_api_key, uri='http://localhost:9696/v1', community='gamma')
+        result = api.historical_list()
+        assert len(result.result) == 11
+
+    @responses.activate
+    def test_list_historical(self):
+        responses.add(responses.Response(responses.GET, 'http://localhost:9696/v1/consumer/submission/6eadcabe-9f9e-4301-8e60-c9e58504c325/polyscore',
+                                         json={'result': {'scores': {'77090327141458166': 0.9999682631387563}}, 'status': 'OK'}))
+        api = PolyswarmAPI(self.test_api_key, uri='http://localhost:9696/v1', community='gamma')
+        result = list(api.score('6eadcabe-9f9e-4301-8e60-c9e58504c325'))
+        assert result[0].result.scores['77090327141458166'] == 0.9999682631387563
