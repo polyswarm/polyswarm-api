@@ -9,6 +9,7 @@ import os
 from . import schemas
 from .scan import Bounty
 from . import date
+from ..analyzers.features import ArtifactFeatures
 
 
 def requires_analysis(func):
@@ -191,11 +192,10 @@ class Artifact(Hashable, BasePSJSONType):
         return latest.polyscore
 
 
-
 class LocalArtifact(Hashable):
     """ Artifact for which we have local content """
     def __init__(self, path=None, content=None, artifact_name=None, artifact_type=ArtifactType.FILE,
-                 artifact=None, polyswarm=None, lookup=False, analyze=True):
+                 artifact=None, polyswarm=None, lookup=False, analyze=True, analyzers=None):
         """
         A representation of an artifact we have locally
 
@@ -207,12 +207,15 @@ class LocalArtifact(Hashable):
         :param polyswarm: PolyswarmAPI instance
         :param lookup: Boolean, if True will look up associated Artifact data
         :param analyze: Boolean, if True will run analyses on artifact on startup (Note: this may still run later if False)
+        :param analyzers: List of objects that inherit from BaseAnalyzer class, see analyzers for more info.
         """
         if not (path or content):
             raise InvalidArgument("Must provide artifact content, either via path or content argument")
 
         self.deleted = False
         self.analyzed = False
+        self._features = None
+        self.analyzers = analyzers
 
         self.path = path
         self.content = content
@@ -241,6 +244,11 @@ class LocalArtifact(Hashable):
         return "sha256"
 
     @property
+    @requires_analysis
+    def features(self):
+        return self._features
+
+    @property
     def artifact_name(self):
         if self._artifact_name:
             return self._artifact_name
@@ -263,10 +271,7 @@ class LocalArtifact(Hashable):
         self._calc_hashes(fh)
         fh.seek(0)
 
-        self._calc_hashes(fh)
-        fh.seek(0)
-
-        self._run_analyzers(fh)
+        self._calc_features()
 
         fh.close()
         self.analyzed = True
@@ -274,13 +279,8 @@ class LocalArtifact(Hashable):
     def _calc_hashes(self, fh):
         self.sha256, self.sha1, self.md5 = all_hashes(fh)
 
-    def _calc_features(self, fh):
-        # TODO implement feature extraction here. This will be used by search_features function.
-        return {}
-
-    def _run_analyzers(self, fh):
-        # TODO implement custom analyzer support, so users can implement plugins here.
-        return {}
+    def _calc_features(self):
+        self._features = ArtifactFeatures(self, self.analyzers)
 
     def lookup(self, refresh=False):
         if self.artifact and not refresh:

@@ -57,15 +57,27 @@ class PolyswarmAPI(object):
         for h, response in requests:
             yield result.SearchResult(h, response.result(), polyswarm=self)
 
-    def search_by_feature(self, feature, *artifacts):
+    def search_by_feature(self, features, *artifacts):
         """
         Search artifacts by feature
 
         :param artifacts: List of LocalArtifact objects
-        :param feature: Feature to use
+        :param features: Features to use (None for default)
         :return: SearchResult generator
         """
-        raise NotImplementedError
+        to_search = []
+
+        for artifact in artifacts:
+            if not isinstance(artifact, LocalArtifact):
+                to_search.append(LocalArtifact(path=artifact, artifact_name=os.path.basename(artifact),
+                                         analyze=True, polyswarm=self, analyzers=features))
+            else:
+                to_search.append(artifact)
+
+        queries = [MetadataQuery(artifact.features.as_search(), polyswarm=self, artifact=artifact)
+                   for artifact in to_search]
+
+        return self.search_by_metadata(*queries)
 
     def search_by_metadata(self, *queries, **kwargs):
         """

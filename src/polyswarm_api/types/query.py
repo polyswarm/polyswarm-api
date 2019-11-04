@@ -13,7 +13,7 @@ class Query(BasePSType):
 
 class MetadataQuery(Query):
     """ Class representing a MetadataQuery """
-    def __init__(self, query, raw=False, polyswarm=None):
+    def __init__(self, query, raw=False, polyswarm=None, artifact=None):
         super(MetadataQuery, self).__init__(polyswarm)
         if not raw:
             query = {
@@ -24,6 +24,7 @@ class MetadataQuery(Query):
                 }
             }
         self.query = query
+        self.artifact = artifact
         self.validate()
 
     def validate(self):
