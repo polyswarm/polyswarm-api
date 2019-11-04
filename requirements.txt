@@ -7,4 +7,3 @@ futures==3.3.0; python_version < '3.0'
 enum34==1.1.6; python_version < '3.0'
 mock==3.0.4; python_version < '3.0'
 requests_mock==1.7.0
-pefile==2019.4.18

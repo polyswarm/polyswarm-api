@@ -1,3 +1,4 @@
+import importlib
 from .types.hash import SUPPORTED_HASH_TYPES, Hash, is_hex, is_valid_md5, is_valid_sha1, is_valid_sha256, get_hash_type
 from .exceptions import InvalidHashException
 
@@ -55,3 +56,14 @@ def parse_hashes(hashes, hash_type=None, hash_file=None):
         except InvalidHashException:
             logger.warning("Invalid hash %s provided, ignoring.", h)
     return out
+
+
+def try_import(name):
+    try:
+        return importlib.import_module(name)
+    except NameError as e:
+        logger.warning('Could not import {}. Please install extras package to use this feature.'.format(name))
+        raise e
+    except ImportError as e:
+        logger.warning('Could not import {}. Please install extras package to use this feature.'.format(name))
+        raise e

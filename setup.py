@@ -25,7 +25,10 @@ setup(
     license='MIT',
     python_requires='>=2.7,<4',
     install_requires=parse_requirements(),
-    extras_require={':python_version < "3.0"': ['futures', 'enum34', 'mock']},
+    extras_require={
+        ':python_version < "3.0"': ['futures', 'enum34', 'mock'],
+        'analyzers': ['pefile==2019.4.18', 'iocextract==1.13.1', 'tldextract==2.2.2']
+    },
     include_package_data=True,
     packages=find_packages('src'),
     package_dir={'': 'src'},

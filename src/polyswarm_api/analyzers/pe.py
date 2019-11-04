@@ -1,6 +1,5 @@
-import pefile
 from .base import BaseAnalyzer
-
+from .. import utils
 
 class PEAnalyzer(BaseAnalyzer):
     MODULE = 'pefile'
@@ -21,6 +20,8 @@ class PEAnalyzer(BaseAnalyzer):
         h = hash(file_data)
         if h in self.CACHE:
             return self.CACHE[h]
+
+        pefile = utils.try_import('pefile')
 
         self.CACHE[h] = pefile.PE(data=file_data)
         return self.CACHE[h]

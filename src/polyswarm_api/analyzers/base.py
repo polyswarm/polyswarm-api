@@ -10,7 +10,7 @@ class BaseFeature(object):
     def as_search(self):
         """ Returns a representation of this object as a PolySwarm metadata query """
         if isinstance(self.features, list):
-            return '{}.{}:({})'.format(self.module, self.name, ' AND '.join(str(s) for s in self.features))
+            return '{}.{}:({})'.format(self.module, self.name, ' AND '.join(str(s) for s in self.features if s))
         elif isinstance(self.features, str):
             return '{}.{}:{}'.format(self.module, self.name, self.features)
         else:

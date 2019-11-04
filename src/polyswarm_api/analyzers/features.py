@@ -22,8 +22,15 @@ class ArtifactFeatures(object):
             if not analyzer.is_supported(fh):
                 logger.info('Attempted to use an incompatible analyzer {} for Artifact'.format(analyzer.NAME))
                 continue
-            self.features.append(analyzer.analyze(fh))
+
+            try:
+                self.features.append(analyzer.analyze(fh))
+            except NameError:
+                # handle missing deps
+                continue
+            except ImportError:
+                continue
 
     def as_search(self):
-        return ' AND '.join(f.as_search() for f in self.features)
+        return ' AND '.join(f.as_search() for f in self.features if f.features)
 
