@@ -1,4 +1,5 @@
 import os
+import shutil
 import tempfile
 from contextlib import contextmanager
 
@@ -12,8 +13,18 @@ except ImportError:
 
 
 @contextmanager
+def TemporaryDirectory():
+    """The day we drop python 2.7 support we can use python 3 version of this"""
+    name = tempfile.mkdtemp()
+    try:
+        yield name
+    finally:
+        shutil.rmtree(name)
+
+
+@contextmanager
 def temp_dir(files_dict):
-    with tempfile.TemporaryDirectory() as tmp_dir:
+    with TemporaryDirectory() as tmp_dir:
         files = []
         for file_name, file_content in files_dict.items():
             mode = 'w' if isinstance(file_content, str) else 'wb'
