@@ -10,6 +10,7 @@ class ArtifactFeatures(object):
         :param analyzers: list of BaseAnalyzer objects
         :param artifact: A LocalArtifact object
         """
+
         if not analyzers:
             analyzers = DEFAULT_ANALYZERS
 

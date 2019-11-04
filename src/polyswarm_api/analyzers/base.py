@@ -7,6 +7,9 @@ class Feature(object):
         self.module = module
         self.name = name
 
+        # terrible hack for python 2.7 unicode
+        self.encode = type(u'')
+
     @staticmethod
     def _escape(s):
         # TODO use re for performance. Also, make this function.
@@ -28,10 +31,10 @@ class Feature(object):
     def as_search(self):
         """ Returns a representation of this object as a PolySwarm metadata query """
         if isinstance(self.features, list):
-            return '{}.{}:({})'.format(self.module, self.name,
-                                       ' AND '.join('"{}"'.format(str(s)) for s in self.features if s))
-        elif isinstance(self.features, str):
-            return '{}.{}:{}'.format(self.module, self.name, '"{}"'.format(self.features))
+            return u'{}.{}:({})'.format(self.module, self.name,
+                                       ' AND '.join(u'"{}"'.format(str(s)) for s in self.features if s))
+        elif isinstance(self.features, self.encode) or isinstance(self.features, str):
+            return u'{}.{}:{}'.format(self.module, self.name, u'"{}"'.format(self.features))
         else:
             raise NotImplementedError
 
