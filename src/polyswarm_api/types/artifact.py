@@ -9,7 +9,6 @@ import os
 from . import schemas
 from .scan import Bounty
 from . import date
-from ..analyzers.features import ArtifactFeatures
 
 
 def requires_analysis(func):
@@ -280,6 +279,8 @@ class LocalArtifact(Hashable):
         self.sha256, self.sha1, self.md5 = all_hashes(fh)
 
     def _calc_features(self):
+        # workaround for 2.7 incorrectly creating a circular dependency
+        from ..analyzers.features import ArtifactFeatures
         self._features = ArtifactFeatures(self, self.analyzers)
 
     def lookup(self, refresh=False):
