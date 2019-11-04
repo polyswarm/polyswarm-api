@@ -3,4 +3,4 @@ from . import pe
 from . import strings
 
 DEFAULT_ANALYZERS = [pe.ImportedLibrariesAnalyzer(), pe.ImportHashAnalyzer(),
-                     strings.DomainsAnalyzer(), strings.IPV4Analyzer(), strings.IPV6Analyzer()]
+                     strings.DomainsAnalyzer(), strings.IPV4Analyzer()]
