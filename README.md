@@ -15,6 +15,10 @@ From source:
 
     python3 setup.py install
 
+If you wish to use "analyzers" support:
+
+    pip install -e .[analyzers] polyswarm-api
+
 ## Usage
 
 See the [polyswarm-api documentation](https://docs.polyswarm.io/docs/polyswarm-customer-api) for usage guidance.
