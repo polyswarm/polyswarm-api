@@ -19,7 +19,7 @@ class PolyswarmAPI(object):
     """A synchronous interface to the public and private PolySwarm APIs."""
 
     def __init__(self, key, uri='https://api.polyswarm.network/v1', timeout=const.DEFAULT_SCAN_TIMEOUT,
-                 community='lima', validate_schemas=False):
+                 community='lima', validate_schemas=False, executor=None, generator=None):
         """
         :param key: PolySwarm API key
         :param uri: PolySwarm API URI
@@ -27,8 +27,8 @@ class PolyswarmAPI(object):
         :param community: Community to scan against.
         :param validate_schemas: Validate JSON objects when creating response objects. Will impact performance.
         """
-        self.executor = PolyswarmFuturesExecutor(key)
-        self.generator = PolyswarmRequestGenerator(self, uri, community)
+        self.executor = executor or PolyswarmFuturesExecutor(key)
+        self.generator = generator or PolyswarmRequestGenerator(self, uri, community)
 
         self.timeout = timeout
         self._engine_map = None
@@ -45,13 +45,11 @@ class PolyswarmAPI(object):
 
         hashes = [to_hash(h) for h in hashes]
 
-        requests = [(h, self.generator.search_hash(h, **kwargs)) for h in hashes]
+        for h in hashes:
+            self.executor.push(self.generator.search_hash(h, **kwargs))
 
-        # This allows us to do streaming results
-        # We could use as_completed here but it would be out-of-order.
-        # TODO should we consider making that an option?
-        for h, response in requests:
-            yield result.SearchResult(h, response.result(), polyswarm=self)
+        for request in self.executor.execute():
+            yield request.result
 
     def search_by_feature(self, feature, *artifacts):
         """
@@ -70,14 +68,13 @@ class PolyswarmAPI(object):
         :param queries: List of MetadataQuery objects (or query_strings)
         :return: SearchResult generator
         """
-        futures = []
         for query in queries:
             if not isinstance(query, MetadataQuery):
                 query = MetadataQuery(query, polyswarm=self)
-            futures.append((query, self.generator.search_metadata(query, **kwargs)))
+            self.executor.push(self.generator.search_metadata(query, **kwargs))
 
-        for query, future in futures:
-            yield result.SearchResult(query, future.result(), polyswarm=self)
+        for request in self.executor.execute():
+            yield request.result
 
     def download(self, out_dir, *hashes):
         hashes = [to_hash(h) for h in hashes]
@@ -112,7 +109,6 @@ class PolyswarmAPI(object):
                 artifact = LocalArtifact(path=artifact, artifact_name=os.path.basename(artifact),
                                          analyze=False, polyswarm=self)
             self.executor.push(self.generator.submit(artifact))
-
         for request in self.executor.execute():
             yield request.result
 
@@ -126,11 +122,11 @@ class PolyswarmAPI(object):
         """
         hashes = [to_hash(h) for h in hashes]
 
-        futures = [(h, self.generator.rescan(h, **kwargs)) for h in hashes]
+        for h in hashes:
+            self.executor.push(self.generator.rescan(h, **kwargs))
 
-        for h, f in futures:
-            # artifact_type is not currently supported in rescan
-            yield result.SubmitResult(h, f.result(), self)
+        for request in self.executor.execute():
+            yield request.result
 
     def scan(self, *artifacts):
         """
@@ -244,10 +240,10 @@ class PolyswarmAPI(object):
 
     def _resolve_engine_name(self, eth_pub):
         if not self._engine_map:
-            resp = self.generator._get_engine_names().result()
-            result = resp.json()
-            engines_results = result.get('results', [])
-            self._engine_map = dict([(engine.get('address'), engine.get('name')) for engine in engines_results])
+            self.executor.push(self.generator._get_engine_names())
+            for request in self.executor.execute():
+                self._engine_map = request.result.result
+                break
         return self._engine_map.get(eth_pub.lower(), eth_pub) if self._engine_map is not None else ''
 
     def check_version(self):
@@ -268,10 +264,7 @@ class PolyswarmAPI(object):
         """
         if not isinstance(rules, YaraRuleset):
             rules = YaraRuleset(rules, polyswarm=self)
-
-        future = self.generator.submit_live_hunt(rules)
-
-        return result.HuntSubmissionResult(rules, future.result(), self)
+        return next(self.executor.push(self.generator.submit_live_hunt(rules)).execute()).result
 
     def historical(self, rules):
         """
@@ -334,28 +327,20 @@ class PolyswarmAPI(object):
             kwargs['with_bounty_results'] = kwargs['with_instances']
             del kwargs['with_instances']
 
-        # to provide streaming of results in large result sets, we chunk the
-        # requests into pieces. this makes the UI significantly more responsive
-        # and reduces the risk of timeouts under load. This does however mean that,
-        # unlike other functions in this API, requests are not fully resolved when the
-        # object is returned.
-        kwargs['offset'] = 0
-        kwargs['limit'] = const.RESULT_CHUNK_SIZE
-
-        # need to get count before we get all chunks
-        reqs = [endpoint_func(**kwargs)]
-        r = reqs[0].result()
-        first = result.HuntResultPart(hunt, r, self)
-        if first.status_code == 404:
-            return result.HuntResult(hunt, [reqs[0]], self)
-
-        total = first.result.total
-
-        for offset in range(const.RESULT_CHUNK_SIZE, total, const.RESULT_CHUNK_SIZE):
-            kwargs['offset'] = offset
-            reqs.append(endpoint_func(**kwargs))
-
-        return result.HuntResult(hunt, reqs, self)
+        all_matches = []
+        self.executor.push(endpoint_func(**kwargs))
+        while True:
+            request = next(self.executor.execute())
+            if not request.result.result.results:
+                break
+            else:
+                # We should be yielding everyting here, but instead we
+                # gather the objects as we are expecting nested results
+                # yield from request.result.result.results
+                all_matches.extend(request.result.result.results)
+                self.executor.push(request.next_page())
+        request.result.result.results = all_matches
+        return request.result
 
     def live_results(self, hunt=None, **kwargs):
         """
