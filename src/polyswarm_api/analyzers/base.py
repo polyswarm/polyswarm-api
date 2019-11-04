@@ -7,12 +7,31 @@ class BaseFeature(object):
         self.module = module
         self.name = name
 
+    @staticmethod
+    def _escape(s):
+        # TODO use re for performance. Also, make this function.
+        reserved = ['+','-','=', '&&', '||', '!', '(', ')', '{', '}', '[', ']',
+                   '^', '"', '~', '*', '?', ':', '\\', '/']
+
+        for r in reserved:
+            s = s.replace(r, '\\'+r)
+
+        # per https://www.elastic.co/guide/en/elasticsearch/reference/current/query-dsl-query-string-query.html
+        # these *cannot* be escaped. we can only wildcard them.
+        wild = ['<', '>']
+
+        for r in wild:
+            s = s.replace(r, '*')
+
+        return s
+
     def as_search(self):
         """ Returns a representation of this object as a PolySwarm metadata query """
         if isinstance(self.features, list):
-            return '{}.{}:({})'.format(self.module, self.name, ' AND '.join(str(s) for s in self.features if s))
+            return '{}.{}:({})'.format(self.module, self.name,
+                                       ' AND '.join('"{}"'.format(str(s)) for s in self.features if s))
         elif isinstance(self.features, str):
-            return '{}.{}:{}'.format(self.module, self.name, self.features)
+            return '{}.{}:{}'.format(self.module, self.name, '"{}"'.format(self.features))
         else:
             raise NotImplementedError
 
