@@ -194,7 +194,7 @@ class Artifact(Hashable, BasePSJSONType):
 class LocalArtifact(Hashable):
     """ Artifact for which we have local content """
     def __init__(self, path=None, content=None, artifact_name=None, artifact_type=ArtifactType.FILE,
-                 artifact=None, polyswarm=None, lookup=False, analyze=True, analyzers=None):
+                 artifact=None, polyswarm=None, lookup=False, analyze=True, analyzers=None, features=None):
         """
         A representation of an artifact we have locally
 
@@ -215,6 +215,7 @@ class LocalArtifact(Hashable):
         self.analyzed = False
         self._features = None
         self.analyzers = analyzers
+        self.desired_features = features
 
         self.path = path
         self.content = content
@@ -281,7 +282,7 @@ class LocalArtifact(Hashable):
     def _calc_features(self):
         # workaround for 2.7 incorrectly creating a circular dependency
         from ..analyzers.features import ArtifactFeatures
-        self._features = ArtifactFeatures(self, self.analyzers)
+        self._features = ArtifactFeatures(self, self.analyzers, self.desired_features)
 
     def lookup(self, refresh=False):
         if self.artifact and not refresh:

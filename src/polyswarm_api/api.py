@@ -70,7 +70,7 @@ class PolyswarmAPI(object):
         for artifact in artifacts:
             if not isinstance(artifact, LocalArtifact):
                 to_search.append(LocalArtifact(path=artifact, artifact_name=os.path.basename(artifact),
-                                         analyze=True, polyswarm=self, analyzers=features))
+                                         analyze=True, polyswarm=self, features=features))
             else:
                 to_search.append(artifact)
 
