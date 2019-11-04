@@ -196,23 +196,21 @@ class HuntResult(IndexableResult):
 
 
 class HuntDeletionResult(ApiResponse):
-    def __init__(self, hunt_id, result, polyswarm=None):
-        super(HuntDeletionResult, self).__init__(result, polyswarm)
-
+    def parse_result(self, result):
+        super(HuntDeletionResult, self).parse_result(result)
         if self.status_code // 100 != 2 and self.status_code != 404:
             raise self._bad_status_exception
 
-        self.result = hunt_id
+        self.result = self.result['hunt_id']
 
 
 class HuntListResult(IndexableResult):
-    def __init__(self, result, polyswarm=None):
-        super(HuntListResult, self).__init__(result, polyswarm)
-
+    def parse_result(self, result):
+        super(HuntListResult, self).parse_result(result)
         if self.status_code // 100 != 2:
             raise self._bad_status_exception
 
-        self.result = [HuntStatus(r, polyswarm) for r in self.result]
+        self.result = [HuntStatus(r, self.polyswarm) for r in self.result]
 
 
 class StreamResult(IndexableResult):
@@ -226,15 +224,14 @@ class StreamResult(IndexableResult):
 
 
 class ScoreResult(ApiResponse):
-    def __init__(self, result, polyswarm=None):
-        super(ScoreResult, self).__init__(result, polyswarm)
-
+    def parse_result(self, result):
+        super(ScoreResult, self).parse_result(result)
         if self.status_code == 404:
             raise exceptions.NotFoundException('Did not find UUID or score not found')
         elif self.status_code // 100 != 2:
             raise self._bad_status_exception
 
-        self.result = PolyScore(self.result, polyswarm)
+        self.result = PolyScore(self.result, self.polyswarm)
 
 
 class EngineNamesResult(ApiResponse):
