@@ -1,4 +1,5 @@
 from concurrent import futures
+from copy import deepcopy
 
 from . import const
 from . import utils
@@ -13,6 +14,15 @@ class PolyswarmRequest(object):
         self.request_parameters = request_parameters
         self.result = result
         self.raw_result = None
+
+    def next_page(self):
+        new_parameters = deepcopy(self.request_parameters)
+        new_parameters['params']['offset'] += const.RESULT_CHUNK_SIZE
+        return PolyswarmRequest(
+            self.api_instance,
+            new_parameters,
+            result=self.result,
+        )
 
 
 class PolyswarmRequestGenerator(object):
@@ -86,6 +96,7 @@ class PolyswarmRequestGenerator(object):
                     'with_metadata': utils.bool_to_int[with_metadata]
                 },
             },
+            result=result.SearchResult(h),
         )
 
     def search_metadata(self, q, with_instances=True, with_metadata=True):
@@ -102,6 +113,7 @@ class PolyswarmRequestGenerator(object):
                 },
                 'json': q.query,
             },
+            result=result.SearchResult(q),
         )
 
     def submit(self, artifact):
@@ -128,6 +140,7 @@ class PolyswarmRequestGenerator(object):
                 'timeout': const.DEFAULT_HTTP_TIMEOUT,
                 'url': '{}/rescan/{}/{}'.format(self.community_base, h.hash_type, h.hash)
             },
+            result=result.SubmitResult(h, polyswarm=self.api_instance)
         )
 
     def lookup_uuid(self, uuid, **kwargs):
@@ -150,6 +163,7 @@ class PolyswarmRequestGenerator(object):
                 'url': '{}/microengines/list'.format(self.uri),
                 'headers': {'Authorization': None},
             },
+            result=result.EngineNamesResult(polyswarm=self.api_instance)
         )
 
     def submit_live_hunt(self, rule):
@@ -161,6 +175,7 @@ class PolyswarmRequestGenerator(object):
                 'url': '{}/live'.format(self.hunt_base),
                 'json': {'yara': rule.ruleset},
             },
+            result=result.HuntSubmissionResult(rule, polyswarm=self.api_instance),
         )
 
     def live_lookup(self, with_bounty_results=True, with_metadata=True,
@@ -182,7 +197,11 @@ class PolyswarmRequestGenerator(object):
         if id:
             req['params']['id'] = id
 
-        return PolyswarmRequest(req)
+        return PolyswarmRequest(
+            self.api_instance,
+            req,
+            result=result.HuntResult(polyswarm=self.api_instance)
+        )
 
     def submit_historical_hunt(self, rule):
         return PolyswarmRequest(
@@ -300,13 +319,19 @@ class PolyswarmFuturesExecutor(PolyswarmRequestExecutor):
 
     def push(self, request):
         self.requests.append(self.executor.submit(self._request, request))
+        return self
 
-    def execute(self):
+    def execute(self, as_completed=False):
         requests = self.requests
         # flush before looping in case we have nested executions
         self.requests = []
-        for future in futures.as_completed(requests):
-            yield future.result()
+        if as_completed:
+            for future in futures.as_completed(requests):
+                yield future.result()
+        else:
+            futures.wait(requests)
+            for request in requests:
+                yield request.result()
 
 
 class PolyswarmSynchronousExecutor(PolyswarmRequestExecutor):
