@@ -27,7 +27,8 @@ setup(
     install_requires=parse_requirements(),
     extras_require={
         ':python_version < "3.0"': ['futures', 'enum34', 'mock'],
-        'analyzers': ['pefile==2019.4.18', 'iocextract==1.13.1', 'tldextract==2.2.2', 'lief==0.9.0']
+        'analyzers': ['pefile==2019.4.18', 'iocextract==1.13.1', 'tldextract==2.2.2', 'lief==0.9.0',
+                      'python-magic==0.4.15']
     },
     include_package_data=True,
     packages=find_packages('src'),
