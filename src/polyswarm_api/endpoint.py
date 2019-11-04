@@ -17,7 +17,7 @@ class PolyswarmRequest(object):
 
     def next_page(self):
         new_parameters = deepcopy(self.request_parameters)
-        new_parameters['params']['offset'] += const.RESULT_CHUNK_SIZE
+        new_parameters['params']['offset'] += new_parameters['params']['limit']
         return PolyswarmRequest(
             self.api_instance,
             new_parameters,
@@ -212,6 +212,7 @@ class PolyswarmRequestGenerator(object):
                 'url': '{}/historical'.format(self.hunt_base),
                 'json': {'yara': rule.ruleset},
             },
+            result=result.HuntSubmissionResult(rule, polyswarm=self.api_instance),
         )
 
     def historical_lookup(self, with_bounty_results=True, with_metadata=True,
@@ -233,7 +234,11 @@ class PolyswarmRequestGenerator(object):
         if id:
             req['params']['id'] = id
 
-        return PolyswarmRequest(req)
+        return PolyswarmRequest(
+            self.api_instance,
+            req,
+            result=result.HuntResult(polyswarm=self.api_instance)
+        )
 
     def historical_delete(self, hunt_id):
         return PolyswarmRequest(
@@ -244,6 +249,7 @@ class PolyswarmRequestGenerator(object):
                 'url': '{}/historical'.format(self.hunt_base),
                 'params': {'hunt_id': hunt_id}
             },
+            result=result.HuntDeletionResult(polyswarm=self.api_instance)
         )
 
     def live_delete(self, hunt_id):
@@ -255,6 +261,7 @@ class PolyswarmRequestGenerator(object):
                 'url': '{}/live'.format(self.hunt_base),
                 'params': {'hunt_id': hunt_id}
             },
+            result=result.HuntDeletionResult(polyswarm=self.api_instance)
         )
 
     def historical_list(self):
@@ -266,6 +273,7 @@ class PolyswarmRequestGenerator(object):
                 'url': '{}/historical'.format(self.hunt_base),
                 'params': {'all': 'true'},
             },
+            result=result.HuntListResult(polyswarm=self.api_instance)
         )
 
     def live_list(self):
@@ -277,6 +285,7 @@ class PolyswarmRequestGenerator(object):
                 'url': '{}/live'.format(self.hunt_base),
                 'params': {'all': 'true'},
             },
+            result=result.HuntListResult(polyswarm=self.api_instance)
         )
 
     def score(self, uuid):
@@ -287,6 +296,7 @@ class PolyswarmRequestGenerator(object):
                 'timeout': const.DEFAULT_HTTP_TIMEOUT,
                 'url': '{}/submission/{}/polyscore'.format(self.consumer_base, uuid)
             },
+            result=result.ScoreResult(polyswarm=self.api_instance)
         )
 
 
