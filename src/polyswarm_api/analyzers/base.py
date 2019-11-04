@@ -1,7 +1,7 @@
 import json
 
 
-class BaseFeature(object):
+class Feature(object):
     def __init__(self, features, module='base', name='base'):
         self.features = features
         self.module = module
@@ -46,10 +46,9 @@ class BaseFeature(object):
         return self.as_json()
 
 
-class BaseAnalyzer(object):
+class Analyzer(object):
     MODULE = 'base'
-    NAME = 'base'
-    FEATURE = BaseFeature
+    FEATURE = Feature
 
     def is_supported(self, fh):
         """
@@ -68,6 +67,6 @@ class BaseAnalyzer(object):
         """
         raise NotImplementedError
 
-    def _make_analysis_object(self, features):
-        return self.FEATURE(features, self.MODULE, self.NAME)
+    def _make_feature(self, features, name):
+        return self.FEATURE(features, self.MODULE, name)
 
