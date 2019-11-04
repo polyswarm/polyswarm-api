@@ -128,7 +128,7 @@ class ScanTestCase(TestCase):
                                          json={'result': {'active': True, 'created': 'Mon, 04 Nov 2019 16:03:18 GMT', 'id': '63433636835291189', 'results': [], 'ruleset_name': None, 'status': 'RUNNING', 'total': 10}, 'status': 'RUNNING'}))
         api = PolyswarmAPI(self.test_api_key, uri='http://localhost:9696/v1', community='gamma')
         result = api.live_results(with_bounty_results=False, with_metadata=False, limit=3)
-        assert len(result.result.results) == 10
+        assert len(list(result.result)) == 10
 
     @responses.activate
     def test_historical(self):
@@ -149,7 +149,7 @@ class ScanTestCase(TestCase):
                                          json={'result': {'created': 'Mon, 04 Nov 2019 19:11:37 GMT', 'id': '87727805741550630', 'results': [], 'ruleset_name': None, 'status': 'SUCCESS', 'total': 2}, 'status': 'SUCCESS'}))
         api = PolyswarmAPI(self.test_api_key, uri='http://localhost:9696/v1', community='gamma')
         result = api.historical_results(with_bounty_results=False, with_metadata=False, limit=1)
-        assert len(result.result.results) == 2
+        assert len(list(result.result)) == 2
 
     @responses.activate
     def test_delete_live(self):
