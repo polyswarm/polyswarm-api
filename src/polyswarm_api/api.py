@@ -198,10 +198,11 @@ class PolyswarmAPI(object):
         :param uuids: UUIDs to lookup
         :return: ScoreResult object generator
         """
-        futures = [(uuid, self.generator.score(uuid)) for uuid in uuids]
+        for uuid in uuids:
+            self.executor.push(self.generator.score(uuid))
 
-        for uuid, f in futures:
-            yield result.ScoreResult(f.result(), polyswarm=self)
+        for request in self.executor.execute():
+            yield request.result
 
     def scan_directory(self, directory, recursive=False):
         """
@@ -275,10 +276,7 @@ class PolyswarmAPI(object):
         """
         if not isinstance(rules, YaraRuleset):
             rules = YaraRuleset(rules, polyswarm=self)
-
-        future = self.generator.submit_historical_hunt(rules)
-
-        return result.HuntSubmissionResult(rules, future.result(), self)
+        return next(self.executor.push(self.generator.submit_historical_hunt(rules)).execute()).result
 
     def live_delete(self, hunt_id):
         """
@@ -287,7 +285,7 @@ class PolyswarmAPI(object):
         :param hunt_id: Hunt ID
         :return: HuntDeletionResult object
         """
-        return result.HuntDeletionResult(hunt_id, self.generator.live_delete(hunt_id).result(), self)
+        return next(self.executor.push(self.generator.live_delete(hunt_id)).execute()).result
 
     def live_list(self):
         """
@@ -295,7 +293,7 @@ class PolyswarmAPI(object):
 
         :return: HuntListResult object
         """
-        return result.HuntListResult(self.generator.live_list().result(), self)
+        return next(self.executor.push(self.generator.live_list()).execute()).result
 
     def historical_delete(self, hunt_id):
         """
@@ -304,7 +302,7 @@ class PolyswarmAPI(object):
         :param hunt_id: Hunt ID
         :return: HuntDeletionResult object
         """
-        return result.HuntDeletionResult(hunt_id, self.generator.historical_delete(hunt_id).result(), self)
+        return next(self.executor.push(self.generator.historical_delete(hunt_id)).execute()).result
 
     def historical_list(self):
         """
@@ -312,7 +310,7 @@ class PolyswarmAPI(object):
 
         :return: HuntListResult object
         """
-        return result.HuntListResult(self.generator.historical_list().result(), self)
+        return next(self.executor.push(self.generator.historical_list()).execute()).result
 
     def _get_hunt_results(self, hunt, endpoint_func, **kwargs):
         if hunt and not isinstance(hunt, Hunt):
