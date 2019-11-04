@@ -278,7 +278,7 @@ class PolyswarmAPI(object):
             resp = self.endpoint._get_engine_names().result()
             result = resp.json()
             engines_results = result.get('results', [])
-            self._engine_map = dict([(engine.get('address'), engine.get('name')) for engine in engines_results])
+            self._engine_map = dict([(engine.get('address').lower(), engine.get('name')) for engine in engines_results])
         return self._engine_map.get(eth_pub.lower(), eth_pub) if self._engine_map is not None else ''
 
     def check_version(self):
@@ -382,8 +382,8 @@ class PolyswarmAPI(object):
         # and reduces the risk of timeouts under load. This does however mean that,
         # unlike other functions in this API, requests are not fully resolved when the
         # object is returned.
-        kwargs['offset'] = 0
-        kwargs['limit'] = const.RESULT_CHUNK_SIZE
+        offset = kwargs.setdefault('offset', 0)
+        limit = kwargs.setdefault('limit', const.RESULT_CHUNK_SIZE)
 
         # need to get count before we get all chunks
         reqs = [endpoint_func(**kwargs)]
@@ -394,7 +394,7 @@ class PolyswarmAPI(object):
 
         total = first.result.total
 
-        for offset in range(const.RESULT_CHUNK_SIZE, total, const.RESULT_CHUNK_SIZE):
+        for offset in range(offset + limit, total, limit):
             kwargs['offset'] = offset
             reqs.append(endpoint_func(**kwargs))
 
