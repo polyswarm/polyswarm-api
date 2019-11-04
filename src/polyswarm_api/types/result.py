@@ -103,7 +103,10 @@ class DownloadResult(ApiResponse):
                     self.file_handle.write(chunk)
             else:
                 if self.create:
-                    os.makedirs(path, exist_ok=True)
+                    # TODO: this should be replaced with os.makedirs(path, exist_ok=True)
+                    # once we drop support to python 2.7
+                    if not os.path.exists(path):
+                        os.makedirs(path)
                 with open(self.output_file, 'wb') as file_handle:
                     for chunk in result.iter_content(chunk_size=const.DOWNLOAD_CHUNK_SIZE):
                         file_handle.write(chunk)
