@@ -44,14 +44,14 @@ class ApiResponse(BasePSJSONType):
         if self.status_code == 429:
             raise exceptions.UsageLimitsExceeded(USAGE_EXCEEDED_MESSAGE)
 
-        self.status = self.json['status']
-        self.result = self.json['result']
-        self.errors = self.json.get('errors', None)
-        self.total = self.json.get('total', None)
-        self.limit = self.json.get('limit', None)
-        self.page = self.json.get('page', None)
-        self.order_by = self.json.get('order_by', None)
-        self.direction = self.json.get('direction', None)
+        self.result = self.json.get('result')
+        self.status = self.json.get('status')
+        self.errors = self.json.get('errors')
+        self.total = self.json.get('total')
+        self.limit = self.json.get('limit')
+        self.page = self.json.get('page')
+        self.order_by = self.json.get('order_by')
+        self.direction = self.json.get('direction')
         try:
             response = ApiResponse(result, self.polyswarm)
         except exceptions.InvalidJSONResponse as e:
@@ -113,18 +113,19 @@ class DownloadResult(ApiResponse):
 
 class SearchResult(IndexableResult):
     """ This is a result object for representing searches """
-    def __init__(self, query, result, polyswarm=None):
+    def __init__(self, query, polyswarm=None):
+        super(SearchResult, self).__init__(polyswarm)
         self.query = query
 
-        super(SearchResult, self).__init__(result, polyswarm)
-
+    def parse_result(self, result):
+        super(SearchResult, self).parse_result(result)
         if self.status_code == 404:
             self.result = []
             # ordinarily we shouldn't do this, TODO fix in AI
             self.json['result'] = []
         elif self.status_code // 100 == 2:
             # special case this error
-            self.result = [Artifact(j, polyswarm) for j in self.result]
+            self.result = [Artifact(j, self.polyswarm) for j in self.result]
         else:
             raise self._bad_status_exception
 
@@ -168,70 +169,30 @@ class SubmitResult(ApiResponse):
 
 
 class HuntSubmissionResult(ApiResponse):
-    def __init__(self, rules, result, polyswarm=None):
-        super(HuntSubmissionResult, self).__init__(result, polyswarm)
+    def __init__(self, rules, polyswarm=None):
+        super(HuntSubmissionResult, self).__init__(polyswarm)
         self.rules = rules
 
+    def parse_result(self, result):
+        super(HuntSubmissionResult, self).parse_result(result)
         if self.status_code == 400:
             self.result = 'Syntax error in submission. Please check your rules, or install the yara-python package for more details.'
         elif self.status_code // 100 != 2:
             raise self._bad_status_exception
         else:
-            self.result = Hunt(self.result, polyswarm)
+            self.result = Hunt(self.result, self.polyswarm)
 
 
-class HuntResultPart(IndexableResult):
-    def __init__(self, hunt, result, polyswarm=None):
-        self.hunt = hunt
-
-        super(HuntResultPart, self).__init__(result, polyswarm)
+class HuntResult(IndexableResult):
+    def parse_result(self, result):
+        super(HuntResult, self).parse_result(result)
 
         if self.status_code // 100 == 2:
-            self.result = HuntStatus(self.result, polyswarm)
+            self.result = HuntStatus(self.result, self.polyswarm)
         elif self.status_code == 404:
             self.result = []
         else:
             raise self._bad_status_exception
-
-
-class ResultAggregator(BasePSType):
-    RESULT_CLS = None
-
-    """ This is a special class that aggregates multiple iterable results into one """
-    def __init__(self, request_list, polyswarm=None, **kwargs):
-        super(ResultAggregator, self).__init__(polyswarm)
-        self.request_list = request_list
-        self.kwargs = kwargs
-        self.parts = []
-        self.resolved = False
-
-    def __iter__(self):
-        def iterator():
-            if self.resolved:
-                for part in self.parts:
-                    for res in part:
-                        yield res
-            else:
-                for req in self.request_list:
-                    res = self.RESULT_CLS(result=req.result(), polyswarm=self.polyswarm, **self.kwargs)
-                    self.parts.append(res)
-                    for result in res:
-                        yield result
-                self.resolved = True
-        return iterator()
-
-    @property
-    def result(self):
-        return self.__iter__()
-
-
-class HuntResult(ResultAggregator):
-    RESULT_CLS = HuntResultPart
-
-    def __init__(self, hunt, request_list, polyswarm=None):
-        super(HuntResult, self).__init__(request_list, polyswarm=polyswarm, hunt=hunt)
-        self.hunt = hunt
-        self.hunt_status = HuntResultPart(hunt, self.request_list[0].result(), polyswarm)
 
 
 class HuntDeletionResult(ApiResponse):
@@ -274,3 +235,10 @@ class ScoreResult(ApiResponse):
             raise self._bad_status_exception
 
         self.result = PolyScore(self.result, polyswarm)
+
+
+class EngineNamesResult(ApiResponse):
+    def parse_result(self, result):
+        super(EngineNamesResult, self).parse_result(result)
+        self.result = self.json.get('results')
+        self.result = dict([(engine.get('address').lower(), engine.get('name')) for engine in self.result])
