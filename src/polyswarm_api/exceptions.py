@@ -48,3 +48,7 @@ class UsageLimitsExceeded(PolyswarmAPIException):
 
 class InvalidYaraRules(PolyswarmAPIException):
     pass
+
+
+class NotImportedException(PolyswarmAPIException):
+    pass
