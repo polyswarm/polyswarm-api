@@ -200,7 +200,7 @@ class PolyswarmRequestGenerator(object):
         return PolyswarmRequest(
             self.api_instance,
             req,
-            result=result.HuntResult(polyswarm=self.api_instance)
+            result=result.HuntResult(hunt_id=id, polyswarm=self.api_instance)
         )
 
     def submit_historical_hunt(self, rule):
@@ -237,7 +237,7 @@ class PolyswarmRequestGenerator(object):
         return PolyswarmRequest(
             self.api_instance,
             req,
-            result=result.HuntResult(polyswarm=self.api_instance)
+            result=result.HuntResult(hunt_id=id, polyswarm=self.api_instance)
         )
 
     def historical_delete(self, hunt_id):
