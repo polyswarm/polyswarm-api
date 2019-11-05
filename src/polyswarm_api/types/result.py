@@ -58,11 +58,19 @@ class ApiResponse(BasePSJSONType):
             logger.error('Invalid JSON result object provided by server.')
             raise e
 
+        # This are set by subclasses during parsing of the API response
+        self.failed = False
+        self.failure_reason = ''
+
         return response
 
     @property
     def _bad_status_message(self):
         return "Got unexpected result code: {}, message: {}".format(self.status_code, self.result)
+
+    def _set_failure(self, reason='Unspecified error occurred'):
+        self.failed = True
+        self.failure_reason = reason
 
 
 class IndexableResult(ApiResponse):
@@ -87,14 +95,18 @@ class DownloadResult(ApiResponse):
 
     def parse_result(self, result):
         self.status_code = result.status_code
+        path, file_name = os.path.split(self.output_file)
+
+        self.failed = False
+        self.failure_reason = ''
+
         if self.status_code == 404:
-            self.status = 'Not found.'
+            self._set_failure('Artifact {} not found.'.format(file_name))
         elif self.status_code // 100 != 2:
             raise exceptions.ServerErrorException(self._bad_status_message)
 
         self.status = 'OK'
 
-        path, file_name = os.path.split(self.output_file)
         self.result = LocalArtifact(path=self.output_file, artifact_name=file_name, analyze=False, polyswarm=self)
 
         if result.status_code == 200:
@@ -126,8 +138,8 @@ class SearchResult(IndexableResult):
             self.result = []
             # ordinarily we shouldn't do this, TODO fix in AI
             self.json['result'] = []
+            self._set_failure('Did not find any files matching search: %s.' % repr(self.query))
         elif self.status_code // 100 == 2:
-            # special case this error
             self.result = [Artifact(j, self.polyswarm) for j in self.result]
         else:
             raise exceptions.ServerErrorException(self._bad_status_message)
@@ -139,8 +151,19 @@ class ScanResult(ApiResponse):
         if self.status_code // 100 == 2:
             if self.result:
                 self.result = Submission(None, self.result, polyswarm=self.polyswarm)
+
+                if not self.result.uuid:
+                    self._set_failure('Did not get a UUID for scan.')
+                elif self.result.failed:
+                    self._set_failure('Bounty creation failed for submission {}. '
+                                      'Please resubmit.'.format(self.result.uuid))
+                elif self.timeout:
+                    self._set_failure('Did not get a response for {} in time, check again later.'
+                                      .format(self.result.uuid))
+            else:
+                self._set_failure('Did not get a result.')
         elif self.status_code == 404:
-            self.result = "UUID not found"
+            self._set_failure("UUID not found.")
         else:
             raise exceptions.ServerErrorException(self._bad_status_message)
 
@@ -162,7 +185,7 @@ class SubmitResult(ApiResponse):
 
         if self.status_code == 404:
             # happens if rescan file wasn't found
-            self.status = 'Not found'
+            self._set_failure('Artifact {} not found'.format(self.artifact))
         elif self.status_code // 100 != 2:
             raise exceptions.ServerErrorException(self._bad_status_message)
 
@@ -179,7 +202,8 @@ class HuntSubmissionResult(ApiResponse):
     def parse_result(self, result):
         super(HuntSubmissionResult, self).parse_result(result)
         if self.status_code == 400:
-            self.result = 'Syntax error in submission. Please check your rules, or install the yara-python package for more details.'
+            self._set_failure('Syntax error in submission. Please check your rules, '
+                              'or install the yara-python package for more details.')
         elif self.status_code // 100 != 2:
             raise exceptions.ServerErrorException(self._bad_status_message)
         else:
@@ -187,13 +211,23 @@ class HuntSubmissionResult(ApiResponse):
 
 
 class HuntResult(IndexableResult):
+    def __init__(self, hunt=None, polyswarm=None):
+        super(HuntResult, self).__init__(polyswarm)
+        self.hunt = hunt
+
     def parse_result(self, result):
         super(HuntResult, self).parse_result(result)
 
         if self.status_code // 100 == 2:
             self.result = HuntStatus(self.result, self.polyswarm)
+            if self.result.status not in ['PENDING', 'RUNNING', 'SUCCESS', 'FAILED']:
+                self._set_failure('An unspecified error occurred fetching hunt records.')
+            elif self.result.total == 0:
+                self._set_failure('Did not find any results yet for this hunt. Hunt status: {}'
+                                  .format(self.result.status))
         elif self.status_code == 404:
             self.result = []
+            self._set_failure('Hunt {}not found.'.format(str(self.hunt.hunt_id)+' ' if self.hunt else ''))
         else:
             raise exceptions.ServerErrorException(self._bad_status_message)
 
@@ -201,7 +235,9 @@ class HuntResult(IndexableResult):
 class HuntDeletionResult(ApiResponse):
     def parse_result(self, result):
         super(HuntDeletionResult, self).parse_result(result)
-        if self.status_code // 100 != 2 and self.status_code != 404:
+        if self.status_code == 404:
+            self._set_failure('Hunt not found.')
+        elif self.status_code // 100 != 2:
             raise exceptions.ServerErrorException(self._bad_status_message)
 
         self.result = self.result['hunt_id']
@@ -230,7 +266,7 @@ class ScoreResult(ApiResponse):
     def parse_result(self, result):
         super(ScoreResult, self).parse_result(result)
         if self.status_code == 404:
-            raise exceptions.NotFoundException('Did not find UUID or score not found')
+            self._set_failure('Did not find UUID or score not found')
         elif self.status_code // 100 != 2:
             raise exceptions.ServerErrorException(self._bad_status_message)
 
