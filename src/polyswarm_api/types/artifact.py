@@ -23,6 +23,7 @@ class Submission(BasePSJSONType):
         self.uuid = json.get('uuid')
         self._permalink = json['permalink'] if json.get('permalink') else None
         self.failed = self.status == 'Bounty Failed'
+        self.files = [ArtifactInstance(f, polyswarm) for f in json['instances']]
 
     def __str__(self):
         return "Submission-%s" % self.uuid
@@ -47,24 +48,8 @@ class Assertion(BasePSJSONType):
         super(Assertion, self).__init__(json, polyswarm)
         self.scanfile = scanfile
         self.author = json['author']
-
-        # TODO this needs to go away, but we are forced to until we do this resolution server-side
-        # this should be removed after next deploy
-        # we also are forced to modify the json in place so that this information is included in JSON formatting
-        # TODO deprecate engine_name
-        if 'author_name' in json:
-            self.engine_name = json['author_name']
-            self.author_name = json['author_name']
-        elif 'engine_name' in json:
-            self.engine_name = json['engine_name']
-            self.author_name = json['engine_name']
-        else:
-            # TODO deprecate
-            self.engine_name = self.polyswarm._resolve_engine_name(self.author) if self.polyswarm else self.author
-            self.json['engine_name'] = self.engine_name
-            self.author_name = self.engine_name
-
-
+        self.author_name = json['author_name']
+        self.engine_name = json['engine'].get('name')
         self.bid = int(json['bid'])
         self.mask = json['mask']
         # deal with metadata being a string instead of null
@@ -120,33 +105,31 @@ class ArtifactMetadata(BasePSJSONType):
 class ArtifactInstance(BasePSJSONType):
     SCHEMA = schemas.artifact_instance_schema
 
-    def __init__(self, artifact, json, polyswarm=None, polyscore=False):
+    def __init__(self, json, polyswarm=None, polyscore=False):
         super(ArtifactInstance, self).__init__(json, polyswarm)
-        self.artifact_id = json['artifact_id']
-        self.bounty_id = json['bounty_id']
-        # rename this to make it clearer, and avoid the word 'Result' which has a specific meaning in this project
-        # using Scan here instead of Bounty
-        self.bounty = Submission(self, json['bounty_result'], polyswarm=polyswarm) if json['bounty_result'] else None
-        self.community = json['community']
-        self.submission_uuid = json['submission_uuid']
-        self.submission_guid = self.submission_uuid
-        self.country = json['country']
-        self.id = json['id']
-        self.name = json['name']
-        self.window_closed = json['window_closed']
-        self.ready = self.window_closed
-        self.failed = json['failed']
-        self.result = json['result']
-        self.submitted = date.parse_date(json['submitted'])
-        self.artifact = artifact
-        self.votes = [Vote(self, v, polyswarm) for v in json['votes']]
+        self.submission_id = json['submission_id']
+        self.artifact_id = json['id']
+        self.account_id = json['account_id']
         self.assertions = [Assertion(self, a, polyswarm) for a in json['assertions']]
-        self._permalink = "{}/{}".format(const.DEFAULT_PERMALINK_BASE, self.submission_guid) if self.submission_guid \
-            else None
-        self._polyscore = None
+        self.bounty = json['bounty']
+        self.created = date.parse_isoformat(json['created'])
+        self.extended_type = json['extended_type']
+        self.failed = json['failed']
+        self.filename = json['filename']
+        self.first_seen = json['first_seen']
+        self.last_seen = date.parse_isoformat(json['last_seen'])
+        self.md5 = json['md5']
+        self.metadata = ArtifactMetadata(self, json.get('artifact_metadata', {}), polyswarm)
+        self.mimetype = json['mimetype']
+        self.result = json['result']
+        self.sha1 = json['sha1']
+        self.sha256 = json['sha256']
+        self.size = json['size']
+        self.type = json['type']
+        self.votes = [Vote(self, v, polyswarm) for v in json['votes']]
+        self.window_closed = json['window_closed']
 
-        if self.ready and polyswarm and polyscore:
-            self.fetch_polyscore()
+        self._polyscore = None
 
     def __str__(self):
         return "ArtifactInstance-<%s>" % self.hash
@@ -219,7 +202,7 @@ class Artifact(Hashable, BasePSJSONType):
         self.sha1 = Hash(json['sha1'], 'sha1', polyswarm)
         self.md5 = Hash(json['md5'], 'md5', polyswarm)
 
-        self.instances = list(sorted([ArtifactInstance(self, instance,
+        self.instances = list(sorted([ArtifactInstance(instance,
                                            polyswarm=polyswarm) for instance in json.get('artifact_instances', [])],
                                      key=lambda x: x.submitted, reverse=True))
 
