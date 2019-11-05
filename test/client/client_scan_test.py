@@ -3,6 +3,7 @@ import shutil
 import tempfile
 from contextlib import contextmanager
 
+import pytest
 import responses
 from polyswarm_api.api import PolyswarmAPI
 
@@ -34,6 +35,19 @@ def temp_dir(files_dict):
         yield tmp_dir, files
 
 
+class ScanTestCaseV2(TestCase):
+    def __init__(self, *args, **kwargs):
+        super(ScanTestCaseV2, self).__init__(*args, **kwargs)
+        self.test_api_key = '11111111111111111111111111111111'
+
+    @pytest.mark.skip(reason="only for local testing for now")
+    def test_submission(self):
+        api = PolyswarmAPI(self.test_api_key, uri='http://localhost:9696/v2', community='gamma')
+        result = list(api.scan('test/malicious'))
+        assert result[0].json['result']['status'] == 'Bounty Awaiting Arbitration'
+
+
+@pytest.mark.skip(reason="deprecating tests for v1")
 class ScanTestCase(TestCase):
     def __init__(self, *args, **kwargs):
         super(ScanTestCase, self).__init__(*args, **kwargs)
