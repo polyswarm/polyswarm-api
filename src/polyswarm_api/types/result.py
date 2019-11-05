@@ -157,9 +157,6 @@ class ScanResult(ApiResponse):
                 elif self.result.failed:
                     self._set_failure('Bounty creation failed for submission {}. '
                                       'Please resubmit.'.format(self.result.uuid))
-                elif self.timeout:
-                    self._set_failure('Did not get a response for {} in time, check again later.'
-                                      .format(self.result.uuid))
             else:
                 self._set_failure('Did not get a result.')
         elif self.status_code == 404:
@@ -211,9 +208,9 @@ class HuntSubmissionResult(ApiResponse):
 
 
 class HuntResult(IndexableResult):
-    def __init__(self, hunt=None, polyswarm=None):
+    def __init__(self, hunt_id=None, polyswarm=None):
         super(HuntResult, self).__init__(polyswarm)
-        self.hunt = hunt
+        self.hunt_id = hunt_id
 
     def parse_result(self, result):
         super(HuntResult, self).parse_result(result)
@@ -227,7 +224,7 @@ class HuntResult(IndexableResult):
                                   .format(self.result.status))
         elif self.status_code == 404:
             self.result = []
-            self._set_failure('Hunt {}not found.'.format(str(self.hunt.hunt_id)+' ' if self.hunt else ''))
+            self._set_failure('Hunt {}not found.'.format(str(self.hunt_id)+' ' if self.hunt_id else ''))
         else:
             raise exceptions.ServerErrorException(self._bad_status_message)
 
