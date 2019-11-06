@@ -44,7 +44,13 @@ class ScanTestCaseV2(TestCase):
     def test_submission(self):
         api = PolyswarmAPI(self.test_api_key, uri='http://localhost:9696/v2', community='gamma')
         result = list(api.scan('test/malicious'))
-        assert result[0].json['result']['status'] == 'Bounty Awaiting Arbitration'
+        assert result[0].status == 'Bounty Awaiting Arbitration'
+
+    @pytest.mark.skip(reason="only for local testing for now")
+    def test_hash_search(self):
+        api = PolyswarmAPI(self.test_api_key, uri='http://localhost:9696/v2', community='gamma')
+        result = list(api.search('275a021bbfb6489e54d471899f7db9d1663fc695ec2fe2a2c4538aabf651fd0f'))
+        assert result[0].sha256 == '275a021bbfb6489e54d471899f7db9d1663fc695ec2fe2a2c4538aabf651fd0f'
 
 
 @pytest.mark.skip(reason="deprecating tests for v1")
