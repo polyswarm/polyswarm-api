@@ -47,9 +47,17 @@ class ApiResponse(BasePSJSONType):
         self.order_by = json.get('order_by', None)
         self.direction = json.get('direction', None)
 
+        # This are set by subclasses during parsing of the API response
+        self.failed = False
+        self.failure_reason = ''
+
     @property
     def _bad_status_message(self):
         return "Got unexpected result code: {}, message: {}".format(self.status_code, self.result)
+
+    def _set_failure(self, reason='Unspecified error occurred'):
+        self.failed = True
+        self.failure_reason = reason
 
 
 class IndexableResult(ApiResponse):
@@ -70,8 +78,11 @@ class DownloadResult(ApiResponse):
         self.polyswarm = polyswarm
         self.status_code = result.status_code
 
+        self.failed = False
+        self.failure_reason = ''
+
         if self.status_code == 404:
-            self.status = 'Not found.'
+            self._set_failure('Artifact {} not found.'.format(artifact.artifact_name))
         elif self.status_code // 100 != 2:
             raise exceptions.ServerErrorException(self._bad_status_message)
 
@@ -92,12 +103,12 @@ class SearchResult(IndexableResult):
 
         super(SearchResult, self).__init__(result, polyswarm)
 
-        if self.status_code == 404:
+        if self.status_code == 404 or len(self.result) == 0:
             self.result = []
             # ordinarily we shouldn't do this, TODO fix in AI
             self.json['result'] = []
+            self._set_failure('Did not find any files matching search: %s.' % repr(query))
         elif self.status_code // 100 == 2:
-            # special case this error
             self.result = [Artifact(j, polyswarm) for j in self.result]
         else:
             raise exceptions.ServerErrorException(self._bad_status_message)
@@ -111,8 +122,19 @@ class ScanResult(ApiResponse):
         if self.status_code // 100 == 2:
             if self.result:
                 self.result = Bounty(None, self.result, polyswarm=polyswarm)
+
+                if not self.result.uuid:
+                    self._set_failure('Did not get a UUID for scan.')
+                elif self.result.failed:
+                    self._set_failure('Bounty creation failed for submission {}. '
+                                      'Please resubmit.'.format(self.result.uuid))
+                elif self.timeout:
+                    self._set_failure('Did not get a response for {} in time, check again later.'
+                                      .format(self.result.uuid))
+            else:
+                self._set_failure('Did not get a result.')
         elif self.status_code == 404:
-            self.result = "UUID not found"
+            self._set_failure("UUID not found.")
         else:
             raise exceptions.ServerErrorException(self._bad_status_message)
 
@@ -131,7 +153,7 @@ class SubmitResult(ApiResponse):
 
         if self.status_code == 404:
             # happens if rescan file wasn't found
-            self.status = 'Not found'
+            self._set_failure('Artifact {} not found'.format(self.artifact))
         elif self.status_code // 100 != 2:
             raise exceptions.ServerErrorException(self._bad_status_message)
 
@@ -146,7 +168,8 @@ class HuntSubmissionResult(ApiResponse):
         self.rules = rules
 
         if self.status_code == 400:
-            self.result = 'Syntax error in submission. Please check your rules, or install the yara-python package for more details.'
+            self._set_failure('Syntax error in submission. Please check your rules, '
+                              'or install the yara-python package for more details.')
         elif self.status_code // 100 != 2:
             raise exceptions.ServerErrorException(self._bad_status_message)
         else:
@@ -161,8 +184,15 @@ class HuntResultPart(IndexableResult):
 
         if self.status_code // 100 == 2:
             self.result = HuntStatus(self.result, polyswarm)
+            if self.result.status not in ['PENDING', 'RUNNING', 'SUCCESS', 'FAILED']:
+                self._set_failure('An unspecified error occurred fetching hunt records.')
+            elif self.result.total == 0:
+                self._set_failure('Did not find any results yet for this hunt. Hunt status: {}'
+                                  .format(self.result.status))
+
         elif self.status_code == 404:
             self.result = []
+            self._set_failure('Hunt {}not found.'.format(str(hunt.hunt_id)+' ' if hunt else ''))
         else:
             raise exceptions.ServerErrorException(self._bad_status_message)
 
@@ -177,6 +207,8 @@ class ResultAggregator(BasePSType):
         self.kwargs = kwargs
         self.parts = []
         self.resolved = False
+        self.failed = False
+        self.failure_reason = ''
 
     def __iter__(self):
         def iterator():
@@ -205,13 +237,17 @@ class HuntResult(ResultAggregator):
         super(HuntResult, self).__init__(request_list, polyswarm=polyswarm, hunt=hunt)
         self.hunt = hunt
         self.hunt_status = HuntResultPart(hunt, self.request_list[0].result(), polyswarm)
+        self.failed = self.hunt_status.failed
+        self.failure_reason = self.hunt_status.failure_reason
 
 
 class HuntDeletionResult(ApiResponse):
     def __init__(self, hunt_id, result, polyswarm=None):
         super(HuntDeletionResult, self).__init__(result, polyswarm)
 
-        if self.status_code // 100 != 2 and self.status_code != 404:
+        if self.status_code == 404:
+            self._set_failure('Hunt not found.')
+        elif self.status_code // 100 != 2:
             raise exceptions.ServerErrorException(self._bad_status_message)
 
         self.result = hunt_id
@@ -242,7 +278,7 @@ class ScoreResult(ApiResponse):
         super(ScoreResult, self).__init__(result, polyswarm)
 
         if self.status_code == 404:
-            raise exceptions.NotFoundException('Did not find UUID or score not found')
+            self._set_failure('Did not find UUID or score not found')
         elif self.status_code // 100 != 2:
             raise exceptions.ServerErrorException(self._bad_status_message)
 
