@@ -1,5 +1,5 @@
 from . import artifact
 from . import hash
 from . import base
-from . import result
+from . import parsers
 from . import schemas

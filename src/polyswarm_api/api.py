@@ -11,7 +11,7 @@ from .endpoint import PolyswarmFuturesExecutor, PolyswarmRequestGenerator
 from .types.artifact import ArtifactType, LocalArtifact
 from .types.hash import to_hash
 from .types.query import MetadataQuery
-from .types import result
+from .types import parsers
 from .types.hunt import YaraRuleset, Hunt
 from . import exceptions
 
@@ -35,6 +35,15 @@ class PolyswarmAPI(object):
         self._engine_map = None
         self.validate = validate_schemas
 
+    def _consume_results(self, request):
+        while True:
+            yield from request.result
+            if not request.result:
+                break
+            else:
+                self.executor.push(request.next_page())
+                request = next(self.executor.execute())
+
     def search(self, *hashes, **kwargs):
         """
         Search a list of hashes.
@@ -50,7 +59,7 @@ class PolyswarmAPI(object):
             self.executor.push(self.generator.search_hash(h, **kwargs))
 
         for request in self.executor.execute():
-            yield request.result
+            yield from self._consume_results(request)
 
     def search_by_feature(self, feature, *artifacts):
         """
@@ -96,7 +105,7 @@ class PolyswarmAPI(object):
         """
         h = to_hash(h)
 
-        return result.DownloadResult(h, self.generator.download(h, fh).result())
+        return parsers.DownloadResult(h, self.generator.download(h, fh).result())
 
     def submit(self, *artifacts):
         """
@@ -137,9 +146,7 @@ class PolyswarmAPI(object):
         :return: ScanResult generator
         """
         for submission in self.submit(*artifacts):
-            s = submission.wait_for_scan()
-            s.artifact = submission.artifact
-            yield s
+            yield from self.wait_for(submission.uuid)
 
     def rescan(self, *hashes, **kwargs):
         """

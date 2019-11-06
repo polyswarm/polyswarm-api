@@ -14,9 +14,8 @@ from .. import const
 class Submission(BasePSJSONType):
     SCHEMA = schemas.bounty_schema
 
-    def __init__(self, instance, json, polyswarm=None):
+    def __init__(self, json, polyswarm=None):
         super(Submission, self).__init__(json, polyswarm)
-        self.instance = instance
         self.artifact_type = ArtifactType.from_string(json['artifact_type']) if json.get('artifact_type') else \
             ArtifactType.FILE
         self.status = json['status']
@@ -24,6 +23,10 @@ class Submission(BasePSJSONType):
         self._permalink = json['permalink'] if json.get('permalink') else None
         self.failed = self.status == 'Bounty Failed'
         self.files = [ArtifactInstance(f, polyswarm) for f in json['instances']]
+
+    @property
+    def ready(self):
+        return self.status == 'Bounty Awaiting Arbitration'
 
     def __str__(self):
         return "Submission-%s" % self.uuid

@@ -3,6 +3,12 @@ class PolyswarmAPIException(Exception):
 
 
 class RequestFailedException(PolyswarmAPIException):
+    def __init__(self, request, *args, **kwargs):
+        super(RequestFailedException).__init__(*args, **kwargs)
+        self.request = request
+
+
+class UsageLimitsExceeded(RequestFailedException):
     pass
 
 
@@ -39,10 +45,6 @@ class InvalidArgument(PolyswarmAPIException):
 
 
 class ArtifactDeleted(PolyswarmAPIException):
-    pass
-
-
-class UsageLimitsExceeded(PolyswarmAPIException):
     pass
 
 
