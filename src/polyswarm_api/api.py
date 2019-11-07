@@ -84,7 +84,7 @@ class PolyswarmAPI(object):
             self.executor.push(self.generator.search_metadata(query, **kwargs))
 
         for request in self.executor.execute():
-            yield request.result
+            yield from self._consume_results(request)
 
     def download(self, out_dir, *hashes):
         hashes = [to_hash(h) for h in hashes]
