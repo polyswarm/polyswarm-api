@@ -52,6 +52,12 @@ class ScanTestCaseV2(TestCase):
         result = list(api.search('275a021bbfb6489e54d471899f7db9d1663fc695ec2fe2a2c4538aabf651fd0f'))
         assert result[0].sha256 == '275a021bbfb6489e54d471899f7db9d1663fc695ec2fe2a2c4538aabf651fd0f'
 
+    @pytest.mark.skip(reason="only for local testing for now")
+    def test_metadata_search(self):
+        api = PolyswarmAPI(self.test_api_key, uri='http://localhost:9696/v2', community='gamma')
+        result = list(api.search_by_metadata('hash.sha256:275a021bbfb6489e54d471899f7db9d1663fc695ec2fe2a2c4538aabf651fd0f'))
+        assert result[0].sha256 == '275a021bbfb6489e54d471899f7db9d1663fc695ec2fe2a2c4538aabf651fd0f'
+
 
 @pytest.mark.skip(reason="deprecating tests for v1")
 class ScanTestCase(TestCase):
