@@ -2,12 +2,6 @@
 # -*- coding: utf-8 -*-
 from setuptools import find_packages, setup
 
-
-def parse_requirements():
-    with open('requirements.txt', 'r') as f:
-        return [r for r in f.read().splitlines() if not r.startswith('git')]
-
-
 # The README.md will be used as the content for the PyPi package details page on the Python Package Index.
 with open('README.md', 'r') as readme:
     long_description = readme.read()
@@ -15,7 +9,7 @@ with open('README.md', 'r') as readme:
 
 setup(
     name='polyswarm-api',
-    version='1.0.3',
+    version='1.1.1',
     description='Client library to simplify interacting with the PolySwarm consumer API',
     long_description=long_description,
     long_description_content_type='text/markdown',
@@ -24,8 +18,14 @@ setup(
     url='https://github.com/polyswarm/polyswarm-api',
     license='MIT',
     python_requires='>=2.7,<4',
-    install_requires=parse_requirements(),
-    extras_require={':python_version < "3.0"': ['futures', 'enum34', 'mock']},
+    install_requires=[
+        'requests==2.22.0',
+        'pytest==3.9.2',
+        'requests-futures==1.0.0',
+        'jsonschema==3.0.2',
+        'ordered-set==3.1.1',
+    ],
+    extras_require={':python_version < "3.0"': ['futures==3.3.0', 'enum34==1.1.6', 'mock==3.0.4']},
     include_package_data=True,
     packages=find_packages('src'),
     package_dir={'': 'src'},

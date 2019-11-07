@@ -10,3 +10,4 @@ requests_mock==1.7.0
 responses==0.10.6
 python-dateutil==2.8.1
 future==0.18.2
+bump2version==0.5.11

@@ -104,7 +104,7 @@ class ScanTestCase(TestCase):
 
     @responses.activate
     def test_stream(self):
-        responses.add(responses.Response(responses.GET, 'http://localhost:9696/v1/consumer/download/stream?since=1440',
+        responses.add(responses.Response(responses.GET, 'http://localhost:9696/v1/consumer/download/stream?since=2880',
                                          json={'result': {'stream': ['https://s3folder/malicious', 'https://s3folder/non-malicious']}, 'status': 'OK'}))
         responses.add(responses.Response(responses.GET, 'https://s3folder/malicious',
                                          body=b'X5O!P%@AP[4\\PZX54(P^)7CC)7}$EICAR-STANDARD-ANTIVIRUS-TEST-FILE!$H+H*'))
