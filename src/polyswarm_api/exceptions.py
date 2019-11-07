@@ -4,7 +4,7 @@ class PolyswarmAPIException(Exception):
 
 class RequestFailedException(PolyswarmAPIException):
     def __init__(self, request, *args, **kwargs):
-        super(RequestFailedException).__init__(*args, **kwargs)
+        super(RequestFailedException, self).__init__(*args, **kwargs)
         self.request = request
 
 
