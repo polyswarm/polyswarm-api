@@ -5,7 +5,7 @@ import os.path
 from .base import BasePSJSONType
 from .models import Submission, PolyScore, ArtifactInstance, ArtifactArchive
 from polyswarm_api.types.local import LocalArtifact
-from polyswarm_api.types.models import Hunt, HuntMatch
+from polyswarm_api.types.models import Hunt, HuntResult
 
 from . import schemas
 from .. import const
@@ -31,10 +31,10 @@ class ApiResponse(BasePSJSONType):
         self.failure_reason = reason
 
 
-class DownloadResult(ApiResponse):
+class DownloadParser(ApiResponse):
     """ This is an artificially constructed result object, to track downloads. """
     def __init__(self, output_file, file_handle=None, polyswarm=None, create=False):
-        super(DownloadResult, self).__init__(polyswarm=polyswarm)
+        super(DownloadParser, self).__init__(polyswarm=polyswarm)
         self.output_file = output_file
         self.file_handle = file_handle
         self.create = create
@@ -58,19 +58,19 @@ class DownloadResult(ApiResponse):
         return parsed_result
 
 
-class SearchResult(ApiResponse):
+class SearchParser(ApiResponse):
     """ This is a result object for representing searches """
     def __init__(self, query, polyswarm=None):
-        super(SearchResult, self).__init__(polyswarm)
+        super(SearchParser, self).__init__(polyswarm)
         self.query = query
 
     def parse_result(self, result):
         return [ArtifactInstance(j, self.polyswarm) for j in result]
 
 
-class SubmitResult(ApiResponse):
+class SubmitParser(ApiResponse):
     def __init__(self, polyswarm=None):
-        super(SubmitResult, self).__init__(polyswarm=polyswarm)
+        super(SubmitParser, self).__init__(polyswarm=polyswarm)
 
     def parse_result(self, result):
         parsed_result = Submission(result, polyswarm=self.polyswarm)
@@ -83,40 +83,36 @@ class SubmitResult(ApiResponse):
         return parsed_result
 
 
-class HuntSubmissionResult(ApiResponse):
-    def __init__(self, rules, polyswarm=None):
-        super(HuntSubmissionResult, self).__init__(polyswarm)
-        self.rules = rules
-
+class HuntParser(ApiResponse):
     def parse_result(self, result):
         return Hunt(result, self.polyswarm)
 
 
-class HuntResult(ApiResponse):
-    def parse_result(self, result):
-        return HuntMatch(result, self.polyswarm)
-
-
-class HuntDeletionResult(ApiResponse):
-    def parse_result(self, result):
-        return result['hunt_id']
-
-
-class HuntListResult(ApiResponse):
+class HuntListParser(ApiResponse):
     def parse_result(self, result):
         return [Hunt(r, self.polyswarm) for r in result]
 
 
-class StreamResult(ApiResponse):
+class HuntResultListParser(ApiResponse):
+    def parse_result(self, result):
+        return [HuntResult(r, self.polyswarm) for r in result]
+
+
+class HuntDeletionParser(ApiResponse):
+    def parse_result(self, result):
+        return result['hunt_id']
+
+
+class StreamParser(ApiResponse):
     def parse_result(self, result):
         return [ArtifactArchive(r, self.polyswarm) for r in result]
 
 
-class ScoreResult(ApiResponse):
+class ScoreParser(ApiResponse):
     def parse_result(self, result):
         return PolyScore(result, self.polyswarm)
 
 
-class EngineNamesResult(ApiResponse):
+class EngineNamesParser(ApiResponse):
     def parse_result(self, result):
         return dict([(engine.get('address').lower(), engine.get('name')) for engine in result])
