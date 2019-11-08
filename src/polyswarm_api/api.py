@@ -254,7 +254,7 @@ class PolyswarmAPI(object):
         """
         raise NotImplementedError
 
-    def live(self, rules):
+    def live_create(self, rules):
         """
         Create a new live hunt_id, and replace the currently running YARA rules.
 
@@ -268,9 +268,54 @@ class PolyswarmAPI(object):
         except exceptions.NotImportedException:
             # for now, we do nothing to avoid nagging the user
             pass
-        return next(self.executor.push(self.generator.submit_live_hunt(rules)).execute()).result
+        return next(self.executor.push(self.generator.create_live_hunt(rules)).execute()).result
 
-    def historical(self, rules):
+    def live_get(self, hunt_id=None):
+        """
+        Delete a live hunt.
+
+        :param hunt_id: Hunt ID
+        :return: HuntDeletionResult object
+        """
+        return next(self.executor.push(self.generator.get_live_hunt(hunt_id)).execute()).result
+
+    def live_update(self, hunt_id=None):
+        """
+        Delete a live hunt.
+
+        :param hunt_id: Hunt ID
+        :return: HuntDeletionResult object
+        """
+        return next(self.executor.push(self.generator.update_live_hunt(hunt_id)).execute()).result
+
+    def live_delete(self, hunt_id=None):
+        """
+        Delete a live hunt.
+
+        :param hunt_id: Hunt ID
+        :return: HuntDeletionResult object
+        """
+        return next(self.executor.push(self.generator.delete_live_hunt(hunt_id)).execute()).result
+
+    def live_list(self):
+        """
+        List all the live hunts
+
+        :return: HuntListResult object
+        """
+        return self._consume_results(next(self.executor.push(self.generator.live_list()).execute()))
+
+    def live_results(self, hunt_id=None, since=None):
+        """
+        Get results from a live hunt
+
+        :param hunt_id: ID of the hunt (None if latest rule results are desired)
+        :return: HuntResult object
+        """
+        request = next(self.executor.push(self.generator.live_hunt_results(hunt_id=hunt_id, since=since)).execute())
+        yield from self._consume_results(request)
+
+    def historical_create(self, rules):
         """
         Run a new historical hunt.
 
@@ -284,24 +329,16 @@ class PolyswarmAPI(object):
         except exceptions.NotImportedException:
             # for now, we do nothing to avoid nagging the user
             pass
-        return next(self.executor.push(self.generator.submit_historical_hunt(rules)).execute()).result
+        return next(self.executor.push(self.generator.create_historical_hunt(rules)).execute()).result
 
-    def live_delete(self, hunt_id):
+    def historical_get(self, hunt_id=None):
         """
         Delete a live hunt.
 
         :param hunt_id: Hunt ID
         :return: HuntDeletionResult object
         """
-        return next(self.executor.push(self.generator.live_delete(hunt_id)).execute()).result
-
-    def live_list(self):
-        """
-        List all the live hunts
-
-        :return: HuntListResult object
-        """
-        return next(self.executor.push(self.generator.live_list()).execute()).result
+        return next(self.executor.push(self.generator.get_historical_hunt(hunt_id)).execute()).result
 
     def historical_delete(self, hunt_id):
         """
@@ -310,7 +347,7 @@ class PolyswarmAPI(object):
         :param hunt_id: Hunt ID
         :return: HuntDeletionResult object
         """
-        return next(self.executor.push(self.generator.historical_delete(hunt_id)).execute()).result
+        return next(self.executor.push(self.generator.delete_historical_hunt(hunt_id)).execute()).result
 
     def historical_list(self):
         """
@@ -318,50 +355,17 @@ class PolyswarmAPI(object):
 
         :return: HuntListResult object
         """
-        return next(self.executor.push(self.generator.historical_list()).execute()).result
+        return self._consume_results(next(self.executor.push(self.generator.historical_list()).execute()))
 
-    def _get_hunt_results(self, hunt_id, endpoint_func, **kwargs):
-        if hunt_id:
-            kwargs['hunt_id'] = hunt_id
-
-        # at least make this consistent in the API
-        # should change this
-        if 'with_instances' in kwargs:
-            kwargs['with_bounty_results'] = kwargs['with_instances']
-            del kwargs['with_instances']
-
-        all_matches = []
-        self.executor.push(endpoint_func(**kwargs))
-        while True:
-            request = next(self.executor.execute())
-            if not request.result.result.results:
-                break
-            else:
-                # We should be yielding everyting here, but instead we
-                # gather the objects as we are expecting nested results
-                # yield from request.result.result.results
-                all_matches.extend(request.result.result.results)
-                self.executor.push(request.next_page())
-        request.result.result.results = all_matches
-        return request.result
-
-    def live_results(self, hunt_id=None, **kwargs):
-        """
-        Get results from a live hunt
-
-        :param hunt_id: ID of the hunt (None if latest rule results are desired)
-        :return: HuntResult object
-        """
-        return self._get_hunt_results(hunt_id, self.generator.live_lookup, **kwargs)
-
-    def historical_results(self, hunt_id=None, **kwargs):
+    def historical_results(self, hunt_id=None, since=None):
         """
         Get results from a historical hunt
 
         :param hunt_id: ID of the hunt (None if latest hunt results are desired)
         :return: HuntResult object
         """
-        return self._get_hunt_results(hunt_id, self.generator.historical_lookup, **kwargs)
+        request = next(self.executor.push(self.generator.historical_hunt_results(hunt_id=hunt_id, since=since)).execute())
+        yield from self._consume_results(request)
 
     def stream(self, destination=None, since=const.MAX_SINCE_TIME_STREAM):
         """
