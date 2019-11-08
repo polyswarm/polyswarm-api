@@ -1,5 +1,6 @@
-from future.utils import raise_from
 import logging
+import json
+from future.utils import raise_from
 from concurrent import futures
 from copy import deepcopy
 
@@ -45,7 +46,11 @@ class PolyswarmRequest(object):
         return self
 
     def _bad_status_message(self):
-        return "Got unexpected result code: {}, message: {}".format(self.status_code, self.result)
+        return "Request:\n{}\n" \
+               "Got unexpected result code: {}\n" \
+               "Message: {}".format(json.dumps(self.request_parameters, indent=4, sort_keys=True),
+                                    self.status_code,
+                                    self.result)
 
     def _extract_json_body(self, result):
         try:
@@ -124,7 +129,7 @@ class PolyswarmRequestGenerator(object):
                 'url': self.download_fmt.format(self.download_base, hash_type, hash_value),
                 'stream': True,
             },
-            result_parser=parsers.DownloadResult(output_file, polyswarm=self.api_instance,
+            result_parser=parsers.DownloadParser(output_file, polyswarm=self.api_instance,
                                                  file_handle=file_handle, create=create),
             json_response=False,
         )
@@ -140,7 +145,7 @@ class PolyswarmRequestGenerator(object):
                 'stream': True,
                 'headers': {'Authorization': None}
             },
-            result_parser=parsers.DownloadResult(output_file, polyswarm=self.api_instance,
+            result_parser=parsers.DownloadParser(output_file, polyswarm=self.api_instance,
                                                  file_handle=file_handle, create=create),
             json_response=False,
         )
@@ -154,7 +159,7 @@ class PolyswarmRequestGenerator(object):
                 'url': '{}/download/stream'.format(self.consumer_base),
                 'params': {'since': since},
             },
-            result_parser=parsers.StreamResult()
+            result_parser=parsers.StreamParser()
         )
 
     def search_hash(self, h, with_instances=True, with_metadata=True):
@@ -171,7 +176,7 @@ class PolyswarmRequestGenerator(object):
                     'with_metadata': utils.bool_to_int[with_metadata]
                 },
             },
-            result_parser=parsers.SearchResult(h),
+            result_parser=parsers.SearchParser(h),
         )
 
     def search_metadata(self, q, with_instances=True, with_metadata=True):
@@ -188,7 +193,7 @@ class PolyswarmRequestGenerator(object):
                 },
                 'json': q.query,
             },
-            result_parser=parsers.SearchResult(q),
+            result_parser=parsers.SearchParser(q),
         )
 
     def submit(self, artifact):
@@ -204,7 +209,7 @@ class PolyswarmRequestGenerator(object):
                 # very oddly, when included in files parameter this errors out
                 'data': {'artifact-type': artifact.artifact_type.name}
             },
-            result_parser=parsers.SubmitResult(polyswarm=self.api_instance)
+            result_parser=parsers.SubmitParser(polyswarm=self.api_instance)
         )
 
     def rescan(self, h, **kwargs):
@@ -215,7 +220,7 @@ class PolyswarmRequestGenerator(object):
                 'timeout': const.DEFAULT_HTTP_TIMEOUT,
                 'url': '{}/rescan/{}/{}'.format(self.community_base, h.hash_type, h.hash)
             },
-            result_parser=parsers.SubmitResult(polyswarm=self.api_instance)
+            result_parser=parsers.SubmitParser(polyswarm=self.api_instance)
         )
 
     def lookup_uuid(self, uuid, **kwargs):
@@ -226,7 +231,7 @@ class PolyswarmRequestGenerator(object):
                 'timeout': const.DEFAULT_HTTP_TIMEOUT,
                 'url': '{}/uuid/{}'.format(self.community_base, uuid)
             },
-            result_parser=parsers.SubmitResult(polyswarm=self.api_instance)
+            result_parser=parsers.SubmitParser(polyswarm=self.api_instance)
         )
 
     def _get_engine_names(self):
@@ -238,10 +243,10 @@ class PolyswarmRequestGenerator(object):
                 'url': '{}/microengines/list'.format(self.uri),
                 'headers': {'Authorization': None},
             },
-            result_parser=parsers.EngineNamesResult(polyswarm=self.api_instance)
+            result_parser=parsers.EngineNamesParser(polyswarm=self.api_instance)
         )
 
-    def submit_live_hunt(self, rule):
+    def create_live_hunt(self, rule):
         return PolyswarmRequest(
             self.api_instance,
             {
@@ -250,97 +255,48 @@ class PolyswarmRequestGenerator(object):
                 'url': '{}/live'.format(self.hunt_base),
                 'json': {'yara': rule.ruleset},
             },
-            result_parser=parsers.HuntSubmissionResult(rule, polyswarm=self.api_instance),
+            result_parser=parsers.HuntParser(polyswarm=self.api_instance),
         )
 
-    def live_lookup(self, with_bounty_results=True, with_metadata=True, hunt_id=None, since=0):
-        req = {
-            'method': 'GET',
-            'timeout': const.DEFAULT_HTTP_TIMEOUT,
-            'url': '{}/live/results'.format(self.hunt_base),
-            'params': {
-                'with_bounty_results': utils.bool_to_int[with_bounty_results],
-                'with_metadata': utils.bool_to_int[with_metadata],
-                'since': since,
-            },
-        }
-
-        if hunt_id:
-            req['params']['id'] = hunt_id
-
-        return PolyswarmRequest(
-            self.api_instance,
-            req,
-            result_parser=parsers.HuntResult(polyswarm=self.api_instance)
-        )
-
-    def submit_historical_hunt(self, rule):
-        return PolyswarmRequest(
-            self.api_instance,
-            {
-                'method': 'POST',
-                'timeout': const.DEFAULT_HTTP_TIMEOUT,
-                'url': '{}/historical'.format(self.hunt_base),
-                'json': {'yara': rule.ruleset},
-            },
-            result_parser=parsers.HuntSubmissionResult(rule, polyswarm=self.api_instance),
-        )
-
-    def historical_lookup(self, with_bounty_results=True, with_metadata=True, hunt_id=None, since=0):
-        req = {
-            'method': 'GET',
-            'timeout': const.DEFAULT_HTTP_TIMEOUT,
-            'url': '{}/historical/results'.format(self.hunt_base),
-            'params': {
-                'with_bounty_results': utils.bool_to_int[with_bounty_results],
-                'with_metadata': utils.bool_to_int[with_metadata],
-                'since': since,
-            },
-        }
-
-        if hunt_id:
-            req['params']['id'] = hunt_id
-
-        return PolyswarmRequest(
-            self.api_instance,
-            req,
-            result_parser=parsers.HuntResult(polyswarm=self.api_instance)
-        )
-
-    def historical_delete(self, hunt_id):
-        return PolyswarmRequest(
-            self.api_instance,
-            {
-                'method': 'DELETE',
-                'timeout': const.DEFAULT_HTTP_TIMEOUT,
-                'url': '{}/historical'.format(self.hunt_base),
-                'params': {'hunt_id': hunt_id}
-            },
-            result_parser=parsers.HuntDeletionResult(polyswarm=self.api_instance)
-        )
-
-    def live_delete(self, hunt_id):
-        return PolyswarmRequest(
-            self.api_instance,
-            {
-                'method': 'DELETE',
-                'timeout': const.DEFAULT_HTTP_TIMEOUT,
-                'url': '{}/live'.format(self.hunt_base),
-                'params': {'hunt_id': hunt_id}
-            },
-            result_parser=parsers.HuntDeletionResult(polyswarm=self.api_instance)
-        )
-
-    def historical_list(self):
+    def get_live_hunt(self, hunt_id=None):
         return PolyswarmRequest(
             self.api_instance,
             {
                 'method': 'GET',
                 'timeout': const.DEFAULT_HTTP_TIMEOUT,
-                'url': '{}/historical'.format(self.hunt_base),
-                'params': {'all': 'true'},
+                'url': '{}/live'.format(self.hunt_base),
+                'params': {
+                    'id': hunt_id,
+                },
             },
-            result_parser=parsers.HuntListResult(polyswarm=self.api_instance)
+            result_parser=parsers.HuntParser(polyswarm=self.api_instance),
+        )
+
+    def update_live_hunt(self, hunt_id=None, active=False):
+        return PolyswarmRequest(
+            self.api_instance,
+            {
+                'method': 'PUT',
+                'timeout': const.DEFAULT_HTTP_TIMEOUT,
+                'url': '{}/live'.format(self.hunt_base),
+                'json': {
+                    'id': hunt_id,
+                    'active': active,
+                },
+            },
+            result_parser=parsers.HuntParser(polyswarm=self.api_instance),
+        )
+
+    def delete_live_hunt(self, hunt_id):
+        return PolyswarmRequest(
+            self.api_instance,
+            {
+                'method': 'DELETE',
+                'timeout': const.DEFAULT_HTTP_TIMEOUT,
+                'url': '{}/live'.format(self.hunt_base),
+                'params': {'id': hunt_id}
+            },
+            result_parser=parsers.HuntParser(polyswarm=self.api_instance)
         )
 
     def live_list(self):
@@ -349,10 +305,90 @@ class PolyswarmRequestGenerator(object):
             {
                 'method': 'GET',
                 'timeout': const.DEFAULT_HTTP_TIMEOUT,
-                'url': '{}/live'.format(self.hunt_base),
+                'url': '{}/live/list'.format(self.hunt_base),
                 'params': {'all': 'true'},
             },
-            result_parser=parsers.HuntListResult(polyswarm=self.api_instance)
+            result_parser=parsers.HuntListParser(polyswarm=self.api_instance)
+        )
+
+    def live_hunt_results(self, hunt_id=None, since=None):
+        req = {
+            'method': 'GET',
+            'timeout': const.DEFAULT_HTTP_TIMEOUT,
+            'url': '{}/live/results'.format(self.hunt_base),
+            'params': {
+                'since': since,
+                'id': hunt_id,
+            },
+        }
+        return PolyswarmRequest(
+            self.api_instance,
+            req,
+            result_parser=parsers.HuntResultListParser(polyswarm=self.api_instance)
+        )
+
+    def create_historical_hunt(self, rule):
+        return PolyswarmRequest(
+            self.api_instance,
+            {
+                'method': 'POST',
+                'timeout': const.DEFAULT_HTTP_TIMEOUT,
+                'url': '{}/historical'.format(self.hunt_base),
+                'json': {'yara': rule.ruleset},
+            },
+            result_parser=parsers.HuntParser(polyswarm=self.api_instance),
+        )
+
+    def get_historical_hunt(self, hunt_id):
+        return PolyswarmRequest(
+            self.api_instance,
+            {
+                'method': 'GET',
+                'timeout': const.DEFAULT_HTTP_TIMEOUT,
+                'url': '{}/historical'.format(self.hunt_base),
+                'params': {'id': hunt_id}
+            },
+            result_parser=parsers.HuntParser(polyswarm=self.api_instance)
+        )
+
+    def delete_historical_hunt(self, hunt_id):
+        return PolyswarmRequest(
+            self.api_instance,
+            {
+                'method': 'DELETE',
+                'timeout': const.DEFAULT_HTTP_TIMEOUT,
+                'url': '{}/historical'.format(self.hunt_base),
+                'params': {'id': hunt_id}
+            },
+            result_parser=parsers.HuntParser(polyswarm=self.api_instance)
+        )
+
+    def historical_list(self):
+        return PolyswarmRequest(
+            self.api_instance,
+            {
+                'method': 'GET',
+                'timeout': const.DEFAULT_HTTP_TIMEOUT,
+                'url': '{}/historical/list'.format(self.hunt_base),
+                'params': {'all': 'true'},
+            },
+            result_parser=parsers.HuntListParser(polyswarm=self.api_instance)
+        )
+
+    def historical_hunt_results(self, hunt_id=None, since=None):
+        req = {
+            'method': 'GET',
+            'timeout': const.DEFAULT_HTTP_TIMEOUT,
+            'url': '{}/historical/results'.format(self.hunt_base),
+            'params': {
+                'since': since,
+                'id': hunt_id,
+            },
+        }
+        return PolyswarmRequest(
+            self.api_instance,
+            req,
+            result_parser=parsers.HuntResultListParser(polyswarm=self.api_instance)
         )
 
     def score(self, uuid):
@@ -363,7 +399,7 @@ class PolyswarmRequestGenerator(object):
                 'timeout': const.DEFAULT_HTTP_TIMEOUT,
                 'url': '{}/submission/{}/polyscore'.format(self.consumer_base, uuid)
             },
-            result_parser=parsers.ScoreResult(polyswarm=self.api_instance)
+            result_parser=parsers.ScoreParser(polyswarm=self.api_instance)
         )
 
 
