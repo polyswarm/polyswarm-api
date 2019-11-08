@@ -315,21 +315,23 @@ class Hunt(base.BasePSJSONType):
 
     def __init__(self, json, polyswarm=None):
         super(Hunt, self).__init__(json, polyswarm)
-
         # active only present for live hunts
         self.id = json['id']
         self.created = types.date.parse_isoformat(json['created'])
         self.status = json['status']
-        self.active = json.get('active', '')
+        self.active = json.get('active')
 
 
-class HuntMatch(base.BasePSJSONType):
+class HuntResult(base.BasePSJSONType):
     SCHEMA = types.schemas.hunt_result
 
     def __init__(self, json, polyswarm=None):
-        super(HuntMatch, self).__init__(json, polyswarm)
-
+        super(HuntResult, self).__init__(json, polyswarm)
+        self.id = json['id']
         self.rule_name = json['rule_name']
         self.tags = json['tags']
+        self.created = types.date.parse_isoformat(json['created'])
+        self.sha256 = json['sha256']
+        self.historicalscan_id = json['historicalscan_id']
+        self.livescan_id = json['livescan_id']
         self.artifact = Artifact(json['artifact'], polyswarm)
-        self.created = types.date.parse_isoformat(json['created']) if 'created' in json else datetime.datetime.now()
