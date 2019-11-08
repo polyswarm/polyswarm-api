@@ -1,23 +1,27 @@
+import datetime
+import logging
 from ordered_set import OrderedSet
 
-from ..exceptions import NotFoundException, InvalidArgument, ArtifactDeleted
-from ..log import logger
-from .base import BasePSJSONType, ArtifactType
-from .hash import all_hashes, Hash, Hashable
-from io import BytesIO
-import os
-from . import schemas
-from . import date
-from .. import const
+try:
+    import yara
+except ImportError:
+    yara = None
+
+from polyswarm_api import exceptions
+from polyswarm_api import types
+from polyswarm_api.types import base
 
 
-class Submission(BasePSJSONType):
-    SCHEMA = schemas.bounty_schema
+logger = logging.getLogger(__name__)
+
+
+class Submission(base.BasePSJSONType):
+    SCHEMA = types.schemas.bounty_schema
 
     def __init__(self, json, polyswarm=None):
         super(Submission, self).__init__(json, polyswarm)
-        self.artifact_type = ArtifactType.from_string(json['artifact_type']) if json.get('artifact_type') else \
-            ArtifactType.FILE
+        self.artifact_type = base.ArtifactType.from_string(json['artifact_type']) \
+            if json.get('artifact_type') else base.ArtifactType.FILE
         self.status = json['status']
         self.uuid = json.get('uuid')
         self._permalink = json['permalink'] if json.get('permalink') else None
@@ -32,8 +36,8 @@ class Submission(BasePSJSONType):
         return "Submission-%s" % self.uuid
 
 
-class PolyScore(BasePSJSONType):
-    SCHEMA = schemas.polyscore_schema
+class PolyScore(base.BasePSJSONType):
+    SCHEMA = types.schemas.polyscore_schema
 
     def __init__(self, json, polyswarm=None):
         super(PolyScore, self).__init__(json, polyswarm)
@@ -44,8 +48,8 @@ class PolyScore(BasePSJSONType):
         return self.scores.get(str(instance_id), None)
 
 
-class Assertion(BasePSJSONType):
-    SCHEMA = schemas.assertion_schema
+class Assertion(base.BasePSJSONType):
+    SCHEMA = types.schemas.assertion_schema
 
     def __init__(self, scanfile, json, polyswarm=None):
         super(Assertion, self).__init__(json, polyswarm)
@@ -63,8 +67,8 @@ class Assertion(BasePSJSONType):
         return "Assertion-%s: %s" % (self.engine_name, self.verdict)
 
 
-class Vote(BasePSJSONType):
-    SCHEMA = schemas.vote_schema
+class Vote(base.BasePSJSONType):
+    SCHEMA = types.schemas.vote_schema
 
     def __init__(self, scanfile, json, polyswarm=None):
         super(Vote, self).__init__(json, polyswarm)
@@ -76,24 +80,8 @@ class Vote(BasePSJSONType):
         return "Vote-%s: %s" % (self.arbiter, self.vote)
 
 
-def requires_analysis(func):
-    def wrapper(a, *args, **kwargs):
-        if not a.analyzed:
-            a.analyze_artifact()
-        return func(a, *args, **kwargs)
-    return wrapper
-
-
-def not_deleted(func):
-    def wrapper(a, *args, **kwargs):
-        if a.deleted:
-            raise ArtifactDeleted("Tried to use deleted LocalArtifact")
-        return func(a, *args, **kwargs)
-    return wrapper
-
-
-class ArtifactMetadata(BasePSJSONType):
-    SCHEMA = schemas.artifact_metadata
+class ArtifactMetadata(base.BasePSJSONType):
+    SCHEMA = types.schemas.artifact_metadata
 
     def __init__(self, artifact, json, polyswarm=None):
         super(ArtifactMetadata, self).__init__(json, polyswarm)
@@ -105,8 +93,8 @@ class ArtifactMetadata(BasePSJSONType):
         self.pefile = json.get('pefile', {})
 
 
-class ArtifactInstance(BasePSJSONType):
-    SCHEMA = schemas.artifact_instance_schema
+class ArtifactInstance(base.BasePSJSONType):
+    SCHEMA = types.schemas.artifact_instance_schema
 
     def __init__(self, json, polyswarm=None, polyscore=False):
         super(ArtifactInstance, self).__init__(json, polyswarm)
@@ -115,12 +103,12 @@ class ArtifactInstance(BasePSJSONType):
         self.account_id = json['account_id']
         self.assertions = [Assertion(self, a, polyswarm) for a in json['assertions']]
         self.bounty = json['bounty']
-        self.created = date.parse_isoformat(json['created'])
+        self.created = types.date.parse_isoformat(json['created'])
         self.extended_type = json['extended_type']
         self.failed = json['failed']
         self.filename = json['filename']
         self.first_seen = json['first_seen']
-        self.last_seen = date.parse_isoformat(json['last_seen'])
+        self.last_seen = types.date.parse_isoformat(json['last_seen'])
         self.md5 = json['md5']
         self.metadata = ArtifactMetadata(self, json.get('artifact_metadata', {}), polyswarm)
         self.mimetype = json['mimetype']
@@ -165,7 +153,7 @@ class ArtifactInstance(BasePSJSONType):
 
         try:
             resp = next(self.polyswarm.score(self.submission_guid))
-        except NotFoundException:
+        except exceptions.NotFoundException:
             logger.warning("Failed to either find UUID {} or generate a score for it.".format(self.submission_guid))
             return None
 
@@ -179,8 +167,8 @@ class ArtifactInstance(BasePSJSONType):
         return self._polyscore.get_score_by_id(self.id)
 
 
-class Artifact(Hashable, BasePSJSONType):
-    SCHEMA = schemas.artifact_schema
+class Artifact(base.Hashable, base.BasePSJSONType):
+    SCHEMA = types.schemas.artifact_schema
 
     def __init__(self, json, polyswarm=None):
         """
@@ -190,7 +178,7 @@ class Artifact(Hashable, BasePSJSONType):
         :param path: Path to the artifact
         :param content: Content of the artifact
         :param artifact_name: Name of the artifact (filename, or otherwise)
-        :param artifact_type: ArtifactType of the artifact
+        :param artifact_type: base.ArtifactType of the artifact
         :param polyswarm: Current PolyswarmAPI instance
         :param json: JSON used to
         :param analyze:
@@ -199,15 +187,17 @@ class Artifact(Hashable, BasePSJSONType):
 
         self.mimetype = json['mimetype']
         self.extended_type = json['extended_type']
-        self.first_seen = date.parse_date(json['first_seen'])
+        self.first_seen = types.date.parse_isoformat(json['first_seen'])
         self.id = json['id']
-        self.sha256 = Hash(json['sha256'], 'sha256', polyswarm)
-        self.sha1 = Hash(json['sha1'], 'sha1', polyswarm)
-        self.md5 = Hash(json['md5'], 'md5', polyswarm)
+        self.sha256 = base.Hash(json['sha256'], 'sha256', polyswarm)
+        self.sha1 = base.Hash(json['sha1'], 'sha1', polyswarm)
+        self.md5 = base.Hash(json['md5'], 'md5', polyswarm)
 
-        self.instances = list(sorted([ArtifactInstance(instance,
-                                           polyswarm=polyswarm) for instance in json.get('artifact_instances', [])],
-                                     key=lambda x: x.submitted, reverse=True))
+        self.instances = list(
+            sorted(
+                [ArtifactInstance(instance,polyswarm=polyswarm) for instance in json.get('artifact_instances', [])],
+                key=lambda x: x.submitted, reverse=True
+            ))
 
         # for now, we don't have a special Metadata object, but if something differentiates this
         # in the future from a simple dict, we can
@@ -237,8 +227,8 @@ class Artifact(Hashable, BasePSJSONType):
         :param out_path: output path for artifact
         :return: LocalArtifact instance
         """
-        if not any([self._sha256, self._md5, self._sha1]):
-            raise NotFoundException
+        if not any([self.sha256, self.md5, self.sha1]):
+            raise exceptions.InvalidArgumentException('At least one hash type must be defined.')
         result = self.polyswarm.download(self)
         result.artifact = self
         return result
@@ -309,123 +299,37 @@ class Artifact(Hashable, BasePSJSONType):
         return latest.polyscore
 
 
-class LocalArtifact(Hashable):
-    """ Artifact for which we have local content """
-    def __init__(self, path=None, content=None, artifact_name=None, artifact_type=ArtifactType.FILE,
-                 artifact=None, polyswarm=None, lookup=False, analyze=True):
-        """
-        A representation of an artifact we have locally
+class ArtifactArchive(base.Hashable, base.BasePSJSONType):
+    SCHEMA = types.schemas.artifact_archive_schema
 
-        :param path: Path to the artifact
-        :param content: Content of the artifact
-        :param artifact_name: Name of the artifact
-        :param artifact_type: Type of artifact
-        :param remote: Associated Artifact object of polyswarm API data
-        :param polyswarm: PolyswarmAPI instance
-        :param lookup: Boolean, if True will look up associated Artifact data
-        :param analyze: Boolean, if True will run analyses on artifact on startup (Note: this may still run later if False)
-        """
-        if not (path or content):
-            raise InvalidArgument("Must provide artifact content, either via path or content argument")
-
-        self.deleted = False
-        self.analyzed = False
-
-        self.path = path
-        self.content = content
-
-        self.artifact = artifact
-        self.artifact_type = artifact_type
-        self._artifact_name = artifact_name
-
-        self.polyswarm = polyswarm
-
-        if lookup:
-            self.artifact = self.lookup(True)
-
-        if analyze:
-            self.analyze_artifact()
-
-        super(LocalArtifact, self).__init__()
-
-    @property
-    @requires_analysis
-    def hash(self):
-        return self.sha256
-
-    @property
-    def hash_type(self):
-        return "sha256"
-
-    @property
-    def artifact_name(self):
-        if self._artifact_name:
-            return self._artifact_name
-        if self.artifact_type == ArtifactType.URL and self.content:
-            return self.content
-        return self.hash
-
-    @property
-    @not_deleted
-    def file_handle(self):
-        # will always have one or the other
-        if self.content:
-            return BytesIO(self.content)
-        return open(self.path, 'rb')
-
-    @not_deleted
-    def analyze_artifact(self):
-        fh = self.file_handle
-
-        self._calc_hashes(fh)
-        fh.seek(0)
-
-        self._calc_hashes(fh)
-        fh.seek(0)
-
-        self._run_analyzers(fh)
-
-        fh.close()
-        self.analyzed = True
-
-    def _calc_hashes(self, fh):
-        self.sha256, self.sha1, self.md5 = all_hashes(fh)
-
-    def _calc_features(self, fh):
-        # TODO implement feature extraction here. This will be used by search_features function.
-        return {}
-
-    def _run_analyzers(self, fh):
-        # TODO implement custom analyzer support, so users can implement plugins here.
-        return {}
-
-    def lookup(self, refresh=False):
-        if self.artifact and not refresh:
-            return self.artifact
-
-        if not self.polyswarm:
-            logger.warning("Tried to lookup artifact, but no polyswarm instance was associated")
-            return None
-
-        res = next(self.polyswarm.search([self]))
-
-        if res.result and len(res.result) > 0:
-            return res.result[0]
-        return None
-
-    def delete(self):
-        if self.path:
-            os.remove(self.path)
-        if self.content:
-            self.content = b''
-        self.deleted = True
-
-    def __str__(self):
-        return "Artifact <%s>" % self.hash
+    def __init__(self, json, polyswarm=None):
+        super(ArtifactArchive, self).__init__(json, polyswarm)
+        self.id = json['id']
+        self.community = json['community']
+        self.created = types.date.parse_isoformat(json['created'])
+        self.s3_path = json['s3_path']
 
 
-def to_artifact(a, polyswarm=None):
-    if isinstance(a, LocalArtifact):
-        return a
-    # if local path, FILE is assumed
-    return LocalArtifact(path=a, analyze=False, polyswarm=polyswarm)
+class Hunt(base.BasePSJSONType):
+    SCHEMA = types.schemas.hunt_status
+
+    def __init__(self, json, polyswarm=None):
+        super(Hunt, self).__init__(json, polyswarm)
+
+        # active only present for live hunts
+        self.id = json['id']
+        self.created = types.date.parse_isoformat(json['created'])
+        self.status = json['status']
+        self.active = json.get('active', '')
+
+
+class HuntMatch(base.BasePSJSONType):
+    SCHEMA = types.schemas.hunt_result
+
+    def __init__(self, json, polyswarm=None):
+        super(HuntMatch, self).__init__(json, polyswarm)
+
+        self.rule_name = json['rule_name']
+        self.tags = json['tags']
+        self.artifact = Artifact(json['artifact'], polyswarm)
+        self.created = types.date.parse_isoformat(json['created']) if 'created' in json else datetime.datetime.now()

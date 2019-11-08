@@ -6,14 +6,11 @@ try:
 except ImportError:
     from urlparse import urlparse
 
-from . import const
-from .endpoint import PolyswarmFuturesExecutor, PolyswarmRequestGenerator
-from .types.artifact import ArtifactType, LocalArtifact
-from .types.hash import to_hash
-from .types.query import MetadataQuery
-from .types import parsers
-from .types.hunt import YaraRuleset, Hunt
 from . import exceptions
+from . import const
+from . import endpoint
+from .types import local
+from .types import base
 
 
 class PolyswarmAPI(object):
@@ -28,8 +25,8 @@ class PolyswarmAPI(object):
         :param community: Community to scan against.
         :param validate_schemas: Validate JSON objects when creating response objects. Will impact performance.
         """
-        self.executor = executor or PolyswarmFuturesExecutor(key)
-        self.generator = generator or PolyswarmRequestGenerator(self, uri, community)
+        self.executor = executor or endpoint.PolyswarmFuturesExecutor(key)
+        self.generator = generator or endpoint.PolyswarmRequestGenerator(self, uri, community)
 
         self.timeout = timeout
         self._engine_map = None
@@ -48,12 +45,12 @@ class PolyswarmAPI(object):
         """
         Search a list of hashes.
 
-        :param hashes: A list of Hashable objects (Artifact, LocalArtifact, Hash) or hex-encoded SHA256/SHA1/MD5
+        :param hashes: A list of Hashable objects (Artifact, local.LocalArtifact, Hash) or hex-encoded SHA256/SHA1/MD5
         :param kwargs: Arguments to pass to search. Supported: with_instances, with_metadata (booleans)
         :return: Generator of SearchResult objects
         """
 
-        hashes = [to_hash(h) for h in hashes]
+        hashes = [base.to_hash(h) for h in hashes]
 
         for h in hashes:
             self.executor.push(self.generator.search_hash(h, **kwargs))
@@ -65,7 +62,7 @@ class PolyswarmAPI(object):
         """
         Search artifacts by feature
 
-        :param artifacts: List of LocalArtifact objects
+        :param artifacts: List of local.LocalArtifact objects
         :param feature: Feature to use
         :return: SearchResult generator
         """
@@ -79,15 +76,15 @@ class PolyswarmAPI(object):
         :return: SearchResult generator
         """
         for query in queries:
-            if not isinstance(query, MetadataQuery):
-                query = MetadataQuery(query, polyswarm=self)
+            if not isinstance(query, local.MetadataQuery):
+                query = local.MetadataQuery(query, polyswarm=self)
             self.executor.push(self.generator.search_metadata(query, **kwargs))
 
         for request in self.executor.execute():
             yield from self._consume_results(request)
 
     def download(self, out_dir, *hashes):
-        hashes = [to_hash(h) for h in hashes]
+        hashes = [base.to_hash(h) for h in hashes]
 
         for h in hashes:
             path = os.path.join(out_dir, h.hash)
@@ -103,7 +100,7 @@ class PolyswarmAPI(object):
         :param fh: file handle
         :return: DownloadResult object
         """
-        h = to_hash(h)
+        h = base.to_hash(h)
 
         return parsers.DownloadResult(h, self.generator.download(h, fh).result())
 
@@ -111,13 +108,13 @@ class PolyswarmAPI(object):
         """
         Submit artifacts to polyswarm and return UUIDs
 
-        :param artifacts: List of LocalArtifacts or paths to local files
+        :param artifacts: List of local.LocalArtifacts or paths to local files
         :return: SubmitResult generator
         """
         for artifact in artifacts:
-            if not isinstance(artifact, LocalArtifact):
-                artifact = LocalArtifact(path=artifact, artifact_name=os.path.basename(artifact),
-                                         analyze=False, polyswarm=self)
+            if not isinstance(artifact, local.LocalArtifact):
+                artifact = local.LocalArtifact(path=artifact, artifact_name=os.path.basename(artifact),
+                                               analyze=False, polyswarm=self)
             self.executor.push(self.generator.submit(artifact))
         for request in self.executor.execute():
             yield request.result
@@ -127,10 +124,10 @@ class PolyswarmAPI(object):
         Submit rescans to polyswarm and return UUIDs
 
         :param artifact_type: What type to use when rescanning artifact
-        :param hashes: Hashable objects (Artifact, LocalArtifact, or Hash) or hex-encoded SHA256/SHA1/MD5
+        :param hashes: Hashable objects (Artifact, local.LocalArtifact, or Hash) or hex-encoded SHA256/SHA1/MD5
         :return: SubmitResult generator
         """
-        hashes = [to_hash(h) for h in hashes]
+        hashes = [base.to_hash(h) for h in hashes]
 
         for h in hashes:
             self.executor.push(self.generator.rescan(h, **kwargs))
@@ -142,7 +139,7 @@ class PolyswarmAPI(object):
         """
         Submit artifacts to polyswarm and wait for scan results
 
-        :param artifacts: List of LocalArtifacts or paths to local files
+        :param artifacts: List of local.LocalArtifacts or paths to local files
         :return: ScanResult generator
         """
         for submission in self.submit(*artifacts):
@@ -152,7 +149,7 @@ class PolyswarmAPI(object):
         """
         Rescan artifacts via polyswarm
 
-        :param hashes: Hashable objects (Artifact, LocalArtifact, or Hash) or hex-encoded SHA256/SHA1/MD5
+        :param hashes: Hashable objects (Artifact, local.LocalArtifact, or Hash) or hex-encoded SHA256/SHA1/MD5
         :param kwargs: Keyword arguments for the scan (none currently supported)
         :return: ScanResult generator
         """
@@ -235,19 +232,17 @@ class PolyswarmAPI(object):
         _urls = []
 
         for url in urls:
-            if not isinstance(url, LocalArtifact):
-                url = LocalArtifact(content=url.encode("utf8"), artifact_name=url, artifact_type=ArtifactType.URL,
-                                    analyze=False, polyswarm=self)
+            if not isinstance(url, local.LocalArtifact):
+                url = local.LocalArtifact(content=url.encode("utf8"), artifact_name=url,
+                                          artifact_type=base.ArtifactType.URL, analyze=False,
+                                          polyswarm=self)
             _urls.append(url)
 
         return self.scan(*_urls)
 
     def _resolve_engine_name(self, eth_pub):
         if not self._engine_map:
-            self.executor.push(self.generator._get_engine_names())
-            for request in self.executor.execute():
-                self._engine_map = request.result.result
-                break
+            self._engine_map = next(self.executor.push(self.generator._get_engine_names()).execute()).result
         return self._engine_map.get(eth_pub.lower(), eth_pub) if self._engine_map is not None else ''
 
     def check_version(self):
@@ -261,13 +256,13 @@ class PolyswarmAPI(object):
 
     def live(self, rules):
         """
-        Create a new live hunt, and replace the currently running YARA rules.
+        Create a new live hunt_id, and replace the currently running YARA rules.
 
         :param rules: YaraRuleset object or string containing YARA rules to install
         :return: HuntSubmissionResult object
         """
-        if not isinstance(rules, YaraRuleset):
-            rules = YaraRuleset(rules, polyswarm=self)
+        if not isinstance(rules, local.YaraRuleset):
+            rules = local.YaraRuleset(rules, polyswarm=self)
         try:
             rules.validate()
         except exceptions.NotImportedException:
@@ -282,8 +277,8 @@ class PolyswarmAPI(object):
         :param rules: YaraRuleset object or string containing YARA rules to install
         :return: HuntSubmissionResult object
         """
-        if not isinstance(rules, YaraRuleset):
-            rules = YaraRuleset(rules, polyswarm=self)
+        if not isinstance(rules, local.YaraRuleset):
+            rules = local.YaraRuleset(rules, polyswarm=self)
         try:
             rules.validate()
         except exceptions.NotImportedException:
@@ -325,12 +320,9 @@ class PolyswarmAPI(object):
         """
         return next(self.executor.push(self.generator.historical_list()).execute()).result
 
-    def _get_hunt_results(self, hunt, endpoint_func, **kwargs):
-        if hunt and not isinstance(hunt, Hunt):
-            hunt = Hunt.from_id(hunt, self)
-
-        if hunt:
-            kwargs['id'] = hunt.hunt_id
+    def _get_hunt_results(self, hunt_id, endpoint_func, **kwargs):
+        if hunt_id:
+            kwargs['hunt_id'] = hunt_id
 
         # at least make this consistent in the API
         # should change this
@@ -353,23 +345,23 @@ class PolyswarmAPI(object):
         request.result.result.results = all_matches
         return request.result
 
-    def live_results(self, hunt=None, **kwargs):
+    def live_results(self, hunt_id=None, **kwargs):
         """
         Get results from a live hunt
 
         :param hunt_id: ID of the hunt (None if latest rule results are desired)
         :return: HuntResult object
         """
-        return self._get_hunt_results(hunt, self.generator.live_lookup, **kwargs)
+        return self._get_hunt_results(hunt_id, self.generator.live_lookup, **kwargs)
 
-    def historical_results(self, hunt=None, **kwargs):
+    def historical_results(self, hunt_id=None, **kwargs):
         """
         Get results from a historical hunt
 
         :param hunt_id: ID of the hunt (None if latest hunt results are desired)
         :return: HuntResult object
         """
-        return self._get_hunt_results(hunt, self.generator.historical_lookup, **kwargs)
+        return self._get_hunt_results(hunt_id, self.generator.historical_lookup, **kwargs)
 
     def stream(self, destination=None, since=const.MAX_SINCE_TIME_STREAM):
         """
@@ -379,11 +371,10 @@ class PolyswarmAPI(object):
         :param since: How far back to grab artifacts in minutes (up to 2 days)
         :return: DownloadResult generator
         """
-        self.executor.push(self.generator.stream(since=since))
-        for request in self.executor.execute():
-            for url in request.result:
-                path = os.path.join(destination, os.path.basename(urlparse(url).path))
-                self.executor.push(self.generator.download_archive(url, path, create=True))
+        request = next(self.executor.push(self.generator.stream(since=since)).execute())
+        for local_archive in self._consume_results(request):
+            path = os.path.join(destination, os.path.basename(urlparse(local_archive.s3_path).path))
 
-            for request in self.executor.execute():
-                yield request.result
+            self.executor.push(self.generator.download_archive(local_archive.s3_path, path, create=True))
+            local_artifact = next(self.executor.execute()).result
+            yield local_artifact

@@ -54,6 +54,22 @@ class ScanTestCaseV2(TestCase):
         assert result[0].status == 'Bounty Awaiting Arbitration'
 
     @pytest.mark.skip(reason="only for local testing for now")
+    def test_download(self):
+        api = PolyswarmAPI(self.test_api_key, uri=f'http://localhost:9696/{self.api_version}/consumer', community='gamma')
+        with temp_dir({}) as (path, _):
+            result = list(api.download(path, '275a021bbfb6489e54d471899f7db9d1663fc695ec2fe2a2c4538aabf651fd0f'))
+            with result[0].file_handle as f:
+                assert f.read() == b'X5O!P%@AP[4\\PZX54(P^)7CC)7}$EICAR-STANDARD-ANTIVIRUS-TEST-FILE!$H+H*'
+
+    @pytest.mark.skip(reason="only for local testing for now")
+    def test_stream(self):
+        api = PolyswarmAPI(self.test_api_key, uri=f'http://localhost:9696/{self.api_version}', community='gamma')
+        with temp_dir({}) as (path, _):
+            result = list(api.stream(path))
+            with result[0].file_handle as f:
+                assert f.read() == b'X5O!P%@AP[4\\PZX54(P^)7CC)7}$EICAR-STANDARD-ANTIVIRUS-TEST-FILE!$H+H*'
+
+    @pytest.mark.skip(reason="only for local testing for now")
     def test_hash_search(self):
         api = PolyswarmAPI(self.test_api_key, uri=f'http://localhost:9696/{self.api_version}', community='gamma')
         result = list(api.search('275a021bbfb6489e54d471899f7db9d1663fc695ec2fe2a2c4538aabf651fd0f'))
@@ -64,6 +80,75 @@ class ScanTestCaseV2(TestCase):
         api = PolyswarmAPI(self.test_api_key, uri=f'http://localhost:9696/{self.api_version}', community='gamma')
         result = list(api.search_by_metadata('hash.sha256:275a021bbfb6489e54d471899f7db9d1663fc695ec2fe2a2c4538aabf651fd0f'))
         assert result[0].sha256 == '275a021bbfb6489e54d471899f7db9d1663fc695ec2fe2a2c4538aabf651fd0f'
+
+    @pytest.mark.skip(reason="only for local testing for now")
+    def test_resolve_engine_name(self):
+        # This still does not have a v2 path
+        api = PolyswarmAPI(self.test_api_key, uri=f'http://localhost:3000/api/v1', community='gamma')
+        result = api._resolve_engine_name('0x05328f171b8c1463eaFDACCA478D9EE6a1d923F8')
+        assert result == 'eicar'
+
+    @pytest.mark.skip(reason="only for local testing for now")
+    def test_live(self):
+        api = PolyswarmAPI(self.test_api_key, uri=f'http://localhost:9696/{self.api_version}', community='gamma')
+        with open('test/eicar.yara') as yara:
+            result = api.live(yara.read())
+        assert result.active
+        assert result.status == 'SUCCESS'
+
+    @pytest.mark.skip(reason="only for local testing for now")
+    def test_live_results(self):
+        api = PolyswarmAPI(self.test_api_key, uri=f'http://localhost:9696/{self.api_version}', community='gamma')
+        result = api.live_results(hunt_id='63433636835291189', with_bounty_results=False, with_metadata=False)
+        assert len(result.result.results) == 10
+
+
+
+
+
+    @pytest.mark.skip(reason="only for local testing for now")
+    def test_historical(self):
+        api = PolyswarmAPI(self.test_api_key, uri=f'http://localhost:9696/{self.api_version}', community='gamma')
+        with open('test/eicar.yara') as yara:
+            result = api.historical(yara.read())
+        assert result.result.hunt_id == '0000000000000000'
+
+    @pytest.mark.skip(reason="only for local testing for now")
+    def test_historical_results(self):
+        api = PolyswarmAPI(self.test_api_key, uri=f'http://localhost:9696/{self.api_version}', community='gamma')
+        result = api.historical_results(with_bounty_results=False, with_metadata=False, limit=1)
+        assert len(result.result.results) == 2
+
+    @pytest.mark.skip(reason="only for local testing for now")
+    def test_delete_live(self):
+        api = PolyswarmAPI(self.test_api_key, uri=f'http://localhost:9696/{self.api_version}', community='gamma')
+        result = api.live_delete('00000000000000000')
+        assert result.result == '00000000000000000'
+
+    @pytest.mark.skip(reason="only for local testing for now")
+    def test_delete_live(self):
+        api = PolyswarmAPI(self.test_api_key, uri=f'http://localhost:9696/{self.api_version}', community='gamma')
+        result = api.historical_delete('00000000000000000')
+        assert result.result == '00000000000000000'
+
+    @pytest.mark.skip(reason="only for local testing for now")
+    def test_list_live(self):
+        api = PolyswarmAPI(self.test_api_key, uri=f'http://localhost:9696/{self.api_version}', community='gamma')
+        result = api.live_list()
+        assert len(result.result) == 5
+
+    @pytest.mark.skip(reason="only for local testing for now")
+    def test_list_historical(self):
+        api = PolyswarmAPI(self.test_api_key, uri=f'http://localhost:9696/{self.api_version}', community='gamma')
+        result = api.historical_list()
+        assert len(result.result) == 11
+
+    @pytest.mark.skip(reason="only for local testing for now")
+    def test_list_historical(self):
+        api = PolyswarmAPI(self.test_api_key, uri=f'http://localhost:9696/{self.api_version}', community='gamma')
+        result = list(api.score('6eadcabe-9f9e-4301-8e60-c9e58504c325'))
+        assert result[0].result.scores['77090327141458166'] == 0.9999682631387563
+
 
 
 @pytest.mark.skip(reason="deprecating tests for v1")
@@ -144,7 +229,7 @@ class ScanTestCase(TestCase):
 
     @responses.activate
     def test_resolve_engine_name(self):
-        responses.add(responses.Response(responses.GET, 'http:/f/localhost:3000/api/{self.api_version}/microengines/list',
+        responses.add(responses.Response(responses.GET, f'http://localhost:3000/api/{self.api_version}/microengines/list',
                                          json={'results': [{'id': 1, 'createdAt': '2019-11-01T21:27:47.109Z', 'modifiedAt': '2019-11-01T21:27:47.109Z', 'archivedAt': None, 'name': 'eicar', 'description': 'eicar', 'address': '0x05328f171b8c1463eaFDACCA478D9EE6a1d923F8', 'userId': 1, 'verificationStatus': 'verified', 'tags': []}]}))
         api = PolyswarmAPI(self.test_api_key, uri='http:/f/localhost:3000/api/{self.api_version}', community='gamma')
         result = api._resolve_engine_name('0x05328f171b8c1463eaFDACCA478D9EE6a1d923F8')

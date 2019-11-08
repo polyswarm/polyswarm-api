@@ -1,6 +1,9 @@
 class PolyswarmAPIException(Exception):
     pass
 
+#########################################
+# Request layer exceptions
+#########################################
 
 class RequestFailedException(PolyswarmAPIException):
     def __init__(self, request, *args, **kwargs):
@@ -8,7 +11,7 @@ class RequestFailedException(PolyswarmAPIException):
         self.request = request
 
 
-class UsageLimitsExceeded(RequestFailedException):
+class UsageLimitsExceededException(RequestFailedException):
     pass
 
 
@@ -20,37 +23,46 @@ class ServerErrorException(PolyswarmAPIException):
     pass
 
 
-class InvalidHashException(PolyswarmAPIException):
+#########################################
+# Types layer exceptions
+#########################################
+
+
+class TypeException(PolyswarmAPIException):
     pass
 
 
-class NotFoundException(PolyswarmAPIException):
+class InvalidHashException(TypeException):
     pass
 
 
-class MissingAPIInstance(PolyswarmAPIException):
+class NotFoundException(TypeException):
     pass
 
 
-class InvalidJSONResponse(PolyswarmAPIException):
+class MissingAPIInstanceException(TypeException):
     pass
 
 
-class DecodeError(PolyswarmAPIException):
+class InvalidJSONResponseException(TypeException):
     pass
 
 
-class InvalidArgument(PolyswarmAPIException):
+class DecodeErrorException(TypeException):
     pass
 
 
-class ArtifactDeleted(PolyswarmAPIException):
+class InvalidArgumentException(TypeException):
     pass
 
 
-class InvalidYaraRules(PolyswarmAPIException):
+class ArtifactDeletedException(TypeException):
     pass
 
 
-class NotImportedException(PolyswarmAPIException):
+class InvalidYaraRulesException(TypeException):
+    pass
+
+
+class NotImportedException(TypeException):
     pass

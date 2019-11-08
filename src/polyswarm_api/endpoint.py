@@ -63,7 +63,7 @@ class PolyswarmRequest(object):
             self._extract_json_body(result)
 
             if self.status_code == 429:
-                raise exceptions.UsageLimitsExceeded(const.USAGE_EXCEEDED_MESSAGE)
+                raise exceptions.UsageLimitsExceededException(const.USAGE_EXCEEDED_MESSAGE)
 
             raise exceptions.RequestFailedException(self, self._bad_status_message())
         else:
@@ -74,7 +74,15 @@ class PolyswarmRequest(object):
                 self.offset = self.json.get('offset')
                 self.order_by = self.json.get('order_by')
                 self.direction = self.json.get('direction')
-                self.result = self.result_parser.parse_result(self.json.get('result'))
+                if 'result' in self.json:
+                    self.result = self.result_parser.parse_result(self.json.get('result'))
+                elif 'results' in self.json:
+                    self.result = self.result_parser.parse_result(self.json.get('results'))
+                else:
+                    raise exceptions.RequestFailedException(
+                        self,
+                        'The response standard must contain either the "result" or "results" key.'
+                    )
             else:
                 self.result = self.result_parser.parse_result(result)
 
@@ -245,9 +253,7 @@ class PolyswarmRequestGenerator(object):
             result_parser=parsers.HuntSubmissionResult(rule, polyswarm=self.api_instance),
         )
 
-    def live_lookup(self, with_bounty_results=True, with_metadata=True,
-                    limit=const.RESULT_CHUNK_SIZE, offset=0, id=None,
-                    since=0):
+    def live_lookup(self, with_bounty_results=True, with_metadata=True, hunt_id=None, since=0):
         req = {
             'method': 'GET',
             'timeout': const.DEFAULT_HTTP_TIMEOUT,
@@ -255,19 +261,17 @@ class PolyswarmRequestGenerator(object):
             'params': {
                 'with_bounty_results': utils.bool_to_int[with_bounty_results],
                 'with_metadata': utils.bool_to_int[with_metadata],
-                'limit': limit,
-                'offset': offset,
                 'since': since,
             },
         }
 
-        if id:
-            req['params']['id'] = id
+        if hunt_id:
+            req['params']['id'] = hunt_id
 
         return PolyswarmRequest(
             self.api_instance,
             req,
-            result_parser=parsers.HuntResult(hunt_id=id, polyswarm=self.api_instance)
+            result_parser=parsers.HuntResult(polyswarm=self.api_instance)
         )
 
     def submit_historical_hunt(self, rule):
@@ -282,9 +286,7 @@ class PolyswarmRequestGenerator(object):
             result_parser=parsers.HuntSubmissionResult(rule, polyswarm=self.api_instance),
         )
 
-    def historical_lookup(self, with_bounty_results=True, with_metadata=True,
-                          limit=const.RESULT_CHUNK_SIZE, offset=0, id=None,
-                          since=0):
+    def historical_lookup(self, with_bounty_results=True, with_metadata=True, hunt_id=None, since=0):
         req = {
             'method': 'GET',
             'timeout': const.DEFAULT_HTTP_TIMEOUT,
@@ -292,19 +294,17 @@ class PolyswarmRequestGenerator(object):
             'params': {
                 'with_bounty_results': utils.bool_to_int[with_bounty_results],
                 'with_metadata': utils.bool_to_int[with_metadata],
-                'limit': limit,
-                'offset': offset,
                 'since': since,
             },
         }
 
-        if id:
-            req['params']['id'] = id
+        if hunt_id:
+            req['params']['id'] = hunt_id
 
         return PolyswarmRequest(
             self.api_instance,
             req,
-            result_parser=parsers.HuntResult(hunt_id=id, polyswarm=self.api_instance)
+            result_parser=parsers.HuntResult(polyswarm=self.api_instance)
         )
 
     def historical_delete(self, hunt_id):

@@ -3,8 +3,9 @@ import os
 import os.path
 
 from .base import BasePSJSONType
-from .artifact import Submission, PolyScore, LocalArtifact, ArtifactInstance
-from .hunt import Hunt, HuntStatus
+from .models import Submission, PolyScore, ArtifactInstance, ArtifactArchive
+from polyswarm_api.types.local import LocalArtifact
+from polyswarm_api.types.models import Hunt, HuntMatch
 
 from . import schemas
 from .. import const
@@ -92,12 +93,8 @@ class HuntSubmissionResult(ApiResponse):
 
 
 class HuntResult(ApiResponse):
-    def __init__(self, hunt_id=None, polyswarm=None):
-        super(HuntResult, self).__init__(polyswarm)
-        self.hunt_id = hunt_id
-
     def parse_result(self, result):
-        return HuntStatus(result, self.polyswarm)
+        return HuntMatch(result, self.polyswarm)
 
 
 class HuntDeletionResult(ApiResponse):
@@ -107,12 +104,12 @@ class HuntDeletionResult(ApiResponse):
 
 class HuntListResult(ApiResponse):
     def parse_result(self, result):
-        return [HuntStatus(r, self.polyswarm) for r in result]
+        return [Hunt(r, self.polyswarm) for r in result]
 
 
 class StreamResult(ApiResponse):
     def parse_result(self, result):
-        return result.get('stream', [])
+        return [ArtifactArchive(r, self.polyswarm) for r in result]
 
 
 class ScoreResult(ApiResponse):
