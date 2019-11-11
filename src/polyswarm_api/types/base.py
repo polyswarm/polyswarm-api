@@ -9,7 +9,6 @@ from polyswarm_api.exceptions import InvalidHashException
 from polyswarm_api.utils import logger
 
 from .. import exceptions
-from ..log import logger
 from ..const import FILE_CHUNK_SIZE
 
 
@@ -29,7 +28,7 @@ class BasePSJSONType(BasePSType):
     def __init__(self, json=None, polyswarm=None):
         super(BasePSJSONType, self).__init__(polyswarm=polyswarm)
         self._json = None
-        if self._json is not None:
+        if json is not None:
             self.json = json
 
     @property
