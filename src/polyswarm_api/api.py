@@ -10,6 +10,7 @@ except ImportError:
 from . import exceptions
 from . import const
 from . import endpoint
+from . import http
 from .types import local
 from .types import base
 
@@ -18,7 +19,7 @@ class PolyswarmAPI(object):
     """A synchronous interface to the public and private PolySwarm APIs."""
 
     def __init__(self, key, uri='https://api.polyswarm.network/v1', timeout=const.DEFAULT_SCAN_TIMEOUT,
-                 community='lima', validate_schemas=False, executor=None, generator=None):
+                 community='lima', validate_schemas=False, session=None, executor=None, generator=None):
         """
         :param key: PolySwarm API key
         :param uri: PolySwarm API URI
@@ -26,8 +27,9 @@ class PolyswarmAPI(object):
         :param community: Community to scan against.
         :param validate_schemas: Validate JSON objects when creating response objects. Will impact performance.
         """
-        self.executor = executor or endpoint.PolyswarmFuturesExecutor(key)
-        self.generator = generator or endpoint.PolyswarmRequestGenerator(self, uri, community)
+        self.session = session or http.PolyswarmHTTP(key, retries=const.DEFAULT_RETRIES)
+        self.executor = executor or endpoint.PolyswarmFuturesExecutor()
+        self.generator = generator or endpoint.PolyswarmRequestGenerator(self, key, uri, community)
 
         self.timeout = timeout
         self._engine_map = None
@@ -243,7 +245,8 @@ class PolyswarmAPI(object):
     def _resolve_engine_name(self, eth_pub):
         if not self._engine_map:
             self._engine_map = next(self.executor.push(self.generator._get_engine_names()).execute()).result
-        return self._engine_map.get(eth_pub.lower(), eth_pub) if self._engine_map is not None else ''
+            self._engine_map = {e.address: e.name for e in self._engine_map}
+        return self._engine_map.get(eth_pub.lower(), eth_pub) if self._engine_map is not None else eth_pub
 
     def check_version(self):
         """
