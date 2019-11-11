@@ -50,15 +50,26 @@ class ScanTestCaseV2(TestCase):
     @pytest.mark.skip(reason="only for local testing for now")
     def test_rescan(self):
         api = PolyswarmAPI(self.test_api_key, uri='http://localhost:9696/{}'.format(self.api_version), community='gamma')
-        result = list(api.rescan('275a021bbfb6489e54d471899f7db9d1663fc695ec2fe2a2c4538aabf651fd0'))
+        result = list(api.rescan('275a021bbfb6489e54d471899f7db9d1663fc695ec2fe2a2c4538aabf651fd0f'))
         assert result[0].status == 'Bounty Awaiting Arbitration'
 
     @pytest.mark.skip(reason="only for local testing for now")
     def test_download(self):
         api = PolyswarmAPI(self.test_api_key, uri='http://localhost:9696/{}/consumer'.format(self.api_version), community='gamma')
         with temp_dir({}) as (path, _):
-            result = list(api.download(path, '275a021bbfb6489e54d471899f7db9d1663fc695ec2fe2a2c4538aabf651fd0'))
+            result = list(api.download(path, '275a021bbfb6489e54d471899f7db9d1663fc695ec2fe2a2c4538aabf651fd0f'))
             with result[0].file_handle as f:
+                assert f.read() == b'X5O!P%@AP[4\\PZX54(P^)7CC)7}$EICAR-STANDARD-ANTIVIRUS-TEST-FILE!$H+H*'
+
+    @pytest.mark.skip(reason="only for local testing for now")
+    def test_download_to_handle(self):
+        api = PolyswarmAPI(self.test_api_key, uri='http://localhost:9696/{}/consumer'.format(self.api_version), community='gamma')
+        with temp_dir({}) as (path, _):
+            with open(os.path.join(path, 'temp_file_handle'), 'wb') as f:
+                result = list(api.download_to_filehandle('275a021bbfb6489e54d471899f7db9d1663fc695ec2fe2a2c4538aabf651fd0f', f))
+                with result[0].file_handle as f:
+                    assert f.read() == b'X5O!P%@AP[4\\PZX54(P^)7CC)7}$EICAR-STANDARD-ANTIVIRUS-TEST-FILE!$H+H*'
+            with open(os.path.join(path, 'temp_file_handle')) as f:
                 assert f.read() == b'X5O!P%@AP[4\\PZX54(P^)7CC)7}$EICAR-STANDARD-ANTIVIRUS-TEST-FILE!$H+H*'
 
     @pytest.mark.skip(reason="only for local testing for now")
@@ -72,14 +83,14 @@ class ScanTestCaseV2(TestCase):
     @pytest.mark.skip(reason="only for local testing for now")
     def test_hash_search(self):
         api = PolyswarmAPI(self.test_api_key, uri='http://localhost:9696/{}'.format(self.api_version), community='gamma')
-        result = list(api.search('275a021bbfb6489e54d471899f7db9d1663fc695ec2fe2a2c4538aabf651fd0'))
-        assert result[0].sha256 == '275a021bbfb6489e54d471899f7db9d1663fc695ec2fe2a2c4538aabf651fd0'
+        result = list(api.search('275a021bbfb6489e54d471899f7db9d1663fc695ec2fe2a2c4538aabf651fd0f'))
+        assert result[0].sha256 == '275a021bbfb6489e54d471899f7db9d1663fc695ec2fe2a2c4538aabf651fd0f'
 
     @pytest.mark.skip(reason="only for local testing for now")
     def test_metadata_search(self):
         api = PolyswarmAPI(self.test_api_key, uri='http://localhost:9696/{}'.format(self.api_version), community='gamma')
-        result = list(api.search_by_metadata('hash.sha256:275a021bbfb6489e54d471899f7db9d1663fc695ec2fe2a2c4538aabf651fd0'))
-        assert result[0].sha256 == '275a021bbfb6489e54d471899f7db9d1663fc695ec2fe2a2c4538aabf651fd0'
+        result = list(api.search_by_metadata('hash.sha256:275a021bbfb6489e54d471899f7db9d1663fc695ec2fe2a2c4538aabf651fd0f'))
+        assert result[0].sha256 == '275a021bbfb6489e54d471899f7db9d1663fc695ec2fe2a2c4538aabf651fd0f'
 
     @pytest.mark.skip(reason="only for local testing for now")
     def test_resolve_engine_name(self):
