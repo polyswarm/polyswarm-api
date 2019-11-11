@@ -7,7 +7,8 @@ from copy import deepcopy
 from . import const
 from . import http
 from . import exceptions
-from .types import parsers
+from .types import resources
+from .types import local
 
 try:
     from json.decoder import JSONDecodeError
@@ -20,8 +21,9 @@ logger = logging.getLogger(__name__)
 
 class PolyswarmRequest(object):
     """This class holds a requests-compatible dictionary and extra infor we need to parse the reponse."""
-    def __init__(self, api_instance, request_parameters, result_parser=None, json_response=True):
+    def __init__(self, api_instance, request_parameters, key=None, result_parser=None, json_response=True, **kwargs):
         self.api_instance = api_instance
+        self.session = self.api_instance.session or http.PolyswarmHTTP(key, retries=const.DEFAULT_RETRIES)
         self.request_parameters = request_parameters
         self.result_parser = result_parser
         self.json_response = json_response
@@ -35,13 +37,12 @@ class PolyswarmRequest(object):
         self.offset = None
         self.order_by = None
         self.direction = None
+        self.parser_kwargs = kwargs
 
-    def execute(self, session):
-        self.raw_result = session.request(**self.request_parameters)
-
+    def execute(self):
+        self.raw_result = self.session.request(**self.request_parameters)
         if self.result_parser is not None:
             self.parse_result(self.raw_result)
-
         return self
 
     def _bad_status_message(self):
@@ -79,16 +80,20 @@ class PolyswarmRequest(object):
                 self.order_by = self.json.get('order_by')
                 self.direction = self.json.get('direction')
                 if 'result' in self.json:
-                    self.result = self.result_parser.parse_result(self.json.get('result'))
+                    result = self.json['result']
                 elif 'results' in self.json:
-                    self.result = self.result_parser.parse_result(self.json.get('results'))
+                    result = self.json['results']
                 else:
                     raise exceptions.RequestFailedException(
                         self,
                         'The response standard must contain either the "result" or "results" key.'
                     )
+                if isinstance(result, list):
+                    self.result = self.result_parser.parse_result_list(self.api_instance, result, **self.parser_kwargs)
+                else:
+                    self.result = self.result_parser.parse_result(self.api_instance, result, **self.parser_kwargs)
             else:
-                self.result = self.result_parser.parse_result(result)
+                self.result = self.result_parser.parse_result(self.api_instance, result, **self.parser_kwargs)
 
     def next_page(self):
         new_parameters = deepcopy(self.request_parameters)
@@ -104,7 +109,7 @@ class PolyswarmRequest(object):
 
 class PolyswarmRequestGenerator(object):
     """ This class will return requests-compatible arguments for the API """
-    def __init__(self, api_instance, uri, community):
+    def __init__(self, api_instance, key, uri, community):
         self.api_instance = api_instance
         self.uri = uri
         self.community = community
@@ -128,9 +133,10 @@ class PolyswarmRequestGenerator(object):
                 'url': self.download_fmt.format(self.download_base, hash_type, hash_value),
                 'stream': True,
             },
-            result_parser=parsers.DownloadParser(output_file, polyswarm=self.api_instance,
-                                                 create=create),
             json_response=False,
+            result_parser=local.LocalArtifact,
+            output_file=output_file,
+            create=create,
         )
 
     def download_archive(self, u, output_file, create=False):
@@ -144,8 +150,10 @@ class PolyswarmRequestGenerator(object):
                 'stream': True,
                 'headers': {'Authorization': None}
             },
-            result_parser=parsers.DownloadParser(output_file, polyswarm=self.api_instance, create=create),
             json_response=False,
+            result_parser=local.LocalArtifact,
+            output_file=output_file,
+            create=create,
         )
 
     def stream(self, since=const.MAX_SINCE_TIME_STREAM):
@@ -157,7 +165,7 @@ class PolyswarmRequestGenerator(object):
                 'url': '{}/download/stream'.format(self.consumer_base),
                 'params': {'since': since},
             },
-            result_parser=parsers.StreamParser(polyswarm=self.api_instance)
+            result_parser=resources.ArtifactArchive,
         )
 
     def search_hash(self, h):
@@ -172,7 +180,7 @@ class PolyswarmRequestGenerator(object):
                     'hash': h.hash,
                 },
             },
-            result_parser=parsers.SearchParser(h, polyswarm=self.api_instance),
+            result_parser=resources.ArtifactInstance,
         )
 
     def search_metadata(self, q):
@@ -187,7 +195,7 @@ class PolyswarmRequestGenerator(object):
                 },
                 'json': q.query,
             },
-            result_parser=parsers.SearchParser(q, polyswarm=self.api_instance),
+            result_parser=resources.ArtifactInstance,
         )
 
     def submit(self, artifact):
@@ -203,7 +211,7 @@ class PolyswarmRequestGenerator(object):
                 # very oddly, when included in files parameter this errors out
                 'data': {'artifact-type': artifact.artifact_type.name}
             },
-            result_parser=parsers.SubmitParser(polyswarm=self.api_instance)
+            result_parser=resources.Submission,
         )
 
     def rescan(self, h, **kwargs):
@@ -214,7 +222,7 @@ class PolyswarmRequestGenerator(object):
                 'timeout': const.DEFAULT_HTTP_TIMEOUT,
                 'url': '{}/rescan/{}/{}'.format(self.community_base, h.hash_type, h.hash)
             },
-            result_parser=parsers.SubmitParser(polyswarm=self.api_instance)
+            result_parser=resources.Submission,
         )
 
     def lookup_uuid(self, uuid, **kwargs):
@@ -225,7 +233,7 @@ class PolyswarmRequestGenerator(object):
                 'timeout': const.DEFAULT_HTTP_TIMEOUT,
                 'url': '{}/uuid/{}'.format(self.community_base, uuid)
             },
-            result_parser=parsers.SubmitParser(polyswarm=self.api_instance)
+            result_parser=resources.Submission,
         )
 
     def _get_engine_names(self):
@@ -237,7 +245,7 @@ class PolyswarmRequestGenerator(object):
                 'url': '{}/microengines/list'.format(self.uri),
                 'headers': {'Authorization': None},
             },
-            result_parser=parsers.EngineNamesParser(polyswarm=self.api_instance)
+            result_parser=resources.Engine,
         )
 
     def create_live_hunt(self, rule):
@@ -249,7 +257,7 @@ class PolyswarmRequestGenerator(object):
                 'url': '{}/live'.format(self.hunt_base),
                 'json': {'yara': rule.ruleset},
             },
-            result_parser=parsers.HuntParser(polyswarm=self.api_instance),
+            result_parser=resources.Hunt,
         )
 
     def get_live_hunt(self, hunt_id=None):
@@ -263,7 +271,7 @@ class PolyswarmRequestGenerator(object):
                     'id': hunt_id,
                 },
             },
-            result_parser=parsers.HuntParser(polyswarm=self.api_instance),
+            result_parser=resources.Hunt,
         )
 
     def update_live_hunt(self, hunt_id=None, active=False):
@@ -278,7 +286,7 @@ class PolyswarmRequestGenerator(object):
                     'active': active,
                 },
             },
-            result_parser=parsers.HuntParser(polyswarm=self.api_instance),
+            result_parser=resources.Hunt,
         )
 
     def delete_live_hunt(self, hunt_id):
@@ -290,7 +298,7 @@ class PolyswarmRequestGenerator(object):
                 'url': '{}/live'.format(self.hunt_base),
                 'params': {'id': hunt_id}
             },
-            result_parser=parsers.HuntParser(polyswarm=self.api_instance)
+            result_parser=resources.Hunt,
         )
 
     def live_list(self):
@@ -302,7 +310,7 @@ class PolyswarmRequestGenerator(object):
                 'url': '{}/live/list'.format(self.hunt_base),
                 'params': {'all': 'true'},
             },
-            result_parser=parsers.HuntListParser(polyswarm=self.api_instance)
+            result_parser=resources.Hunt,
         )
 
     def live_hunt_results(self, hunt_id=None, since=None):
@@ -318,7 +326,7 @@ class PolyswarmRequestGenerator(object):
         return PolyswarmRequest(
             self.api_instance,
             req,
-            result_parser=parsers.HuntResultListParser(polyswarm=self.api_instance)
+            result_parser=resources.HuntResult,
         )
 
     def create_historical_hunt(self, rule):
@@ -330,7 +338,7 @@ class PolyswarmRequestGenerator(object):
                 'url': '{}/historical'.format(self.hunt_base),
                 'json': {'yara': rule.ruleset},
             },
-            result_parser=parsers.HuntParser(polyswarm=self.api_instance),
+            result_parser=resources.Hunt,
         )
 
     def get_historical_hunt(self, hunt_id):
@@ -342,7 +350,7 @@ class PolyswarmRequestGenerator(object):
                 'url': '{}/historical'.format(self.hunt_base),
                 'params': {'id': hunt_id}
             },
-            result_parser=parsers.HuntParser(polyswarm=self.api_instance)
+            result_parser=resources.Hunt,
         )
 
     def delete_historical_hunt(self, hunt_id):
@@ -354,7 +362,7 @@ class PolyswarmRequestGenerator(object):
                 'url': '{}/historical'.format(self.hunt_base),
                 'params': {'id': hunt_id}
             },
-            result_parser=parsers.HuntParser(polyswarm=self.api_instance)
+            result_parser=resources.Hunt,
         )
 
     def historical_list(self):
@@ -366,7 +374,7 @@ class PolyswarmRequestGenerator(object):
                 'url': '{}/historical/list'.format(self.hunt_base),
                 'params': {'all': 'true'},
             },
-            result_parser=parsers.HuntListParser(polyswarm=self.api_instance)
+            result_parser=resources.Hunt,
         )
 
     def historical_hunt_results(self, hunt_id=None, since=None):
@@ -382,7 +390,7 @@ class PolyswarmRequestGenerator(object):
         return PolyswarmRequest(
             self.api_instance,
             req,
-            result_parser=parsers.HuntResultListParser(polyswarm=self.api_instance)
+            result_parser=resources.HuntResult,
         )
 
     def score(self, uuid):
@@ -393,14 +401,13 @@ class PolyswarmRequestGenerator(object):
                 'timeout': const.DEFAULT_HTTP_TIMEOUT,
                 'url': '{}/submission/{}/polyscore'.format(self.consumer_base, uuid)
             },
-            result_parser=parsers.ScoreParser(polyswarm=self.api_instance)
+            result_parser=resources.PolyScore,
         )
 
 
 class PolyswarmRequestExecutor(object):
     """ This class accepts requests from a PolyswarmRequestGenerator and executes it """
-    def __init__(self, key, session=None):
-        self.session = session or http.PolyswarmHTTP(key, retries=const.DEFAULT_RETRIES)
+    def __init__(self):
         self.requests = []
 
     def push(self, request):
@@ -411,12 +418,12 @@ class PolyswarmRequestExecutor(object):
 
 
 class PolyswarmFuturesExecutor(PolyswarmRequestExecutor):
-    def __init__(self, key):
+    def __init__(self):
         self.executor = futures.ThreadPoolExecutor(const.DEFAULT_WORKER_COUNT)
-        super(PolyswarmFuturesExecutor, self).__init__(key)
+        super(PolyswarmFuturesExecutor, self).__init__()
 
     def push(self, request):
-        self.requests.append(self.executor.submit(request.execute, self.session))
+        self.requests.append(self.executor.submit(request.execute))
         return self
 
     def execute(self, as_completed=False):
@@ -439,6 +446,6 @@ class PolyswarmSynchronousExecutor(PolyswarmRequestExecutor):
     def execute(self):
         responses = []
         for request in self.requests:
-            responses.append(request.execute(self.session))
+            responses.append(request.execute())
         self.requests = []
         return responses

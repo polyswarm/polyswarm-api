@@ -5,6 +5,7 @@ import os
 from jsonschema import validate, ValidationError
 
 from polyswarm_api import exceptions
+from polyswarm_api import const
 from polyswarm_api.types import base
 from polyswarm_api.types import schemas
 from polyswarm_api.types.resources import yara
@@ -59,7 +60,7 @@ def not_deleted(func):
     return wrapper
 
 
-class LocalArtifact(base.Hashable):
+class LocalArtifact(base.Hashable, base.BasePSResourceType):
     """ Artifact for which we have local content """
     def __init__(self, path=None, content=None, artifact_name=None, artifact_type=base.ArtifactType.FILE,
                  artifact=None, polyswarm=None, lookup=False, analyze=True):
@@ -97,6 +98,25 @@ class LocalArtifact(base.Hashable):
             self.analyze_artifact()
 
         super(LocalArtifact, self).__init__()
+
+    @classmethod
+    def parse_result(cls, api_instance, result, output_file=None, create=False):
+        if isinstance(output_file, str):
+            path, file_name = os.path.split(output_file)
+            parsed_result = cls(path=output_file, artifact_name=file_name, analyze=False, polyswarm=api_instance)
+            if create:
+                # TODO: this should be replaced with os.makedirs(path, exist_ok=True)
+                # once we drop support to python 2.7
+                if not os.path.exists(path):
+                    os.makedirs(path)
+            with open(output_file, 'wb') as file_handle:
+                for chunk in result.iter_content(chunk_size=const.DOWNLOAD_CHUNK_SIZE):
+                    file_handle.write(chunk)
+        else:
+            parsed_result = cls(content=output_file, analyze=False, polyswarm=api_instance)
+            for chunk in result.iter_content(chunk_size=const.DOWNLOAD_CHUNK_SIZE):
+                output_file.write(chunk)
+        return parsed_result
 
     @property
     @requires_analysis

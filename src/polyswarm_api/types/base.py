@@ -53,6 +53,16 @@ class BasePSJSONType(BasePSType):
             raise exceptions.InvalidJSONResponseException("Failed to validate json against schema", json, self.SCHEMA)
 
 
+class BasePSResourceType:
+    @classmethod
+    def parse_result(cls, api_instance, json_result, **kwargs):
+        return cls(json_result, polyswarm=api_instance, **kwargs)
+
+    @classmethod
+    def parse_result_list(cls, api_instance, json_data, **kwargs):
+        return [cls.parse_result(api_instance, entry, **kwargs) for entry in json_data]
+
+
 # TODO make polyswarmartifact support 2.7 so this is not necessary
 class ArtifactType(Enum):
     FILE = 0

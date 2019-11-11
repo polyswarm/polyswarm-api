@@ -20,7 +20,7 @@ logger = logging.getLogger(__name__)
 #####################################################################
 
 
-class Submission(base.BasePSJSONType):
+class Submission(base.BasePSJSONType, base.BasePSResourceType):
     SCHEMA = types.schemas.bounty_schema
 
     def __init__(self, json, polyswarm=None):
@@ -51,7 +51,7 @@ class Submission(base.BasePSJSONType):
         return "Submission-%s" % self.uuid
 
 
-class PolyScore(base.BasePSJSONType):
+class PolyScore(base.BasePSJSONType, base.BasePSResourceType):
     SCHEMA = types.schemas.polyscore_schema
 
     def __init__(self, json, polyswarm=None):
@@ -63,7 +63,14 @@ class PolyScore(base.BasePSJSONType):
         return self.scores.get(str(instance_id), None)
 
 
-class ArtifactInstance(base.BasePSJSONType):
+class Engine(base.BasePSJSONType, base.BasePSResourceType):
+    def __init__(self, json, polyswarm=None):
+        super(Engine, self).__init__(json, polyswarm)
+        self.address = json['address'].lower()
+        self.name = json.get('name')
+
+
+class ArtifactInstance(base.BasePSJSONType, base.BasePSResourceType):
     SCHEMA = types.schemas.artifact_instance_schema
 
     def __init__(self, json, polyswarm=None):
@@ -134,7 +141,7 @@ class ArtifactInstance(base.BasePSJSONType):
         return self._permalink
 
 
-class Artifact(base.Hashable, base.BasePSJSONType):
+class Artifact(base.Hashable, base.BasePSJSONType, base.BasePSResourceType):
     SCHEMA = types.schemas.artifact_schema
 
     def __init__(self, json, polyswarm=None):
@@ -266,7 +273,7 @@ class Artifact(base.Hashable, base.BasePSJSONType):
         return latest.polyscore
 
 
-class ArtifactArchive(base.Hashable, base.BasePSJSONType):
+class ArtifactArchive(base.Hashable, base.BasePSJSONType, base.BasePSResourceType):
     SCHEMA = types.schemas.artifact_archive_schema
 
     def __init__(self, json, polyswarm=None):
@@ -277,7 +284,7 @@ class ArtifactArchive(base.Hashable, base.BasePSJSONType):
         self.s3_path = json['s3_path']
 
 
-class Hunt(base.BasePSJSONType):
+class Hunt(base.BasePSJSONType, base.BasePSResourceType):
     SCHEMA = types.schemas.hunt_status
 
     def __init__(self, json, polyswarm=None):
@@ -289,7 +296,7 @@ class Hunt(base.BasePSJSONType):
         self.active = json.get('active')
 
 
-class HuntResult(base.BasePSJSONType):
+class HuntResult(base.BasePSJSONType, base.BasePSResourceType):
     SCHEMA = types.schemas.hunt_result
 
     def __init__(self, json, polyswarm=None):
