@@ -5,7 +5,6 @@ from concurrent import futures
 from copy import deepcopy
 
 from . import const
-from . import utils
 from . import http
 from . import exceptions
 from .types import parsers
@@ -134,7 +133,7 @@ class PolyswarmRequestGenerator(object):
             json_response=False,
         )
 
-    def download_archive(self, u, output_file, file_handle=None, create=False):
+    def download_archive(self, u, output_file, create=False):
         """ This method is special, in that it is simply for downloading from S3 """
         return PolyswarmRequest(
             self.api_instance,
@@ -145,8 +144,7 @@ class PolyswarmRequestGenerator(object):
                 'stream': True,
                 'headers': {'Authorization': None}
             },
-            result_parser=parsers.DownloadParser(output_file, polyswarm=self.api_instance,
-                                                 file_handle=file_handle, create=create),
+            result_parser=parsers.DownloadParser(output_file, polyswarm=self.api_instance, create=create),
             json_response=False,
         )
 
@@ -159,10 +157,10 @@ class PolyswarmRequestGenerator(object):
                 'url': '{}/download/stream'.format(self.consumer_base),
                 'params': {'since': since},
             },
-            result_parser=parsers.StreamParser()
+            result_parser=parsers.StreamParser(polyswarm=self.api_instance)
         )
 
-    def search_hash(self, h, with_instances=True, with_metadata=True):
+    def search_hash(self, h):
         return PolyswarmRequest(
             self.api_instance,
             {
@@ -172,14 +170,12 @@ class PolyswarmRequestGenerator(object):
                 'params': {
                     'type': h.hash_type,
                     'hash': h.hash,
-                    'with_instances': utils.bool_to_int[with_instances],
-                    'with_metadata': utils.bool_to_int[with_metadata]
                 },
             },
-            result_parser=parsers.SearchParser(h),
+            result_parser=parsers.SearchParser(h, polyswarm=self.api_instance),
         )
 
-    def search_metadata(self, q, with_instances=True, with_metadata=True):
+    def search_metadata(self, q):
         return PolyswarmRequest(
             self.api_instance,
             {
@@ -188,12 +184,10 @@ class PolyswarmRequestGenerator(object):
                 'url': self.search_base,
                 'params': {
                     'type': 'metadata',
-                    'with_instances': utils.bool_to_int[with_instances],
-                    'with_metadata': utils.bool_to_int[with_metadata]
                 },
                 'json': q.query,
             },
-            result_parser=parsers.SearchParser(q),
+            result_parser=parsers.SearchParser(q, polyswarm=self.api_instance),
         )
 
     def submit(self, artifact):
