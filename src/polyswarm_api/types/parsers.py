@@ -3,9 +3,9 @@ import os
 import os.path
 
 from .base import BasePSJSONType
-from .models import Submission, PolyScore, ArtifactInstance, ArtifactArchive
+from .resources import Submission, PolyScore, ArtifactInstance, ArtifactArchive
 from polyswarm_api.types.local import LocalArtifact
-from polyswarm_api.types.models import Hunt, HuntResult
+from polyswarm_api.types.resources import Hunt, HuntResult
 
 from . import schemas
 from .. import const
@@ -60,7 +60,7 @@ class DownloadParser(ApiResponse):
 class SearchParser(ApiResponse):
     """ This is a result object for representing searches """
     def __init__(self, query, polyswarm=None):
-        super(SearchParser, self).__init__(polyswarm)
+        super(SearchParser, self).__init__(polyswarm=polyswarm)
         self.query = query
 
     def parse_result(self, result):

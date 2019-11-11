@@ -3,4 +3,4 @@ from . import date
 from . import parsers
 from . import local
 from . import base
-from . import models
+from . import resources

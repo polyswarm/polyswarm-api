@@ -7,7 +7,7 @@ from jsonschema import validate, ValidationError
 from polyswarm_api import exceptions
 from polyswarm_api.types import base
 from polyswarm_api.types import schemas
-from polyswarm_api.types.models import yara
+from polyswarm_api.types.resources import yara
 
 logger = logging.getLogger(__name__)
 
