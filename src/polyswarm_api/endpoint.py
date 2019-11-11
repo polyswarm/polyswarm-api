@@ -120,7 +120,7 @@ class PolyswarmRequestGenerator(object):
         self.download_fmt = '{}/{}/{}'
         self.hash_search_fmt = '{}/{}/{}'
 
-    def download(self, hash_value, hash_type, output_file, file_handle=None, create=False):
+    def download(self, hash_value, hash_type, output_file, create=False):
         return PolyswarmRequest(
             self.api_instance,
             {
@@ -130,7 +130,7 @@ class PolyswarmRequestGenerator(object):
                 'stream': True,
             },
             result_parser=parsers.DownloadParser(output_file, polyswarm=self.api_instance,
-                                                 file_handle=file_handle, create=create),
+                                                 create=create),
             json_response=False,
         )
 

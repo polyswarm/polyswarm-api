@@ -1,5 +1,6 @@
 import time
 import os
+from io import BytesIO
 
 try:
     from urllib.parse import urlparse
@@ -101,8 +102,7 @@ class PolyswarmAPI(object):
         :return: DownloadResult object
         """
         h = base.to_hash(h)
-
-        return parsers.DownloadResult(h, self.generator.download(h, fh).result())
+        return next(self.executor.push(self.generator.download(h.hash, h.hash_type, fh)).execute()).result
 
     def submit(self, *artifacts):
         """
@@ -233,7 +233,7 @@ class PolyswarmAPI(object):
 
         for url in urls:
             if not isinstance(url, local.LocalArtifact):
-                url = local.LocalArtifact(content=url.encode("utf8"), artifact_name=url,
+                url = local.LocalArtifact(content=BytesIO(url.encode("utf8")), artifact_name=url,
                                           artifact_type=base.ArtifactType.URL, analyze=False,
                                           polyswarm=self)
             _urls.append(url)

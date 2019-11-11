@@ -1,7 +1,6 @@
 import logging
 import json
 import os
-from io import BytesIO
 
 from jsonschema import validate, ValidationError
 
@@ -121,7 +120,7 @@ class LocalArtifact(base.Hashable):
     def file_handle(self):
         # will always have one or the other
         if self.content:
-            return BytesIO(self.content)
+            return self.content
         return open(self.path, 'rb')
 
     @not_deleted

@@ -33,20 +33,15 @@ class ApiResponse(BasePSJSONType):
 
 class DownloadParser(ApiResponse):
     """ This is an artificially constructed result object, to track downloads. """
-    def __init__(self, output_file, file_handle=None, polyswarm=None, create=False):
+    def __init__(self, output_file, polyswarm=None, create=False):
         super(DownloadParser, self).__init__(polyswarm=polyswarm)
         self.output_file = output_file
-        self.file_handle = file_handle
         self.create = create
 
     def parse_result(self, result):
-        path, file_name = os.path.split(self.output_file)
-        parsed_result = LocalArtifact(path=self.output_file, artifact_name=file_name, analyze=False, polyswarm=self)
-
-        if self.file_handle:
-            for chunk in result.iter_content(chunk_size=const.DOWNLOAD_CHUNK_SIZE):
-                self.file_handle.write(chunk)
-        else:
+        if isinstance(self.output_file, str):
+            path, file_name = os.path.split(self.output_file)
+            parsed_result = LocalArtifact(path=self.output_file, artifact_name=file_name, analyze=False, polyswarm=self)
             if self.create:
                 # TODO: this should be replaced with os.makedirs(path, exist_ok=True)
                 # once we drop support to python 2.7
@@ -55,6 +50,10 @@ class DownloadParser(ApiResponse):
             with open(self.output_file, 'wb') as file_handle:
                 for chunk in result.iter_content(chunk_size=const.DOWNLOAD_CHUNK_SIZE):
                     file_handle.write(chunk)
+        else:
+            parsed_result = LocalArtifact(content=self.output_file, analyze=False, polyswarm=self)
+            for chunk in result.iter_content(chunk_size=const.DOWNLOAD_CHUNK_SIZE):
+                self.output_file.write(chunk)
         return parsed_result
 
 
