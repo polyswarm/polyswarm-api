@@ -1,4 +1,3 @@
-from requests_futures.sessions import FuturesSession
 import requests
 from urllib3.util.retry import Retry
 from requests.adapters import HTTPAdapter
@@ -6,9 +5,9 @@ from requests.adapters import HTTPAdapter
 from . import const
 
 
-class PolyswarmHTTPBase(object):
+class PolyswarmHTTP(requests.Session):
     def __init__(self, key, retries, user_agent=const.DEFAULT_USER_AGENT, *args, **kwargs):
-        super(PolyswarmHTTPBase, self).__init__(*args, **kwargs)
+        super(PolyswarmHTTP, self).__init__(*args, **kwargs)
         self.requests_retry_session(retries=retries)
 
         if key:
@@ -41,12 +40,3 @@ class PolyswarmHTTPBase(object):
             self.headers.update({'User-Agent': ua})
         else:
             self.headers.pop('User-Agent', None)
-
-
-class PolyswarmHTTP(PolyswarmHTTPBase, requests.Session):
-    pass
-
-
-class PolyswarmHTTPFutures(PolyswarmHTTPBase, FuturesSession):
-    pass
-
