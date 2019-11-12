@@ -359,14 +359,14 @@ class PolyswarmAPI(object):
         """
         return self._consume_results(next(self.executor.push(self.generator.historical_list()).execute()))
 
-    def historical_results(self, hunt_id=None, since=None):
+    def historical_results(self, hunt_id=None):
         """
         Get results from a historical hunt
 
         :param hunt_id: ID of the hunt (None if latest hunt results are desired)
         :return: HuntResult object
         """
-        request = next(self.executor.push(self.generator.historical_hunt_results(hunt_id=hunt_id, since=since)).execute())
+        request = next(self.executor.push(self.generator.historical_hunt_results(hunt_id=hunt_id)).execute())
         yield from self._consume_results(request)
 
     def stream(self, destination=None, since=const.MAX_SINCE_TIME_STREAM):
