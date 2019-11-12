@@ -4,7 +4,6 @@ import tempfile
 from contextlib import contextmanager
 
 import pytest
-import responses
 from polyswarm_api.api import PolyswarmAPI
 
 try:
@@ -41,19 +40,16 @@ class ScanTestCaseV2(TestCase):
         self.test_api_key = '11111111111111111111111111111111'
         self.api_version = 'v2'
 
-    @pytest.mark.skip(reason="only for local testing for now")
     def test_submission(self):
         api = PolyswarmAPI(self.test_api_key, uri='http://localhost:9696/{}'.format(self.api_version), community='gamma')
         result = list(api.scan('test/malicious'))
         assert result[0].status == 'Bounty Awaiting Arbitration'
 
-    @pytest.mark.skip(reason="only for local testing for now")
     def test_rescan(self):
         api = PolyswarmAPI(self.test_api_key, uri='http://localhost:9696/{}'.format(self.api_version), community='gamma')
         result = list(api.rescan('275a021bbfb6489e54d471899f7db9d1663fc695ec2fe2a2c4538aabf651fd0f'))
         assert result[0].status == 'Bounty Awaiting Arbitration'
 
-    @pytest.mark.skip(reason="only for local testing for now")
     def test_download(self):
         api = PolyswarmAPI(self.test_api_key, uri='http://localhost:9696/{}/consumer'.format(self.api_version), community='gamma')
         with temp_dir({}) as (path, _):
@@ -61,7 +57,6 @@ class ScanTestCaseV2(TestCase):
             with result[0].file_handle as f:
                 assert f.read() == b'X5O!P%@AP[4\\PZX54(P^)7CC)7}$EICAR-STANDARD-ANTIVIRUS-TEST-FILE!$H+H*'
 
-    @pytest.mark.skip(reason="only for local testing for now")
     def test_download_to_handle(self):
         api = PolyswarmAPI(self.test_api_key, uri='http://localhost:9696/{}/consumer'.format(self.api_version), community='gamma')
         with temp_dir({}) as (path, _):
@@ -70,7 +65,6 @@ class ScanTestCaseV2(TestCase):
             with open(os.path.join(path, 'temp_file_handle'), 'rb') as f:
                 assert f.read() == b'X5O!P%@AP[4\\PZX54(P^)7CC)7}$EICAR-STANDARD-ANTIVIRUS-TEST-FILE!$H+H*'
 
-    @pytest.mark.skip(reason="only for local testing for now")
     def test_stream(self):
         api = PolyswarmAPI(self.test_api_key, uri='http://localhost:9696/{}'.format(self.api_version), community='gamma')
         with temp_dir({}) as (path, _):
@@ -78,26 +72,22 @@ class ScanTestCaseV2(TestCase):
             with result[0].file_handle as f:
                 assert f.read() == b'X5O!P%@AP[4\\PZX54(P^)7CC)7}$EICAR-STANDARD-ANTIVIRUS-TEST-FILE!$H+H*'
 
-    @pytest.mark.skip(reason="only for local testing for now")
     def test_hash_search(self):
         api = PolyswarmAPI(self.test_api_key, uri='http://localhost:9696/{}'.format(self.api_version), community='gamma')
         result = list(api.search('275a021bbfb6489e54d471899f7db9d1663fc695ec2fe2a2c4538aabf651fd0f'))
         assert result[0].sha256 == '275a021bbfb6489e54d471899f7db9d1663fc695ec2fe2a2c4538aabf651fd0f'
 
-    @pytest.mark.skip(reason="only for local testing for now")
     def test_metadata_search(self):
         api = PolyswarmAPI(self.test_api_key, uri='http://localhost:9696/{}'.format(self.api_version), community='gamma')
         result = list(api.search_by_metadata('hash.sha256:275a021bbfb6489e54d471899f7db9d1663fc695ec2fe2a2c4538aabf651fd0f'))
         assert result[0].sha256 == '275a021bbfb6489e54d471899f7db9d1663fc695ec2fe2a2c4538aabf651fd0f'
 
-    @pytest.mark.skip(reason="only for local testing for now")
     def test_resolve_engine_name(self):
         # This still does not have a v2 path
         api = PolyswarmAPI(self.test_api_key, uri='http://localhost:3000/api/v1', community='gamma')
         result = api._resolve_engine_name('0x05328f171b8c1463eaFDACCA478D9EE6a1d923F8')
         assert result == 'eicar'
 
-    @pytest.mark.skip(reason="only for local testing for now")
     def test_live(self):
         api = PolyswarmAPI(self.test_api_key, uri='http://localhost:9696/{}'.format(self.api_version), community='gamma')
         with open('test/eicar.yara') as yara:
@@ -110,13 +100,11 @@ class ScanTestCaseV2(TestCase):
         deleted_live_hunt = api.live_delete(live_hunt.id)
         assert live_hunt.id == deleted_live_hunt.id
 
-    @pytest.mark.skip(reason="only for local testing for now")
     def test_live_results(self):
         api = PolyswarmAPI(self.test_api_key, uri='http://localhost:9696/{}'.format(self.api_version), community='gamma')
         result = list(api.live_results(hunt_id='63433636835291189'))
         assert len(result) == 86
 
-    @pytest.mark.skip(reason="only for local testing for now")
     def test_list_live(self):
         api = PolyswarmAPI(self.test_api_key, uri='http://localhost:9696/{}'.format(self.api_version), community='gamma')
         with open('test/eicar.yara') as yara:
@@ -126,7 +114,6 @@ class ScanTestCaseV2(TestCase):
         result = list(api.live_list())
         assert len(result) >= 100
 
-    @pytest.mark.skip(reason="only for local testing for now")
     def test_historical(self):
         api = PolyswarmAPI(self.test_api_key, uri='http://localhost:9696/{}'.format(self.api_version), community='gamma')
         with open('test/eicar.yara') as yara:
@@ -137,7 +124,6 @@ class ScanTestCaseV2(TestCase):
         deleted_historical_hunt = api.historical_delete(get_historical_hunt.id)
         assert historical_hunt.id == deleted_historical_hunt.id
 
-    @pytest.mark.skip(reason="only for local testing for now")
     def test_list_historical(self):
         api = PolyswarmAPI(self.test_api_key, uri='http://localhost:9696/{}'.format(self.api_version), community='gamma')
         with open('test/eicar.yara') as yara:
@@ -147,13 +133,11 @@ class ScanTestCaseV2(TestCase):
         result = list(api.historical_list())
         assert len(result) >= 100
 
-    @pytest.mark.skip(reason="only for local testing for now")
     def test_historical_results(self):
         api = PolyswarmAPI(self.test_api_key, uri='http://localhost:9696/{}'.format(self.api_version), community='gamma')
         result = list(api.historical_results(hunt_id='47190397989086018'))
         assert len(result) == 34
 
-    @pytest.mark.skip(reason="only for local testing for now")
     def test_polyscore(self):
         api = PolyswarmAPI(self.test_api_key, uri='http://localhost:9696/{}'.format(self.api_version), community='gamma')
         result = list(api.score('6eadcabe-9f9e-4301-8e60-c9e58504c325'))
