@@ -23,6 +23,10 @@ class ServerErrorException(PolyswarmAPIException):
     pass
 
 
+class NotFoundException(RequestFailedException):
+    pass
+
+
 #########################################
 # Types layer exceptions
 #########################################
@@ -33,10 +37,6 @@ class TypeException(PolyswarmAPIException):
 
 
 class InvalidHashException(TypeException):
-    pass
-
-
-class NotFoundException(TypeException):
     pass
 
 

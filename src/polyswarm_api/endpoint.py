@@ -59,8 +59,7 @@ class PolyswarmRequest(object):
             self.status = self.json.get('status')
             self.errors = self.json.get('errors')
         except JSONDecodeError as e:
-            logger.error("Server returned non-JSON response.")
-            raise raise_from(exceptions.RequestFailedException(self), e)
+            raise raise_from(exceptions.RequestFailedException(self, 'Server returned non-JSON response.'), e)
 
     def parse_result(self, result):
         self.status_code = result.status_code
@@ -68,7 +67,9 @@ class PolyswarmRequest(object):
             self._extract_json_body(result)
 
             if self.status_code == 429:
-                raise exceptions.UsageLimitsExceededException(const.USAGE_EXCEEDED_MESSAGE)
+                raise exceptions.UsageLimitsExceededException(self, const.USAGE_EXCEEDED_MESSAGE)
+            if self.status_code == 404 and self.result is not None:
+                raise exceptions.NotFoundException(self, self.result)
 
             raise exceptions.RequestFailedException(self, self._bad_status_message())
         else:
@@ -377,13 +378,12 @@ class PolyswarmRequestGenerator(object):
             result_parser=resources.Hunt,
         )
 
-    def historical_hunt_results(self, hunt_id=None, since=None):
+    def historical_hunt_results(self, hunt_id=None):
         req = {
             'method': 'GET',
             'timeout': const.DEFAULT_HTTP_TIMEOUT,
             'url': '{}/historical/results'.format(self.hunt_base),
             'params': {
-                'since': since,
                 'id': hunt_id,
             },
         }
