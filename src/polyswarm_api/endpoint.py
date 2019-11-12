@@ -4,11 +4,11 @@ from future.utils import raise_from
 from concurrent import futures
 from copy import deepcopy
 
+import polyswarm_api.types.resources
 from . import const
 from . import http
 from . import exceptions
 from .types import resources
-from .types import local
 
 try:
     from json.decoder import JSONDecodeError
@@ -134,7 +134,7 @@ class PolyswarmRequestGenerator(object):
                 'stream': True,
             },
             json_response=False,
-            result_parser=local.LocalArtifact,
+            result_parser=polyswarm_api.types.resources.LocalArtifact,
             output_file=output_file,
             create=create,
         )
@@ -151,7 +151,7 @@ class PolyswarmRequestGenerator(object):
                 'headers': {'Authorization': None}
             },
             json_response=False,
-            result_parser=local.LocalArtifact,
+            result_parser=polyswarm_api.types.resources.LocalArtifact,
             output_file=output_file,
             create=create,
         )

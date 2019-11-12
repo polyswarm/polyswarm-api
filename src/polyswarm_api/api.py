@@ -11,8 +11,7 @@ from . import exceptions
 from . import const
 from . import endpoint
 from . import http
-from .types import local
-from .types import base
+from .types import resources
 
 
 class PolyswarmAPI(object):
@@ -53,7 +52,7 @@ class PolyswarmAPI(object):
         :return: Generator of SearchResult objects
         """
 
-        hashes = [base.to_hash(h) for h in hashes]
+        hashes = [resources.Hash.from_hashable(h) for h in hashes]
 
         for h in hashes:
             self.executor.push(self.generator.search_hash(h, **kwargs))
@@ -79,15 +78,15 @@ class PolyswarmAPI(object):
         :return: SearchResult generator
         """
         for query in queries:
-            if not isinstance(query, local.MetadataQuery):
-                query = local.MetadataQuery(query, polyswarm=self)
+            if not isinstance(query, resources.MetadataQuery):
+                query = resources.MetadataQuery(query, polyswarm=self)
             self.executor.push(self.generator.search_metadata(query, **kwargs))
 
         for request in self.executor.execute():
             yield from self._consume_results(request)
 
     def download(self, out_dir, *hashes):
-        hashes = [base.to_hash(h) for h in hashes]
+        hashes = [resources.Hash.from_hashable(h) for h in hashes]
 
         for h in hashes:
             path = os.path.join(out_dir, h.hash)
@@ -103,7 +102,7 @@ class PolyswarmAPI(object):
         :param fh: file handle
         :return: DownloadResult object
         """
-        h = base.to_hash(h)
+        h = resources.Hash.from_hashable(h)
         return next(self.executor.push(self.generator.download(h.hash, h.hash_type, fh)).execute()).result
 
     def submit(self, *artifacts):
@@ -114,9 +113,9 @@ class PolyswarmAPI(object):
         :return: SubmitResult generator
         """
         for artifact in artifacts:
-            if not isinstance(artifact, local.LocalArtifact):
-                artifact = local.LocalArtifact(path=artifact, artifact_name=os.path.basename(artifact),
-                                               analyze=False, polyswarm=self)
+            if not isinstance(artifact, resources.LocalArtifact):
+                artifact = resources.LocalArtifact(path=artifact, artifact_name=os.path.basename(artifact),
+                                                                       analyze=False, polyswarm=self)
             self.executor.push(self.generator.submit(artifact))
         for request in self.executor.execute():
             yield request.result
@@ -129,7 +128,7 @@ class PolyswarmAPI(object):
         :param hashes: Hashable objects (Artifact, local.LocalArtifact, or Hash) or hex-encoded SHA256/SHA1/MD5
         :return: SubmitResult generator
         """
-        hashes = [base.to_hash(h) for h in hashes]
+        hashes = [resources.Hash.from_hashable(h) for h in hashes]
 
         for h in hashes:
             self.executor.push(self.generator.rescan(h, **kwargs))
@@ -234,10 +233,10 @@ class PolyswarmAPI(object):
         _urls = []
 
         for url in urls:
-            if not isinstance(url, local.LocalArtifact):
-                url = local.LocalArtifact(content=BytesIO(url.encode("utf8")), artifact_name=url,
-                                          artifact_type=base.ArtifactType.URL, analyze=False,
-                                          polyswarm=self)
+            if not isinstance(url, resources.LocalArtifact):
+                url = resources.LocalArtifact(content=BytesIO(url.encode("utf8")), artifact_name=url,
+                                              artifact_type=resources.ArtifactType.URL, analyze=False,
+                                              polyswarm=self)
             _urls.append(url)
 
         return self.scan(*_urls)
@@ -264,8 +263,8 @@ class PolyswarmAPI(object):
         :param rules: YaraRuleset object or string containing YARA rules to install
         :return: HuntSubmissionResult object
         """
-        if not isinstance(rules, local.YaraRuleset):
-            rules = local.YaraRuleset(rules, polyswarm=self)
+        if not isinstance(rules, resources.YaraRuleset):
+            rules = resources.YaraRuleset(rules, polyswarm=self)
         try:
             rules.validate()
         except exceptions.NotImportedException:
@@ -325,8 +324,8 @@ class PolyswarmAPI(object):
         :param rules: YaraRuleset object or string containing YARA rules to install
         :return: HuntSubmissionResult object
         """
-        if not isinstance(rules, local.YaraRuleset):
-            rules = local.YaraRuleset(rules, polyswarm=self)
+        if not isinstance(rules, resources.YaraRuleset):
+            rules = resources.YaraRuleset(rules, polyswarm=self)
         try:
             rules.validate()
         except exceptions.NotImportedException:
