@@ -4,7 +4,6 @@ from future.utils import raise_from
 from concurrent import futures
 from copy import deepcopy
 
-import polyswarm_api.types.resources
 from . import const
 from . import http
 from . import exceptions
@@ -23,6 +22,8 @@ class PolyswarmRequest(object):
     """This class holds a requests-compatible dictionary and extra infor we need to parse the reponse."""
     def __init__(self, api_instance, request_parameters, key=None, result_parser=None, json_response=True, **kwargs):
         self.api_instance = api_instance
+        # we should not access the api_instance session directly, but provide as a
+        # parameter in the constructor, but this will do for the moment
         self.session = self.api_instance.session or http.PolyswarmHTTP(key, retries=const.DEFAULT_RETRIES)
         self.request_parameters = request_parameters
         self.result_parser = result_parser
@@ -64,14 +65,17 @@ class PolyswarmRequest(object):
     def parse_result(self, result):
         self.status_code = result.status_code
         if self.status_code // 100 != 2:
-            self._extract_json_body(result)
-
-            if self.status_code == 429:
-                raise exceptions.UsageLimitsExceededException(self, const.USAGE_EXCEEDED_MESSAGE)
-            if self.status_code == 404 and self.result is not None:
-                raise exceptions.NotFoundException(self, self.result)
-
-            raise exceptions.RequestFailedException(self, self._bad_status_message())
+            try:
+                self._extract_json_body(result)
+                if self.status_code == 429:
+                    raise exceptions.UsageLimitsExceededException(self, const.USAGE_EXCEEDED_MESSAGE)
+                if self.status_code == 404:
+                    raise exceptions.NotFoundException(self, self.result)
+                raise exceptions.RequestFailedException(self, self._bad_status_message())
+            except exceptions.RequestFailedException as e:
+                if self.status_code == 404:
+                    raise raise_from(exceptions.NotFoundException(self, 'The requested endpoint does not exist.'), e)
+                raise e
         else:
             if self.json_response:
                 self._extract_json_body(result)
@@ -110,7 +114,7 @@ class PolyswarmRequest(object):
 
 class PolyswarmRequestGenerator(object):
     """ This class will return requests-compatible arguments for the API """
-    def __init__(self, api_instance, key, uri, community):
+    def __init__(self, api_instance, uri, community):
         self.api_instance = api_instance
         self.uri = uri
         self.community = community
@@ -135,7 +139,7 @@ class PolyswarmRequestGenerator(object):
                 'stream': True,
             },
             json_response=False,
-            result_parser=polyswarm_api.types.resources.LocalArtifact,
+            result_parser=resources.LocalArtifact,
             output_file=output_file,
             create=create,
         )
@@ -152,7 +156,7 @@ class PolyswarmRequestGenerator(object):
                 'headers': {'Authorization': None}
             },
             json_response=False,
-            result_parser=polyswarm_api.types.resources.LocalArtifact,
+            result_parser=resources.LocalArtifact,
             output_file=output_file,
             create=create,
         )
