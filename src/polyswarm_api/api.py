@@ -43,6 +43,43 @@ class PolyswarmAPI(object):
                 self.executor.push(request.next_page())
                 request = next(self.executor.execute())
 
+    def _resolve_engine_name(self, eth_pub):
+        if not self._engine_map:
+            self._engine_map = next(self.executor.push(self.generator._get_engine_names()).execute()).result
+            self._engine_map = {e.address: e.name for e in self._engine_map}
+        return self._engine_map.get(eth_pub.lower(), eth_pub) if self._engine_map is not None else eth_pub
+
+    def check_version(self):
+        """
+        Checks GitHub to see if you have the latest version installed.
+        TODO this will be re-enabled when better version info is available in the API
+
+        :return: True,latest_version tuple if latest, False,latest_version tuple if not
+        """
+        raise NotImplementedError()
+
+    def wait_for(self, *uuids):
+        """
+        Wait for submissions to scan successfully
+
+        :param uuids: List of UUIDs to wait for
+        :return: ScanResult generator
+        """
+        start = time.time()
+        for uuid in uuids:
+            while True:
+                scan_result = next(self.lookup(uuid))
+
+                if scan_result.ready:
+                    yield scan_result
+                    break
+                elif -1 < self.timeout < time.time() - start:
+                    scan_result.timeout = True
+                    yield scan_result
+                    break
+                else:
+                    time.sleep(3)
+
     def search(self, *hashes, **kwargs):
         """
         Search a list of hashes.
@@ -85,27 +122,7 @@ class PolyswarmAPI(object):
         for request in self.executor.execute():
             yield from self._consume_results(request)
 
-    def download(self, out_dir, *hashes):
-        hashes = [resources.Hash.from_hashable(h) for h in hashes]
-
-        for h in hashes:
-            path = os.path.join(out_dir, h.hash)
-            self.executor.push(self.generator.download(h.hash, h.hash_type, path, create=True))
-
-        for request in self.executor.execute():
-            yield request.result
-
-    def download_to_filehandle(self, h, fh):
-        """
-        Grab the data of artifact indentified by hash, and write the data to a file handle
-        :param h: hash
-        :param fh: file handle
-        :return: DownloadResult object
-        """
-        h = resources.Hash.from_hashable(h)
-        return next(self.executor.push(self.generator.download(h.hash, h.hash_type, fh)).execute()).result
-
-    def submit(self, *artifacts):
+    def submit(self, *artifacts, artifact_type=resources.ArtifactType.FILE):
         """
         Submit artifacts to polyswarm and return UUIDs
 
@@ -113,71 +130,24 @@ class PolyswarmAPI(object):
         :return: SubmitResult generator
         """
         for artifact in artifacts:
-            if not isinstance(artifact, resources.LocalArtifact):
-                artifact = resources.LocalArtifact(path=artifact, artifact_name=os.path.basename(artifact),
-                                                                       analyze=False, polyswarm=self)
-            self.executor.push(self.generator.submit(artifact))
-        for request in self.executor.execute():
-            yield request.result
-
-    def rescan_submit(self, *hashes, **kwargs):
-        """
-        Submit rescans to polyswarm and return UUIDs
-
-        :param artifact_type: What type to use when rescanning artifact
-        :param hashes: Hashable objects (Artifact, local.LocalArtifact, or Hash) or hex-encoded SHA256/SHA1/MD5
-        :return: SubmitResult generator
-        """
-        hashes = [resources.Hash.from_hashable(h) for h in hashes]
-
-        for h in hashes:
-            self.executor.push(self.generator.rescan(h, **kwargs))
-
-        for request in self.executor.execute():
-            yield request.result
-
-    def scan(self, *artifacts):
-        """
-        Submit artifacts to polyswarm and wait for scan results
-
-        :param artifacts: List of local.LocalArtifacts or paths to local files
-        :return: ScanResult generator
-        """
-        for submission in self.submit(*artifacts):
-            yield from self.wait_for(submission.uuid)
-
-    def rescan(self, *hashes, **kwargs):
-        """
-        Rescan artifacts via polyswarm
-
-        :param hashes: Hashable objects (Artifact, local.LocalArtifact, or Hash) or hex-encoded SHA256/SHA1/MD5
-        :param kwargs: Keyword arguments for the scan (none currently supported)
-        :return: ScanResult generator
-        """
-        for submission in self.rescan_submit(*hashes, **kwargs):
-            yield from self.wait_for(submission.uuid)
-
-    def wait_for(self, *uuids):
-        """
-        Wait for submissions to scan successfully
-
-        :param uuids: List of UUIDs to wait for
-        :return: ScanResult generator
-        """
-        start = time.time()
-        for uuid in uuids:
-            while True:
-                scan_result = next(self.lookup(uuid))
-
-                if scan_result.ready:
-                    yield scan_result
-                    break
-                elif -1 < self.timeout < time.time() - start:
-                    scan_result.timeout = True
-                    yield scan_result
-                    break
+            if isinstance(artifact, str):
+                artifact_type = resources.ArtifactType.parse(artifact_type)
+                if artifact_type == resources.ArtifactType.FILE:
+                    path = artifact
+                    artifact_name = os.path.basename(artifact)
+                    content=None
                 else:
-                    time.sleep(3)
+                    path = None
+                    artifact_name = artifact
+                    content = artifact
+                artifact = resources.LocalArtifact(path=path, artifact_name=artifact_name, content=content,
+                                                   artifact_type=artifact_type, analyze=False, polyswarm=self)
+            if isinstance(artifact, resources.LocalArtifact):
+                self.executor.push(self.generator.submit(artifact))
+            else:
+                raise exceptions.InvalidValueException('Artifacts should be a path to a file or a LocalArtifact instance')
+        for request in self.executor.execute():
+            yield request.result
 
     def lookup(self, *uuids):
         """
@@ -188,6 +158,21 @@ class PolyswarmAPI(object):
         """
         for uuid in uuids:
             self.executor.push(self.generator.lookup_uuid(uuid))
+
+        for request in self.executor.execute():
+            yield request.result
+
+    def rescan(self, *hashes, **kwargs):
+        """
+        Submit rescans to polyswarm and return UUIDs
+
+        :param hashes: Hashable objects (Artifact, local.LocalArtifact, or Hash) or hex-encoded SHA256/SHA1/MD5
+        :return: SubmitResult generator
+        """
+        hashes = [resources.Hash.from_hashable(h) for h in hashes]
+
+        for h in hashes:
+            self.executor.push(self.generator.rescan(h, **kwargs))
 
         for request in self.executor.execute():
             yield request.result
@@ -204,39 +189,6 @@ class PolyswarmAPI(object):
 
         for request in self.executor.execute():
             yield request.result
-
-    def scan_urls(self, *urls):
-        """
-        Scan URLs via PolySwarm
-
-        :param urls: URLs to scan
-        :return: ScanResult generator
-        """
-        _urls = []
-
-        for url in urls:
-            if not isinstance(url, resources.LocalArtifact):
-                url = resources.LocalArtifact(content=BytesIO(url.encode("utf8")), artifact_name=url,
-                                              artifact_type=resources.ArtifactType.URL, analyze=False,
-                                              polyswarm=self)
-            _urls.append(url)
-
-        return self.scan(*_urls)
-
-    def _resolve_engine_name(self, eth_pub):
-        if not self._engine_map:
-            self._engine_map = next(self.executor.push(self.generator._get_engine_names()).execute()).result
-            self._engine_map = {e.address: e.name for e in self._engine_map}
-        return self._engine_map.get(eth_pub.lower(), eth_pub) if self._engine_map is not None else eth_pub
-
-    def check_version(self):
-        """
-        Checks GitHub to see if you have the latest version installed.
-        TODO this will be re-enabled when better version info is available in the API
-
-        :return: True,latest_version tuple if latest, False,latest_version tuple if not
-        """
-        raise NotImplementedError()
 
     def live_create(self, rules):
         """
@@ -350,6 +302,26 @@ class PolyswarmAPI(object):
         """
         request = next(self.executor.push(self.generator.historical_hunt_results(hunt_id=hunt_id)).execute())
         yield from self._consume_results(request)
+
+    def download(self, out_dir, *hashes):
+        hashes = [resources.Hash.from_hashable(h) for h in hashes]
+
+        for h in hashes:
+            path = os.path.join(out_dir, h.hash)
+            self.executor.push(self.generator.download(h.hash, h.hash_type, path, create=True))
+
+        for request in self.executor.execute():
+            yield request.result
+
+    def download_to_filehandle(self, h, fh):
+        """
+        Grab the data of artifact indentified by hash, and write the data to a file handle
+        :param h: hash
+        :param fh: file handle
+        :return: DownloadResult object
+        """
+        h = resources.Hash.from_hashable(h)
+        return next(self.executor.push(self.generator.download(h.hash, h.hash_type, fh)).execute()).result
 
     def stream(self, destination=None, since=const.MAX_SINCE_TIME_STREAM):
         """
