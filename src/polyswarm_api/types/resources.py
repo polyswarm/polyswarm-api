@@ -150,7 +150,7 @@ class ArtifactInstance(base.BasePSJSONType, base.BasePSResourceType):
         return self._permalink
 
 
-class ArtifactArchive(base.Hashable, base.BasePSJSONType, base.BasePSResourceType):
+class ArtifactArchive(base.BasePSJSONType, base.BasePSResourceType):
     SCHEMA = types.schemas.artifact_archive_schema
 
     def __init__(self, json, polyswarm=None):
@@ -220,7 +220,7 @@ class LocalArtifact(base.Hashable, base.BasePSResourceType):
         :param analyze: Boolean, if True will run analyses on artifact on startup (Note: this may still run later if False)
         """
         if not (path or content):
-            raise exceptions.InvalidArgumentException("Must provide artifact content, either via path or content argument")
+            raise exceptions.InvalidValueException("Must provide artifact content, either via path or content argument")
 
         self.deleted = False
         self.analyzed = False
@@ -408,7 +408,7 @@ class Artifact(base.Hashable, base.BasePSJSONType, base.BasePSResourceType):
         :return: LocalArtifact instance
         """
         if not any([self.sha256, self.md5, self.sha1]):
-            raise exceptions.InvalidArgumentException('At least one hash type must be defined.')
+            raise exceptions.InvalidValueException('At least one hash type must be defined.')
         result = self.polyswarm.download(self)
         result.artifact = self
         return result
@@ -534,7 +534,7 @@ class YaraRuleset(base.BasePSJSONType):
         super(YaraRuleset, self).__init__(polyswarm)
 
         if not (path or ruleset):
-            raise exceptions.InvalidArgumentException("Must provide artifact content, either via path or content argument")
+            raise exceptions.InvalidValueException("Must provide artifact content, either via path or content argument")
 
         if ruleset:
             self.ruleset = ruleset
@@ -543,12 +543,12 @@ class YaraRuleset(base.BasePSJSONType):
 
     def validate(self):
         if not yara:
-            raise exceptions.exceptions.NotImportedException("Cannot validate rules locally without yara-python")
+            raise exceptions.NotImportedException("Cannot validate rules locally without yara-python")
 
         try:
             yara.compile(source=self.ruleset)
         except yara.SyntaxError as e:
-            raise exceptions.exceptions.InvalidYaraRulesException(*e.args)
+            raise exceptions.InvalidYaraRulesException(*e.args)
 
         return True
 
@@ -639,7 +639,7 @@ def is_valid_sha256(value):
     return is_hex(value)
 
 
-class Hash(base.Hashable):
+class Hash(base.Hashable, base.BasePSType):
     SCHEMA = {'type': ['string', 'null']}
 
     SUPPORTED_HASH_TYPES = {
@@ -648,18 +648,22 @@ class Hash(base.Hashable):
         'md5': is_valid_md5,
     }
 
-    def __init__(self, h, expected_type=None, polyswarm=None):
-        super(Hash, self).__init__()
-        self.polyswarm = polyswarm
-        self._hash_type = Hash.get_hash_type(h)
+    def __init__(self, hash_, hash_type=None, polyswarm=None):
+        super(Hash, self).__init__(polyswarm=polyswarm)
+        hash_ = hash_.strip()
+
+        if hash_type and hash_type not in Hash.SUPPORTED_HASH_TYPES:
+            raise exceptions.InvalidValueException('Hash type provided is not supported.')
+
+        self._hash_type = Hash.get_hash_type(hash_)
 
         if self._hash_type is None:
-            raise exceptions.InvalidHashException("Invalid hash provided: %s", h)
+            raise exceptions.InvalidValueException("Invalid hash provided: %s", hash_)
 
-        if expected_type and self.hash_type != expected_type:
-            raise exceptions.InvalidHashException("Expected sha256, got %s", self.hash_type)
+        if hash_type and self.hash_type != hash_type:
+            raise exceptions.InvalidValueException("Expected hash type %s, got %s", hash_type, self.hash_type)
 
-        self._hash = h
+        self._hash = hash_
 
     @classmethod
     def from_hashable(cls, h, polyswarm=None):
@@ -680,26 +684,6 @@ class Hash(base.Hashable):
             if check(value):
                 return hash_type
         return None
-
-    @classmethod
-    def from_strings(cls, hashes, hash_type=None, hash_file=None):
-
-        hashes = list(hashes)
-
-        # validate 'hash_type' if not None
-        if hash_type and hash_type not in cls.SUPPORTED_HASH_TYPES:
-            logger.error('Hash type not supported.')
-
-        if hash_file:
-            hashes += [h.strip() for h in hash_file.readlines()]
-
-        out = []
-        for h in hashes:
-            try:
-                out.append(cls(h, hash_type))
-            except exceptions.InvalidHashException:
-                logger.warning("Invalid hash %s provided, ignoring.", h)
-        return out
 
     @property
     def raw(self):

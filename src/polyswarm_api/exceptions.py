@@ -36,10 +36,6 @@ class TypeException(PolyswarmAPIException):
     pass
 
 
-class InvalidHashException(TypeException):
-    pass
-
-
 class MissingAPIInstanceException(TypeException):
     pass
 
@@ -52,7 +48,7 @@ class DecodeErrorException(TypeException):
     pass
 
 
-class InvalidArgumentException(TypeException):
+class InvalidValueException(TypeException):
     pass
 
 
