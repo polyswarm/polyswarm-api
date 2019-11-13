@@ -211,7 +211,7 @@ class PolyswarmRequestGenerator(object):
                 'timeout': const.DEFAULT_HTTP_TIMEOUT,
                 'url': self.community_base,
                 'files': {
-                    'file': (artifact.artifact_name, artifact.file_handle),
+                    'file': (artifact.artifact_name, artifact.open()),
                 },
                 # very oddly, when included in files parameter this errors out
                 'data': {'artifact-type': artifact.artifact_type.name}

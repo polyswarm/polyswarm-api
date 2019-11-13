@@ -41,7 +41,7 @@ class ScanTestCaseV2(TestCase):
 
     def test_submission(self):
         api = PolyswarmAPI(self.test_api_key, uri='http://localhost:9696/{}'.format(self.api_version), community='gamma')
-        result = list(api.scan('test/malicious'))
+        result = list(api.submit('test/malicious'))
         assert result[0].status == 'Bounty Awaiting Arbitration'
 
     def test_rescan(self):
@@ -53,7 +53,7 @@ class ScanTestCaseV2(TestCase):
         api = PolyswarmAPI(self.test_api_key, uri='http://localhost:9696/{}/consumer'.format(self.api_version), community='gamma')
         with temp_dir({}) as (path, _):
             result = list(api.download(path, '275a021bbfb6489e54d471899f7db9d1663fc695ec2fe2a2c4538aabf651fd0f'))
-            with result[0].file_handle as f:
+            with result[0].open() as f:
                 assert f.read() == b'X5O!P%@AP[4\\PZX54(P^)7CC)7}$EICAR-STANDARD-ANTIVIRUS-TEST-FILE!$H+H*'
 
     def test_download_to_handle(self):
@@ -68,7 +68,7 @@ class ScanTestCaseV2(TestCase):
         api = PolyswarmAPI(self.test_api_key, uri='http://localhost:9696/{}'.format(self.api_version), community='gamma')
         with temp_dir({}) as (path, _):
             result = list(api.stream(path))
-            with result[0].file_handle as f:
+            with result[0].open() as f:
                 assert f.read() == b'X5O!P%@AP[4\\PZX54(P^)7CC)7}$EICAR-STANDARD-ANTIVIRUS-TEST-FILE!$H+H*'
 
     def test_hash_search(self):
