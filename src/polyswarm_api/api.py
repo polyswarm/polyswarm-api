@@ -28,7 +28,7 @@ class PolyswarmAPI(object):
         """
         self.session = session or http.PolyswarmHTTP(key, retries=const.DEFAULT_RETRIES)
         self.executor = executor or endpoint.PolyswarmFuturesExecutor()
-        self.generator = generator or endpoint.PolyswarmRequestGenerator(self, key, uri, community)
+        self.generator = generator or endpoint.PolyswarmRequestGenerator(self, uri, community)
 
         self.timeout = timeout
         self._engine_map = None
