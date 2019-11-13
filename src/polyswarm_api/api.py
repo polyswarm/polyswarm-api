@@ -68,7 +68,7 @@ class PolyswarmAPI(object):
         :param feature: Feature to use
         :return: SearchResult generator
         """
-        raise NotImplementedError
+        raise NotImplementedError()
 
     def search_by_metadata(self, *queries, **kwargs):
         """
@@ -205,24 +205,6 @@ class PolyswarmAPI(object):
         for request in self.executor.execute():
             yield request.result
 
-    def scan_directory(self, directory, recursive=False):
-        """
-        Scan a directory of files via PolySwarm
-
-        :param directory: Directory to scan
-        :param recursive: Whether to look for files recursively
-        :return: ScanResult generator
-        """
-        if recursive:
-            file_list = [os.path.join(path, file)
-                         for (path, dirs, files) in os.walk(directory)
-                         for file in files if os.path.isfile(os.path.join(path, file))]
-        else:
-            file_list = [os.path.join(directory, file) for file in os.listdir(directory)
-                         if os.path.isfile(os.path.join(directory, file))]
-
-        return self.scan(*file_list)
-
     def scan_urls(self, *urls):
         """
         Scan URLs via PolySwarm
@@ -254,7 +236,7 @@ class PolyswarmAPI(object):
 
         :return: True,latest_version tuple if latest, False,latest_version tuple if not
         """
-        raise NotImplementedError
+        raise NotImplementedError()
 
     def live_create(self, rules):
         """
