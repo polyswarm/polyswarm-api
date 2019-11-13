@@ -45,7 +45,7 @@ class BasePSJSONType(BasePSType):
             raise exceptions.InvalidJSONResponseException("Failed to validate json against schema", json, self.SCHEMA)
 
 
-class BasePSResourceType:
+class BasePSResourceType(BasePSType):
     @classmethod
     def parse_result(cls, api_instance, json_result, **kwargs):
         return cls(json_result, polyswarm=api_instance, **kwargs)
