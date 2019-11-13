@@ -3,7 +3,6 @@ import shutil
 import tempfile
 from contextlib import contextmanager
 
-import pytest
 from polyswarm_api.api import PolyswarmAPI
 
 try:
