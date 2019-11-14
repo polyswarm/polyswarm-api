@@ -16,7 +16,7 @@ from .types import resources
 class PolyswarmAPI(object):
     """A synchronous interface to the public and private PolySwarm APIs."""
 
-    def __init__(self, key, uri='https://api.polyswarm.network/v1', community='lima',
+    def __init__(self, key, uri='https://api.polyswarm.network/v2', community='lima',
                  validate_schemas=False, session=None, executor=None, generator=None):
         """
         :param key: PolySwarm API key
