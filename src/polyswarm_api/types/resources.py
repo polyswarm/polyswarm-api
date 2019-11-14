@@ -279,7 +279,10 @@ class LocalArtifact(base.Hashable, base.BasePSResourceType):
             return self._artifact_name
         return self.hash
 
-    def open(self, *args, mode='rb', **kwargs):
+    # TODO: replace with def open(self, *args, mode='rb', **kwargs):
+    #  once we drop support for python 2.7
+    def open(self, *args, **kwargs):
+        mode = kwargs.pop('mode', 'rb')
         if isinstance(self.path, str):
             self._raise_if_deleted()
             return open(self.path, *args, mode=mode, **kwargs)
