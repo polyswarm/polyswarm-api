@@ -252,7 +252,7 @@ class LocalArtifact(base.Hashable, base.BasePSResourceType):
             parsed_result = cls(path=output_file, artifact_name=file_name, analyze=False, polyswarm=api_instance)
             if create:
                 # TODO: this should be replaced with os.makedirs(path, exist_ok=True)
-                # once we drop support to python 2.7
+                #  once we drop support to python 2.7
                 if not os.path.exists(path):
                     os.makedirs(path)
             with open(output_file, 'wb') as file_handle:

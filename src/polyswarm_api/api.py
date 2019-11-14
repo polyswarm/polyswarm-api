@@ -121,13 +121,16 @@ class PolyswarmAPI(object):
             for result in self._consume_results(request):
                 yield result
 
-    def submit(self, *artifacts, artifact_type=resources.ArtifactType.FILE):
+    # TODO: replace with def submit(self, *artifacts, artifact_type=resources.ArtifactType.FILE):
+    #  once we drop support for python 2.7
+    def submit(self, *artifacts, **kwargs):
         """
         Submit artifacts to polyswarm and return UUIDs
 
         :param artifacts: List of local.LocalArtifacts or paths to local files
         :return: SubmitResult generator
         """
+        artifact_type = kwargs.pop('artifact_type', resources.ArtifactType.FILE)
         for artifact in artifacts:
             if isinstance(artifact, str):
                 artifact_type = resources.ArtifactType.parse(artifact_type)
@@ -145,6 +148,7 @@ class PolyswarmAPI(object):
                 self.executor.push(self.generator.submit(artifact))
             else:
                 raise exceptions.InvalidValueException('Artifacts should be a path to a file or a LocalArtifact instance')
+        # TODO: this should be replaced by yield from self.executor.execute() once we drop support for python 2.7
         for request in self.executor.execute():
             yield request.result
 
@@ -158,6 +162,7 @@ class PolyswarmAPI(object):
         for uuid in uuids:
             self.executor.push(self.generator.lookup_uuid(uuid))
 
+        # TODO: this should be replaced by yield from self.executor.execute() once we drop support for python 2.7
         for request in self.executor.execute():
             yield request.result
 
@@ -173,6 +178,7 @@ class PolyswarmAPI(object):
         for h in hashes:
             self.executor.push(self.generator.rescan(h, **kwargs))
 
+        # TODO: this should be replaced by yield from self.executor.execute() once we drop support for python 2.7
         for request in self.executor.execute():
             yield request.result
 
@@ -186,6 +192,7 @@ class PolyswarmAPI(object):
         for uuid in uuids:
             self.executor.push(self.generator.score(uuid))
 
+        # TODO: this should be replaced by yield from self.executor.execute() once we drop support for python 2.7
         for request in self.executor.execute():
             yield request.result
 
@@ -311,6 +318,7 @@ class PolyswarmAPI(object):
             path = os.path.join(out_dir, h.hash)
             self.executor.push(self.generator.download(h.hash, h.hash_type, path, create=True))
 
+        # TODO: this should be replaced by yield from self.executor.execute() once we drop support for python 2.7
         for request in self.executor.execute():
             yield request.result
 
