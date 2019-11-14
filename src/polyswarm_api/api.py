@@ -16,8 +16,8 @@ from .types import resources
 class PolyswarmAPI(object):
     """A synchronous interface to the public and private PolySwarm APIs."""
 
-    def __init__(self, key, uri='https://api.polyswarm.network/v1', timeout=const.DEFAULT_SCAN_TIMEOUT,
-                 community='lima', validate_schemas=False, session=None, executor=None, generator=None):
+    def __init__(self, key, uri='https://api.polyswarm.network/v1', community='lima',
+                 validate_schemas=False, session=None, executor=None, generator=None):
         """
         :param key: PolySwarm API key
         :param uri: PolySwarm API URI
@@ -28,8 +28,6 @@ class PolyswarmAPI(object):
         self.session = session or http.PolyswarmHTTP(key, retries=const.DEFAULT_RETRIES)
         self.executor = executor or endpoint.PolyswarmFuturesExecutor()
         self.generator = generator or endpoint.PolyswarmRequestGenerator(self, uri, community)
-
-        self.timeout = timeout
         self._engine_map = None
         self.validate = validate_schemas
 
@@ -57,7 +55,7 @@ class PolyswarmAPI(object):
         """
         raise NotImplementedError()
 
-    def wait_for(self, *uuids):
+    def wait_for(self, uuid, timeout=const.DEFAULT_SCAN_TIMEOUT):
         """
         Wait for submissions to scan successfully
 
@@ -65,19 +63,14 @@ class PolyswarmAPI(object):
         :return: ScanResult generator
         """
         start = time.time()
-        for uuid in uuids:
-            while True:
-                scan_result = next(self.lookup(uuid))
-
-                if scan_result.ready:
-                    yield scan_result
-                    break
-                elif -1 < self.timeout < time.time() - start:
-                    scan_result.timeout = True
-                    yield scan_result
-                    break
-                else:
-                    time.sleep(3)
+        while True:
+            scan_result = next(self.lookup(uuid))
+            if scan_result.failed or scan_result.ready:
+                return scan_result
+            elif -1 < timeout < time.time() - start:
+                raise exceptions.TimeoutException()
+            else:
+                time.sleep(3)
 
     def search(self, *hashes, **kwargs):
         """
