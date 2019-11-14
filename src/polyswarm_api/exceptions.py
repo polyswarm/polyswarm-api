@@ -1,25 +1,30 @@
-class PolyswarmAPIException(Exception):
+class PolyswarmException(Exception):
     pass
+
+
+#########################################
+# API layer exceptions
+#########################################
+
+class PolyswarmAPIException(PolyswarmException):
+    pass
+
+
+class TimeoutException(PolyswarmAPIException):
+    pass
+
 
 #########################################
 # Request layer exceptions
 #########################################
 
-class RequestFailedException(PolyswarmAPIException):
+class RequestFailedException(PolyswarmException):
     def __init__(self, request, *args, **kwargs):
         super(RequestFailedException, self).__init__(*args, **kwargs)
         self.request = request
 
 
 class UsageLimitsExceededException(RequestFailedException):
-    pass
-
-
-class BadFormatException(PolyswarmAPIException):
-    pass
-
-
-class ServerErrorException(PolyswarmAPIException):
     pass
 
 
@@ -32,7 +37,7 @@ class NotFoundException(RequestFailedException):
 #########################################
 
 
-class TypeException(PolyswarmAPIException):
+class TypeException(PolyswarmException):
     pass
 
 
