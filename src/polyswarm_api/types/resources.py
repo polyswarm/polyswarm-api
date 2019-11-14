@@ -18,10 +18,10 @@ except ImportError:
     yara = None
 
 from polyswarm_api import exceptions
-from polyswarm_api import types
 from polyswarm_api import const
-from polyswarm_api.types import base
-from polyswarm_api.types import schemas
+from . import base
+from . import schemas
+from . import date
 
 logger = logging.getLogger(__name__)
 
@@ -32,7 +32,7 @@ logger = logging.getLogger(__name__)
 
 
 class Submission(base.BasePSJSONType, base.BasePSResourceType):
-    SCHEMA = types.schemas.bounty_schema
+    SCHEMA = schemas.bounty_schema
 
     def __init__(self, json, polyswarm=None):
         super(Submission, self).__init__(json=json, polyswarm=polyswarm)
@@ -63,7 +63,7 @@ class Submission(base.BasePSJSONType, base.BasePSResourceType):
 
 
 class PolyScore(base.BasePSJSONType, base.BasePSResourceType):
-    SCHEMA = types.schemas.polyscore_schema
+    SCHEMA = schemas.polyscore_schema
 
     def __init__(self, json, polyswarm=None):
         super(PolyScore, self).__init__(json=json, polyswarm=polyswarm)
@@ -82,7 +82,7 @@ class Engine(base.BasePSJSONType, base.BasePSResourceType):
 
 
 class ArtifactInstance(base.BasePSJSONType, base.BasePSResourceType):
-    SCHEMA = types.schemas.artifact_instance_schema
+    SCHEMA = schemas.artifact_instance_schema
 
     def __init__(self, json, polyswarm=None):
         super(ArtifactInstance, self).__init__(json=json, polyswarm=polyswarm)
@@ -94,12 +94,12 @@ class ArtifactInstance(base.BasePSJSONType, base.BasePSResourceType):
         self.assertions = [Assertion(self, a, polyswarm) for a in json['assertions']]
         self.country = json['country']
         self.community = json['community']
-        self.created = types.date.parse_isoformat(json['created'])
+        self.created = date.parse_isoformat(json['created'])
         self.extended_type = json['extended_type']
         self.failed = json['failed']
         self.filename = json['filename']
         self.first_seen = json['first_seen']
-        self.last_seen = types.date.parse_isoformat(json['last_seen'])
+        self.last_seen = date.parse_isoformat(json['last_seen'])
         self.md5 = json['md5']
         self.metadata = ArtifactMetadata(self, json.get('artifact_metadata', {}), polyswarm)
         self.mimetype = json['mimetype']
@@ -153,37 +153,37 @@ class ArtifactInstance(base.BasePSJSONType, base.BasePSResourceType):
 
 
 class ArtifactArchive(base.BasePSJSONType, base.BasePSResourceType):
-    SCHEMA = types.schemas.artifact_archive_schema
+    SCHEMA = schemas.artifact_archive_schema
 
     def __init__(self, json, polyswarm=None):
         super(ArtifactArchive, self).__init__(json=json, polyswarm=polyswarm)
         self.id = json['id']
         self.community = json['community']
-        self.created = types.date.parse_isoformat(json['created'])
+        self.created = date.parse_isoformat(json['created'])
         self.s3_path = json['s3_path']
 
 
 class Hunt(base.BasePSJSONType, base.BasePSResourceType):
-    SCHEMA = types.schemas.hunt_status
+    SCHEMA = schemas.hunt_status
 
     def __init__(self, json, polyswarm=None):
         super(Hunt, self).__init__(json=json, polyswarm=polyswarm)
         # active only present for live hunts
         self.id = json['id']
-        self.created = types.date.parse_isoformat(json['created'])
+        self.created = date.parse_isoformat(json['created'])
         self.status = json['status']
         self.active = json.get('active')
 
 
 class HuntResult(base.BasePSJSONType, base.BasePSResourceType):
-    SCHEMA = types.schemas.hunt_result
+    SCHEMA = schemas.hunt_result
 
     def __init__(self, json, polyswarm=None):
         super(HuntResult, self).__init__(json=json, polyswarm=polyswarm)
         self.id = json['id']
         self.rule_name = json['rule_name']
         self.tags = json['tags']
-        self.created = types.date.parse_isoformat(json['created'])
+        self.created = date.parse_isoformat(json['created'])
         self.sha256 = json['sha256']
         self.historicalscan_id = json['historicalscan_id']
         self.livescan_id = json['livescan_id']
@@ -327,7 +327,7 @@ class LocalArtifact(base.Hashable, base.BasePSResourceType):
 
 
 class Artifact(base.Hashable, base.BasePSJSONType, base.BasePSResourceType):
-    SCHEMA = types.schemas.artifact_schema
+    SCHEMA = schemas.artifact_schema
 
     def __init__(self, json, polyswarm=None):
         """
@@ -346,7 +346,7 @@ class Artifact(base.Hashable, base.BasePSJSONType, base.BasePSResourceType):
 
         self.mimetype = json['mimetype']
         self.extended_type = json['extended_type']
-        self.first_seen = types.date.parse_isoformat(json['first_seen'])
+        self.first_seen = date.parse_isoformat(json['first_seen'])
         self.id = json['id']
         self.sha256 = Hash(json['sha256'], 'sha256', polyswarm)
         self.sha1 = Hash(json['sha1'], 'sha1', polyswarm)
@@ -459,7 +459,7 @@ class Artifact(base.Hashable, base.BasePSJSONType, base.BasePSResourceType):
 
 
 class Assertion(base.BasePSJSONType):
-    SCHEMA = types.schemas.assertion_schema
+    SCHEMA = schemas.assertion_schema
 
     def __init__(self, scanfile, json, polyswarm=None):
         super(Assertion, self).__init__(json=json, polyswarm=polyswarm)
@@ -478,7 +478,7 @@ class Assertion(base.BasePSJSONType):
 
 
 class Vote(base.BasePSJSONType):
-    SCHEMA = types.schemas.vote_schema
+    SCHEMA = schemas.vote_schema
 
     def __init__(self, scanfile, json, polyswarm=None):
         super(Vote, self).__init__(json=json, polyswarm=polyswarm)
@@ -491,7 +491,7 @@ class Vote(base.BasePSJSONType):
 
 
 class ArtifactMetadata(base.BasePSJSONType):
-    SCHEMA = types.schemas.artifact_metadata
+    SCHEMA = schemas.artifact_metadata
 
     def __init__(self, artifact, json, polyswarm=None):
         super(ArtifactMetadata, self).__init__(json=json, polyswarm=polyswarm)
