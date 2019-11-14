@@ -39,7 +39,7 @@ class Submission(base.BasePSJSONType, base.BasePSResourceType):
         self.uuid = json['uuid']
         self.community = json.get('community')
         self.country = json.get('country')
-        self.files = [ArtifactInstance(f, polyswarm) for f in json['instances']]
+        self.instances = [ArtifactInstance(f, polyswarm) for f in json['instances']]
 
         self._permalink = None
 
@@ -259,7 +259,7 @@ class LocalArtifact(base.Hashable, base.BasePSResourceType):
                 for chunk in result.iter_content(chunk_size=const.DOWNLOAD_CHUNK_SIZE):
                     file_handle.write(chunk)
         else:
-            parsed_result = cls(content=output_file, analyze=False, polyswarm=api_instance)
+            parsed_result = cls(path=output_file, analyze=False, polyswarm=api_instance)
             for chunk in result.iter_content(chunk_size=const.DOWNLOAD_CHUNK_SIZE):
                 output_file.write(chunk)
         return parsed_result
@@ -280,8 +280,11 @@ class LocalArtifact(base.Hashable, base.BasePSResourceType):
         return self.hash
 
     def open(self, *args, mode='rb', **kwargs):
-        self._raise_if_deleted()
-        return open(self.path, *args, mode=mode, **kwargs)
+        if isinstance(self.path, str):
+            self._raise_if_deleted()
+            return open(self.path, *args, mode=mode, **kwargs)
+        else:
+            return self.path
 
     def analyze_artifact(self, force=False):
         self._raise_if_deleted()

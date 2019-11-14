@@ -1,6 +1,5 @@
 import time
 import os
-from io import BytesIO
 
 try:
     from urllib.parse import urlparse
