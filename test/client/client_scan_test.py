@@ -68,7 +68,7 @@ class ScanTestCaseV2(TestCase):
             with result[0].open() as f:
                 assert f.read() == b'X5O!P%@AP[4\\PZX54(P^)7CC)7}$EICAR-STANDARD-ANTIVIRUS-TEST-FILE!$H+H*'
 
-    # @responses.activate
+    @responses.activate
     def test_download_to_handle(self):
         responses.add(responses.Response(responses.GET, 'http://localhost:9696/v2/consumer/download/sha256/275a021bbfb6489e54d471899f7db9d1663fc695ec2fe2a2c4538aabf651fd0f',
                                          body=b'X5O!P%@AP[4\\PZX54(P^)7CC)7}$EICAR-STANDARD-ANTIVIRUS-TEST-FILE!$H+H*'))
