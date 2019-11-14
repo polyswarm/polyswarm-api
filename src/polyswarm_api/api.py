@@ -92,7 +92,8 @@ class PolyswarmAPI(object):
             self.executor.push(self.generator.search_hash(h, **kwargs))
 
         for request in self.executor.execute():
-            yield from self._consume_results(request)
+            for result in self._consume_results(request):
+                yield result
 
     def search_by_feature(self, feature, *artifacts):
         """
@@ -117,7 +118,8 @@ class PolyswarmAPI(object):
             self.executor.push(self.generator.search_metadata(query, **kwargs))
 
         for request in self.executor.execute():
-            yield from self._consume_results(request)
+            for result in self._consume_results(request):
+                yield result
 
     def submit(self, *artifacts, artifact_type=resources.ArtifactType.FILE):
         """
@@ -246,7 +248,8 @@ class PolyswarmAPI(object):
         :return: HuntResult object
         """
         request = next(self.executor.push(self.generator.live_hunt_results(hunt_id=hunt_id, since=since)).execute())
-        yield from self._consume_results(request)
+        for result in self._consume_results(request):
+            yield result
 
     def historical_create(self, rules):
         """
@@ -298,7 +301,8 @@ class PolyswarmAPI(object):
         :return: HuntResult object
         """
         request = next(self.executor.push(self.generator.historical_hunt_results(hunt_id=hunt_id)).execute())
-        yield from self._consume_results(request)
+        for result in self._consume_results(request):
+            yield result
 
     def download(self, out_dir, *hashes):
         hashes = [resources.Hash.from_hashable(h) for h in hashes]
