@@ -33,9 +33,14 @@ class PolyswarmAPI(object):
 
     def _consume_results(self, request):
         while True:
-            yield from request.result
+            # consume items from the list
+            for result in request.result:
+                yield result
+            # if the list is empty, stop
+            # this could be a check for len(items) < page_size to avoid an extra request
             if not request.result:
                 break
+            # if not, get the next page as there might be more items
             else:
                 self.executor.push(request.next_page())
                 request = next(self.executor.execute())
