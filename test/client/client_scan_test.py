@@ -4,6 +4,8 @@ import tempfile
 import responses
 from contextlib import contextmanager
 
+from future.utils import string_types
+
 from polyswarm_api.api import PolyswarmAPI
 
 try:
@@ -27,7 +29,7 @@ def temp_dir(files_dict):
     with TemporaryDirectory() as tmp_dir:
         files = []
         for file_name, file_content in files_dict.items():
-            mode = 'w' if isinstance(file_content, str) else 'wb'
+            mode = 'w' if isinstance(file_content, string_types) else 'wb'
             file_path = os.path.join(tmp_dir, file_name)
             open(file_path, mode=mode).write(file_content)
             files.append(file_path)

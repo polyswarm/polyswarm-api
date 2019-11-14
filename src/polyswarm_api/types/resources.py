@@ -6,7 +6,7 @@ from binascii import unhexlify
 from enum import Enum
 from hashlib import sha256 as _sha256, sha1 as _sha1, md5 as _md5
 
-from future.utils import raise_from
+from future.utils import raise_from, string_types
 from jsonschema import validate, ValidationError
 from ordered_set import OrderedSet
 
@@ -225,7 +225,7 @@ class LocalArtifact(base.Hashable, base.BasePSResourceType):
             raise exceptions.InvalidValueException("Must provide either a path to a file or the artifact content")
 
         if content is not None:
-            if isinstance(content, str):
+            if isinstance(content, string_types):
                 content = content.encode("utf8")
             with tempfile.NamedTemporaryFile(delete=False) as file:
                 self.path = file.name
@@ -248,7 +248,7 @@ class LocalArtifact(base.Hashable, base.BasePSResourceType):
 
     @classmethod
     def parse_result(cls, api_instance, result, output_file=None, create=False):
-        if isinstance(output_file, str):
+        if isinstance(output_file, string_types):
             path, file_name = os.path.split(output_file)
             parsed_result = cls(path=output_file, artifact_name=file_name, analyze=False, polyswarm=api_instance)
             if create:
@@ -284,7 +284,7 @@ class LocalArtifact(base.Hashable, base.BasePSResourceType):
     #  once we drop support for python 2.7
     def open(self, *args, **kwargs):
         mode = kwargs.pop('mode', 'rb')
-        if isinstance(self.path, str):
+        if isinstance(self.path, string_types):
             self._raise_if_deleted()
             return open(self.path, *args, mode=mode, **kwargs)
         else:

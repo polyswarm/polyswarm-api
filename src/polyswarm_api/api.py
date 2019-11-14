@@ -6,6 +6,8 @@ try:
 except ImportError:
     from urlparse import urlparse
 
+from future.utils import string_types
+
 from . import exceptions
 from . import const
 from . import endpoint
@@ -132,7 +134,7 @@ class PolyswarmAPI(object):
         """
         artifact_type = kwargs.pop('artifact_type', resources.ArtifactType.FILE)
         for artifact in artifacts:
-            if isinstance(artifact, str):
+            if isinstance(artifact, string_types):
                 artifact_type = resources.ArtifactType.parse(artifact_type)
                 if artifact_type == resources.ArtifactType.FILE:
                     path = artifact
