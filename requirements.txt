@@ -9,3 +9,4 @@ responses==0.10.6
 python-dateutil==2.8.1
 future==0.18.2
 bump2version==0.5.11
+deepdiff==3.3.0
