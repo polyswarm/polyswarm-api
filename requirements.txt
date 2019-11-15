@@ -5,7 +5,6 @@ ordered-set==3.1.1
 futures==3.3.0; python_version < '3.0'
 enum34==1.1.6; python_version < '3.0'
 mock==3.0.4; python_version < '3.0'
-requests_mock==1.7.0
 responses==0.10.6
 python-dateutil==2.8.1
 future==0.18.2

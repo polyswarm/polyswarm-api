@@ -21,9 +21,10 @@ setup(
     install_requires=[
         'requests==2.22.0',
         'pytest==3.9.2',
-        'requests-futures==1.0.0',
         'jsonschema==3.0.2',
         'ordered-set==3.1.1',
+        'future==0.18.2',
+        'python-dateutil==2.8.1',
     ],
     extras_require={':python_version < "3.0"': ['futures==3.3.0', 'enum34==1.1.6', 'mock==3.0.4']},
     include_package_data=True,
