@@ -63,51 +63,49 @@ class PolyswarmRequest(object):
                                     self.result)
 
     def _extract_json_body(self, result):
-        try:
-            self.json = result.json()
-            self.result = self.json.get('result')
-            self.status = self.json.get('status')
-            self.errors = self.json.get('errors')
-        except JSONDecodeError as e:
-            raise raise_from(exceptions.RequestFailedException(self, 'Server returned non-JSON response.'), e)
+        self.json = result.json()
+        self.result = self.json.get('result')
+        self.status = self.json.get('status')
+        self.errors = self.json.get('errors')
 
     def parse_result(self, result):
         self.status_code = result.status_code
-        if self.status_code // 100 != 2:
-            try:
+        try:
+            if self.status_code // 100 != 2:
                 self._extract_json_body(result)
                 if self.status_code == 429:
                     raise exceptions.UsageLimitsExceededException(self, const.USAGE_EXCEEDED_MESSAGE)
                 if self.status_code == 404:
                     raise exceptions.NotFoundException(self, self.result)
                 raise exceptions.RequestFailedException(self, self._bad_status_message())
-            except exceptions.RequestFailedException as e:
-                if self.status_code == 404:
-                    raise raise_from(exceptions.NotFoundException(self, 'The requested endpoint does not exist.'), e)
-                raise e
-        else:
-            if self.json_response:
-                self._extract_json_body(result)
-                self.total = self.json.get('total')
-                self.limit = self.json.get('limit')
-                self.offset = self.json.get('offset')
-                self.order_by = self.json.get('order_by')
-                self.direction = self.json.get('direction')
-                if 'result' in self.json:
-                    result = self.json['result']
-                elif 'results' in self.json:
-                    result = self.json['results']
-                else:
-                    raise exceptions.RequestFailedException(
-                        self,
-                        'The response standard must contain either the "result" or "results" key.'
-                    )
-                if isinstance(result, list):
-                    self.result = self.result_parser.parse_result_list(self.api_instance, result, **self.parser_kwargs)
+            else:
+                if self.json_response:
+                    self._extract_json_body(result)
+                    self.total = self.json.get('total')
+                    self.limit = self.json.get('limit')
+                    self.offset = self.json.get('offset')
+                    self.order_by = self.json.get('order_by')
+                    self.direction = self.json.get('direction')
+                    if 'result' in self.json:
+                        result = self.json['result']
+                    elif 'results' in self.json:
+                        result = self.json['results']
+                    else:
+                        raise exceptions.RequestFailedException(
+                            self,
+                            'The response standard must contain either the "result" or "results" key.'
+                        )
+                    if isinstance(result, list):
+                        self.result = self.result_parser.parse_result_list(self.api_instance, result, **self.parser_kwargs)
+                    else:
+                        self.result = self.result_parser.parse_result(self.api_instance, result, **self.parser_kwargs)
                 else:
                     self.result = self.result_parser.parse_result(self.api_instance, result, **self.parser_kwargs)
+        except JSONDecodeError as e:
+            if self.status_code == 404:
+                raise raise_from(exceptions.NotFoundException(self, 'The requested endpoint does not exist.'), e)
             else:
-                self.result = self.result_parser.parse_result(self.api_instance, result, **self.parser_kwargs)
+                raise raise_from(exceptions.RequestFailedException(self, 'Server returned non-JSON response.'), e)
 
     def next_page(self):
         new_parameters = deepcopy(self.request_parameters)
