@@ -18,6 +18,14 @@ except ImportError:
 logger = logging.getLogger(__name__)
 
 
+class RequestParamsEncoder(json.JSONEncoder):
+    def default(self, obj):
+        try:
+            return json.JSONEncoder.default(self, obj)
+        except Exception:
+            return str(obj)
+
+
 class PolyswarmRequest(object):
     """This class holds a requests-compatible dictionary and extra infor we need to parse the reponse."""
     def __init__(self, api_instance, request_parameters, key=None, result_parser=None, json_response=True, **kwargs):
@@ -49,7 +57,8 @@ class PolyswarmRequest(object):
     def _bad_status_message(self):
         return "Request:\n{}\n" \
                "Got unexpected result code: {}\n" \
-               "Message: {}".format(json.dumps(self.request_parameters, indent=4, sort_keys=True),
+               "Message: {}".format(json.dumps(self.request_parameters, indent=4,
+                                               sort_keys=True, cls=RequestParamsEncoder),
                                     self.status_code,
                                     self.result)
 
