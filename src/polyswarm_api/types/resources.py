@@ -98,8 +98,8 @@ class ArtifactInstance(base.BasePSJSONType, base.BasePSResourceType):
         self.extended_type = json['extended_type']
         self.failed = json['failed']
         self.filename = json['filename']
-        self.first_seen = json['first_seen']
         self.last_seen = date.parse_isoformat(json['last_seen'])
+        self.first_seen = date.parse_isoformat(json['first_seen'])
         self.md5 = json['md5']
         self.metadata = ArtifactMetadata(self, json.get('artifact_metadata', {}), polyswarm)
         self.mimetype = json['mimetype']
@@ -347,6 +347,7 @@ class Artifact(base.Hashable, base.BasePSJSONType, base.BasePSResourceType):
         self.mimetype = json['mimetype']
         self.extended_type = json['extended_type']
         self.first_seen = date.parse_isoformat(json['first_seen'])
+        self.last_seen = date.parse_isoformat(json['last_seen'])
         self.id = json['id']
         self.sha256 = Hash(json['sha256'], 'sha256', polyswarm)
         self.sha1 = Hash(json['sha1'], 'sha1', polyswarm)
