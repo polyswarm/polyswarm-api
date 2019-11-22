@@ -49,7 +49,7 @@ class PolyswarmAPI(object):
 
     def _resolve_engine_name(self, eth_pub):
         if not self._engine_map:
-            self._engine_map = next(self.executor.push(self.generator._get_engine_names()).execute()).result
+            self._engine_map = self.generator._get_engine_names().execute().result
             self._engine_map = {e.address: e.name for e in self._engine_map}
         return self._engine_map.get(eth_pub.lower(), eth_pub) if self._engine_map is not None else eth_pub
 
@@ -212,7 +212,7 @@ class PolyswarmAPI(object):
         except exceptions.NotImportedException:
             # for now, we do nothing to avoid nagging the user
             pass
-        return next(self.executor.push(self.generator.create_live_hunt(rules)).execute()).result
+        return self.generator.create_live_hunt(rules).execute().result
 
     def live_get(self, hunt_id=None):
         """
@@ -221,7 +221,7 @@ class PolyswarmAPI(object):
         :param hunt_id: Hunt ID
         :return: HuntDeletionResult object
         """
-        return next(self.executor.push(self.generator.get_live_hunt(hunt_id)).execute()).result
+        return self.generator.get_live_hunt(hunt_id).execute().result
 
     def live_update(self, hunt_id=None):
         """
@@ -230,7 +230,7 @@ class PolyswarmAPI(object):
         :param hunt_id: Hunt ID
         :return: HuntDeletionResult object
         """
-        return next(self.executor.push(self.generator.update_live_hunt(hunt_id)).execute()).result
+        return self.generator.update_live_hunt(hunt_id).execute().result
 
     def live_delete(self, hunt_id=None):
         """
@@ -239,7 +239,7 @@ class PolyswarmAPI(object):
         :param hunt_id: Hunt ID
         :return: HuntDeletionResult object
         """
-        return next(self.executor.push(self.generator.delete_live_hunt(hunt_id)).execute()).result
+        return self.generator.delete_live_hunt(hunt_id).execute().result
 
     def live_list(self):
         """
@@ -247,7 +247,7 @@ class PolyswarmAPI(object):
 
         :return: HuntListResult object
         """
-        return self._consume_results(next(self.executor.push(self.generator.live_list()).execute()))
+        return self._consume_results(self.generator.live_list().execute())
 
     def live_results(self, hunt_id=None, since=None):
         """
@@ -256,7 +256,7 @@ class PolyswarmAPI(object):
         :param hunt_id: ID of the hunt (None if latest rule results are desired)
         :return: HuntResult object
         """
-        request = next(self.executor.push(self.generator.live_hunt_results(hunt_id=hunt_id, since=since)).execute())
+        request = self.generator.live_hunt_results(hunt_id=hunt_id, since=since).execute()
         for result in self._consume_results(request):
             yield result
 
@@ -274,7 +274,7 @@ class PolyswarmAPI(object):
         except exceptions.NotImportedException:
             # for now, we do nothing to avoid nagging the user
             pass
-        return next(self.executor.push(self.generator.create_historical_hunt(rules)).execute()).result
+        return self.generator.create_historical_hunt(rules).execute().result
 
     def historical_get(self, hunt_id=None):
         """
@@ -283,7 +283,7 @@ class PolyswarmAPI(object):
         :param hunt_id: Hunt ID
         :return: HuntDeletionResult object
         """
-        return next(self.executor.push(self.generator.get_historical_hunt(hunt_id)).execute()).result
+        return self.generator.get_historical_hunt(hunt_id).execute().result
 
     def historical_delete(self, hunt_id):
         """
@@ -292,7 +292,7 @@ class PolyswarmAPI(object):
         :param hunt_id: Hunt ID
         :return: HuntDeletionResult object
         """
-        return next(self.executor.push(self.generator.delete_historical_hunt(hunt_id)).execute()).result
+        return self.generator.delete_historical_hunt(hunt_id).execute().result
 
     def historical_list(self):
         """
@@ -300,7 +300,7 @@ class PolyswarmAPI(object):
 
         :return: HuntListResult object
         """
-        return self._consume_results(next(self.executor.push(self.generator.historical_list()).execute()))
+        return self._consume_results(self.generator.historical_list().execute())
 
     def historical_results(self, hunt_id=None):
         """
@@ -309,7 +309,7 @@ class PolyswarmAPI(object):
         :param hunt_id: ID of the hunt (None if latest hunt results are desired)
         :return: HuntResult object
         """
-        request = next(self.executor.push(self.generator.historical_hunt_results(hunt_id=hunt_id)).execute())
+        request = self.generator.historical_hunt_results(hunt_id=hunt_id).execute()
         for result in self._consume_results(request):
             yield result
 
@@ -332,7 +332,7 @@ class PolyswarmAPI(object):
         :return: DownloadResult object
         """
         h = resources.Hash.from_hashable(h)
-        return next(self.executor.push(self.generator.download(h.hash, h.hash_type, fh)).execute()).result
+        return self.generator.download(h.hash, h.hash_type, fh).execute().result
 
     def stream(self, destination=None, since=const.MAX_SINCE_TIME_STREAM):
         """
@@ -342,7 +342,7 @@ class PolyswarmAPI(object):
         :param since: How far back to grab artifacts in minutes (up to 2 days)
         :return: DownloadResult generator
         """
-        request = next(self.executor.push(self.generator.stream(since=since)).execute())
+        request = self.generator.stream(since=since).execute()
         for local_archive in self._consume_results(request):
             path = os.path.join(destination, os.path.basename(urlparse(local_archive.s3_path).path))
 
