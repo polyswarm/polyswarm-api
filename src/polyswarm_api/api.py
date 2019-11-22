@@ -44,8 +44,7 @@ class PolyswarmAPI(object):
                 break
             # if not, get the next page as there might be more items
             else:
-                self.executor.push(request.next_page())
-                request = next(self.executor.execute())
+                request = request.next_page().execute()
 
     def _resolve_engine_name(self, eth_pub):
         if not self._engine_map:
@@ -256,9 +255,7 @@ class PolyswarmAPI(object):
         :param hunt_id: ID of the hunt (None if latest rule results are desired)
         :return: HuntResult object
         """
-        request = self.generator.live_hunt_results(hunt_id=hunt_id, since=since).execute()
-        for result in self._consume_results(request):
-            yield result
+        return self._consume_results(self.generator.live_hunt_results(hunt_id=hunt_id, since=since).execute())
 
     def historical_create(self, rules):
         """
@@ -309,9 +306,7 @@ class PolyswarmAPI(object):
         :param hunt_id: ID of the hunt (None if latest hunt results are desired)
         :return: HuntResult object
         """
-        request = self.generator.historical_hunt_results(hunt_id=hunt_id).execute()
-        for result in self._consume_results(request):
-            yield result
+        return self._consume_results(self.generator.historical_hunt_results(hunt_id=hunt_id).execute())
 
     def download(self, out_dir, *hashes):
         hashes = [resources.Hash.from_hashable(h) for h in hashes]
@@ -345,7 +340,7 @@ class PolyswarmAPI(object):
         request = self.generator.stream(since=since).execute()
         for local_archive in self._consume_results(request):
             path = os.path.join(destination, os.path.basename(urlparse(local_archive.s3_path).path))
-
             self.executor.push(self.generator.download_archive(local_archive.s3_path, path, create=True))
-            local_artifact = next(self.executor.execute()).result
-            yield local_artifact
+
+        for request in self.executor.execute():
+            yield request.result
