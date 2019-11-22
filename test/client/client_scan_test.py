@@ -86,11 +86,11 @@ class ScanTestCaseV2(TestCase):
         responses.add(responses.Response(responses.GET, 'http://localhost:9696/v2/consumer/download/stream?since=2880',
                                          json={'limit': 50, 'offset': 0, 'result': [{'community': 'gamma', 'created': '2019-11-28T18:04:38.923000', 'id': '67497956521144077', 's3_path': 'http://minio:9000/testing/testing/files/27/5a/02/275a021bbfb6489e54d471899f7db9d1663fc695ec2fe2a2c4538aabf651fd0f?response-content-disposition=attachment%3B%20filename%3Dtesting%2Ffiles%2F27%2F5a%2F02%2F275a021bbfb6489e54d471899f7db9d1663fc695ec2fe2a2c4538aabf651fd0f&response-content-type=application%2Foctet-stream&AWSAccessKeyId=AKIAIOSFODNN7EXAMPLE&Signature=VLCdYUh8skB6cRqo7RUfGrycsKo%3D&Expires=1573768889'}], 'status': 'OK'}
                                          ))
-        responses.add(responses.Response(responses.GET, 'http://minio:9000/testing/testing/files/27/5a/02/275a021bbfb6489e54d471899f7db9d1663fc695ec2fe2a2c4538aabf651fd0f?response-content-disposition=attachment%3B%20filename%3Dtesting%2Ffiles%2F27%2F5a%2F02%2F275a021bbfb6489e54d471899f7db9d1663fc695ec2fe2a2c4538aabf651fd0f&response-content-type=application%2Foctet-stream&AWSAccessKeyId=AKIAIOSFODNN7EXAMPLE&Signature=VLCdYUh8skB6cRqo7RUfGrycsKo%3D&Expires=1573768889',
-                                         body=b'X5O!P%@AP[4\\PZX54(P^)7CC)7}$EICAR-STANDARD-ANTIVIRUS-TEST-FILE!$H+H*'
-                                         ))
         responses.add(responses.Response(responses.GET, 'http://localhost:9696/v2/consumer/download/stream?since=2880&offset=50&limit=50',
                                          json={'limit': 50, 'offset': 50, 'result': [], 'status': 'OK'}
+                                         ))
+        responses.add(responses.Response(responses.GET, 'http://minio:9000/testing/testing/files/27/5a/02/275a021bbfb6489e54d471899f7db9d1663fc695ec2fe2a2c4538aabf651fd0f?response-content-disposition=attachment%3B%20filename%3Dtesting%2Ffiles%2F27%2F5a%2F02%2F275a021bbfb6489e54d471899f7db9d1663fc695ec2fe2a2c4538aabf651fd0f&response-content-type=application%2Foctet-stream&AWSAccessKeyId=AKIAIOSFODNN7EXAMPLE&Signature=VLCdYUh8skB6cRqo7RUfGrycsKo%3D&Expires=1573768889',
+                                         body=b'X5O!P%@AP[4\\PZX54(P^)7CC)7}$EICAR-STANDARD-ANTIVIRUS-TEST-FILE!$H+H*'
                                          ))
         api = PolyswarmAPI(self.test_api_key, uri='http://localhost:9696/{}'.format(self.api_version), community='gamma')
         with temp_dir({}) as (path, _):
