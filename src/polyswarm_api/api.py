@@ -34,17 +34,19 @@ class PolyswarmAPI(object):
         self.validate = validate_schemas
 
     def _consume_results(self, request):
-        while True:
-            # consume items from the list
-            for result in request.result:
-                yield result
-            # if the list is empty, stop
-            # this could be a check for len(items) < page_size to avoid an extra request
-            if not request.result:
-                break
-            # if not, get the next page as there might be more items
-            else:
-                request = request.next_page().execute()
+        try:
+            while True:
+                # consume items from the list
+                for result in request.result:
+                    yield result
+                # if the list does not fill the page, stop
+                if len(request.result) < request.limit:
+                    break
+                # if not, get the next page as there might be more items
+                else:
+                    request = request.next_page().execute()
+        except StopIteration:
+            pass
 
     def _resolve_engine_name(self, eth_pub):
         if not self._engine_map:
@@ -78,7 +80,7 @@ class PolyswarmAPI(object):
             else:
                 time.sleep(3)
 
-    def search(self, *hashes, **kwargs):
+    def search(self, *hashes):
         """
         Search a list of hashes.
 
@@ -90,7 +92,7 @@ class PolyswarmAPI(object):
         hashes = [resources.Hash.from_hashable(h) for h in hashes]
 
         for h in hashes:
-            self.executor.push(self.generator.search_hash(h, **kwargs))
+            self.executor.push(self.generator.search_hash(h, raise_on_error=False))
 
         for request in self.executor.execute():
             for result in self._consume_results(request):
@@ -106,7 +108,7 @@ class PolyswarmAPI(object):
         """
         raise NotImplementedError()
 
-    def search_by_metadata(self, *queries, **kwargs):
+    def search_by_metadata(self, *queries):
         """
         Search artifacts by metadata
 
@@ -116,7 +118,7 @@ class PolyswarmAPI(object):
         for query in queries:
             if not isinstance(query, resources.MetadataQuery):
                 query = resources.MetadataQuery(query, polyswarm=self)
-            self.executor.push(self.generator.search_metadata(query, **kwargs))
+            self.executor.push(self.generator.search_metadata(query, raise_on_error=False))
 
         for request in self.executor.execute():
             for result in self._consume_results(request):
@@ -146,7 +148,7 @@ class PolyswarmAPI(object):
                 artifact = resources.LocalArtifact(path=path, artifact_name=artifact_name, content=content,
                                                    artifact_type=artifact_type, analyze=False, polyswarm=self)
             if isinstance(artifact, resources.LocalArtifact):
-                self.executor.push(self.generator.submit(artifact))
+                self.executor.push(self.generator.submit(artifact, raise_on_error=False))
             else:
                 raise exceptions.InvalidValueException('Artifacts should be a path to a file or a LocalArtifact instance')
         # TODO: this should be replaced by yield from self.executor.execute() once we drop support for python 2.7
@@ -161,13 +163,13 @@ class PolyswarmAPI(object):
         :return: ScanResult object generator
         """
         for uuid in uuids:
-            self.executor.push(self.generator.lookup_uuid(uuid))
+            self.executor.push(self.generator.lookup_uuid(uuid, raise_on_error=False))
 
         # TODO: this should be replaced by yield from self.executor.execute() once we drop support for python 2.7
         for request in self.executor.execute():
             yield request.result
 
-    def rescan(self, *hashes, **kwargs):
+    def rescan(self, *hashes):
         """
         Submit rescans to polyswarm and return UUIDs
 
@@ -177,7 +179,7 @@ class PolyswarmAPI(object):
         hashes = [resources.Hash.from_hashable(h) for h in hashes]
 
         for h in hashes:
-            self.executor.push(self.generator.rescan(h, **kwargs))
+            self.executor.push(self.generator.rescan(h, raise_on_error=False))
 
         # TODO: this should be replaced by yield from self.executor.execute() once we drop support for python 2.7
         for request in self.executor.execute():
@@ -191,7 +193,7 @@ class PolyswarmAPI(object):
         :return: ScoreResult object generator
         """
         for uuid in uuids:
-            self.executor.push(self.generator.score(uuid))
+            self.executor.push(self.generator.score(uuid, raise_on_error=False))
 
         # TODO: this should be replaced by yield from self.executor.execute() once we drop support for python 2.7
         for request in self.executor.execute():
@@ -313,7 +315,7 @@ class PolyswarmAPI(object):
 
         for h in hashes:
             path = os.path.join(out_dir, h.hash)
-            self.executor.push(self.generator.download(h.hash, h.hash_type, path, create=True))
+            self.executor.push(self.generator.download(h.hash, h.hash_type, path, create=True, raise_on_error=False))
 
         # TODO: this should be replaced by yield from self.executor.execute() once we drop support for python 2.7
         for request in self.executor.execute():
@@ -340,7 +342,8 @@ class PolyswarmAPI(object):
         request = self.generator.stream(since=since).execute()
         for local_archive in self._consume_results(request):
             path = os.path.join(destination, os.path.basename(urlparse(local_archive.s3_path).path))
-            self.executor.push(self.generator.download_archive(local_archive.s3_path, path, create=True))
+            self.executor.push(self.generator.download_archive(local_archive.s3_path, path, create=True,
+                                                               raise_on_error=False))
 
         for request in self.executor.execute():
             yield request.result
