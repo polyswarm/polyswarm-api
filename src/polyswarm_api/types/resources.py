@@ -442,22 +442,6 @@ class Artifact(base.Hashable, base.BasePSJSONType, base.BasePSResourceType):
         else:
             return []
 
-    @property
-    def polyscore(self):
-        if self._polyscore:
-            return self._polyscore
-
-        # need polyswarm API to look this up
-        if not self.polyswarm:
-            return None
-
-        latest = self.last_scan
-
-        if not latest:
-            return None
-
-        return latest.polyscore
-
 
 class Assertion(base.BasePSJSONType):
     SCHEMA = schemas.assertion_schema
