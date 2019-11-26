@@ -239,7 +239,7 @@ class PolyswarmAPI(object):
         Get results from a live hunt
 
         :param hunt_id: ID of the hunt (None if latest rule results are desired)
-        :param since: Fetch results from the last "since" seconds
+        :param since: Fetch results from the last "since" minutes
         :return: Generator of HuntResult resources
         """
         return self.generator.live_hunt_results(hunt_id=hunt_id, since=since).execute().consume_results()
@@ -308,10 +308,10 @@ class PolyswarmAPI(object):
 
     def download_to_filehandle(self, h, fh):
         """
-        Grab the data of artifact indentified by hash, and write the data to a file handle
+        Grab the data of artifact identified by hash, and write the data to a file handle
         :param h: hash
         :param fh: file handle
-        :return: DownloadResult object
+        :return: A LocalArtifact resources
         """
         h = resources.Hash.from_hashable(h)
         return self.generator.download(h.hash, h.hash_type, fh).execute().result
@@ -321,8 +321,8 @@ class PolyswarmAPI(object):
         Access the stream of artifacts (ask info@polyswarm.io about access)
 
         :param destination: Directory to save the files
-        :param since: How far back to grab artifacts in minutes (up to 2 days)
-        :return: DownloadResult generator
+        :param since: Fetch results from the last "since" minutes (up to 2 days)
+        :return: Generator of LocalArtifact resources
         """
         request = self.generator.stream(since=since).execute()
         for local_archive in request:
