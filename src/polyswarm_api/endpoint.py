@@ -130,20 +130,23 @@ class PolyswarmRequest(object):
                     yield result
             except TypeError:
                 yield request.result
+
+            # StopIteration is deprecated
+            # As per https://www.python.org/dev/peps/pep-0479/
+            # We simply return upon termination condition
+            if request._exception is not None:
+                return
+            # if the result is not a list, there is not next page
+            if not isinstance(request.result, list):
+                return
+            # if the list does not fill the page, stop
+            if len(request.result) < request.limit:
+                return
+
             # try to get the next page and execute the request
             request = request.next_page().execute()
 
     def next_page(self):
-        if self._exception is not None:
-            raise StopIteration()
-        # if the result is not iterable, there is not next page
-        try:
-            iter(self.result)
-        except TypeError:
-            raise StopIteration()
-        # if the list does not fill the page, stop
-        if len(self.result) < self.limit:
-            raise StopIteration()
         new_parameters = deepcopy(self.request_parameters)
         new_parameters.setdefault('params', {})['offset'] = self.offset
         new_parameters.setdefault('params', {})['limit'] = self.limit
