@@ -27,7 +27,7 @@ class RequestParamsEncoder(json.JSONEncoder):
 
 
 class PolyswarmRequest(object):
-    """This class holds a requests-compatible dictionary and extra infor we need to parse the reponse."""
+    """This class holds a requests-compatible dictionary and extra information we need to parse the response."""
     def __init__(self, api_instance, request_parameters, key=None, result_parser=None, json_response=True,
                  raise_on_error=True, **kwargs):
         self.api_instance = api_instance
@@ -117,11 +117,32 @@ class PolyswarmRequest(object):
             else:
                 raise raise_from(exceptions.RequestFailedException(self, 'Server returned non-JSON response.'), e)
 
-    def __next__(self):
-        return self.next_page()
+    def __iter__(self):
+        return self.consume_results()
+
+    def consume_results(self):
+        request = self
+        while True:
+            # consume items items from list if iterable
+            # of yield the single result if not
+            try:
+                for result in request.result:
+                    yield result
+            except TypeError:
+                yield request.result
+            # try to get the next page and execute the request
+            request = request.next_page().execute()
 
     def next_page(self):
         if self._exception is not None:
+            raise StopIteration()
+        # if the result is not iterable, there is not next page
+        try:
+            iter(self.result)
+        except TypeError:
+            raise StopIteration()
+        # if the list does not fill the page, stop
+        if len(self.result) < self.limit:
             raise StopIteration()
         new_parameters = deepcopy(self.request_parameters)
         new_parameters.setdefault('params', {})['offset'] = self.offset
@@ -135,7 +156,7 @@ class PolyswarmRequest(object):
 
 
 class PolyswarmRequestGenerator(object):
-    """ This class will return requests-compatible arguments for the API """
+    """ This class will return PolyswarmRequests"""
     def __init__(self, api_instance, uri, community):
         self.api_instance = api_instance
         self.uri = uri
