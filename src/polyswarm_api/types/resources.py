@@ -225,9 +225,7 @@ class LocalArtifact(base.Hashable, base.BasePSResourceType):
         :param content: Content of the artifact
         :param artifact_name: Name of the artifact
         :param artifact_type: Type of artifact
-        :param remote: Associated Artifact object of polyswarm API data
         :param polyswarm: PolyswarmAPI instance
-        :param lookup: Boolean, if True will look up associated Artifact data
         :param analyze: Boolean, if True will run analyses on artifact on startup (Note: this may still run later if False)
         """
         super(LocalArtifact, self).__init__(polyswarm=polyswarm)
@@ -342,15 +340,6 @@ class Artifact(base.Hashable, base.BasePSJSONType, base.BasePSResourceType):
     def __init__(self, json, polyswarm=None):
         """
         A representation of artifact data retrieved from the polyswarm API
-
-
-        :param path: Path to the artifact
-        :param content: Content of the artifact
-        :param artifact_name: Name of the artifact (filename, or otherwise)
-        :param artifact_type: base.ArtifactType of the artifact
-        :param polyswarm: Current PolyswarmAPI instance
-        :param json: JSON used to
-        :param analyze:
         """
         super(Artifact, self).__init__(json=json, polyswarm=polyswarm)
 
@@ -390,7 +379,7 @@ class Artifact(base.Hashable, base.BasePSJSONType, base.BasePSResourceType):
     def from_json(cls, json, polyswarm=None):
         pass
 
-    def download(self, out_path=None):
+    def download(self, out_path):
         """
         Download an artifact
 
@@ -399,7 +388,7 @@ class Artifact(base.Hashable, base.BasePSJSONType, base.BasePSResourceType):
         """
         if not any([self.sha256, self.md5, self.sha1]):
             raise exceptions.InvalidValueException('At least one hash type must be defined.')
-        result = self.polyswarm.download(self)
+        result = self.polyswarm.download(out_path, self)
         result.artifact = self
         return result
 
