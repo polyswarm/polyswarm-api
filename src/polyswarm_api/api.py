@@ -26,7 +26,6 @@ class PolyswarmAPI(object):
         :param validate_schemas: Validate JSON objects when creating response objects. Will impact performance.
         """
         self.session = http.PolyswarmHTTP(key, retries=const.DEFAULT_RETRIES)
-        self.executor = endpoint.PolyswarmFuturesExecutor()
         self.generator = endpoint.PolyswarmRequestGenerator(self, uri, community)
         self._engine_map = None
         self.validate = validate_schemas
@@ -56,7 +55,7 @@ class PolyswarmAPI(object):
         """
         start = time.time()
         while True:
-            scan_result = next(self.lookup(uuid))
+            scan_result = self.lookup(uuid)
             if scan_result.failed or scan_result.ready:
                 return scan_result
             elif -1 < timeout < time.time() - start:
@@ -64,7 +63,7 @@ class PolyswarmAPI(object):
             else:
                 time.sleep(3)
 
-    def search(self, *hashes):
+    def search(self, hash_):
         """
         Search a list of hashes.
 
@@ -72,14 +71,8 @@ class PolyswarmAPI(object):
         :return: Generator of ArtifactInstance resources
         """
 
-        hashes = [resources.Hash.from_hashable(h) for h in hashes]
-
-        for h in hashes:
-            self.executor.push(self.generator.search_hash(h, raise_on_error=False))
-
-        for request in self.executor.execute():
-            for result in request:
-                yield result
+        hash_ = resources.Hash.from_hashable(hash_)
+        return self.generator.search_hash(hash_).execute().consume_results()
 
     def search_by_feature(self, feature, *artifacts):
         """
@@ -91,25 +84,17 @@ class PolyswarmAPI(object):
         """
         raise NotImplementedError()
 
-    def search_by_metadata(self, *queries):
+    def search_by_metadata(self, query):
         """
         Search artifacts by metadata
 
         :param queries: List of MetadataQuery objects (or query_strings)
         :return: Generator of ArtifactInstance resources
         """
-        for query in queries:
-            if not isinstance(query, resources.MetadataQuery):
-                query = resources.MetadataQuery(query, polyswarm=self)
-            self.executor.push(self.generator.search_metadata(query, raise_on_error=False))
+        query = query if isinstance(query, resources.MetadataQuery) else resources.MetadataQuery(query, polyswarm=self)
+        return self.generator.search_metadata(query).execute().consume_results()
 
-        for request in self.executor.execute():
-            for result in request:
-                yield result
-
-    # TODO: replace with def submit(self, *artifacts, artifact_type=resources.ArtifactType.FILE):
-    #  once we drop support for python 2.7
-    def submit(self, *artifacts, **kwargs):
+    def submit(self, artifact, artifact_type=resources.ArtifactType.FILE):
         """
         Submit artifacts to polyswarm and return UUIDs
 
@@ -117,71 +102,50 @@ class PolyswarmAPI(object):
         :param artifact_type: The ArtifactType or strings containing "file" or "url"
         :return: Generator of Submission resources
         """
-        artifact_type = kwargs.pop('artifact_type', resources.ArtifactType.FILE)
-        for artifact in artifacts:
-            if isinstance(artifact, string_types):
-                artifact_type = resources.ArtifactType.parse(artifact_type)
-                if artifact_type == resources.ArtifactType.FILE:
-                    path = artifact
-                    artifact_name = os.path.basename(artifact)
-                    content=None
-                else:
-                    path = None
-                    artifact_name = artifact
-                    content = artifact
-                artifact = resources.LocalArtifact(path=path, artifact_name=artifact_name, content=content,
-                                                   artifact_type=artifact_type, analyze=False, polyswarm=self)
-            if isinstance(artifact, resources.LocalArtifact):
-                self.executor.push(self.generator.submit(artifact, raise_on_error=False))
+        if isinstance(artifact, string_types):
+            artifact_type = resources.ArtifactType.parse(artifact_type)
+            if artifact_type == resources.ArtifactType.FILE:
+                path = artifact
+                artifact_name = os.path.basename(artifact)
+                content=None
             else:
-                raise exceptions.InvalidValueException('Artifacts should be a path to a file or a LocalArtifact instance')
-        # TODO: this should be replaced by yield from self.executor.execute() once we drop support for python 2.7
-        for request in self.executor.execute():
-            yield request.result
+                path = None
+                artifact_name = artifact
+                content = artifact
+            artifact = resources.LocalArtifact(path=path, artifact_name=artifact_name, content=content,
+                                               artifact_type=artifact_type, analyze=False, polyswarm=self)
+        if isinstance(artifact, resources.LocalArtifact):
+            return self.generator.submit(artifact).execute().result
+        else:
+            raise exceptions.InvalidValueException('Artifacts should be a path to a file or a LocalArtifact instance')
 
-    def lookup(self, *uuids):
+    def lookup(self, uuid_):
         """
         Lookup a submission by UUID.
 
         :param uuids: UUIDs to lookup
         :return: Generator of Submission resources
         """
-        for uuid in uuids:
-            self.executor.push(self.generator.lookup_uuid(uuid, raise_on_error=False))
+        return self.generator.lookup_uuid(uuid_).execute().result
 
-        # TODO: this should be replaced by yield from self.executor.execute() once we drop support for python 2.7
-        for request in self.executor.execute():
-            yield request.result
-
-    def rescan(self, *hashes):
+    def rescan(self, hash_):
         """
         Submit rescans to polyswarm and return UUIDs
 
         :param hashes: Hashable objects (Artifact, local.LocalArtifact, or Hash) or hex-encoded SHA256/SHA1/MD5
         :return: Generator of Submission resources
         """
-        hashes = [resources.Hash.from_hashable(h) for h in hashes]
+        hash_ = resources.Hash.from_hashable(hash_)
+        return self.generator.rescan(hash_).execute().result
 
-        for h in hashes:
-            self.executor.push(self.generator.rescan(h, raise_on_error=False))
-
-        # TODO: this should be replaced by yield from self.executor.execute() once we drop support for python 2.7
-        for request in self.executor.execute():
-            yield request.result
-
-    def score(self, *uuids):
+    def score(self, uuid_):
         """
         Lookup a PolyScore(s) for a given submission, by UUID
 
         :param uuids: UUIDs to lookup
         :return: Generator of PolyScore resources
         """
-        for uuid in uuids:
-            self.executor.push(self.generator.score(uuid, raise_on_error=False))
-
-        # TODO: this should be replaced by yield from self.executor.execute() once we drop support for python 2.7
-        for request in self.executor.execute():
-            yield request.result
+        return self.generator.score(uuid_).execute().result
 
     def live_create(self, rules):
         """
@@ -295,16 +259,14 @@ class PolyswarmAPI(object):
         """
         return self.generator.historical_hunt_results(hunt_id=hunt_id).execute().consume_results()
 
-    def download(self, out_dir, *hashes):
-        hashes = [resources.Hash.from_hashable(h) for h in hashes]
+    def download(self, out_dir, hash_):
+        hash_ = resources.Hash.from_hashable(hash_)
+        path = os.path.join(out_dir, hash_.hash)
+        return self.generator.download(hash_.hash, hash_.hash_type, path, create=True).execute().result
 
-        for h in hashes:
-            path = os.path.join(out_dir, h.hash)
-            self.executor.push(self.generator.download(h.hash, h.hash_type, path, create=True, raise_on_error=False))
-
-        # TODO: this should be replaced by yield from self.executor.execute() once we drop support for python 2.7
-        for request in self.executor.execute():
-            yield request.result
+    def download_archive(self, out_dir, s3_path):
+        path = os.path.join(out_dir, os.path.basename(urlparse(s3_path).path))
+        return self.generator.download_archive(s3_path, path, create=True).execute().result
 
     def download_to_filehandle(self, h, fh):
         """
@@ -316,7 +278,7 @@ class PolyswarmAPI(object):
         h = resources.Hash.from_hashable(h)
         return self.generator.download(h.hash, h.hash_type, fh).execute().result
 
-    def stream(self, destination=None, since=const.MAX_SINCE_TIME_STREAM):
+    def stream(self, since=const.MAX_SINCE_TIME_STREAM):
         """
         Access the stream of artifacts (ask info@polyswarm.io about access)
 
@@ -324,11 +286,4 @@ class PolyswarmAPI(object):
         :param since: Fetch results from the last "since" minutes (up to 2 days)
         :return: Generator of LocalArtifact resources
         """
-        request = self.generator.stream(since=since).execute()
-        for local_archive in request:
-            path = os.path.join(destination, os.path.basename(urlparse(local_archive.s3_path).path))
-            self.executor.push(self.generator.download_archive(local_archive.s3_path, path, create=True,
-                                                               raise_on_error=False))
-
-        for request in self.executor.execute():
-            yield request.result
+        return self.generator.stream(since=since).execute().execute().consume_results()

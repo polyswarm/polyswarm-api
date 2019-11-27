@@ -28,8 +28,7 @@ class RequestParamsEncoder(json.JSONEncoder):
 
 class PolyswarmRequest(object):
     """This class holds a requests-compatible dictionary and extra information we need to parse the response."""
-    def __init__(self, api_instance, request_parameters, key=None, result_parser=None, json_response=True,
-                 raise_on_error=True, **kwargs):
+    def __init__(self, api_instance, request_parameters, key=None, result_parser=None, json_response=True, **kwargs):
         self.api_instance = api_instance
         # we should not access the api_instance session directly, but provide as a
         # parameter in the constructor, but this will do for the moment
@@ -37,7 +36,6 @@ class PolyswarmRequest(object):
         self.request_parameters = request_parameters
         self.result_parser = result_parser
         self.json_response = json_response
-        self.raise_on_error = raise_on_error
         self.raw_result = None
         self.status_code = None
         self.status = None
@@ -52,16 +50,9 @@ class PolyswarmRequest(object):
         self._exception = None
 
     def execute(self):
-        try:
-            self.raw_result = self.session.request(**self.request_parameters)
-            if self.result_parser is not None:
-                self.parse_result(self.raw_result)
-        except Exception as e:
-            if self.raise_on_error:
-                raise e
-            else:
-                self._exception = e
-                self.result = resources.Error(self, e, self.api_instance)
+        self.raw_result = self.session.request(**self.request_parameters)
+        if self.result_parser is not None:
+            self.parse_result(self.raw_result)
         return self
 
     def _bad_status_message(self):
@@ -175,7 +166,7 @@ class PolyswarmRequestGenerator(object):
         self.download_fmt = '{}/{}/{}'
         self.hash_search_fmt = '{}/{}/{}'
 
-    def download(self, hash_value, hash_type, output_file, create=False, raise_on_error=True):
+    def download(self, hash_value, hash_type, output_file, create=False):
         return PolyswarmRequest(
             self.api_instance,
             {
@@ -188,10 +179,9 @@ class PolyswarmRequestGenerator(object):
             result_parser=resources.LocalArtifact,
             output_file=output_file,
             create=create,
-            raise_on_error=raise_on_error,
         )
 
-    def download_archive(self, u, output_file, create=False, raise_on_error=True):
+    def download_archive(self, u, output_file, create=False):
         """ This method is special, in that it is simply for downloading from S3 """
         return PolyswarmRequest(
             self.api_instance,
@@ -206,10 +196,9 @@ class PolyswarmRequestGenerator(object):
             result_parser=resources.LocalArtifact,
             output_file=output_file,
             create=create,
-            raise_on_error=raise_on_error,
         )
 
-    def stream(self, since=const.MAX_SINCE_TIME_STREAM, raise_on_error=True):
+    def stream(self, since=const.MAX_SINCE_TIME_STREAM):
         return PolyswarmRequest(
             self.api_instance,
             {
@@ -219,10 +208,9 @@ class PolyswarmRequestGenerator(object):
                 'params': {'since': since},
             },
             result_parser=resources.ArtifactArchive,
-            raise_on_error=raise_on_error,
         )
 
-    def search_hash(self, h, raise_on_error=True):
+    def search_hash(self, h):
         return PolyswarmRequest(
             self.api_instance,
             {
@@ -235,10 +223,9 @@ class PolyswarmRequestGenerator(object):
                 },
             },
             result_parser=resources.ArtifactInstance,
-            raise_on_error=raise_on_error,
         )
 
-    def search_metadata(self, q, raise_on_error=True):
+    def search_metadata(self, q):
         return PolyswarmRequest(
             self.api_instance,
             {
@@ -251,10 +238,9 @@ class PolyswarmRequestGenerator(object):
                 'json': q.query,
             },
             result_parser=resources.ArtifactInstance,
-            raise_on_error=raise_on_error,
         )
 
-    def submit(self, artifact, raise_on_error=True):
+    def submit(self, artifact):
         return PolyswarmRequest(
             self.api_instance,
             {
@@ -268,7 +254,6 @@ class PolyswarmRequestGenerator(object):
                 'data': {'artifact-type': artifact.artifact_type.name}
             },
             result_parser=resources.Submission,
-            raise_on_error=raise_on_error,
         )
 
     def rescan(self, h, raise_on_error=False):
@@ -280,10 +265,9 @@ class PolyswarmRequestGenerator(object):
                 'url': '{}/rescan/{}/{}'.format(self.community_base, h.hash_type, h.hash)
             },
             result_parser=resources.Submission,
-            raise_on_error=raise_on_error,
         )
 
-    def lookup_uuid(self, uuid, raise_on_error=True):
+    def lookup_uuid(self, uuid):
         return PolyswarmRequest(
             self.api_instance,
             {
@@ -292,10 +276,9 @@ class PolyswarmRequestGenerator(object):
                 'url': '{}/uuid/{}'.format(self.community_base, uuid)
             },
             result_parser=resources.Submission,
-            raise_on_error=raise_on_error,
         )
 
-    def _get_engine_names(self, raise_on_error=True):
+    def _get_engine_names(self):
         return PolyswarmRequest(
             self.api_instance,
             {
@@ -305,10 +288,9 @@ class PolyswarmRequestGenerator(object):
                 'headers': {'Authorization': None},
             },
             result_parser=resources.Engine,
-            raise_on_error=raise_on_error,
         )
 
-    def create_live_hunt(self, rule, raise_on_error=True):
+    def create_live_hunt(self, rule):
         return PolyswarmRequest(
             self.api_instance,
             {
@@ -318,10 +300,9 @@ class PolyswarmRequestGenerator(object):
                 'json': {'yara': rule.ruleset},
             },
             result_parser=resources.Hunt,
-            raise_on_error=raise_on_error,
         )
 
-    def get_live_hunt(self, hunt_id=None, raise_on_error=True):
+    def get_live_hunt(self, hunt_id=None):
         return PolyswarmRequest(
             self.api_instance,
             {
@@ -333,10 +314,9 @@ class PolyswarmRequestGenerator(object):
                 },
             },
             result_parser=resources.Hunt,
-            raise_on_error=raise_on_error,
         )
 
-    def update_live_hunt(self, hunt_id=None, active=False, raise_on_error=True):
+    def update_live_hunt(self, hunt_id=None, active=False):
         return PolyswarmRequest(
             self.api_instance,
             {
@@ -349,10 +329,9 @@ class PolyswarmRequestGenerator(object):
                 },
             },
             result_parser=resources.Hunt,
-            raise_on_error=raise_on_error,
         )
 
-    def delete_live_hunt(self, hunt_id, raise_on_error=True):
+    def delete_live_hunt(self, hunt_id):
         return PolyswarmRequest(
             self.api_instance,
             {
@@ -362,10 +341,9 @@ class PolyswarmRequestGenerator(object):
                 'params': {'id': hunt_id}
             },
             result_parser=resources.Hunt,
-            raise_on_error=raise_on_error,
         )
 
-    def live_list(self, raise_on_error=True):
+    def live_list(self):
         return PolyswarmRequest(
             self.api_instance,
             {
@@ -375,10 +353,9 @@ class PolyswarmRequestGenerator(object):
                 'params': {'all': 'true'},
             },
             result_parser=resources.Hunt,
-            raise_on_error=raise_on_error,
         )
 
-    def live_hunt_results(self, hunt_id=None, since=None, raise_on_error=True):
+    def live_hunt_results(self, hunt_id=None, since=None):
         req = {
             'method': 'GET',
             'timeout': const.DEFAULT_HTTP_TIMEOUT,
@@ -392,10 +369,9 @@ class PolyswarmRequestGenerator(object):
             self.api_instance,
             req,
             result_parser=resources.HuntResult,
-            raise_on_error=raise_on_error,
         )
 
-    def create_historical_hunt(self, rule, raise_on_error=True):
+    def create_historical_hunt(self, rule):
         return PolyswarmRequest(
             self.api_instance,
             {
@@ -405,10 +381,9 @@ class PolyswarmRequestGenerator(object):
                 'json': {'yara': rule.ruleset},
             },
             result_parser=resources.Hunt,
-            raise_on_error=raise_on_error,
         )
 
-    def get_historical_hunt(self, hunt_id, raise_on_error=True):
+    def get_historical_hunt(self, hunt_id):
         return PolyswarmRequest(
             self.api_instance,
             {
@@ -418,10 +393,9 @@ class PolyswarmRequestGenerator(object):
                 'params': {'id': hunt_id}
             },
             result_parser=resources.Hunt,
-            raise_on_error=raise_on_error,
         )
 
-    def delete_historical_hunt(self, hunt_id, raise_on_error=True):
+    def delete_historical_hunt(self, hunt_id):
         return PolyswarmRequest(
             self.api_instance,
             {
@@ -431,10 +405,9 @@ class PolyswarmRequestGenerator(object):
                 'params': {'id': hunt_id}
             },
             result_parser=resources.Hunt,
-            raise_on_error=raise_on_error,
         )
 
-    def historical_list(self, raise_on_error=True):
+    def historical_list(self):
         return PolyswarmRequest(
             self.api_instance,
             {
@@ -444,10 +417,9 @@ class PolyswarmRequestGenerator(object):
                 'params': {'all': 'true'},
             },
             result_parser=resources.Hunt,
-            raise_on_error=raise_on_error,
         )
 
-    def historical_hunt_results(self, hunt_id=None, raise_on_error=True):
+    def historical_hunt_results(self, hunt_id=None):
         req = {
             'method': 'GET',
             'timeout': const.DEFAULT_HTTP_TIMEOUT,
@@ -460,10 +432,9 @@ class PolyswarmRequestGenerator(object):
             self.api_instance,
             req,
             result_parser=resources.HuntResult,
-            raise_on_error=raise_on_error,
         )
 
-    def score(self, uuid, raise_on_error=True):
+    def score(self, uuid):
         return PolyswarmRequest(
             self.api_instance,
             {
@@ -472,7 +443,6 @@ class PolyswarmRequestGenerator(object):
                 'url': '{}/submission/{}/polyscore'.format(self.consumer_base, uuid)
             },
             result_parser=resources.PolyScore,
-            raise_on_error=raise_on_error,
         )
 
 

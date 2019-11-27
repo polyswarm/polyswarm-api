@@ -27,16 +27,6 @@ logger = logging.getLogger(__name__)
 
 
 #####################################################################
-# Error resource
-#####################################################################
-
-class Error(base.BasePSResourceType):
-    def __init__(self, request, exception, polyswarm=None):
-        super(Error, self).__init__(polyswarm=polyswarm)
-        self.request = request
-        self.exception = exception
-
-#####################################################################
 # Resources returned by the API
 #####################################################################
 
@@ -145,7 +135,7 @@ class ArtifactInstance(base.BasePSJSONType, base.BasePSResourceType):
     @property
     def polyscore(self):
         if self.polyswarm and not self._polyscore and self.submission_uuid:
-            polyscore = next(self.polyswarm.score(self.submission_uuid))
+            polyscore = self.polyswarm.score(self.submission_uuid)
             self._polyscore = polyscore.get_score_by_id(self.id)
         return self._polyscore
 
