@@ -30,38 +30,6 @@ logger = logging.getLogger(__name__)
 # Resources returned by the API
 #####################################################################
 
-
-class Submission(base.BasePSJSONType, base.BasePSResourceType):
-    SCHEMA = schemas.bounty_schema
-
-    def __init__(self, json, polyswarm=None):
-        super(Submission, self).__init__(json=json, polyswarm=polyswarm)
-        self.status = json['status']
-        self.uuid = json['uuid']
-        self.community = json.get('community')
-        self.country = json.get('country')
-        self.instances = [ArtifactInstance(f, polyswarm) for f in json['instances']]
-
-        self._permalink = None
-
-    @property
-    def failed(self):
-        return self.status == 'Bounty Failed'
-
-    @property
-    def ready(self):
-        return self.status == 'Bounty Awaiting Arbitration' or self.status == 'Bounty Settled'
-
-    @property
-    def permalink(self):
-        if not self._permalink and self.uuid:
-            self._permalink = const.DEFAULT_PERMALINK_BASE + '/' + self.uuid
-        return self._permalink
-
-    def __str__(self):
-        return "Submission-%s" % self.uuid
-
-
 class PolyScore(base.BasePSJSONType, base.BasePSResourceType):
     SCHEMA = schemas.polyscore_schema
 
@@ -87,8 +55,6 @@ class ArtifactInstance(base.BasePSJSONType, base.BasePSResourceType):
     def __init__(self, json, polyswarm=None):
         super(ArtifactInstance, self).__init__(json=json, polyswarm=polyswarm)
         self.id = json['id']
-        self.submission_id = json['submission_id']
-        self.submission_uuid = json['submission_uuid']
         self.artifact_id = json['id']
         self.account_id = json['account_id']
         self.assertions = [Assertion(self, a, polyswarm) for a in json['assertions']]
@@ -110,10 +76,9 @@ class ArtifactInstance(base.BasePSJSONType, base.BasePSResourceType):
         self.type = json['type']
         self.votes = [Vote(self, v, polyswarm) for v in json['votes']]
         self.window_closed = json['window_closed']
+        self.polyscore = float(json['polyscore']) if json['polyscore'] is not None else None
+        self.permalink = const.DEFAULT_PERMALINK_BASE + '/' + str(self.id)
 
-        self._submission = None
-        self._polyscore = None
-        self._permalink = None
         self._detections = None
         self._valid_assertions = None
 
@@ -131,25 +96,6 @@ class ArtifactInstance(base.BasePSJSONType, base.BasePSResourceType):
         if not self._valid_assertions:
             self._valid_assertions = [a for a in self.assertions if a.mask]
         return self._valid_assertions
-
-    @property
-    def polyscore(self):
-        if self.polyswarm and not self._polyscore and self.submission_uuid:
-            polyscore = self.polyswarm.score(self.submission_uuid)
-            self._polyscore = polyscore.get_score_by_id(self.id)
-        return self._polyscore
-
-    @property
-    def submission(self):
-        if self.polyswarm and not self._submission and self.submission_uuid:
-            self._submission = next(self.polyswarm.lookup(self.submission_uuid))
-        return self._submission
-
-    @property
-    def permalink(self):
-        if not self._permalink and self.submission_uuid:
-            self._permalink = const.DEFAULT_PERMALINK_BASE + '/' + self.submission_uuid
-        return self._permalink
 
 
 class ArtifactArchive(base.BasePSJSONType, base.BasePSResourceType):

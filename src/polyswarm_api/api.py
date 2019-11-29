@@ -45,18 +45,18 @@ class PolyswarmAPI(object):
         """
         raise NotImplementedError()
 
-    def wait_for(self, uuid, timeout=const.DEFAULT_SCAN_TIMEOUT):
+    def wait_for(self, submission_id, timeout=const.DEFAULT_SCAN_TIMEOUT):
         """
         Wait for a Submission to scan successfully
 
-        :param uuid: UUIDs to wait for
+        :param submission_id: Submission id to wait for
         :param timeout: Maximum time in seconds to wait before raising a TimeoutException
         :return: The Submission resource waited on
         """
         start = time.time()
         while True:
-            scan_result = self.lookup(uuid)
-            if scan_result.failed or scan_result.ready:
+            scan_result = self.lookup(submission_id)
+            if scan_result.failed or scan_result.window_closed:
                 return scan_result
             elif -1 < timeout < time.time() - start:
                 raise exceptions.TimeoutException()
@@ -119,14 +119,14 @@ class PolyswarmAPI(object):
         else:
             raise exceptions.InvalidValueException('Artifacts should be a path to a file or a LocalArtifact instance')
 
-    def lookup(self, uuid_):
+    def lookup(self, submission_id):
         """
-        Lookup a submission by UUID.
+        Lookup a submission by Submission id.
 
         :param uuids: UUIDs to lookup
         :return: Generator of Submission resources
         """
-        return self.generator.lookup_uuid(uuid_).execute().result
+        return self.generator.lookup_uuid(submission_id).execute().result
 
     def rescan(self, hash_):
         """
