@@ -156,23 +156,13 @@ class PolyswarmRequestGenerator(object):
         self.uri = uri
         self.community = community
 
-        self.consumer_base = '{uri}/consumer'.format(uri=self.uri)
-        self.search_base = '{uri}/search'.format(uri=self.uri)
-        self.download_base = '{uri}/download'.format(uri=self.uri)
-        self.community_base = '{consumer_uri}/{community}'.format(consumer_uri=self.consumer_base, community=community)
-        self.hunt_base = '{uri}/hunt'.format(uri=self.uri)
-        self.stream_base = '{uri}/download/stream'.format(uri=self.uri)
-
-        self.download_fmt = '{}/{}/{}'
-        self.hash_search_fmt = '{}/{}/{}'
-
     def download(self, hash_value, hash_type, output_file, create=False):
         return PolyswarmRequest(
             self.api_instance,
             {
                 'method': 'GET',
                 'timeout': const.DEFAULT_HTTP_TIMEOUT,
-                'url': self.download_fmt.format(self.download_base, hash_type, hash_value),
+                'url': '{}/download/{}/{}'.format(self.uri, hash_type, hash_value),
                 'stream': True,
             },
             json_response=False,
@@ -204,7 +194,7 @@ class PolyswarmRequestGenerator(object):
             {
                 'method': 'GET',
                 'timeout': const.DEFAULT_HTTP_TIMEOUT,
-                'url': '{}/download/stream'.format(self.consumer_base),
+                'url': '{}/consumer/download/stream'.format(self.uri),
                 'params': {'since': since},
             },
             result_parser=resources.ArtifactArchive,
@@ -216,7 +206,7 @@ class PolyswarmRequestGenerator(object):
             {
                 'method': 'GET',
                 'timeout': const.DEFAULT_HTTP_TIMEOUT,
-                'url': self.search_base,
+                'url': '{}/search'.format(self.uri),
                 'params': {
                     'type': h.hash_type,
                     'hash': h.hash,
@@ -231,7 +221,7 @@ class PolyswarmRequestGenerator(object):
             {
                 'method': 'GET',
                 'timeout': const.DEFAULT_HTTP_TIMEOUT,
-                'url': self.search_base,
+                'url': '{}/search'.format(self.uri),
                 'params': {
                     'type': 'metadata',
                 },
@@ -246,36 +236,36 @@ class PolyswarmRequestGenerator(object):
             {
                 'method': 'POST',
                 'timeout': const.DEFAULT_HTTP_TIMEOUT,
-                'url': self.community_base,
+                'url': '{}/consumer/submission/{}'.format(self.uri, self.community),
                 'files': {
                     'file': (artifact.artifact_name, artifact.open()),
                 },
                 # very oddly, when included in files parameter this errors out
                 'data': {'artifact-type': artifact.artifact_type.name}
             },
-            result_parser=resources.Submission,
+            result_parser=resources.ArtifactInstance,
         )
 
-    def rescan(self, h, raise_on_error=False):
+    def rescan(self, h):
         return PolyswarmRequest(
             self.api_instance,
             {
                 'method': 'POST',
                 'timeout': const.DEFAULT_HTTP_TIMEOUT,
-                'url': '{}/rescan/{}/{}'.format(self.community_base, h.hash_type, h.hash)
+                'url': '{}/consumer/submission/{}/rescan/{}/{}'.format(self.uri, self.community, h.hash_type, h.hash),
             },
-            result_parser=resources.Submission,
+            result_parser=resources.ArtifactInstance,
         )
 
-    def lookup_uuid(self, uuid):
+    def lookup_uuid(self, submission_id):
         return PolyswarmRequest(
             self.api_instance,
             {
                 'method': 'GET',
                 'timeout': const.DEFAULT_HTTP_TIMEOUT,
-                'url': '{}/uuid/{}'.format(self.community_base, uuid)
+                'url': '{}/consumer/submission/{}/{}'.format(self.uri, self.community, submission_id),
             },
-            result_parser=resources.Submission,
+            result_parser=resources.ArtifactInstance,
         )
 
     def _get_engine_names(self):
@@ -296,7 +286,7 @@ class PolyswarmRequestGenerator(object):
             {
                 'method': 'POST',
                 'timeout': const.DEFAULT_HTTP_TIMEOUT,
-                'url': '{}/live'.format(self.hunt_base),
+                'url': '{}/hunt/live'.format(self.uri),
                 'json': {'yara': rule.ruleset},
             },
             result_parser=resources.Hunt,
@@ -308,7 +298,7 @@ class PolyswarmRequestGenerator(object):
             {
                 'method': 'GET',
                 'timeout': const.DEFAULT_HTTP_TIMEOUT,
-                'url': '{}/live'.format(self.hunt_base),
+                'url': '{}/hunt/live'.format(self.uri),
                 'params': {
                     'id': hunt_id,
                 },
@@ -322,7 +312,7 @@ class PolyswarmRequestGenerator(object):
             {
                 'method': 'PUT',
                 'timeout': const.DEFAULT_HTTP_TIMEOUT,
-                'url': '{}/live'.format(self.hunt_base),
+                'url': '{}/hunt/live'.format(self.uri),
                 'json': {
                     'id': hunt_id,
                     'active': active,
@@ -337,7 +327,7 @@ class PolyswarmRequestGenerator(object):
             {
                 'method': 'DELETE',
                 'timeout': const.DEFAULT_HTTP_TIMEOUT,
-                'url': '{}/live'.format(self.hunt_base),
+                'url': '{}/hunt/live'.format(self.uri),
                 'params': {'id': hunt_id}
             },
             result_parser=resources.Hunt,
@@ -349,7 +339,7 @@ class PolyswarmRequestGenerator(object):
             {
                 'method': 'GET',
                 'timeout': const.DEFAULT_HTTP_TIMEOUT,
-                'url': '{}/live/list'.format(self.hunt_base),
+                'url': '{}/hunt/live/list'.format(self.uri),
                 'params': {'all': 'true'},
             },
             result_parser=resources.Hunt,
@@ -359,7 +349,7 @@ class PolyswarmRequestGenerator(object):
         req = {
             'method': 'GET',
             'timeout': const.DEFAULT_HTTP_TIMEOUT,
-            'url': '{}/live/results'.format(self.hunt_base),
+            'url': '{}/hunt/live/results'.format(self.uri),
             'params': {
                 'since': since,
                 'id': hunt_id,
@@ -377,7 +367,7 @@ class PolyswarmRequestGenerator(object):
             {
                 'method': 'POST',
                 'timeout': const.DEFAULT_HTTP_TIMEOUT,
-                'url': '{}/historical'.format(self.hunt_base),
+                'url': '{}/hunt/historical'.format(self.uri),
                 'json': {'yara': rule.ruleset},
             },
             result_parser=resources.Hunt,
@@ -389,7 +379,7 @@ class PolyswarmRequestGenerator(object):
             {
                 'method': 'GET',
                 'timeout': const.DEFAULT_HTTP_TIMEOUT,
-                'url': '{}/historical'.format(self.hunt_base),
+                'url': '{}/hunt/historical'.format(self.uri),
                 'params': {'id': hunt_id}
             },
             result_parser=resources.Hunt,
@@ -401,7 +391,7 @@ class PolyswarmRequestGenerator(object):
             {
                 'method': 'DELETE',
                 'timeout': const.DEFAULT_HTTP_TIMEOUT,
-                'url': '{}/historical'.format(self.hunt_base),
+                'url': '{}/hunt/historical'.format(self.uri),
                 'params': {'id': hunt_id}
             },
             result_parser=resources.Hunt,
@@ -413,7 +403,7 @@ class PolyswarmRequestGenerator(object):
             {
                 'method': 'GET',
                 'timeout': const.DEFAULT_HTTP_TIMEOUT,
-                'url': '{}/historical/list'.format(self.hunt_base),
+                'url': '{}/hunt/historical/list'.format(self.uri),
                 'params': {'all': 'true'},
             },
             result_parser=resources.Hunt,
@@ -423,7 +413,7 @@ class PolyswarmRequestGenerator(object):
         req = {
             'method': 'GET',
             'timeout': const.DEFAULT_HTTP_TIMEOUT,
-            'url': '{}/historical/results'.format(self.hunt_base),
+            'url': '{}/hunt/historical/results'.format(self.uri),
             'params': {
                 'id': hunt_id,
             },
@@ -434,13 +424,15 @@ class PolyswarmRequestGenerator(object):
             result_parser=resources.HuntResult,
         )
 
-    def score(self, uuid):
+    def score(self, submission_id):
         return PolyswarmRequest(
             self.api_instance,
             {
                 'method': 'GET',
                 'timeout': const.DEFAULT_HTTP_TIMEOUT,
-                'url': '{}/submission/{}/polyscore'.format(self.consumer_base, uuid)
+                'url': '{}/consumer/polyscore/{}'.format(
+                    self.uri, submission_id
+                )
             },
             result_parser=resources.PolyScore,
         )
