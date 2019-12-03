@@ -44,21 +44,23 @@ class ScanTestCaseV2(TestCase):
 
     @responses.activate
     def test_submission(self):
-        responses.add(responses.Response(responses.POST, 'http://localhost:9696/v2/consumer/gamma',
-                                         json={'result': {'account_id': '1', 'community': 'gamma', 'country': '', 'instances': [{'account_id': '1', 'artifact_id': '11611818710765483', 'assertions': [], 'community': 'gamma', 'country': '', 'created': '2019-11-14T21:04:22.367689', 'extended_type': 'EICAR virus test files', 'failed': False, 'filename': 'malicious', 'first_seen': '2019-11-01T21:33:53.292099', 'id': 54688810625650977, 'last_seen': '2019-11-14T18:04:22.357932', 'md5': '44d88612fea8a8f36de82e1278abb02f', 'metadata': None, 'mimetype': 'text/plain', 'result': None, 's3_file_name': 'testing/files/27/5a/02/275a021bbfb6489e54d471899f7db9d1663fc695ec2fe2a2c4538aabf651fd0f', 'sha1': '3395856ce81f2b7382dee72602f798b642f14140', 'sha256': '275a021bbfb6489e54d471899f7db9d1663fc695ec2fe2a2c4538aabf651fd0f', 'size': 68, 'submission_id': 57953379738746701, 'submission_uuid': '58ad7670-b631-4cbe-80eb-c256973835fb', 'type': 'FILE', 'votes': [], 'window_closed': False}], 'status': 'Bounty Created', 'uuid': '58ad7670-b631-4cbe-80eb-c256973835fb'}, 'status': 'OK'}
+        responses.add(responses.Response(responses.POST, 'http://localhost:9696/v2/consumer/submission/gamma',
+                                         json={'result': {'account_id': '1', 'artifact_id': '38533123137674971', 'assertions': [], 'community': 'gamma', 'country': '', 'created': '2019-12-03T14:53:46.097963', 'extended_type': 'EICAR virus test files', 'failed': False, 'filename': 'malicious', 'first_seen': '2019-12-02T23:44:14.864399', 'id': 20987685365492783, 'last_seen': '2019-12-03T14:53:46.097963', 'md5': '44d88612fea8a8f36de82e1278abb02f', 'metadata': [{'created': '2019-12-02T23:46:33.699981', 'sha256': '275a021bbfb6489e54d471899f7db9d1663fc695ec2fe2a2c4538aabf651fd0f', 'tool': 'scan', 'tool_metadata': {'countries': [], 'detections': {'malicious': 3, 'total': 3}, 'filename': ['275a021bbfb6489e54d471899f7db9d1663fc695ec2fe2a2c4538aabf651fd0f', 'malicious'], 'first_scan': {'0x05328f171b8c1463eaFDACCA478D9EE6a1d923F8': {'assertion': 'malicious', 'metadata': {'malware_family': 'Eicar Test File', 'scanner': {'environment': {'architecture': 'x86_64', 'operating_system': 'Linux'}}}}, 'artifact_instance_id': 58910723611053917}, 'first_seen': '2019-12-02T23:44:14.864399+00:00', 'last_seen': '2019-12-03T14:51:22.162050+00:00', 'latest_scan': {'0x05328f171b8c1463eaFDACCA478D9EE6a1d923F8': {'assertion': 'malicious', 'metadata': {'malware_family': 'Eicar Test File', 'scanner': {'environment': {'architecture': 'x86_64', 'operating_system': 'Linux'}}}}, 'artifact_instance_id': 89742424955105831}, 'mimetype': {'extended': 'EICAR virus test files', 'mime': 'text/plain'}}}], 'mimetype': 'text/plain', 'polyscore': None, 'result': None, 'sha1': '3395856ce81f2b7382dee72602f798b642f14140', 'sha256': '275a021bbfb6489e54d471899f7db9d1663fc695ec2fe2a2c4538aabf651fd0f', 'size': 68, 'type': 'FILE', 'votes': [], 'window_closed': False}, 'status': 'OK'}
                                          ))
         api = PolyswarmAPI(self.test_api_key, uri='http://localhost:9696/{}'.format(self.api_version), community='gamma')
         result = api.submit('test/malicious')
-        assert result.status == 'Bounty Created'
+        assert result.failed is False
+        assert result.result is None
 
     @responses.activate
     def test_rescan(self):
-        responses.add(responses.Response(responses.POST, 'http://localhost:9696/v2/consumer/gamma/rescan/sha256/275a021bbfb6489e54d471899f7db9d1663fc695ec2fe2a2c4538aabf651fd0f',
-                                         json={'result': {'account_id': '1', 'community': 'gamma', 'country': '', 'instances': [{'account_id': '1', 'artifact_id': '11611818710765483', 'assertions': [], 'community': 'gamma', 'country': '', 'created': '2019-11-14T20:58:56.736090', 'extended_type': 'EICAR virus test files', 'failed': False, 'filename': '275a021bbfb6489e54d471899f7db9d1663fc695ec2fe2a2c4538aabf651fd0f', 'first_seen': '2019-11-01T21:33:53.292099', 'id': 34523217504221022, 'last_seen': '2019-11-14T17:58:56.742874', 'md5': '44d88612fea8a8f36de82e1278abb02f', 'metadata': None, 'mimetype': 'text/plain', 'result': None, 's3_file_name': 'testing/files/27/5a/02/275a021bbfb6489e54d471899f7db9d1663fc695ec2fe2a2c4538aabf651fd0f', 'sha1': '3395856ce81f2b7382dee72602f798b642f14140', 'sha256': '275a021bbfb6489e54d471899f7db9d1663fc695ec2fe2a2c4538aabf651fd0f', 'size': 68, 'submission_id': 38545343799788264, 'submission_uuid': '28db75c9-49b7-467b-bc79-87055847056a', 'type': 'FILE', 'votes': [], 'window_closed': False}], 'status': 'Bounty Created', 'uuid': '28db75c9-49b7-467b-bc79-87055847056a'}, 'status': 'OK'}
+        responses.add(responses.Response(responses.POST, 'http://localhost:9696/v2/consumer/submission/gamma/rescan/sha256/275a021bbfb6489e54d471899f7db9d1663fc695ec2fe2a2c4538aabf651fd0f',
+                                         json={'result': {'account_id': '1', 'artifact_id': '38533123137674971', 'assertions': [], 'community': 'gamma', 'country': '', 'created': '2019-12-02T23:45:06.203139', 'extended_type': 'EICAR virus test files', 'failed': False, 'filename': '275a021bbfb6489e54d471899f7db9d1663fc695ec2fe2a2c4538aabf651fd0f', 'first_seen': '2019-12-02T23:44:14.864399', 'id': 16896128185928037, 'last_seen': '2019-12-02T23:45:06.203139', 'md5': '44d88612fea8a8f36de82e1278abb02f', 'metadata': [], 'mimetype': 'text/plain', 'polyscore': None, 'result': None, 'sha1': '3395856ce81f2b7382dee72602f798b642f14140', 'sha256': '275a021bbfb6489e54d471899f7db9d1663fc695ec2fe2a2c4538aabf651fd0f', 'size': 68, 'type': 'FILE', 'votes': [], 'window_closed': False}, 'status': 'OK'}
                                          ))
         api = PolyswarmAPI(self.test_api_key, uri='http://localhost:9696/{}'.format(self.api_version), community='gamma')
         result = api.rescan('275a021bbfb6489e54d471899f7db9d1663fc695ec2fe2a2c4538aabf651fd0f')
-        assert result.status == 'Bounty Created'
+        assert result.failed is False
+        assert result.result is None
 
     @responses.activate
     def test_download(self):
@@ -248,9 +250,9 @@ class ScanTestCaseV2(TestCase):
 
     @responses.activate
     def test_polyscore(self):
-        responses.add(responses.Response(responses.GET, 'http://localhost:9696/v2/consumer/submission/6eadcabe-9f9e-4301-8e60-c9e58504c325/polyscore',
+        responses.add(responses.Response(responses.GET, 'http://localhost:9696/v2/consumer/polyscore/77090327141458166',
                                          json={'result': {'scores': {'77090327141458166': 0.00024050482800527995}}, 'status': 'OK'}
                                          ))
         api = PolyswarmAPI(self.test_api_key, uri='http://localhost:9696/{}'.format(self.api_version), community='gamma')
-        result = api.score('6eadcabe-9f9e-4301-8e60-c9e58504c325')
+        result = api.score('77090327141458166')
         assert result.scores['77090327141458166'] == 0.00024050482800527995

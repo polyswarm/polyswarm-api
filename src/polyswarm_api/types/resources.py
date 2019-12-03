@@ -76,7 +76,7 @@ class ArtifactInstance(base.BasePSJSONType, base.BasePSResourceType):
         self.type = json['type']
         self.votes = [Vote(self, v, polyswarm) for v in json['votes']]
         self.window_closed = json['window_closed']
-        self.polyscore = float(json['polyscore']) if json['polyscore'] is not None else None
+        self.polyscore = float(json['polyscore']) if json.get('polyscore') is not None else None
         self.permalink = const.DEFAULT_PERMALINK_BASE + '/' + str(self.id)
 
         self._detections = None
