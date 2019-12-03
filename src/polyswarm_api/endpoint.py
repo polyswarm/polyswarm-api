@@ -151,10 +151,10 @@ class PolyswarmRequest(object):
 
 class PolyswarmRequestGenerator(object):
     """ This class will return PolyswarmRequests"""
-    def __init__(self, api_instance, uri, community):
+    def __init__(self, api_instance):
         self.api_instance = api_instance
-        self.uri = uri
-        self.community = community
+        self.uri = api_instance.uri
+        self.community = api_instance.community
 
     def download(self, hash_value, hash_type, output_file, create=False):
         return PolyswarmRequest(

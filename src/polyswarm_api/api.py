@@ -18,15 +18,17 @@ from .types import resources
 class PolyswarmAPI(object):
     """A synchronous interface to the public and private PolySwarm APIs."""
 
-    def __init__(self, key, uri='https://api.polyswarm.network/v2', community='lima', validate_schemas=False):
+    def __init__(self, key, uri=None, community=None, validate_schemas=False):
         """
         :param key: PolySwarm API key
         :param uri: PolySwarm API URI
         :param community: Community to scan against.
         :param validate_schemas: Validate JSON objects when creating response objects. Will impact performance.
         """
+        self.uri = uri or const.DEFAULT_GLOBAL_API
+        self.community = community or const.DEFAULT_COMMUNITY
         self.session = http.PolyswarmHTTP(key, retries=const.DEFAULT_RETRIES)
-        self.generator = endpoint.PolyswarmRequestGenerator(self, uri, community)
+        self.generator = endpoint.PolyswarmRequestGenerator(self)
         self._engine_map = None
         self.validate = validate_schemas
 
