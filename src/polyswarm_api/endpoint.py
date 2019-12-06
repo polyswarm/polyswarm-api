@@ -206,9 +206,8 @@ class PolyswarmRequestGenerator(object):
             {
                 'method': 'GET',
                 'timeout': const.DEFAULT_HTTP_TIMEOUT,
-                'url': '{}/search'.format(self.uri),
+                'url': '{}/search/hash/{}'.format(self.uri, h.hash_type),
                 'params': {
-                    'type': h.hash_type,
                     'hash': h.hash,
                 },
             },
@@ -221,11 +220,10 @@ class PolyswarmRequestGenerator(object):
             {
                 'method': 'GET',
                 'timeout': const.DEFAULT_HTTP_TIMEOUT,
-                'url': '{}/search'.format(self.uri),
+                'url': '{}/search/metadata/metadata'.format(self.uri),
                 'params': {
-                    'type': 'metadata',
+                    'query': json.dumps(q.query),
                 },
-                'json': q.query,
             },
             result_parser=resources.ArtifactInstance,
         )
