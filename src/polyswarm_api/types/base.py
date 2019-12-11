@@ -48,6 +48,7 @@ class BasePSJSONType(BasePSType):
 class BasePSResourceType(BasePSType):
     @classmethod
     def parse_result(cls, api_instance, json_result, **kwargs):
+        logger.debug('Parsing resource %s', cls.__name__)
         return cls(json_result, polyswarm=api_instance, **kwargs)
 
     @classmethod

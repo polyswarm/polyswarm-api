@@ -1,3 +1,4 @@
+import logging
 import time
 import os
 
@@ -15,6 +16,9 @@ from . import http
 from .types import resources
 
 
+logger = logging.getLogger(__name__)
+
+
 class PolyswarmAPI(object):
     """A synchronous interface to the public and private PolySwarm APIs."""
 
@@ -25,6 +29,7 @@ class PolyswarmAPI(object):
         :param community: Community to scan against.
         :param validate_schemas: Validate JSON objects when creating response objects. Will impact performance.
         """
+        logger.debug('Creating PolyswarmAPI instance: api_key: %s, api_uri: %s, community: %s', key, uri, community)
         self.uri = uri or const.DEFAULT_GLOBAL_API
         self.community = community or const.DEFAULT_COMMUNITY
         self.session = http.PolyswarmHTTP(key, retries=const.DEFAULT_RETRIES)

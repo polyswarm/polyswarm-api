@@ -29,6 +29,8 @@ class RequestParamsEncoder(json.JSONEncoder):
 class PolyswarmRequest(object):
     """This class holds a requests-compatible dictionary and extra information we need to parse the response."""
     def __init__(self, api_instance, request_parameters, key=None, result_parser=None, json_response=True, **kwargs):
+        logger.debug('Creating PolyswarmRequest instance.\nRequest parameters: %s\nResult parser: %s',
+                     request_parameters, result_parser.__name__)
         self.api_instance = api_instance
         # we should not access the api_instance session directly, but provide as a
         # parameter in the constructor, but this will do for the moment
@@ -50,7 +52,10 @@ class PolyswarmRequest(object):
         self._exception = None
 
     def execute(self):
+        logger.debug('Executing request.')
         self.raw_result = self.session.request(**self.request_parameters)
+        logger.debug('Request returned code %s with content:\n%s',
+                     self.raw_result.status_code, self.raw_result.content)
         if self.result_parser is not None:
             self.parse_result(self.raw_result)
         return self
@@ -70,6 +75,7 @@ class PolyswarmRequest(object):
         self.errors = self.json.get('errors')
 
     def parse_result(self, result):
+        logger.debug('Parsing request results.')
         self.status_code = result.status_code
         try:
             if self.status_code // 100 != 2:
@@ -152,6 +158,7 @@ class PolyswarmRequest(object):
 class PolyswarmRequestGenerator(object):
     """ This class will return PolyswarmRequests"""
     def __init__(self, api_instance):
+        logger.debug('Creating PolyswarmRequestGenerator instance')
         self.api_instance = api_instance
         self.uri = api_instance.uri
         self.community = api_instance.community
