@@ -447,7 +447,7 @@ class YaraRuleset(base.BasePSJSONType):
         try:
             yara.compile(source=self.ruleset)
         except yara.SyntaxError as e:
-            raise exceptions.InvalidYaraRulesException(*e.args)
+            raise exceptions.InvalidYaraRulesException('Malformed yara file: {}'.format(e.args[0]) + '\n')
 
         return True
 
@@ -561,10 +561,10 @@ class Hash(base.Hashable, base.BasePSType):
         self._hash_type = Hash.get_hash_type(hash_)
 
         if self._hash_type is None:
-            raise exceptions.InvalidValueException("Invalid hash provided: %s", hash_)
+            raise exceptions.InvalidValueException("Invalid hash provided: {}".format(hash_))
 
         if hash_type and self.hash_type != hash_type:
-            raise exceptions.InvalidValueException("Expected hash type %s, got %s", hash_type, self.hash_type)
+            raise exceptions.InvalidValueException("Expected hash type {}, got {}".format(hash_type, self.hash_type))
 
         self._hash = hash_
 
