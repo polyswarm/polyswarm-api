@@ -182,14 +182,15 @@ class PolyswarmAPI(object):
         """
         return self.generator.get_live_hunt(hunt_id).execute().result
 
-    def live_update(self, hunt_id=None):
+    def live_update(self, active, hunt_id=None):
         """
-        Delete a live hunt.
+        Update a live hunt.
 
         :param hunt_id: Hunt ID
+        :param active: True to start the live hunt and False to stop it
         :return: The updated Hunt resource
         """
-        return self.generator.update_live_hunt(hunt_id).execute().result
+        return self.generator.update_live_hunt(hunt_id, active=active).execute().result
 
     def live_delete(self, hunt_id=None):
         """
