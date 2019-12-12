@@ -580,6 +580,9 @@ class Hash(base.Hashable, base.BasePSType):
         :return: Hash
         """
         if issubclass(type(hash_), base.Hashable):
+            if hash_type and hash_.hash_type != hash_type:
+                raise exceptions.InvalidValueException('Detected hash type {}, got {} for hashable {}'
+                                                       .format(hash_.hash_type, hash_type, hash_.hash))
             return hash_
         return Hash(hash_, hash_type=hash_type, polyswarm=polyswarm)
 
