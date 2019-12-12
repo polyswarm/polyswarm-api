@@ -70,15 +70,16 @@ class PolyswarmAPI(object):
             else:
                 time.sleep(3)
 
-    def search(self, hash_):
+    def search(self, hash_, hash_type=None):
         """
         Search a list of hashes.
 
-        :param hashes: A list of Hashable objects (Artifact, local.LocalArtifact, Hash) or hex-encoded SHA256/SHA1/MD5
+        :param hash_: A Hashable object (Artifact, local.LocalArtifact, Hash) or hex-encoded SHA256/SHA1/MD5
+        :param hash_type: Hash type of the provided hash_. Will attempt to auto-detect if not explicitly provided.
         :return: Generator of ArtifactInstance resources
         """
 
-        hash_ = resources.Hash.from_hashable(hash_)
+        hash_ = resources.Hash.from_hashable(hash_, hash_type=hash_type)
         return self.generator.search_hash(hash_).execute().consume_results()
 
     def search_by_feature(self, feature, *artifacts):
@@ -135,14 +136,15 @@ class PolyswarmAPI(object):
         """
         return self.generator.lookup_uuid(submission_id).execute().result
 
-    def rescan(self, hash_):
+    def rescan(self, hash_, hash_type=None):
         """
         Submit rescans to polyswarm and return UUIDs
 
-        :param hashes: Hashable objects (Artifact, local.LocalArtifact, or Hash) or hex-encoded SHA256/SHA1/MD5
+        :param hash_: Hashable object (Artifact, local.LocalArtifact, or Hash) or hex-encoded SHA256/SHA1/MD5
+        :param hash_type: Hash type of the provided hash_. Will attempt to auto-detect if not explicitly provided.
         :return: Generator of Submission resources
         """
-        hash_ = resources.Hash.from_hashable(hash_)
+        hash_ = resources.Hash.from_hashable(hash_, hash_type=hash_type)
         return self.generator.rescan(hash_).execute().result
 
     def score(self, uuid_):
@@ -266,23 +268,39 @@ class PolyswarmAPI(object):
         """
         return self.generator.historical_hunt_results(hunt_id=hunt_id).execute().consume_results()
 
-    def download(self, out_dir, hash_):
-        hash_ = resources.Hash.from_hashable(hash_)
+    def download(self, out_dir, hash_, hash_type=None):
+        """
+        Grab the data of artifact identified by hash, and write the data to a file in the provided directory
+        under a file named after the hash_.
+        :param out_dir: Destination directory to download the file.
+        :param hash_: hash
+        :param hash_type: Hash type of the provided hash_. Will attempt to auto-detect if not explicitly provided.
+        :return: A LocalArtifact resource
+        """
+        hash_ = resources.Hash.from_hashable(hash_, hash_type=hash_type)
         path = os.path.join(out_dir, hash_.hash)
         return self.generator.download(hash_.hash, hash_.hash_type, path, create=True).execute().result
 
     def download_archive(self, out_dir, s3_path):
+        """
+        Grab the data in the s3 path provided in the stream() method, and write the contents
+        in the provided directory.
+        :param out_dir: Destination directory to download the file.
+        :param s3_path: Target S3 object to download.
+        :return: A LocalArtifact resource
+        """
         path = os.path.join(out_dir, os.path.basename(urlparse(s3_path).path))
         return self.generator.download_archive(s3_path, path, create=True).execute().result
 
-    def download_to_filehandle(self, hash_, fh):
+    def download_to_filehandle(self, hash_, fh, hash_type=None):
         """
         Grab the data of artifact identified by hash, and write the data to a file handle
         :param hash_: hash
         :param fh: file handle
-        :return: A LocalArtifact resources
+        :param hash_type: Hash type of the provided hash_. Will attempt to auto-detect if not explicitly provided.
+        :return: A LocalArtifact resource
         """
-        hash_ = resources.Hash.from_hashable(hash_)
+        hash_ = resources.Hash.from_hashable(hash_, hash_type=hash_type)
         return self.generator.download(hash_.hash, hash_.hash_type, fh).execute().result
 
     def stream(self, since=const.MAX_SINCE_TIME_STREAM):
