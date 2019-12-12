@@ -306,7 +306,7 @@ class PolyswarmRequestGenerator(object):
                 'method': 'GET',
                 'timeout': const.DEFAULT_HTTP_TIMEOUT,
                 'url': '{}/hunt/live'.format(self.uri),
-                'params': {'id': str(hunt_id)},
+                'params': {'id': str(hunt_id) if hunt_id else None},
             },
             result_parser=resources.Hunt,
         )
@@ -318,7 +318,7 @@ class PolyswarmRequestGenerator(object):
                 'method': 'PUT',
                 'timeout': const.DEFAULT_HTTP_TIMEOUT,
                 'url': '{}/hunt/live'.format(self.uri),
-                'params': {'id': str(hunt_id)},
+                'params': {'id': str(hunt_id) if hunt_id else None},
                 'json': {'active': active},
             },
             result_parser=resources.Hunt,
@@ -331,7 +331,7 @@ class PolyswarmRequestGenerator(object):
                 'method': 'DELETE',
                 'timeout': const.DEFAULT_HTTP_TIMEOUT,
                 'url': '{}/hunt/live'.format(self.uri),
-                'params': {'id': str(hunt_id)},
+                'params': {'id': str(hunt_id) if hunt_id else None},
             },
             result_parser=resources.Hunt,
         )
