@@ -275,15 +275,15 @@ class PolyswarmAPI(object):
         path = os.path.join(out_dir, os.path.basename(urlparse(s3_path).path))
         return self.generator.download_archive(s3_path, path, create=True).execute().result
 
-    def download_to_filehandle(self, h, fh):
+    def download_to_filehandle(self, hash_, fh):
         """
         Grab the data of artifact identified by hash, and write the data to a file handle
-        :param h: hash
+        :param hash_: hash
         :param fh: file handle
         :return: A LocalArtifact resources
         """
-        h = resources.Hash.from_hashable(h)
-        return self.generator.download(h.hash, h.hash_type, fh).execute().result
+        hash_ = resources.Hash.from_hashable(hash_)
+        return self.generator.download(hash_.hash, hash_.hash_type, fh).execute().result
 
     def stream(self, since=const.MAX_SINCE_TIME_STREAM):
         """
