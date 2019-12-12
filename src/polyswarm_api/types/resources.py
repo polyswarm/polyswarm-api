@@ -561,25 +561,27 @@ class Hash(base.Hashable, base.BasePSType):
         self._hash_type = Hash.get_hash_type(hash_)
 
         if self._hash_type is None:
-            raise exceptions.InvalidValueException("Invalid hash provided: {}".format(hash_))
+            raise exceptions.InvalidValueException('Invalid hash provided: {}'.format(hash_))
 
         if hash_type and self.hash_type != hash_type:
-            raise exceptions.InvalidValueException("Expected hash type {}, got {}".format(hash_type, self.hash_type))
+            raise exceptions.InvalidValueException('Detected hash type {}, got {} for hash {}'
+                                                   .format(hash_type, self.hash_type, hash_))
 
         self._hash = hash_
 
     @classmethod
-    def from_hashable(cls, h, polyswarm=None):
+    def from_hashable(cls, hash_, polyswarm=None, hash_type=None):
         """
         Coerce to Hashable object
 
-        :param h: Hashable object
+        :param hash_: Hashable object
+        :param hash_type: Hash type
         :param polyswarm: PolyswarmAPI instance
         :return: Hash
         """
-        if issubclass(type(h), base.Hashable):
-            return h
-        return Hash(h, polyswarm)
+        if issubclass(type(hash_), base.Hashable):
+            return hash_
+        return Hash(hash_, hash_type=hash_type, polyswarm=polyswarm)
 
     @classmethod
     def get_hash_type(cls, value):
