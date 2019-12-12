@@ -18,17 +18,21 @@ class TimeoutException(PolyswarmAPIException):
 # Request layer exceptions
 #########################################
 
-class RequestFailedException(PolyswarmException):
+class RequestException(PolyswarmException):
     def __init__(self, request, *args, **kwargs):
-        super(RequestFailedException, self).__init__(*args, **kwargs)
+        super(RequestException, self).__init__(*args, **kwargs)
         self.request = request
 
 
-class UsageLimitsExceededException(RequestFailedException):
+class UsageLimitsExceededException(RequestException):
     pass
 
 
-class NotFoundException(RequestFailedException):
+class NotFoundException(RequestException):
+    pass
+
+
+class NoResultsException(RequestException):
     pass
 
 
