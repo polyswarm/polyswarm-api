@@ -84,7 +84,9 @@ class PolyswarmRequest(object):
                     raise exceptions.UsageLimitsExceededException(self, const.USAGE_EXCEEDED_MESSAGE)
                 if self.status_code == 404:
                     raise exceptions.NotFoundException(self, self.result)
-                raise exceptions.RequestFailedException(self, self._bad_status_message())
+                raise exceptions.RequestException(self, self._bad_status_message())
+            elif self.status_code == 204:
+                raise exceptions.NoResultsException(self, 'The request returned no results.')
             else:
                 if self.json_response:
                     self._extract_json_body(result)
@@ -98,7 +100,7 @@ class PolyswarmRequest(object):
                     elif 'results' in self.json:
                         result = self.json['results']
                     else:
-                        raise exceptions.RequestFailedException(
+                        raise exceptions.RequestException(
                             self,
                             'The response standard must contain either the "result" or "results" key.'
                         )
@@ -112,7 +114,7 @@ class PolyswarmRequest(object):
             if self.status_code == 404:
                 raise raise_from(exceptions.NotFoundException(self, 'The requested endpoint does not exist.'), e)
             else:
-                raise raise_from(exceptions.RequestFailedException(self, 'Server returned non-JSON response.'), e)
+                raise raise_from(exceptions.RequestException(self, 'Server returned non-JSON response.'), e)
 
     def __iter__(self):
         return self.consume_results()
