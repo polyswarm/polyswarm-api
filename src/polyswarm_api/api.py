@@ -107,7 +107,7 @@ class PolyswarmAPI(object):
         """
         Submit artifacts to polyswarm and return UUIDs
 
-        :param artifacts: List of local.LocalArtifacts or paths to local files
+        :param artifact: List of local.LocalArtifacts or paths to local files
         :param artifact_type: The ArtifactType or strings containing "file" or "url"
         :return: Generator of Submission resources
         """
