@@ -61,8 +61,8 @@ class PolyswarmRequest(object):
         return self
 
     def _bad_status_message(self):
-        return "Request:\n{}\n" \
-               "Got unexpected result code: {}\n" \
+        return "Error when running the request:\n{}\n" \
+               "Return code: {}\n" \
                "Message: {}".format(json.dumps(self.request_parameters, indent=4,
                                                sort_keys=True, cls=RequestParamsEncoder),
                                     self.status_code,
