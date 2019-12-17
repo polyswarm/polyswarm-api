@@ -452,37 +452,6 @@ class YaraRuleset(base.BasePSJSONType):
         return True
 
 
-class Query(base.BasePSType):
-    def __init__(self, polyswarm=None):
-        super(Query, self).__init__(polyswarm)
-
-
-class MetadataQuery(Query):
-    """ Class representing a MetadataQuery """
-    def __init__(self, query, raw=False, polyswarm=None):
-        super(MetadataQuery, self).__init__(polyswarm)
-        if not raw:
-            query = {
-                'query': {
-                    'query_string': {
-                        'query': query
-                    }
-                }
-            }
-        self.query = query
-        self.validate()
-
-    def validate(self):
-        try:
-            validate(self.query, schemas.search_schema)
-        except ValidationError:
-            raise exceptions.InvalidJSONResponseException("Failed to validate json against schema",
-                                                          self.query, schemas.search_schema)
-
-    def __repr__(self):
-        return json.dumps(self.query)
-
-
 class ArtifactType(Enum):
     FILE = 0
     URL = 1
