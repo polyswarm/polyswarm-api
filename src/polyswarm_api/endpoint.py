@@ -264,6 +264,17 @@ class PolyswarmRequestGenerator(object):
             result_parser=resources.ArtifactInstance,
         )
 
+    def rescanid(self, submission_id):
+        return PolyswarmRequest(
+            self.api_instance,
+            {
+                'method': 'POST',
+                'timeout': const.DEFAULT_HTTP_TIMEOUT,
+                'url': '{}/consumer/submission/{}/rescan/{}'.format(self.uri, self.community, submission_id),
+            },
+            result_parser=resources.ArtifactInstance,
+        )
+
     def lookup_uuid(self, submission_id):
         return PolyswarmRequest(
             self.api_instance,

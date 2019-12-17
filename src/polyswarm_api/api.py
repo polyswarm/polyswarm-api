@@ -138,14 +138,23 @@ class PolyswarmAPI(object):
 
     def rescan(self, hash_, hash_type=None):
         """
-        Submit rescans to polyswarm and return UUIDs
+        Rescan a file based on and existing hash in the Polyswarm platform
 
         :param hash_: Hashable object (Artifact, local.LocalArtifact, or Hash) or hex-encoded SHA256/SHA1/MD5
         :param hash_type: Hash type of the provided hash_. Will attempt to auto-detect if not explicitly provided.
-        :return: Generator of Submission resources
+        :return: A Submission resources
         """
         hash_ = resources.Hash.from_hashable(hash_, hash_type=hash_type)
         return self.generator.rescan(hash_).execute().result
+
+    def rescanid(self, submission_id):
+        """
+        Re-execute a new submission based on an existing submission.
+
+        :param submission_id: Id of the existing submission
+        :return: A Submission resource
+        """
+        return self.generator.rescanid(submission_id).execute().result
 
     def score(self, uuid_):
         """
