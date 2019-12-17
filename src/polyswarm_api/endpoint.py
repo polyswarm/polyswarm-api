@@ -223,7 +223,7 @@ class PolyswarmRequestGenerator(object):
             result_parser=resources.ArtifactInstance,
         )
 
-    def search_metadata(self, q):
+    def search_metadata(self, query):
         return PolyswarmRequest(
             self.api_instance,
             {
@@ -231,7 +231,7 @@ class PolyswarmRequestGenerator(object):
                 'timeout': const.DEFAULT_HTTP_TIMEOUT,
                 'url': '{}/search/metadata/metadata'.format(self.uri),
                 'params': {
-                    'query': json.dumps(q.query),
+                    'query': query,
                 },
             },
             result_parser=resources.ArtifactInstance,

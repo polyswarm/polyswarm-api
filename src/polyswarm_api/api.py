@@ -97,10 +97,9 @@ class PolyswarmAPI(object):
         """
         Search artifacts by metadata
 
-        :param queries: List of MetadataQuery objects (or query_strings)
+        :param query: A query string
         :return: Generator of ArtifactInstance resources
         """
-        query = query if isinstance(query, resources.MetadataQuery) else resources.MetadataQuery(query, polyswarm=self)
         return self.generator.search_metadata(query).execute().consume_results()
 
     def submit(self, artifact, artifact_type=resources.ArtifactType.FILE):
@@ -132,7 +131,7 @@ class PolyswarmAPI(object):
         """
         Lookup a submission by Submission id.
 
-        :param uuids: UUIDs to lookup
+        :param submission_id: The Submission UUID to lookup
         :return: Generator of Submission resources
         """
         return self.generator.lookup_uuid(submission_id).execute().result
