@@ -48,6 +48,7 @@ class PolyswarmRequest(object):
         self.offset = None
         self.order_by = None
         self.direction = None
+        self.has_more = None
         self.parser_kwargs = kwargs
         self._exception = None
 
