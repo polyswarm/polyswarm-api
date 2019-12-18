@@ -50,7 +50,6 @@ class PolyswarmRequest(object):
         self.direction = None
         self.has_more = None
         self.parser_kwargs = kwargs
-        self._exception = None
 
     def execute(self):
         logger.debug('Executing request.')
@@ -122,6 +121,9 @@ class PolyswarmRequest(object):
         return self.consume_results()
 
     def consume_results(self):
+        # StopIteration is deprecated
+        # As per https://www.python.org/dev/peps/pep-0479/
+        # We simply return upon termination condition
         request = self
         while True:
             # consume items items from list if iterable
@@ -131,19 +133,12 @@ class PolyswarmRequest(object):
                     yield result
             except TypeError:
                 yield request.result
+                # if the result is not a list, there is not next page
+                return
 
-            # StopIteration is deprecated
-            # As per https://www.python.org/dev/peps/pep-0479/
-            # We simply return upon termination condition
-            if request._exception is not None:
-                return
-            # if the result is not a list, there is not next page
-            if not isinstance(request.result, list):
-                return
-            # if the list does not fill the page, stop
+            # if the server indicates that there are no more results, return
             if not request.has_more:
                 return
-
             # try to get the next page and execute the request
             request = request.next_page().execute()
 
