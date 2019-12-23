@@ -284,17 +284,17 @@ class PolyswarmAPI(object):
             logger.warning('%s\nSkipping validation.', str(e))
         return self.generator.create_rule_set(rules).execute().result
 
-    def rule_set_get(self, ruleset_id=None):
-        return self.generator.get_rule_set(ruleset_id).execute().result
+    def rule_set_get(self, rule_set_id=None):
+        return self.generator.get_rule_set(rule_set_id).execute().result
 
-    def rule_set_update(self, ruleset_id, name=None, rules=None, description=None):
-        return self.generator.update_rule_set(ruleset_id, name=name, rules=rules, description=description).execute().result
+    def rule_set_update(self, rule_set_id, name=None, rules=None, description=None):
+        return self.generator.update_rule_set(rule_set_id, name=name, rules=rules, description=description).execute().result
 
-    def rule_set_delete(self, ruleset_id):
-        return self.generator.delete_rule_set(ruleset_id).execute().result
+    def rule_set_delete(self, rule_set_id):
+        return self.generator.delete_rule_set(rule_set_id).execute().result
 
     def rule_set_list(self):
-        return self.generator.rule_set_list().execute().consume_results()
+        return self.generator.list_rule_set().execute().consume_results()
 
     def download(self, out_dir, hash_, hash_type=None):
         """
