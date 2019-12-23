@@ -1,4 +1,3 @@
-import json
 import logging
 import os
 import tempfile
@@ -7,7 +6,6 @@ from enum import Enum
 from hashlib import sha256 as _sha256, sha1 as _sha1, md5 as _md5
 
 from future.utils import raise_from, string_types
-from jsonschema import validate, ValidationError
 from ordered_set import OrderedSet
 
 from polyswarm_api.const import FILE_CHUNK_SIZE
@@ -265,6 +263,33 @@ class LocalArtifact(base.Hashable, base.BasePSResourceType):
         return "Artifact <%s>" % self.hash
 
 
+class YaraRuleset(base.BasePSResourceType):
+    def __init__(self, json, polyswarm=None):
+        super(YaraRuleset, self).__init__(polyswarm)
+        self.yara = json['yara']
+        self.name = json.get('name')
+        self.account_id = json.get('account_id')
+        self.id = json.get('id')
+        self.description = json.get('description')
+        self.created = json.get('created')
+        self.modified = json.get('modified')
+        self.deleted = json.get('deleted')
+
+        if not self.yara:
+            raise exceptions.InvalidValueException("Must provide yara ruleset content")
+
+    def validate(self):
+        if not yara:
+            raise exceptions.NotImportedException("Cannot validate rules locally without yara-python")
+
+        try:
+            yara.compile(source=self.yara)
+        except yara.SyntaxError as e:
+            raise exceptions.InvalidYaraRulesException('Malformed yara file: {}'.format(e.args[0]) + '\n')
+
+        return True
+
+
 #####################################################################
 # Nested Resources
 #####################################################################
@@ -426,30 +451,6 @@ class ArtifactMetadata(base.BasePSJSONType):
 #####################################################################
 # Resources Used as input parameters in PolyswarmAPI
 #####################################################################
-
-
-class YaraRuleset(base.BasePSJSONType):
-    def __init__(self, ruleset, path=None, polyswarm=None):
-        super(YaraRuleset, self).__init__(polyswarm)
-
-        if not (path or ruleset):
-            raise exceptions.InvalidValueException("Must provide artifact content, either via path or content argument")
-
-        if ruleset:
-            self.ruleset = ruleset
-        else:
-            self.ruleset = open(path, "r").read()
-
-    def validate(self):
-        if not yara:
-            raise exceptions.NotImportedException("Cannot validate rules locally without yara-python")
-
-        try:
-            yara.compile(source=self.ruleset)
-        except yara.SyntaxError as e:
-            raise exceptions.InvalidYaraRulesException('Malformed yara file: {}'.format(e.args[0]) + '\n')
-
-        return True
 
 
 class ArtifactType(Enum):
