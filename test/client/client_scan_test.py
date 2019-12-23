@@ -278,8 +278,7 @@ class ScanTestCaseV2(TestCase):
                                          json={'result': {'account_id': '1', 'created': 'Mon, 23 Dec 2019 21:02:36 GMT', 'deleted': True, 'description': 'test', 'id': '67713199207380968', 'modified': 'Mon, 23 Dec 2019 21:06:18 GMT', 'name': 'test2', 'yara': 'rule eicar_av_test {\n    /*\n       Per standard, match only if entire file is EICAR string plus optional trailing whitespace.\n       The raw EICAR string to be matched is:\n       X5O!P%@AP[4\\PZX54(P^)7CC)7}$EICAR-STANDARD-ANTIVIRUS-TEST-FILE!$H+H*\n    */\n\n    meta:\n        description = "This is a standard AV test, intended to verify that BinaryAlert is working correctly."\n        author = "Austin Byers | Airbnb CSIRT"\n        reference = "http://www.eicar.org/86-0-Intended-use.html"\n\n    strings:\n        $eicar_regex = /^X5O!P%@AP\\[4\\\\PZX54\\(P\\^\\)7CC\\)7\\}\\$EICAR-STANDARD-ANTIVIRUS-TEST-FILE!\\$H\\+H\\*\\s*$/\n\n    condition:\n        all of them\n}\n\nrule eicar_substring_test {\n    /*\n       More generic - match just the embedded EICAR string (e.g. in packed executables, PDFs, etc)\n    */\n\n    meta:\n        description = "Standard AV test, checking for an EICAR substring"\n        author = "Austin Byers | Airbnb CSIRT"\n\n    strings:\n        $eicar_substring = "$EICAR-STANDARD-ANTIVIRUS-TEST-FILE!"\n\n    condition:\n        all of them\n}'}, 'status': 'OK'}
                                          ))
         responses.add(responses.Response(responses.GET, 'http://localhost:9696/v2/hunt/rule/list',
-                                         status=204,
-                                         json={'has_more': False, 'limit': 50, 'offset': 0, 'result': [], 'status': 'OK'}
+                                         status=204
                                          ))
         api = PolyswarmAPI(self.test_api_key, uri='http://localhost:9696/{}'.format(self.api_version), community='gamma')
         # creating
