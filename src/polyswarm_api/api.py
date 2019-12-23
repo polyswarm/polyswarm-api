@@ -173,12 +173,11 @@ class PolyswarmAPI(object):
         :return: The created Hunt resource
         """
         if not isinstance(rules, resources.YaraRuleset):
-            rules = resources.YaraRuleset(rules, polyswarm=self)
+            rules = resources.YaraRuleset(dict(yara=rules), polyswarm=self)
         try:
             rules.validate()
-        except exceptions.NotImportedException:
-            # for now, we do nothing to avoid nagging the user
-            pass
+        except exceptions.NotImportedException as e:
+            logger.warning('%s\nSkipping validation.', str(e))
         return self.generator.create_live_hunt(rules).execute().result
 
     def live_get(self, hunt_id=None):
@@ -235,12 +234,11 @@ class PolyswarmAPI(object):
         :return: The created Hunt resource
         """
         if not isinstance(rules, resources.YaraRuleset):
-            rules = resources.YaraRuleset(rules, polyswarm=self)
+            rules = resources.YaraRuleset(dict(yara=rules), polyswarm=self)
         try:
             rules.validate()
-        except exceptions.NotImportedException:
-            # for now, we do nothing to avoid nagging the user
-            pass
+        except exceptions.NotImportedException as e:
+            logger.warning('%s\nSkipping validation.', str(e))
         return self.generator.create_historical_hunt(rules).execute().result
 
     def historical_get(self, hunt_id=None):
@@ -277,6 +275,26 @@ class PolyswarmAPI(object):
         :return: Generator of HuntResult resources
         """
         return self.generator.historical_hunt_results(hunt_id=hunt_id).execute().consume_results()
+
+    def rule_set_create(self, name, rules, description=None):
+        rules = resources.YaraRuleset(dict(name=name, description=description, yara=rules), polyswarm=self)
+        try:
+            rules.validate()
+        except exceptions.NotImportedException as e:
+            logger.warning('%s\nSkipping validation.', str(e))
+        return self.generator.create_rule_set(rules).execute().result
+
+    def rule_set_get(self, ruleset_id=None):
+        return self.generator.get_rule_set(ruleset_id).execute().result
+
+    def rule_set_update(self, ruleset_id, name=None, rules=None, description=None):
+        return self.generator.update_rule_set(ruleset_id, name=name, rules=rules, description=description).execute().result
+
+    def rule_set_delete(self, ruleset_id):
+        return self.generator.delete_rule_set(ruleset_id).execute().result
+
+    def rule_set_list(self):
+        return self.generator.rule_set_list().execute().consume_results()
 
     def download(self, out_dir, hash_, hash_type=None):
         """
