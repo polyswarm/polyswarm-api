@@ -61,12 +61,15 @@ class PolyswarmRequest(object):
         return self
 
     def _bad_status_message(self):
-        return "Error when running the request:\n{}\n" \
-               "Return code: {}\n" \
-               "Message: {}".format(json.dumps(self.request_parameters, indent=4,
-                                               sort_keys=True, cls=RequestParamsEncoder),
-                                    self.status_code,
-                                    self.result)
+        request_parameters = json.dumps(self.request_parameters, indent=4, sort_keys=True, cls=RequestParamsEncoder)
+        message = "Error when running the request:\n{}\n" \
+                  "Return code: {}\n" \
+                  "Message: {}".format(request_parameters,
+                                       self.status_code,
+                                       self.result)
+        if self.errors:
+            message = '{}\nErrors:\n{}'.format(message, '\n'.join(str(error) for error in self.errors))
+        return message
 
     def _extract_json_body(self, result):
         self.json = result.json()
@@ -441,36 +444,43 @@ class PolyswarmRequestGenerator(object):
             result_parser=resources.YaraRuleset,
         )
 
-    def get_rule_set(self, hunt_id=None):
+    def get_rule_set(self, rule_set_id=None):
         return PolyswarmRequest(
             self.api_instance,
             {
                 'method': 'GET',
                 'url': '{}/hunt/rule'.format(self.uri),
-                'params': {'id': str(hunt_id) if hunt_id else ''},
+                'params': {'id': str(rule_set_id)},
             },
             result_parser=resources.YaraRuleset,
         )
 
-    def update_rule_set(self, hunt_id=None, active=False):
+    def update_rule_set(self, rule_set_id, name=None, rules=None, description=None):
+        parameters = {
+            'method': 'PUT',
+            'url': '{}/hunt/rule'.format(self.uri),
+            'params': {'id': str(rule_set_id)},
+            'json': {},
+        }
+        if name:
+            parameters['json']['name'] = name
+        if rules:
+            parameters['json']['yara'] = rules
+        if description:
+            parameters['json']['description'] = description
         return PolyswarmRequest(
             self.api_instance,
-            {
-                'method': 'PUT',
-                'url': '{}/hunt/rule'.format(self.uri),
-                'params': {'id': str(hunt_id) if hunt_id else ''},
-                'json': {'active': active},
-            },
+            parameters,
             result_parser=resources.YaraRuleset,
         )
 
-    def delete_rule_set(self, hunt_id):
+    def delete_rule_set(self, rule_set_id):
         return PolyswarmRequest(
             self.api_instance,
             {
                 'method': 'DELETE',
                 'url': '{}/hunt/rule'.format(self.uri),
-                'params': {'id': str(hunt_id) if hunt_id else ''},
+                'params': {'id': str(rule_set_id)},
             },
             result_parser=resources.YaraRuleset,
         )
@@ -481,7 +491,6 @@ class PolyswarmRequestGenerator(object):
             {
                 'method': 'GET',
                 'url': '{}/hunt/rule/list'.format(self.uri),
-                'params': {'all': 'true'},
             },
             result_parser=resources.YaraRuleset,
         )
