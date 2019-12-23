@@ -277,6 +277,13 @@ class PolyswarmAPI(object):
         return self.generator.historical_hunt_results(hunt_id=hunt_id).execute().consume_results()
 
     def rule_set_create(self, name, rules, description=None):
+        """
+        Create a Yara Ruleset from the provided rules with the given name in the polyswarm platform.
+        :param name: Name of the ruleset
+        :param rules: Yara rules as a string
+        :param description: Description of the ruleset
+        :return: A YaraRuleset resource
+        """
         rules = resources.YaraRuleset(dict(name=name, description=description, yara=rules), polyswarm=self)
         try:
             rules.validate()
@@ -285,15 +292,37 @@ class PolyswarmAPI(object):
         return self.generator.create_rule_set(rules).execute().result
 
     def rule_set_get(self, rule_set_id=None):
+        """
+        Retrieve a YaraRuleset from the polyswarm platform by its Id.
+        :param rule_set_id: Id of the ruleset
+        :return: A YaraRuleset resource
+        """
         return self.generator.get_rule_set(rule_set_id).execute().result
 
     def rule_set_update(self, rule_set_id, name=None, rules=None, description=None):
+        """
+        Update an existing YaraRuleset in the polyswarm platform by its Id.
+        :param rule_set_id: Id of the ruleset
+        :param name: New name of the ruleset
+        :param rules: New yara rules as a string
+        :param description: New description of the ruleset
+        :return: The updated YaraRuleset resource
+        """
         return self.generator.update_rule_set(rule_set_id, name=name, rules=rules, description=description).execute().result
 
     def rule_set_delete(self, rule_set_id):
+        """
+        Delete a YaraRuleset from the polyswarm platform by its Id.
+        :param rule_set_id: Id of the ruleset
+        :return: A YaraRuleset resource
+        """
         return self.generator.delete_rule_set(rule_set_id).execute().result
 
     def rule_set_list(self):
+        """
+        List all YaraRulesets for the current account.
+        :return: A generator of YaraRuleset resources
+        """
         return self.generator.list_rule_set().execute().consume_results()
 
     def download(self, out_dir, hash_, hash_type=None):
