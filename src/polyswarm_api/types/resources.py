@@ -263,9 +263,9 @@ class LocalArtifact(base.Hashable, base.BasePSResourceType):
         return "Artifact <%s>" % self.hash
 
 
-class YaraRuleset(base.BasePSResourceType):
+class YaraRuleset(base.BasePSJSONType):
     def __init__(self, json, polyswarm=None):
-        super(YaraRuleset, self).__init__(polyswarm)
+        super(YaraRuleset, self).__init__(json, polyswarm)
         self.yara = json['yara']
         self.name = json.get('name')
         self.account_id = json.get('account_id')
