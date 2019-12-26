@@ -165,7 +165,7 @@ class PolyswarmAPI(object):
         """
         return self.generator.score(uuid_).execute().result
 
-    def live_create(self, rules):
+    def live_create(self, rules, active=True):
         """
         Create a new live hunt_id, and replace the currently running YARA rules.
 
@@ -178,7 +178,7 @@ class PolyswarmAPI(object):
             rules.validate()
         except exceptions.NotImportedException as e:
             logger.warning('%s\nSkipping validation.', str(e))
-        return self.generator.create_live_hunt(rules).execute().result
+        return self.generator.create_live_hunt(rules, active=active).execute().result
 
     def live_get(self, hunt_id=None):
         """

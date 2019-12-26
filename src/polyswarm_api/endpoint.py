@@ -288,13 +288,14 @@ class PolyswarmRequestGenerator(object):
             result_parser=resources.Engine,
         )
 
-    def create_live_hunt(self, rule):
+    def create_live_hunt(self, rule, active=True):
         return PolyswarmRequest(
             self.api_instance,
             {
                 'method': 'POST',
                 'url': '{}/hunt/live'.format(self.uri),
-                'json': {'yara': rule.yara},
+                'json': {'yara': rule.yara,
+                         'active': active},
             },
             result_parser=resources.Hunt,
         )
