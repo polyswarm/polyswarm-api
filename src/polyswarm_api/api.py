@@ -216,7 +216,7 @@ class PolyswarmAPI(object):
         """
         return self.generator.live_list(since=since, all_=all_).execute().consume_results()
 
-    def live_results(self, hunt_id=None, since=None):
+    def live_results(self, hunt_id=None, since=None, tag=None, rule_name=None):
         """
         Get results from a live hunt
 
@@ -224,7 +224,8 @@ class PolyswarmAPI(object):
         :param since: Fetch results from the last "since" minutes
         :return: Generator of HuntResult resources
         """
-        return self.generator.live_hunt_results(hunt_id=hunt_id, since=since).execute().consume_results()
+        return self.generator.live_hunt_results(hunt_id=hunt_id, since=since,
+                                                tag=tag, rule_name=rule_name).execute().consume_results()
 
     def historical_create(self, rules):
         """
@@ -267,14 +268,14 @@ class PolyswarmAPI(object):
         """
         return self.generator.historical_list(since=since).execute().consume_results()
 
-    def historical_results(self, hunt_id=None):
+    def historical_results(self, hunt_id=None, tag=None, rule_name=None):
         """
         Get results from a historical hunt
 
         :param hunt_id: ID of the hunt (None if latest hunt results are desired)
         :return: Generator of HuntResult resources
         """
-        return self.generator.historical_hunt_results(hunt_id=hunt_id).execute().consume_results()
+        return self.generator.historical_hunt_results(hunt_id=hunt_id, tag=tag, rule_name=rule_name).execute().consume_results()
 
     def rule_set_create(self, name, rules, description=None):
         """

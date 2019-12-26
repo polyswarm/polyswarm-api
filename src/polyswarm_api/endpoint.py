@@ -350,7 +350,7 @@ class PolyswarmRequestGenerator(object):
             result_parser=resources.Hunt,
         )
 
-    def live_hunt_results(self, hunt_id=None, since=None):
+    def live_hunt_results(self, hunt_id=None, since=None, tag=None, rule_name=None):
         req = {
             'method': 'GET',
             'url': '{}/hunt/live/results'.format(self.uri),
@@ -359,6 +359,10 @@ class PolyswarmRequestGenerator(object):
                 'id': str(hunt_id) if hunt_id else '',
             },
         }
+        if tag is not None:
+            req['params']['tag'] = tag
+        if rule_name is not None:
+            req['params']['rule_name'] = rule_name
         return PolyswarmRequest(
             self.api_instance,
             req,
@@ -412,12 +416,16 @@ class PolyswarmRequestGenerator(object):
             result_parser=resources.Hunt,
         )
 
-    def historical_hunt_results(self, hunt_id=None):
+    def historical_hunt_results(self, hunt_id=None, tag=None, rule_name=None):
         req = {
             'method': 'GET',
             'url': '{}/hunt/historical/results'.format(self.uri),
             'params': {'id': str(hunt_id) if hunt_id else ''},
         }
+        if tag is not None:
+            req['params']['tag'] = tag
+        if rule_name is not None:
+            req['params']['rule_name'] = rule_name
         return PolyswarmRequest(
             self.api_instance,
             req,
