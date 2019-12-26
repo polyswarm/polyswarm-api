@@ -208,13 +208,13 @@ class PolyswarmAPI(object):
         """
         return self.generator.delete_live_hunt(hunt_id).execute().result
 
-    def live_list(self):
+    def live_list(self, since=None, all_=None):
         """
         List all the live hunts
 
         :return: Generator of Hunt resources
         """
-        return self.generator.live_list().execute().consume_results()
+        return self.generator.live_list(since=since, all_=all_).execute().consume_results()
 
     def live_results(self, hunt_id=None, since=None):
         """
@@ -259,13 +259,13 @@ class PolyswarmAPI(object):
         """
         return self.generator.delete_historical_hunt(hunt_id).execute().result
 
-    def historical_list(self):
+    def historical_list(self, since=None):
         """
         List all historical hunts
 
         :return: Generator of Hunt resources
         """
-        return self.generator.historical_list().execute().consume_results()
+        return self.generator.historical_list(since=since).execute().consume_results()
 
     def historical_results(self, hunt_id=None):
         """

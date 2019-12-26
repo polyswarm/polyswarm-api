@@ -334,14 +334,19 @@ class PolyswarmRequestGenerator(object):
             result_parser=resources.Hunt,
         )
 
-    def live_list(self):
+    def live_list(self, since=None, all_=None):
+        parameters = {
+            'method': 'GET',
+            'url': '{}/hunt/live/list'.format(self.uri),
+            'params': {},
+        }
+        if since is not None:
+            parameters['params']['since'] = since
+        if all_ is not None:
+            parameters['params']['all'] = int(all_)
         return PolyswarmRequest(
             self.api_instance,
-            {
-                'method': 'GET',
-                'url': '{}/hunt/live/list'.format(self.uri),
-                'params': {'all': 'true'},
-            },
+            parameters,
             result_parser=resources.Hunt,
         )
 
@@ -393,14 +398,17 @@ class PolyswarmRequestGenerator(object):
             result_parser=resources.Hunt,
         )
 
-    def historical_list(self):
+    def historical_list(self, since=None):
+        parameters = {
+            'method': 'GET',
+            'url': '{}/hunt/historical/list'.format(self.uri),
+            'params': {},
+        }
+        if since is not None:
+            parameters['params']['since'] = since
         return PolyswarmRequest(
             self.api_instance,
-            {
-                'method': 'GET',
-                'url': '{}/hunt/historical/list'.format(self.uri),
-                'params': {'all': 'true'},
-            },
+            parameters,
             result_parser=resources.Hunt,
         )
 
