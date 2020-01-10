@@ -37,11 +37,15 @@ class PolyswarmAPI(object):
         self._engine_map = None
         self.validate = validate_schemas
 
-    def _resolve_engine_name(self, eth_pub):
+    def _load_engine_map(self):
         if not self._engine_map:
             self._engine_map = self.generator._get_engine_names().execute().result
             self._engine_map = {e.address: e.name for e in self._engine_map}
-        return self._engine_map.get(eth_pub.lower(), eth_pub) if self._engine_map is not None else eth_pub
+        return self._engine_map
+
+    def _resolve_engine_name(self, eth_pub):
+        engines = self._load_engine_map()
+        return engines.get(eth_pub.lower(), eth_pub) if engines is not None else eth_pub
 
     def check_version(self):
         """
