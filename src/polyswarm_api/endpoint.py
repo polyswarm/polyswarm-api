@@ -149,7 +149,6 @@ class PolyswarmRequest(object):
         new_parameters = deepcopy(self.request_parameters)
         new_parameters.setdefault('params', {})['offset'] = self.offset
         new_parameters.setdefault('params', {})['limit'] = self.limit
-        new_parameters['params']['offset'] += new_parameters['params']['limit']
         return PolyswarmRequest(
             self.api_instance,
             new_parameters,
