@@ -131,7 +131,7 @@ class HuntResult(base.BasePSJSONType, base.BasePSResourceType):
         self.sha256 = json['sha256']
         self.historicalscan_id = json['historicalscan_id']
         self.livescan_id = json['livescan_id']
-        self.artifact = Artifact(json['artifact'], polyswarm)
+        self.artifact = ArtifactInstance(json['artifact'], polyswarm)
 
 
 def _read_chunks(file_handle):
