@@ -287,15 +287,18 @@ class PolyswarmRequestGenerator(object):
             result_parser=resources.Engine,
         )
 
-    def create_live_hunt(self, rule, active=True):
-        return PolyswarmRequest(
-            self.api_instance,
-            {
+    def create_live_hunt(self, rule, active=True, ruleset_name=None):
+        parameters = {
                 'method': 'POST',
                 'url': '{}/hunt/live'.format(self.uri),
                 'json': {'yara': rule.yara,
                          'active': active},
-            },
+            }
+        if ruleset_name:
+            parameters['json']['ruleset_name'] = ruleset_name
+        return PolyswarmRequest(
+            self.api_instance,
+            parameters,
             result_parser=resources.Hunt,
         )
 
@@ -368,14 +371,17 @@ class PolyswarmRequestGenerator(object):
             result_parser=resources.HuntResult,
         )
 
-    def create_historical_hunt(self, rule):
-        return PolyswarmRequest(
-            self.api_instance,
-            {
+    def create_historical_hunt(self, rule, ruleset_name=None):
+        parameters = {
                 'method': 'POST',
                 'url': '{}/hunt/historical'.format(self.uri),
                 'json': {'yara': rule.yara},
-            },
+            }
+        if ruleset_name:
+            parameters['json']['ruleset_name'] = ruleset_name
+        return PolyswarmRequest(
+            self.api_instance,
+            parameters,
             result_parser=resources.Hunt,
         )
 

@@ -165,7 +165,7 @@ class PolyswarmAPI(object):
         """
         return self.generator.score(uuid_).execute().result
 
-    def live_create(self, rules, active=True):
+    def live_create(self, rules, active=True, ruleset_name=None):
         """
         Create a new live hunt_id, and replace the currently running YARA rules.
 
@@ -178,7 +178,7 @@ class PolyswarmAPI(object):
             rules.validate()
         except exceptions.NotImportedException as e:
             logger.warning('%s\nSkipping validation.', str(e))
-        return self.generator.create_live_hunt(rules, active=active).execute().result
+        return self.generator.create_live_hunt(rules, active=active, ruleset_name=ruleset_name).execute().result
 
     def live_get(self, hunt_id=None):
         """
@@ -227,7 +227,7 @@ class PolyswarmAPI(object):
         return self.generator.live_hunt_results(hunt_id=hunt_id, since=since,
                                                 tag=tag, rule_name=rule_name).execute().consume_results()
 
-    def historical_create(self, rules):
+    def historical_create(self, rules, ruleset_name=None):
         """
         Run a new historical hunt.
 
@@ -240,7 +240,7 @@ class PolyswarmAPI(object):
             rules.validate()
         except exceptions.NotImportedException as e:
             logger.warning('%s\nSkipping validation.', str(e))
-        return self.generator.create_historical_hunt(rules).execute().result
+        return self.generator.create_historical_hunt(rules, ruleset_name=ruleset_name).execute().result
 
     def historical_get(self, hunt_id=None):
         """
