@@ -287,15 +287,18 @@ class PolyswarmRequestGenerator(object):
             result_parser=resources.Engine,
         )
 
-    def create_live_hunt(self, rule, active=True, ruleset_name=None):
+    def create_live_hunt(self, rule=None, rule_id=None, active=True, ruleset_name=None):
         parameters = {
                 'method': 'POST',
                 'url': '{}/hunt/live'.format(self.uri),
-                'json': {'yara': rule.yara,
-                         'active': active},
+                'json': {'active': active},
             }
         if ruleset_name:
             parameters['json']['ruleset_name'] = ruleset_name
+        if rule:
+            parameters['json']['yara'] = rule.yara
+        if rule_id:
+            parameters['json']['rule_id'] = str(rule_id)
         return PolyswarmRequest(
             self.api_instance,
             parameters,
@@ -371,14 +374,18 @@ class PolyswarmRequestGenerator(object):
             result_parser=resources.HuntResult,
         )
 
-    def create_historical_hunt(self, rule, ruleset_name=None):
+    def create_historical_hunt(self, rule=None, rule_id=None, ruleset_name=None):
         parameters = {
                 'method': 'POST',
                 'url': '{}/hunt/historical'.format(self.uri),
-                'json': {'yara': rule.yara},
+                'json': {},
             }
         if ruleset_name:
             parameters['json']['ruleset_name'] = ruleset_name
+        if rule:
+            parameters['json']['yara'] = rule.yara
+        if rule_id:
+            parameters['json']['rule_id'] = str(rule_id)
         return PolyswarmRequest(
             self.api_instance,
             parameters,

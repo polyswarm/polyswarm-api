@@ -165,20 +165,26 @@ class PolyswarmAPI(object):
         """
         return self.generator.score(uuid_).execute().result
 
-    def live_create(self, rules, active=True, ruleset_name=None):
+    def live_create(self, rule=None, rule_id=None, active=True, ruleset_name=None):
         """
         Create a new live hunt_id, and replace the currently running YARA rules.
 
-        :param rules: YaraRuleset object or string containing YARA rules to install
+        :param rule: YaraRuleset object or string containing YARA rules to install
         :return: The created Hunt resource
         """
-        if not isinstance(rules, resources.YaraRuleset):
-            rules = resources.YaraRuleset(dict(yara=rules), polyswarm=self)
-        try:
-            rules.validate()
-        except exceptions.NotImportedException as e:
-            logger.warning('%s\nSkipping validation.', str(e))
-        return self.generator.create_live_hunt(rules, active=active, ruleset_name=ruleset_name).execute().result
+        if rule:
+            if not isinstance(rule, resources.YaraRuleset):
+                rule = resources.YaraRuleset(dict(yara=rule), polyswarm=self)
+            try:
+                rule.validate()
+            except exceptions.NotImportedException as e:
+                logger.warning('%s\nSkipping validation.', str(e))
+        elif rule_id:
+            pass
+        else:
+            raise exceptions.InvalidValueException('Either yara or rule_id must be provided.')
+        return self.generator.create_live_hunt(rule=rule, rule_id=rule_id,
+                                               active=active, ruleset_name=ruleset_name).execute().result
 
     def live_get(self, hunt_id=None):
         """
@@ -227,20 +233,26 @@ class PolyswarmAPI(object):
         return self.generator.live_hunt_results(hunt_id=hunt_id, since=since,
                                                 tag=tag, rule_name=rule_name).execute().consume_results()
 
-    def historical_create(self, rules, ruleset_name=None):
+    def historical_create(self, rule=None, rule_id=None, ruleset_name=None):
         """
         Run a new historical hunt.
 
-        :param rules: YaraRuleset object or string containing YARA rules to install
+        :param rule: YaraRuleset object or string containing YARA rules to install
         :return: The created Hunt resource
         """
-        if not isinstance(rules, resources.YaraRuleset):
-            rules = resources.YaraRuleset(dict(yara=rules), polyswarm=self)
-        try:
-            rules.validate()
-        except exceptions.NotImportedException as e:
-            logger.warning('%s\nSkipping validation.', str(e))
-        return self.generator.create_historical_hunt(rules, ruleset_name=ruleset_name).execute().result
+        if rule:
+            if not isinstance(rule, resources.YaraRuleset):
+                rule = resources.YaraRuleset(dict(yara=rule), polyswarm=self)
+            try:
+                rule.validate()
+            except exceptions.NotImportedException as e:
+                logger.warning('%s\nSkipping validation.', str(e))
+        elif rule_id:
+            pass
+        else:
+            raise exceptions.InvalidValueException('Either yara or rule_id must be provided.')
+        return self.generator.create_historical_hunt(rule=rule, rule_id=rule_id,
+                                                     ruleset_name=ruleset_name).execute().result
 
     def historical_get(self, hunt_id=None):
         """
