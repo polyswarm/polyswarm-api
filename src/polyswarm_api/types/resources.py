@@ -117,6 +117,7 @@ class Hunt(base.BasePSJSONType, base.BasePSResourceType):
         self.created = date.parse_isoformat(json['created'])
         self.status = json['status']
         self.active = json.get('active')
+        self.ruleset_name = json.get('ruleset_name')
 
 
 class HuntResult(base.BasePSJSONType, base.BasePSResourceType):
