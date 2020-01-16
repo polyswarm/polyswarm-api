@@ -223,7 +223,7 @@ class PolyswarmRequestGenerator(object):
             self.api_instance,
             {
                 'method': 'GET',
-                'url': '{}/search/metadata/metadata'.format(self.uri),
+                'url': '{}/search/metadata/query'.format(self.uri),
                 'params': {
                     'query': query,
                 },
