@@ -54,7 +54,6 @@ class ArtifactInstance(base.BasePSJSONType, base.BasePSResourceType):
         super(ArtifactInstance, self).__init__(json=json, polyswarm=polyswarm)
         self.id = json['id']
         self.artifact_id = json['id']
-        self.account_id = json['account_id']
         self.assertions = [Assertion(self, a, polyswarm) for a in json['assertions']]
         self.country = json['country']
         self.community = json['community']
@@ -269,7 +268,6 @@ class YaraRuleset(base.BasePSJSONType, base.BasePSResourceType):
         super(YaraRuleset, self).__init__(json, polyswarm)
         self.yara = json['yara']
         self.name = json.get('name')
-        self.account_id = json.get('account_id')
         self.id = json.get('id')
         self.description = json.get('description')
         self.created = json.get('created')
