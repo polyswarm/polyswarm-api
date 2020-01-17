@@ -228,7 +228,7 @@ class PolyswarmRequestGenerator(object):
                     'query': query,
                 },
             },
-            result_parser=resources.ArtifactInstance,
+            result_parser=resources.Metadata,
         )
 
     def submit(self, artifact):

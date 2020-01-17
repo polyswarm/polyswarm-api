@@ -47,6 +47,36 @@ class Engine(base.BasePSJSONType, base.BasePSResourceType):
         self.name = json.get('name')
 
 
+class Metadata(base.BasePSJSONType, base.BasePSResourceType):
+    def __init__(self, json, polyswarm=None):
+        super(Metadata, self).__init__(json=json, polyswarm=polyswarm)
+        self.id = json['artifact']['id']
+        self.created = json['artifact']['created']
+
+        empty = {}
+        self.sha1 = json.get('hash', empty).get('sha1')
+        self.sha256 = json.get('hash', empty).get('sha256')
+        self.md5 = json.get('hash', empty).get('md5')
+        self.ssdeep = json.get('hash', empty).get('ssdeep')
+        self.tlsh = json.get('hash', empty).get('tlsh')
+
+        self.first_seen = json.get('scan', empty).get('first_seen')
+        if self.first_seen:
+            self.first_seen = date.parse_isoformat(self.first_seen)
+        self.last_seen = json.get('scan', empty).get('last_seen')
+        if self.last_seen:
+            self.last_seen = date.parse_isoformat(self.last_seen)
+        self.mimetype = json.get('scan', empty).get('mimetype', empty).get('mime')
+        self.extended_mimetype = json.get('scan', empty).get('mimetype', empty).get('extended')
+        self.detections = json.get('scan', empty).get('detections', empty).get('malicious')
+        self.total_detections = json.get('scan', empty).get('detections', empty).get('total')
+
+        self.domains = json.get('strings', empty).get('domains')
+        self.ipv4 = json.get('strings', empty).get('ipv4')
+        self.ipv6 = json.get('strings', empty).get('ipv6')
+        self.urls = json.get('strings', empty).get('urls')
+
+
 class ArtifactInstance(base.BasePSJSONType, base.BasePSResourceType):
     SCHEMA = schemas.artifact_instance_schema
 
