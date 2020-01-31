@@ -319,6 +319,16 @@ class YaraRuleset(base.BasePSJSONType, base.BasePSResourceType):
         return True
 
 
+class Tag(base.BasePSJSONType, base.BasePSResourceType):
+    def __init__(self, json, polyswarm=None):
+        super(Tag, self).__init__(json, polyswarm)
+        self.id = json.get('id')
+        self.created = json.get('created')
+        self.updated = json.get('updated')
+        self.tag_type = json.get('tag_type')
+        self.tag_value = json.get('tag_value')
+
+
 #####################################################################
 # Nested Resources
 #####################################################################
