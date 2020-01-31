@@ -342,6 +342,21 @@ class PolyswarmAPI(object):
         """
         return self.generator.list_rule_set().execute().consume_results()
 
+    def tag_create(self, sha256, tag_type, tag_value):
+        return self.generator.create_tag(sha256, tag_type, tag_value).execute().result
+
+    def tag_get(self, tag_id=None):
+        return self.generator.get_tag(tag_id).execute().result
+
+    def tag_update(self, tag_id, tag_type=None, tag_value=None):
+        return self.generator.update_tag(tag_id, tag_type=tag_type, tag_value=tag_value).execute().result
+
+    def tag_delete(self, tag_id):
+        return self.generator.delete_tag(tag_id).execute().result
+
+    def tag_list(self, sha256):
+        return self.generator.list_tags(sha256).execute().consume_results()
+
     def download(self, out_dir, hash_, hash_type=None):
         """
         Grab the data of artifact identified by hash, and write the data to a file in the provided directory
