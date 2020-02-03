@@ -343,18 +343,47 @@ class PolyswarmAPI(object):
         return self.generator.list_rule_set().execute().consume_results()
 
     def tag_create(self, sha256, tag_type, tag_value):
+        """
+        Create a Tag of the given type for the file identified by the sha256.
+        :param sha256: Hash of the file.
+        :param tag_type: Type of the tag to be created.
+        :param tag_value: Value of the tag to be created.
+        :return: A Tag resource
+        """
         return self.generator.create_tag(sha256, tag_type, tag_value).execute().result
 
     def tag_get(self, tag_id=None):
+        """
+        Fetch the Tag associated with the given id.
+        :param tag_id: Id of the tag.
+        :return: A Tag resource
+        """
         return self.generator.get_tag(tag_id).execute().result
 
     def tag_update(self, tag_id, tag_type=None, tag_value=None):
+        """
+        Update a Tag with the given type or value by its id.
+        :param tag_id: Id of the tag.
+        :param tag_type: Type of the tag to be created.
+        :param tag_value: Value of the tag to be created.
+        :return: A Tag resource
+        """
         return self.generator.update_tag(tag_id, tag_type=tag_type, tag_value=tag_value).execute().result
 
     def tag_delete(self, tag_id):
+        """
+        Delete the Tag associated with the given id.
+        :param tag_id: Id of the tag.
+        :return: A Tag resource
+        """
         return self.generator.delete_tag(tag_id).execute().result
 
     def tag_list(self, sha256):
+        """
+        Return all tags associated with the file identified by the sha256.
+        :param sha256: Hash of the file.
+        :return: A generator of Tag resources
+        """
         return self.generator.list_tags(sha256).execute().consume_results()
 
     def download(self, out_dir, hash_, hash_type=None):
