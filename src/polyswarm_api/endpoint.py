@@ -456,6 +456,67 @@ class PolyswarmRequestGenerator(object):
             result_parser=resources.PolyScore,
         )
 
+    def create_tag(self, sha256, tag_type, tag_value):
+        return PolyswarmRequest(
+            self.api_instance,
+            {
+                'method': 'POST',
+                'url': '{}/tags'.format(self.uri),
+                'json': {'sha256': sha256, 'tag_type': tag_type, 'tag_value': tag_value},
+            },
+            result_parser=resources.Tag,
+        )
+
+    def get_tag(self, tag_id):
+        return PolyswarmRequest(
+            self.api_instance,
+            {
+                'method': 'GET',
+                'url': '{}/tags'.format(self.uri),
+                'params': {'id': str(tag_id)},
+            },
+            result_parser=resources.Tag,
+        )
+
+    def update_tag(self, tag_id, tag_type=None, tag_value=None):
+        parameters = {
+            'method': 'PUT',
+            'url': '{}/tags'.format(self.uri),
+            'params': {'id': str(tag_id)},
+            'json': {},
+        }
+        if tag_type:
+            parameters['json']['tag_type'] = tag_type
+        if tag_value:
+            parameters['json']['tag_value'] = tag_value
+        return PolyswarmRequest(
+            self.api_instance,
+            parameters,
+            result_parser=resources.Tag,
+        )
+
+    def delete_tag(self, tag_id):
+        return PolyswarmRequest(
+            self.api_instance,
+            {
+                'method': 'DELETE',
+                'url': '{}/tags'.format(self.uri),
+                'params': {'id': str(tag_id)},
+            },
+            result_parser=resources.Tag,
+        )
+
+    def list_tags(self, sha256):
+        return PolyswarmRequest(
+            self.api_instance,
+            {
+                'method': 'GET',
+                'url': '{}/tags/list'.format(self.uri),
+                'params': {'sha256': sha256},
+            },
+            result_parser=resources.Tag,
+        )
+
     def create_rule_set(self, rule):
         parameters = {
             'method': 'POST',
