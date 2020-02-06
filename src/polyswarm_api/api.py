@@ -21,7 +21,7 @@ class PolyswarmAPI(object):
     """A synchronous interface to the public and private PolySwarm APIs."""
 
     def __init__(self, key, uri='https://api.polyswarm.network/v1', timeout=const.DEFAULT_SCAN_TIMEOUT,
-                 community='lima', validate_schemas=False):
+                 community='default', validate_schemas=False):
         """
         :param key: PolySwarm API key
         :param uri: PolySwarm API URI
