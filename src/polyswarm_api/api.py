@@ -379,6 +379,14 @@ class PolyswarmAPI(object):
         """
         return self.generator.list_tags(sha256).execute().consume_results()
 
+    def family_emerging(self, family_name, emerging=True):
+        """
+        Return all tags associated with the file identified by the sha256.
+        :param sha256: Hash of the file.
+        :return: A generator of Tag resources
+        """
+        return self.generator.emerging_family(family_name, emerging=emerging).execute().result
+
     def download(self, out_dir, hash_, hash_type=None):
         """
         Grab the data of artifact identified by hash, and write the data to a file in the provided directory

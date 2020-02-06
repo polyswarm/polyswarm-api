@@ -522,6 +522,21 @@ class PolyswarmRequestGenerator(object):
             result_parser=resources.Tag,
         )
 
+    def emerging_family(self, family_name, emerging=True):
+        return PolyswarmRequest(
+            self.api_instance,
+            {
+                'method': 'PUT',
+                'url': '{}/tags/family'.format(self.uri),
+                'params': {'name': family_name},
+                'json': {
+                    'name': family_name,
+                    'emerging': emerging if emerging else False
+                },
+            },
+            result_parser=resources.MalwareFamily,
+        )
+
     def create_rule_set(self, rule):
         parameters = {
             'method': 'POST',

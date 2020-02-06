@@ -300,9 +300,9 @@ class YaraRuleset(base.BasePSJSONType, base.BasePSResourceType):
         self.name = json.get('name')
         self.id = json.get('id')
         self.description = json.get('description')
-        self.created = json.get('created')
-        self.modified = json.get('modified')
-        self.deleted = json.get('deleted')
+        self.created = date.parse_isoformat(json['created'])
+        self.modified = date.parse_isoformat(json.get('modified'))
+        self.deleted = date.parse_isoformat(json.get('deleted'))
 
         if not self.yara:
             raise exceptions.InvalidValueException("Must provide yara ruleset content")
@@ -324,10 +324,22 @@ class Tag(base.BasePSJSONType, base.BasePSResourceType):
         super(Tag, self).__init__(json, polyswarm)
         self.id = json.get('id')
         self.sha256 = json.get('sha256')
-        self.created = json.get('created')
-        self.updated = json.get('updated')
+        self.created = date.parse_isoformat(json['created'])
+        self.updated = date.parse_isoformat(json.get('updated'))
         self.tags = json.get('tags')
         self.families = json.get('families')
+
+
+class MalwareFamily(base.BasePSJSONType, base.BasePSResourceType):
+    def __init__(self, json, polyswarm=None):
+        super(MalwareFamily, self).__init__(json, polyswarm)
+        self.id = json.get('id')
+        self.created = date.parse_isoformat(json['created'])
+        self.updated = date.parse_isoformat(json.get('updated'))
+        self.name = json.get('name')
+        self.emerging = json.get('emerging')
+        if self.emerging:
+            self.emerging = date.parse_isoformat(self.emerging)
 
 
 #####################################################################
