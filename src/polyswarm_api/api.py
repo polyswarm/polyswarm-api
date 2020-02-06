@@ -342,41 +342,34 @@ class PolyswarmAPI(object):
         """
         return self.generator.list_rule_set().execute().consume_results()
 
-    def tag_create(self, sha256, tag_type, tag_value):
+    def tag_create(self, sha2566, tags=None, families=None):
         """
         Create a Tag of the given type for the file identified by the sha256.
         :param sha256: Hash of the file.
-        :param tag_type: Type of the tag to be created.
-        :param tag_value: Value of the tag to be created.
         :return: A Tag resource
         """
-        return self.generator.create_tag(sha256, tag_type, tag_value).execute().result
+        return self.generator.create_tag(sha2566, tags=tags, families=families).execute().result
 
-    def tag_get(self, tag_id=None):
+    def tag_get(self, sha256):
         """
         Fetch the Tag associated with the given id.
-        :param tag_id: Id of the tag.
         :return: A Tag resource
         """
-        return self.generator.get_tag(tag_id).execute().result
+        return self.generator.get_tag(sha256).execute().result
 
-    def tag_update(self, tag_id, tag_type=None, tag_value=None):
+    def tag_update(self, sha256, tags=None, families=None, remove=False):
         """
         Update a Tag with the given type or value by its id.
-        :param tag_id: Id of the tag.
-        :param tag_type: Type of the tag to be created.
-        :param tag_value: Value of the tag to be created.
         :return: A Tag resource
         """
-        return self.generator.update_tag(tag_id, tag_type=tag_type, tag_value=tag_value).execute().result
+        return self.generator.update_tag(sha256, tags=tags, families=families, remove=remove).execute().result
 
-    def tag_delete(self, tag_id):
+    def tag_delete(self, sha256):
         """
         Delete the Tag associated with the given id.
-        :param tag_id: Id of the tag.
         :return: A Tag resource
         """
-        return self.generator.delete_tag(tag_id).execute().result
+        return self.generator.delete_tag(sha256).execute().result
 
     def tag_list(self, sha256):
         """

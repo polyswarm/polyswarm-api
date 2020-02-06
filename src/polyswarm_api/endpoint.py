@@ -456,52 +456,57 @@ class PolyswarmRequestGenerator(object):
             result_parser=resources.PolyScore,
         )
 
-    def create_tag(self, sha256, tag_type, tag_value):
-        return PolyswarmRequest(
-            self.api_instance,
-            {
-                'method': 'POST',
-                'url': '{}/tags'.format(self.uri),
-                'json': {'sha256': sha256, 'tag_type': tag_type, 'tag_value': tag_value},
-            },
-            result_parser=resources.Tag,
-        )
-
-    def get_tag(self, tag_id):
-        return PolyswarmRequest(
-            self.api_instance,
-            {
-                'method': 'GET',
-                'url': '{}/tags'.format(self.uri),
-                'params': {'id': str(tag_id)},
-            },
-            result_parser=resources.Tag,
-        )
-
-    def update_tag(self, tag_id, tag_type=None, tag_value=None):
+    def create_tag(self, sha256, tags=None, families=None):
         parameters = {
-            'method': 'PUT',
+            'method': 'POST',
             'url': '{}/tags'.format(self.uri),
-            'params': {'id': str(tag_id)},
-            'json': {},
+            'json': {'sha256': sha256},
         }
-        if tag_type:
-            parameters['json']['tag_type'] = tag_type
-        if tag_value:
-            parameters['json']['tag_value'] = tag_value
+        if tags:
+            parameters['json']['tags'] = tags
+        if families:
+            parameters['json']['families'] = families
         return PolyswarmRequest(
             self.api_instance,
             parameters,
             result_parser=resources.Tag,
         )
 
-    def delete_tag(self, tag_id):
+    def get_tag(self, sha256):
+        return PolyswarmRequest(
+            self.api_instance,
+            {
+                'method': 'GET',
+                'url': '{}/tags'.format(self.uri),
+                'params': {'hash': sha256},
+            },
+            result_parser=resources.Tag,
+        )
+
+    def update_tag(self, sha256, tags=None, families=None, remove=False):
+        parameters = {
+            'method': 'PUT',
+            'url': '{}/tags'.format(self.uri),
+            'params': {'hash': sha256},
+            'json': {'remove': remove if remove else False},
+        }
+        if tags:
+            parameters['json']['tags'] = tags
+        if families:
+            parameters['json']['families'] = families
+        return PolyswarmRequest(
+            self.api_instance,
+            parameters,
+            result_parser=resources.Tag,
+        )
+
+    def delete_tag(self, sha256):
         return PolyswarmRequest(
             self.api_instance,
             {
                 'method': 'DELETE',
                 'url': '{}/tags'.format(self.uri),
-                'params': {'id': str(tag_id)},
+                'params': {'hash': sha256},
             },
             result_parser=resources.Tag,
         )

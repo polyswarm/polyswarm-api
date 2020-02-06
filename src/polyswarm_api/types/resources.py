@@ -323,10 +323,11 @@ class Tag(base.BasePSJSONType, base.BasePSResourceType):
     def __init__(self, json, polyswarm=None):
         super(Tag, self).__init__(json, polyswarm)
         self.id = json.get('id')
+        self.sha256 = json.get('sha256')
         self.created = json.get('created')
         self.updated = json.get('updated')
-        self.tag_type = json.get('tag_type')
-        self.tag_value = json.get('tag_value')
+        self.tags = json.get('tags')
+        self.families = json.get('families')
 
 
 #####################################################################
