@@ -60,12 +60,8 @@ class Metadata(base.BasePSJSONType, base.BasePSResourceType):
         self.ssdeep = json.get('hash', empty).get('ssdeep')
         self.tlsh = json.get('hash', empty).get('tlsh')
 
-        self.first_seen = json.get('scan', empty).get('first_seen')
-        if self.first_seen:
-            self.first_seen = date.parse_isoformat(self.first_seen)
-        self.last_seen = json.get('scan', empty).get('last_seen')
-        if self.last_seen:
-            self.last_seen = date.parse_isoformat(self.last_seen)
+        self.first_seen = date.parse_isoformat(json.get('scan', empty).get('first_seen'))
+        self.last_seen = date.parse_isoformat(json.get('scan', empty).get('last_seen'))
         self.mimetype = json.get('scan', empty).get('mimetype', empty).get('mime')
         self.extended_mimetype = json.get('scan', empty).get('mimetype', empty).get('extended')
         self.detections = json.get('scan', empty).get('detections', empty).get('malicious')
@@ -300,7 +296,7 @@ class YaraRuleset(base.BasePSJSONType, base.BasePSResourceType):
         self.name = json.get('name')
         self.id = json.get('id')
         self.description = json.get('description')
-        self.created = date.parse_isoformat(json['created'])
+        self.created = date.parse_isoformat(json.get('created'))
         self.modified = date.parse_isoformat(json.get('modified'))
         self.deleted = date.parse_isoformat(json.get('deleted'))
 
@@ -324,7 +320,7 @@ class Tag(base.BasePSJSONType, base.BasePSResourceType):
         super(Tag, self).__init__(json, polyswarm)
         self.id = json.get('id')
         self.sha256 = json.get('sha256')
-        self.created = date.parse_isoformat(json['created'])
+        self.created = date.parse_isoformat(json.get('created'))
         self.updated = date.parse_isoformat(json.get('updated'))
         self.tags = json.get('tags')
         self.families = json.get('families')
@@ -334,12 +330,10 @@ class MalwareFamily(base.BasePSJSONType, base.BasePSResourceType):
     def __init__(self, json, polyswarm=None):
         super(MalwareFamily, self).__init__(json, polyswarm)
         self.id = json.get('id')
-        self.created = date.parse_isoformat(json['created'])
+        self.created = date.parse_isoformat(json.get('created'))
         self.updated = date.parse_isoformat(json.get('updated'))
         self.name = json.get('name')
-        self.emerging = json.get('emerging')
-        if self.emerging:
-            self.emerging = date.parse_isoformat(self.emerging)
+        self.emerging = date.parse_isoformat(json.get('emerging'))
 
 
 #####################################################################
