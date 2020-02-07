@@ -104,6 +104,7 @@ class ArtifactInstance(base.BasePSJSONType, base.BasePSResourceType):
 
         self._detections = None
         self._valid_assertions = None
+        self._filenames = None
 
     def __str__(self):
         return "ArtifactInstance-<%s>" % self.hash
@@ -119,6 +120,17 @@ class ArtifactInstance(base.BasePSJSONType, base.BasePSResourceType):
         if not self._valid_assertions:
             self._valid_assertions = [a for a in self.assertions if a.mask]
         return self._valid_assertions
+
+    @property
+    def filenames(self):
+        if self._filenames is None:
+            for metadata in self.json.get('metadata', []):
+                if metadata.get('tool') == 'scan':
+                    self._filenames = metadata.get('tool_metadata', {}).get('filename', [])
+                    break
+            else:
+                self._filenames = []
+        return self._filenames
 
 
 class ArtifactArchive(base.BasePSJSONType, base.BasePSResourceType):
