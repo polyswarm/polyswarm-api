@@ -298,7 +298,7 @@ class YaraRuleset(base.BasePSJSONType, base.BasePSResourceType):
         self.description = json.get('description')
         self.created = date.parse_isoformat(json.get('created'))
         self.modified = date.parse_isoformat(json.get('modified'))
-        self.deleted = date.parse_isoformat(json.get('deleted'))
+        self.deleted = json.get('deleted')
 
         if not self.yara:
             raise exceptions.InvalidValueException("Must provide yara ruleset content")
