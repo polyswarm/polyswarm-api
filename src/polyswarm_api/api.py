@@ -43,7 +43,7 @@ class PolyswarmAPI(object):
     def engines(self):
         if not self._engines:
             self._engines = self.generator.get_engines().execute().result
-            self._engines = {e.address: e for e in self._engines}
+            self._engines = {e.address.lower(): e for e in self._engines}
         return self._engines
 
     def resolve_engine_name(self, eth_pub):
