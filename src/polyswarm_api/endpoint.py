@@ -277,7 +277,7 @@ class PolyswarmRequestGenerator(object):
             result_parser=resources.ArtifactInstance,
         )
 
-    def _get_engine_names(self):
+    def get_engines(self):
         return PolyswarmRequest(
             self.api_instance,
             {

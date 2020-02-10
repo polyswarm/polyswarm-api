@@ -36,18 +36,20 @@ class PolyswarmAPI(object):
         self.timeout = timeout or const.DEFAULT_HTTP_TIMEOUT
         self.session = http.PolyswarmHTTP(key, retries=const.DEFAULT_RETRIES)
         self.generator = endpoint.PolyswarmRequestGenerator(self)
-        self._engine_map = None
         self.validate = validate_schemas
+        self._engines = None
 
-    def _load_engine_map(self):
-        if not self._engine_map:
-            self._engine_map = self.generator._get_engine_names().execute().result
-            self._engine_map = {e.address: e.name for e in self._engine_map}
-        return self._engine_map
+    @property
+    def engines(self):
+        if not self._engines:
+            self._engines = self.generator.get_engines().execute().result
+            self._engines = {e.address: e for e in self._engines}
+        return self._engines
 
     def resolve_engine_name(self, eth_pub):
-        engines = self._load_engine_map()
-        return engines.get(eth_pub.lower(), eth_pub) if engines is not None else eth_pub
+        engine = self.engines.get(eth_pub.lower())
+        engine_name = engine.name if engine else eth_pub
+        return engine_name.lower()
 
     def check_version(self):
         """
