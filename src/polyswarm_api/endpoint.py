@@ -34,6 +34,7 @@ class PolyswarmRequest(object):
         # we should not access the api_instance session directly, but provide as a
         # parameter in the constructor, but this will do for the moment
         self.session = self.api_instance.session or http.PolyswarmHTTP(key, retries=const.DEFAULT_RETRIES)
+        self.timeout = self.api_instance.timeout or const.DEFAULT_HTTP_TIMEOUT
         self.request_parameters = request_parameters
         self.result_parser = result_parser
         self.json_response = json_response
@@ -52,7 +53,7 @@ class PolyswarmRequest(object):
 
     def execute(self):
         logger.debug('Executing request.')
-        self.request_parameters.setdefault('timeout', const.DEFAULT_HTTP_TIMEOUT)
+        self.request_parameters.setdefault('timeout', self.timeout)
         self.raw_result = self.session.request(**self.request_parameters)
         logger.debug('Request returned code %s with content:\n%s',
                      self.raw_result.status_code, self.raw_result.content)

@@ -22,7 +22,7 @@ logger = logging.getLogger(__name__)
 class PolyswarmAPI(object):
     """A synchronous interface to the public and private PolySwarm APIs."""
 
-    def __init__(self, key, uri=None, community=None, validate_schemas=False):
+    def __init__(self, key, uri=None, community=None, validate_schemas=False, timeout=None):
         """
         :param key: PolySwarm API key
         :param uri: PolySwarm API URI
@@ -32,6 +32,7 @@ class PolyswarmAPI(object):
         logger.debug('Creating PolyswarmAPI instance: api_key: %s, api_uri: %s, community: %s', key, uri, community)
         self.uri = uri or const.DEFAULT_GLOBAL_API
         self.community = community or const.DEFAULT_COMMUNITY
+        self.timeout = timeout or const.DEFAULT_HTTP_TIMEOUT
         self.session = http.PolyswarmHTTP(key, retries=const.DEFAULT_RETRIES)
         self.generator = endpoint.PolyswarmRequestGenerator(self)
         self._engine_map = None
