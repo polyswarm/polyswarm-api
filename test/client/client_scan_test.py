@@ -278,21 +278,21 @@ class ScanTestCaseV2(TestCase):
         # creating
         with open('test/eicar.yara') as rule:
             contents = rule.read()
-            rule = api.rule_set_create('test', contents)
+            rule = api.ruleset_create('test', contents)
         assert rule.name == 'test'
         assert rule.yara == contents
         # listing
-        rules = list(api.rule_set_list())
+        rules = list(api.ruleset_list())
         assert len(rules) == 1
         # getting
-        rule = api.rule_set_get(rule.id)
+        rule = api.ruleset_get(rule.id)
         assert rule.name == 'test'
         # updating
-        rule = api.rule_set_update(rule.id, name='test2', description='test')
+        rule = api.ruleset_update(rule.id, name='test2', description='test')
         assert rule.name == 'test2'
         assert rule.description == 'test'
         # deleting
-        api.rule_set_delete(rule.id)
+        api.ruleset_delete(rule.id)
         with pytest.raises(exceptions.NoResultsException):
-            list(api.rule_set_list())
+            list(api.ruleset_list())
 

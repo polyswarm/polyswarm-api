@@ -291,7 +291,7 @@ class PolyswarmAPI(object):
         """
         return self.generator.historical_hunt_results(hunt_id=hunt, tag=tag, rule_name=rule_name).execute().consume_results()
 
-    def rule_set_create(self, name, rules, description=None):
+    def ruleset_create(self, name, rules, description=None):
         """
         Create a Yara Ruleset from the provided rules with the given name in the polyswarm platform.
         :param name: Name of the ruleset
@@ -304,41 +304,41 @@ class PolyswarmAPI(object):
             rules.validate()
         except exceptions.NotImportedException as e:
             logger.debug('%s\nSkipping validation.', str(e))
-        return self.generator.create_rule_set(rules).execute().result
+        return self.generator.create_ruleset(rules).execute().result
 
-    def rule_set_get(self, rule_set_id=None):
+    def ruleset_get(self, ruleset_id=None):
         """
         Retrieve a YaraRuleset from the polyswarm platform by its Id.
-        :param rule_set_id: Id of the ruleset
+        :param ruleset_id: Id of the ruleset
         :return: A YaraRuleset resource
         """
-        return self.generator.get_rule_set(rule_set_id).execute().result
+        return self.generator.get_ruleset(ruleset_id).execute().result
 
-    def rule_set_update(self, rule_set_id, name=None, rules=None, description=None):
+    def ruleset_update(self, ruleset_id, name=None, rules=None, description=None):
         """
         Update an existing YaraRuleset in the polyswarm platform by its Id.
-        :param rule_set_id: Id of the ruleset
+        :param ruleset_id: Id of the ruleset
         :param name: New name of the ruleset
         :param rules: New yara rules as a string
         :param description: New description of the ruleset
         :return: The updated YaraRuleset resource
         """
-        return self.generator.update_rule_set(rule_set_id, name=name, rules=rules, description=description).execute().result
+        return self.generator.update_ruleset(ruleset_id, name=name, rules=rules, description=description).execute().result
 
-    def rule_set_delete(self, rule_set_id):
+    def ruleset_delete(self, ruleset_id):
         """
         Delete a YaraRuleset from the polyswarm platform by its Id.
-        :param rule_set_id: Id of the ruleset
+        :param ruleset_id: Id of the ruleset
         :return: A YaraRuleset resource
         """
-        return self.generator.delete_rule_set(rule_set_id).execute().result
+        return self.generator.delete_ruleset(ruleset_id).execute().result
 
-    def rule_set_list(self):
+    def ruleset_list(self):
         """
         List all YaraRulesets for the current account.
         :return: A generator of YaraRuleset resources
         """
-        return self.generator.list_rule_set().execute().consume_results()
+        return self.generator.list_ruleset().execute().consume_results()
 
     def tag_create(self, sha2566, tags=None, families=None):
         """

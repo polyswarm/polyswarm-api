@@ -538,7 +538,7 @@ class PolyswarmRequestGenerator(object):
             result_parser=resources.MalwareFamily,
         )
 
-    def create_rule_set(self, rule):
+    def create_ruleset(self, rule):
         parameters = {
             'method': 'POST',
             'url': '{}/hunt/rule'.format(self.uri),
@@ -555,22 +555,22 @@ class PolyswarmRequestGenerator(object):
             result_parser=resources.YaraRuleset,
         )
 
-    def get_rule_set(self, rule_set_id=None):
+    def get_ruleset(self, ruleset_id=None):
         return PolyswarmRequest(
             self.api_instance,
             {
                 'method': 'GET',
                 'url': '{}/hunt/rule'.format(self.uri),
-                'params': {'id': str(int(rule_set_id))},
+                'params': {'id': str(int(ruleset_id))},
             },
             result_parser=resources.YaraRuleset,
         )
 
-    def update_rule_set(self, rule_set_id, name=None, rules=None, description=None):
+    def update_ruleset(self, ruleset_id, name=None, rules=None, description=None):
         parameters = {
             'method': 'PUT',
             'url': '{}/hunt/rule'.format(self.uri),
-            'params': {'id': str(int(rule_set_id))},
+            'params': {'id': str(int(ruleset_id))},
             'json': {},
         }
         if name:
@@ -585,18 +585,18 @@ class PolyswarmRequestGenerator(object):
             result_parser=resources.YaraRuleset,
         )
 
-    def delete_rule_set(self, rule_set_id):
+    def delete_ruleset(self, ruleset_id):
         return PolyswarmRequest(
             self.api_instance,
             {
                 'method': 'DELETE',
                 'url': '{}/hunt/rule'.format(self.uri),
-                'params': {'id': str(int(rule_set_id))},
+                'params': {'id': str(int(ruleset_id))},
             },
             result_parser=resources.YaraRuleset,
         )
 
-    def list_rule_set(self):
+    def list_ruleset(self):
         return PolyswarmRequest(
             self.api_instance,
             {
