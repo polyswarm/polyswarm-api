@@ -56,9 +56,6 @@ class BasePSResourceType(BasePSType):
         return [cls.parse_result(api_instance, entry, **kwargs) for entry in json_data]
 
 
-# TODO make polyswarmartifact support 2.7 so this is not necessary
-
-
 # TODO better way to do this with ABC?
 class Hashable:
     @property
