@@ -43,7 +43,7 @@ class PolyswarmAPI(object):
             self._engine_map = {e.address: e.name for e in self._engine_map}
         return self._engine_map
 
-    def _resolve_engine_name(self, eth_pub):
+    def resolve_engine_name(self, eth_pub):
         engines = self._load_engine_map()
         return engines.get(eth_pub.lower(), eth_pub) if engines is not None else eth_pub
 

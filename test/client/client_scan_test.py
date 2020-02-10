@@ -149,7 +149,7 @@ class ScanTestCaseV2(TestCase):
                                          ))
         # This still does not have a v2 path
         api = PolyswarmAPI(self.test_api_key, uri='http://localhost:3000/api/v1', community='gamma')
-        result = api._resolve_engine_name('0x05328f171b8c1463eaFDACCA478D9EE6a1d923F8')
+        result = api.resolve_engine_name('0x05328f171b8c1463eaFDACCA478D9EE6a1d923F8')
         assert result == 'eicar'
 
     @responses.activate
