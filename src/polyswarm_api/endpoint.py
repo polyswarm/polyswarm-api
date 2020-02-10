@@ -262,7 +262,7 @@ class PolyswarmRequestGenerator(object):
             self.api_instance,
             {
                 'method': 'POST',
-                'url': '{}/consumer/submission/{}/rescan/{}'.format(self.uri, self.community, submission_id),
+                'url': '{}/consumer/submission/{}/rescan/{}'.format(self.uri, self.community, int(submission_id)),
             },
             result_parser=resources.ArtifactInstance,
         )
@@ -272,7 +272,7 @@ class PolyswarmRequestGenerator(object):
             self.api_instance,
             {
                 'method': 'GET',
-                'url': '{}/consumer/submission/{}/{}'.format(self.uri, self.community, submission_id),
+                'url': '{}/consumer/submission/{}/{}'.format(self.uri, self.community, int(submission_id)),
             },
             result_parser=resources.ArtifactInstance,
         )
@@ -299,7 +299,7 @@ class PolyswarmRequestGenerator(object):
         if rule:
             parameters['json']['yara'] = rule.yara
         if rule_id:
-            parameters['json']['rule_id'] = str(rule_id)
+            parameters['json']['rule_id'] = str(int(rule_id))
         return PolyswarmRequest(
             self.api_instance,
             parameters,
@@ -312,7 +312,7 @@ class PolyswarmRequestGenerator(object):
             {
                 'method': 'GET',
                 'url': '{}/hunt/live'.format(self.uri),
-                'params': {'id': str(hunt_id) if hunt_id else ''},
+                'params': {'id': str(int(hunt_id)) if hunt_id else ''},
             },
             result_parser=resources.Hunt,
         )
@@ -323,7 +323,7 @@ class PolyswarmRequestGenerator(object):
             {
                 'method': 'PUT',
                 'url': '{}/hunt/live'.format(self.uri),
-                'params': {'id': str(hunt_id) if hunt_id else ''},
+                'params': {'id': str(int(hunt_id)) if hunt_id else ''},
                 'json': {'active': active},
             },
             result_parser=resources.Hunt,
@@ -335,7 +335,7 @@ class PolyswarmRequestGenerator(object):
             {
                 'method': 'DELETE',
                 'url': '{}/hunt/live'.format(self.uri),
-                'params': {'id': str(hunt_id) if hunt_id else ''},
+                'params': {'id': str(int(hunt_id)) if hunt_id else ''},
             },
             result_parser=resources.Hunt,
         )
@@ -362,7 +362,7 @@ class PolyswarmRequestGenerator(object):
             'url': '{}/hunt/live/results'.format(self.uri),
             'params': {
                 'since': since,
-                'id': str(hunt_id) if hunt_id else '',
+                'id': str(int(hunt_id)) if hunt_id else '',
             },
         }
         if tag is not None:
@@ -386,7 +386,7 @@ class PolyswarmRequestGenerator(object):
         if rule:
             parameters['json']['yara'] = rule.yara
         if rule_id:
-            parameters['json']['rule_id'] = str(rule_id)
+            parameters['json']['rule_id'] = str(int(rule_id))
         return PolyswarmRequest(
             self.api_instance,
             parameters,
@@ -399,7 +399,7 @@ class PolyswarmRequestGenerator(object):
             {
                 'method': 'GET',
                 'url': '{}/hunt/historical'.format(self.uri),
-                'params': {'id': str(hunt_id) if hunt_id else ''},
+                'params': {'id': str(int(hunt_id)) if hunt_id else ''},
             },
             result_parser=resources.Hunt,
         )
@@ -410,7 +410,7 @@ class PolyswarmRequestGenerator(object):
             {
                 'method': 'DELETE',
                 'url': '{}/hunt/historical'.format(self.uri),
-                'params': {'id': str(hunt_id) if hunt_id else ''},
+                'params': {'id': str(int(hunt_id)) if hunt_id else ''},
             },
             result_parser=resources.Hunt,
         )
@@ -433,7 +433,7 @@ class PolyswarmRequestGenerator(object):
         req = {
             'method': 'GET',
             'url': '{}/hunt/historical/results'.format(self.uri),
-            'params': {'id': str(hunt_id) if hunt_id else ''},
+            'params': {'id': str(int(hunt_id)) if hunt_id else ''},
         }
         if tag is not None:
             req['params']['tag'] = tag
@@ -561,7 +561,7 @@ class PolyswarmRequestGenerator(object):
             {
                 'method': 'GET',
                 'url': '{}/hunt/rule'.format(self.uri),
-                'params': {'id': str(rule_set_id)},
+                'params': {'id': str(int(rule_set_id))},
             },
             result_parser=resources.YaraRuleset,
         )
@@ -570,7 +570,7 @@ class PolyswarmRequestGenerator(object):
         parameters = {
             'method': 'PUT',
             'url': '{}/hunt/rule'.format(self.uri),
-            'params': {'id': str(rule_set_id)},
+            'params': {'id': str(int(rule_set_id))},
             'json': {},
         }
         if name:
@@ -591,7 +591,7 @@ class PolyswarmRequestGenerator(object):
             {
                 'method': 'DELETE',
                 'url': '{}/hunt/rule'.format(self.uri),
-                'params': {'id': str(rule_set_id)},
+                'params': {'id': str(int(rule_set_id))},
             },
             result_parser=resources.YaraRuleset,
         )

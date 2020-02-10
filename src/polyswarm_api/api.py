@@ -60,22 +60,22 @@ class PolyswarmAPI(object):
         """
         raise NotImplementedError()
 
-    def wait_for(self, submission_id, timeout=const.DEFAULT_SCAN_TIMEOUT):
+    def wait_for(self, submission, timeout=const.DEFAULT_SCAN_TIMEOUT):
         """
         Wait for a Submission to scan successfully
 
-        :param submission_id: Submission id to wait for
+        :param submission: Submission id to wait for
         :param timeout: Maximum time in seconds to wait before raising a TimeoutException
         :return: The Submission resource waited on
         """
         start = time.time()
         while True:
-            scan_result = self.lookup(submission_id)
+            scan_result = self.lookup(submission)
             if scan_result.failed or scan_result.window_closed:
                 return scan_result
             elif -1 < timeout < time.time() - start:
                 raise exceptions.TimeoutException('Timed out waiting for submission {} to finish. Please try again.'
-                                                  .format(submission_id))
+                                                  .format(submission))
             else:
                 time.sleep(3)
 
@@ -135,14 +135,14 @@ class PolyswarmAPI(object):
         else:
             raise exceptions.InvalidValueException('Artifacts should be a path to a file or a LocalArtifact instance')
 
-    def lookup(self, submission_id):
+    def lookup(self, submission):
         """
         Lookup a submission by Submission id.
 
-        :param submission_id: The Submission UUID to lookup
+        :param submission: The Submission UUID to lookup
         :return: Generator of Submission resources
         """
-        return self.generator.lookup_uuid(submission_id).execute().result
+        return self.generator.lookup_uuid(submission).execute().result
 
     def rescan(self, hash_, hash_type=None):
         """
@@ -155,14 +155,14 @@ class PolyswarmAPI(object):
         hash_ = resources.Hash.from_hashable(hash_, hash_type=hash_type)
         return self.generator.rescan(hash_).execute().result
 
-    def rescanid(self, submission_id):
+    def rescanid(self, submission):
         """
         Re-execute a new submission based on an existing submission.
 
-        :param submission_id: Id of the existing submission
+        :param submission: Id of the existing submission
         :return: A Submission resource
         """
-        return self.generator.rescanid(submission_id).execute().result
+        return self.generator.rescanid(submission).execute().result
 
     def score(self, uuid_):
         """
@@ -173,54 +173,58 @@ class PolyswarmAPI(object):
         """
         return self.generator.score(uuid_).execute().result
 
-    def live_create(self, rule=None, rule_id=None, active=True, ruleset_name=None):
+    def _parse_rule(self, rule):
+        rule_id = None
+        if isinstance(rule, string_types):
+            rule = resources.YaraRuleset(dict(yara=rule), polyswarm=self)
+            try:
+                rule.validate()
+            except exceptions.NotImportedException as e:
+                logger.debug('%s\nSkipping validation.', str(e))
+        elif isinstance(rule, (resources.YaraRuleset, int)):
+            pass
+        else:
+            raise exceptions.InvalidValueException('Either yara or rule_id must be provided.')
+        return rule, rule_id
+
+    def live_create(self, rule, active=True, ruleset_name=None):
         """
         Create a new live hunt_id, and replace the currently running YARA rules.
 
         :param rule: YaraRuleset object or string containing YARA rules to install
         :return: The created Hunt resource
         """
-        if rule:
-            if not isinstance(rule, resources.YaraRuleset):
-                rule = resources.YaraRuleset(dict(yara=rule), polyswarm=self)
-            try:
-                rule.validate()
-            except exceptions.NotImportedException as e:
-                logger.debug('%s\nSkipping validation.', str(e))
-        elif rule_id:
-            pass
-        else:
-            raise exceptions.InvalidValueException('Either yara or rule_id must be provided.')
+        rule, rule_id = self._parse_rule(rule)
         return self.generator.create_live_hunt(rule=rule, rule_id=rule_id,
                                                active=active, ruleset_name=ruleset_name).execute().result
 
-    def live_get(self, hunt_id=None):
+    def live_get(self, hunt=None):
         """
         Delete a live hunt.
 
-        :param hunt_id: Hunt ID
+        :param hunt: Hunt ID
         :return: The Hunt resource
         """
-        return self.generator.get_live_hunt(hunt_id).execute().result
+        return self.generator.get_live_hunt(hunt).execute().result
 
-    def live_update(self, active, hunt_id=None):
+    def live_update(self, active, hunt=None):
         """
         Update a live hunt.
 
-        :param hunt_id: Hunt ID
+        :param hunt: Hunt ID
         :param active: True to start the live hunt and False to stop it
         :return: The updated Hunt resource
         """
-        return self.generator.update_live_hunt(hunt_id, active=active).execute().result
+        return self.generator.update_live_hunt(hunt, active=active).execute().result
 
-    def live_delete(self, hunt_id=None):
+    def live_delete(self, hunt=None):
         """
         Delete a live hunt.
 
-        :param hunt_id: Hunt ID
+        :param hunt: Hunt ID
         :return: The deleted Hunt resource
         """
-        return self.generator.delete_live_hunt(hunt_id).execute().result
+        return self.generator.delete_live_hunt(hunt).execute().result
 
     def live_list(self, since=None, all_=None):
         """
@@ -230,55 +234,45 @@ class PolyswarmAPI(object):
         """
         return self.generator.live_list(since=since, all_=all_).execute().consume_results()
 
-    def live_results(self, hunt_id=None, since=None, tag=None, rule_name=None):
+    def live_results(self, hunt=None, since=None, tag=None, rule_name=None):
         """
         Get results from a live hunt
 
-        :param hunt_id: ID of the hunt (None if latest rule results are desired)
+        :param hunt: ID of the hunt (None if latest rule results are desired)
         :param since: Fetch results from the last "since" minutes
         :return: Generator of HuntResult resources
         """
-        return self.generator.live_hunt_results(hunt_id=hunt_id, since=since,
+        return self.generator.live_hunt_results(hunt_id=hunt, since=since,
                                                 tag=tag, rule_name=rule_name).execute().consume_results()
 
-    def historical_create(self, rule=None, rule_id=None, ruleset_name=None):
+    def historical_create(self, rule=None, ruleset_name=None):
         """
         Run a new historical hunt.
 
         :param rule: YaraRuleset object or string containing YARA rules to install
         :return: The created Hunt resource
         """
-        if rule:
-            if not isinstance(rule, resources.YaraRuleset):
-                rule = resources.YaraRuleset(dict(yara=rule), polyswarm=self)
-            try:
-                rule.validate()
-            except exceptions.NotImportedException as e:
-                logger.debug('%s\nSkipping validation.', str(e))
-        elif rule_id:
-            pass
-        else:
-            raise exceptions.InvalidValueException('Either yara or rule_id must be provided.')
+        rule, rule_id = self._parse_rule(rule)
         return self.generator.create_historical_hunt(rule=rule, rule_id=rule_id,
                                                      ruleset_name=ruleset_name).execute().result
 
-    def historical_get(self, hunt_id=None):
+    def historical_get(self, hunt=None):
         """
         Delete a live hunt.
 
-        :param hunt_id: Hunt ID
+        :param hunt: Hunt ID
         :return: The Hunt resource
         """
-        return self.generator.get_historical_hunt(hunt_id).execute().result
+        return self.generator.get_historical_hunt(hunt).execute().result
 
-    def historical_delete(self, hunt_id):
+    def historical_delete(self, hunt):
         """
         Delete a historical hunts.
 
-        :param hunt_id: Hunt ID
+        :param hunt: Hunt ID
         :return: The deleted Hunt resource
         """
-        return self.generator.delete_historical_hunt(hunt_id).execute().result
+        return self.generator.delete_historical_hunt(hunt).execute().result
 
     def historical_list(self, since=None):
         """
@@ -288,14 +282,14 @@ class PolyswarmAPI(object):
         """
         return self.generator.historical_list(since=since).execute().consume_results()
 
-    def historical_results(self, hunt_id=None, tag=None, rule_name=None):
+    def historical_results(self, hunt=None, tag=None, rule_name=None):
         """
         Get results from a historical hunt
 
-        :param hunt_id: ID of the hunt (None if latest hunt results are desired)
+        :param hunt: ID of the hunt (None if latest hunt results are desired)
         :return: Generator of HuntResult resources
         """
-        return self.generator.historical_hunt_results(hunt_id=hunt_id, tag=tag, rule_name=rule_name).execute().consume_results()
+        return self.generator.historical_hunt_results(hunt_id=hunt, tag=tag, rule_name=rule_name).execute().consume_results()
 
     def rule_set_create(self, name, rules, description=None):
         """
