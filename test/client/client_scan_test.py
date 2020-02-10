@@ -186,7 +186,7 @@ class ScanTestCaseV2(TestCase):
                                          json={'limit': 50, 'offset': None, 'has_more': False, 'result': [], 'status': 'OK'}
                                          ))
         api = PolyswarmAPI(self.test_api_key, uri='http://localhost:9696/{}'.format(self.api_version), community='gamma')
-        result = list(api.live_results(hunt_id='37706187018029410'))
+        result = list(api.live_results(hunt='37706187018029410'))
         assert len(result) == 50
 
     @responses.activate
@@ -242,7 +242,7 @@ class ScanTestCaseV2(TestCase):
                                          json={'limit': 50, 'offset': None, 'result': [], 'status': 'OK'}
                                          ))
         api = PolyswarmAPI(self.test_api_key, uri='http://localhost:9696/{}'.format(self.api_version), community='gamma')
-        result = list(api.historical_results(hunt_id='68488191798033760'))
+        result = list(api.historical_results(hunt='68488191798033760'))
         assert len(result) == 50
 
     @responses.activate
