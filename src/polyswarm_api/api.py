@@ -28,6 +28,7 @@ class PolyswarmAPI(object):
         :param uri: PolySwarm API URI
         :param community: Community to scan against.
         :param validate_schemas: Validate JSON objects when creating response objects. Will impact performance.
+        :param timeout: Maximum time to wait for an http response on every request.
         """
         logger.debug('Creating PolyswarmAPI instance: api_key: %s, api_uri: %s, community: %s', key, uri, community)
         self.uri = uri or const.DEFAULT_GLOBAL_API
