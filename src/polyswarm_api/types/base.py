@@ -60,14 +60,19 @@ class BasePSResourceType(BasePSType):
 
 
 # TODO better way to do this with ABC?
-class Hashable(BasePSType):
+class Hashable:
     @property
     def hash(self):
-        raise NotImplementedError
+        return self.sha256
 
     @property
     def hash_type(self):
-        raise NotImplementedError
+        return 'sha256'
 
     def __eq__(self, other):
         return self.hash == other
+
+
+class AsInteger:
+    def __int__(self):
+        return self.id
