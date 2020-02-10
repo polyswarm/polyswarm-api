@@ -73,7 +73,7 @@ class Metadata(base.BasePSJSONType, base.BasePSResourceType):
         self.urls = json.get('strings', empty).get('urls')
 
 
-class ArtifactInstance(base.BasePSJSONType, base.BasePSResourceType):
+class ArtifactInstance(base.BasePSJSONType, base.BasePSResourceType, base.Hashable):
     SCHEMA = schemas.artifact_instance_schema
 
     def __init__(self, json, polyswarm=None):
@@ -108,6 +108,14 @@ class ArtifactInstance(base.BasePSJSONType, base.BasePSResourceType):
 
     def __str__(self):
         return "ArtifactInstance-<%s>" % self.hash
+
+    @property
+    def hash(self):
+        return self.sha256
+
+    @property
+    def hash_type(self):
+        return "sha256"
 
     @property
     def detections(self):
