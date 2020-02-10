@@ -252,7 +252,7 @@ class PolyswarmAPI(object):
             try:
                 rule.validate()
             except exceptions.NotImportedException as e:
-                logger.warning('%s\nSkipping validation.', str(e))
+                logger.debug('%s\nSkipping validation.', str(e))
         elif rule_id:
             pass
         else:
@@ -307,7 +307,7 @@ class PolyswarmAPI(object):
         try:
             rules.validate()
         except exceptions.NotImportedException as e:
-            logger.warning('%s\nSkipping validation.', str(e))
+            logger.debug('%s\nSkipping validation.', str(e))
         return self.generator.create_rule_set(rules).execute().result
 
     def rule_set_get(self, rule_set_id=None):
