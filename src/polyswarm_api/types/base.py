@@ -12,7 +12,18 @@ class BasePSType(object):
         self.polyswarm = polyswarm
 
 
-class BasePSJSONType(BasePSType):
+class BasePSResourceType(BasePSType):
+    @classmethod
+    def parse_result(cls, api_instance, result, **kwargs):
+        logger.debug('Parsing resource %s', cls.__name__)
+        return cls(result, polyswarm=api_instance, **kwargs)
+
+    @classmethod
+    def parse_result_list(cls, api_instance, json_data, **kwargs):
+        return [cls.parse_result(api_instance, entry, **kwargs) for entry in json_data]
+
+
+class BasePSJSONType(BasePSResourceType):
     SCHEMA = {
         'type': ['object', 'array']
     }
@@ -43,17 +54,6 @@ class BasePSJSONType(BasePSType):
             validate(json, schema)
         except ValidationError:
             raise exceptions.InvalidJSONResponseException("Failed to validate json against schema", json, self.SCHEMA)
-
-
-class BasePSResourceType(BasePSType):
-    @classmethod
-    def parse_result(cls, api_instance, json_result, **kwargs):
-        logger.debug('Parsing resource %s', cls.__name__)
-        return cls(json_result, polyswarm=api_instance, **kwargs)
-
-    @classmethod
-    def parse_result_list(cls, api_instance, json_data, **kwargs):
-        return [cls.parse_result(api_instance, entry, **kwargs) for entry in json_data]
 
 
 # TODO better way to do this with ABC?

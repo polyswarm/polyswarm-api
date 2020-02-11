@@ -28,14 +28,14 @@ logger = logging.getLogger(__name__)
 # Resources returned by the API
 #####################################################################
 
-class Engine(base.BasePSJSONType, base.BasePSResourceType):
+class Engine(base.BasePSJSONType):
     def __init__(self, json, polyswarm=None):
         super(Engine, self).__init__(json=json, polyswarm=polyswarm)
         self.address = json['address'].lower()
         self.name = json.get('name')
 
 
-class Metadata(base.BasePSJSONType, base.BasePSResourceType, base.AsInteger):
+class Metadata(base.BasePSJSONType, base.AsInteger):
     def __init__(self, json, polyswarm=None):
         super(Metadata, self).__init__(json=json, polyswarm=polyswarm)
         self.id = json['artifact']['id']
@@ -61,7 +61,7 @@ class Metadata(base.BasePSJSONType, base.BasePSResourceType, base.AsInteger):
         self.urls = json.get('strings', empty).get('urls')
 
 
-class ArtifactInstance(base.BasePSJSONType, base.BasePSResourceType, base.Hashable, base.AsInteger):
+class ArtifactInstance(base.BasePSJSONType, base.Hashable, base.AsInteger):
     SCHEMA = schemas.artifact_instance_schema
 
     def __init__(self, json, polyswarm=None):
@@ -121,7 +121,7 @@ class ArtifactInstance(base.BasePSJSONType, base.BasePSResourceType, base.Hashab
         return self._filenames
 
 
-class ArtifactArchive(base.BasePSJSONType, base.BasePSResourceType, base.AsInteger):
+class ArtifactArchive(base.BasePSJSONType, base.AsInteger):
     SCHEMA = schemas.artifact_archive_schema
 
     def __init__(self, json, polyswarm=None):
@@ -132,7 +132,7 @@ class ArtifactArchive(base.BasePSJSONType, base.BasePSResourceType, base.AsInteg
         self.s3_path = json['s3_path']
 
 
-class Hunt(base.BasePSJSONType, base.BasePSResourceType, base.AsInteger):
+class Hunt(base.BasePSJSONType, base.AsInteger):
     SCHEMA = schemas.hunt_status
 
     def __init__(self, json, polyswarm=None):
@@ -145,7 +145,7 @@ class Hunt(base.BasePSJSONType, base.BasePSResourceType, base.AsInteger):
         self.ruleset_name = json.get('ruleset_name')
 
 
-class HuntResult(base.BasePSJSONType, base.BasePSResourceType, base.AsInteger):
+class HuntResult(base.BasePSJSONType, base.AsInteger):
     SCHEMA = schemas.hunt_result
 
     def __init__(self, json, polyswarm=None):
@@ -285,7 +285,7 @@ class LocalArtifact(base.Hashable, base.BasePSResourceType):
         return "Artifact <%s>" % self.hash
 
 
-class YaraRuleset(base.BasePSJSONType, base.BasePSResourceType, base.AsInteger):
+class YaraRuleset(base.BasePSJSONType, base.AsInteger):
     def __init__(self, json, polyswarm=None):
         super(YaraRuleset, self).__init__(json, polyswarm)
         self.yara = json['yara']
@@ -311,7 +311,7 @@ class YaraRuleset(base.BasePSJSONType, base.BasePSResourceType, base.AsInteger):
         return True
 
 
-class Tag(base.BasePSJSONType, base.BasePSResourceType, base.AsInteger):
+class Tag(base.BasePSJSONType, base.AsInteger):
     def __init__(self, json, polyswarm=None):
         super(Tag, self).__init__(json, polyswarm)
         self.id = json.get('id')
@@ -322,7 +322,7 @@ class Tag(base.BasePSJSONType, base.BasePSResourceType, base.AsInteger):
         self.families = json.get('families')
 
 
-class MalwareFamily(base.BasePSJSONType, base.BasePSResourceType, base.AsInteger):
+class MalwareFamily(base.BasePSJSONType, base.AsInteger):
     def __init__(self, json, polyswarm=None):
         super(MalwareFamily, self).__init__(json, polyswarm)
         self.id = json.get('id')
@@ -337,7 +337,7 @@ class MalwareFamily(base.BasePSJSONType, base.BasePSResourceType, base.AsInteger
 #####################################################################
 
 
-class Artifact(base.Hashable, base.BasePSJSONType, base.BasePSResourceType, base.AsInteger):
+class Artifact(base.Hashable, base.BasePSJSONType, base.AsInteger):
     SCHEMA = schemas.artifact_schema
 
     def __init__(self, json, polyswarm=None):
