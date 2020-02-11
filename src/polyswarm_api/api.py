@@ -120,7 +120,10 @@ class PolyswarmAPI(object):
         :return: Generator of Scan resources
         """
         artifact_type = resources.ArtifactType.parse(artifact_type)
-        if isinstance(artifact, io.IOBase):
+        # TODO This is a python 2.7 check if artifact is a file-like instance, consider changing
+        #  to isinstance(artifact, io.IOBase) when deprecating 2.7 and implementing making LocalHandle
+        #  inherit io.IOBase, although this will change the method delegation logic in the resource
+        if hasattr(artifact, 'read') and hasattr(artifact.read, '__call__'):
             artifact = resources.LocalArtifact(artifact, artifact_type=artifact_type, polyswarm=self, analyze=False)
         elif isinstance(artifact, string_types):
             if artifact_type == resources.ArtifactType.FILE:
