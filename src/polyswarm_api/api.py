@@ -77,7 +77,7 @@ class PolyswarmAPI(object):
                 raise exceptions.TimeoutException('Timed out waiting for submission {} to finish. Please try again.'
                                                   .format(submission))
             else:
-                time.sleep(3)
+                time.sleep(const.POLL_FREQUENCY)
 
     def search(self, hash_, hash_type=None):
         """
