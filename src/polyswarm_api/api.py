@@ -164,15 +164,6 @@ class PolyswarmAPI(object):
         """
         return self.generator.rescanid(scan).execute().result
 
-    def score(self, uuid_):
-        """
-        Lookup a PolyScore(s) for a given scan, by UUID
-
-        :param uuids: UUIDs to lookup
-        :return: Generator of PolyScore resources
-        """
-        return self.generator.score(uuid_).execute().result
-
     def _parse_rule(self, rule):
         rule_id = None
         if isinstance(rule, string_types):

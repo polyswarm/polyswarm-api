@@ -445,18 +445,6 @@ class PolyswarmRequestGenerator(object):
             result_parser=resources.HuntResult,
         )
 
-    def score(self, submission_id):
-        return PolyswarmRequest(
-            self.api_instance,
-            {
-                'method': 'GET',
-                'url': '{}/consumer/polyscore/{}'.format(
-                    self.uri, submission_id
-                )
-            },
-            result_parser=resources.PolyScore,
-        )
-
     def create_tag(self, sha256, tags=None, families=None):
         parameters = {
             'method': 'POST',

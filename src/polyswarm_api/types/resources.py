@@ -28,18 +28,6 @@ logger = logging.getLogger(__name__)
 # Resources returned by the API
 #####################################################################
 
-class PolyScore(base.BasePSJSONType, base.BasePSResourceType):
-    SCHEMA = schemas.polyscore_schema
-
-    def __init__(self, json, polyswarm=None):
-        super(PolyScore, self).__init__(json=json, polyswarm=polyswarm)
-
-        self.scores = json['scores']
-
-    def get_score_by_id(self, instance_id):
-        return self.scores.get(str(instance_id), None)
-
-
 class Engine(base.BasePSJSONType, base.BasePSResourceType):
     def __init__(self, json, polyswarm=None):
         super(Engine, self).__init__(json=json, polyswarm=polyswarm)

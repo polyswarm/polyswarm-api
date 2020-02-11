@@ -246,15 +246,6 @@ class ScanTestCaseV2(TestCase):
         assert len(result) == 50
 
     @responses.activate
-    def test_polyscore(self):
-        responses.add(responses.Response(responses.GET, 'http://localhost:9696/v2/consumer/polyscore/77090327141458166',
-                                         json={'result': {'scores': {'77090327141458166': 0.00024050482800527995}}, 'status': 'OK'}
-                                         ))
-        api = PolyswarmAPI(self.test_api_key, uri='http://localhost:9696/{}'.format(self.api_version), community='gamma')
-        result = api.score('77090327141458166')
-        assert result.scores['77090327141458166'] == 0.00024050482800527995
-
-    @responses.activate
     def test_rules(self):
         responses.add(responses.Response(responses.POST, 'http://localhost:9696/v2/hunt/rule',
                                          json={'result': {'account_id': '1', 'created': '2020-01-15T21:35:03.864162', 'deleted': False, 'description': None, 'id': '67713199207380968', 'modified': '2020-01-15T21:35:03.864162', 'name': 'test', 'yara': 'rule eicar_av_test {\n    /*\n       Per standard, match only if entire file is EICAR string plus optional trailing whitespace.\n       The raw EICAR string to be matched is:\n       X5O!P%@AP[4\\PZX54(P^)7CC)7}$EICAR-STANDARD-ANTIVIRUS-TEST-FILE!$H+H*\n    */\n\n    meta:\n        description = "This is a standard AV test, intended to verify that BinaryAlert is working correctly."\n        author = "Austin Byers | Airbnb CSIRT"\n        reference = "http://www.eicar.org/86-0-Intended-use.html"\n\n    strings:\n        $eicar_regex = /^X5O!P%@AP\\[4\\\\PZX54\\(P\\^\\)7CC\\)7\\}\\$EICAR-STANDARD-ANTIVIRUS-TEST-FILE!\\$H\\+H\\*\\s*$/\n\n    condition:\n        all of them\n}\n\nrule eicar_substring_test {\n    /*\n       More generic - match just the embedded EICAR string (e.g. in packed executables, PDFs, etc)\n    */\n\n    meta:\n        description = "Standard AV test, checking for an EICAR substring"\n        author = "Austin Byers | Airbnb CSIRT"\n\n    strings:\n        $eicar_substring = "$EICAR-STANDARD-ANTIVIRUS-TEST-FILE!"\n\n    condition:\n        all of them\n}'}, 'status': 'OK'}
