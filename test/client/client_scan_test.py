@@ -70,7 +70,7 @@ class ScanTestCaseV2(TestCase):
                                          json={'result': {'account_id': '1', 'artifact_id': '38533123137674971', 'assertions': [], 'community': 'gamma', 'country': '', 'created': '2019-12-02T23:45:06.203139', 'extended_type': 'EICAR virus test files', 'failed': False, 'filename': '275a021bbfb6489e54d471899f7db9d1663fc695ec2fe2a2c4538aabf651fd0f', 'first_seen': '2019-12-02T23:44:14.864399', 'id': 16896128185928037, 'last_seen': '2019-12-02T23:45:06.203139', 'md5': '44d88612fea8a8f36de82e1278abb02f', 'metadata': [], 'mimetype': 'text/plain', 'polyscore': None, 'result': None, 'sha1': '3395856ce81f2b7382dee72602f798b642f14140', 'sha256': '275a021bbfb6489e54d471899f7db9d1663fc695ec2fe2a2c4538aabf651fd0f', 'size': 68, 'type': 'FILE', 'votes': [], 'window_closed': False}, 'status': 'OK'}
                                          ))
         api = PolyswarmAPI(self.test_api_key, uri='http://localhost:9696/{}'.format(self.api_version), community='gamma')
-        result = api.rescanid('38533123137674971')
+        result = api.rescan_id('38533123137674971')
         assert result.failed is False
         assert result.result is None
 

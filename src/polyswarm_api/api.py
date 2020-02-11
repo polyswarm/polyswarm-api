@@ -155,7 +155,7 @@ class PolyswarmAPI(object):
         hash_ = resources.Hash.from_hashable(hash_, hash_type=hash_type)
         return self.generator.rescan(hash_).execute().result
 
-    def rescanid(self, scan):
+    def rescan_id(self, scan):
         """
         Re-execute a new scan based on an existing scan.
 
