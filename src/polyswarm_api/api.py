@@ -1,3 +1,4 @@
+import io
 import logging
 import time
 import os
@@ -118,18 +119,15 @@ class PolyswarmAPI(object):
         :param artifact_type: The ArtifactType or strings containing "file" or "url"
         :return: Generator of Scan resources
         """
-        if isinstance(artifact, string_types):
-            artifact_type = resources.ArtifactType.parse(artifact_type)
+        artifact_type = resources.ArtifactType.parse(artifact_type)
+        if isinstance(artifact, io.IOBase):
+            artifact = resources.LocalArtifact(artifact, artifact_type=artifact_type, polyswarm=self, analyze=False)
+        elif isinstance(artifact, string_types):
             if artifact_type == resources.ArtifactType.FILE:
-                path = artifact
-                artifact_name = os.path.basename(artifact)
-                content=None
-            else:
-                path = None
-                artifact_name = artifact
-                content = artifact
-            artifact = resources.LocalArtifact(path=path, artifact_name=artifact_name, content=content,
-                                               artifact_type=artifact_type, analyze=False, polyswarm=self)
+                artifact = resources.LocalArtifact.from_path(self, artifact, artifact_type=artifact_type)
+            elif artifact_type == resources.ArtifactType.URL:
+                artifact = resources.LocalArtifact.from_content(self, artifact, artifact_name=artifact,
+                                                                artifact_type=artifact_type)
         if isinstance(artifact, resources.LocalArtifact):
             return self.generator.submit(artifact).execute().result
         else:
@@ -387,7 +385,9 @@ class PolyswarmAPI(object):
         """
         hash_ = resources.Hash.from_hashable(hash_, hash_type=hash_type)
         path = os.path.join(out_dir, hash_.hash)
-        return self.generator.download(hash_.hash, hash_.hash_type, path, create=True).execute().result
+        artifact = resources.LocalArtifact.from_path(self, path, create=True)
+        self.generator.download(hash_.hash, hash_.hash_type, handle=artifact).execute()
+        return artifact
 
     def download_archive(self, out_dir, s3_path):
         """
@@ -398,9 +398,11 @@ class PolyswarmAPI(object):
         :return: A LocalArtifact resource
         """
         path = os.path.join(out_dir, os.path.basename(urlparse(s3_path).path))
-        return self.generator.download_archive(s3_path, path, create=True).execute().result
+        artifact = resources.LocalArtifact.from_path(self, path, create=True)
+        self.generator.download_archive(s3_path, handle=artifact).execute()
+        return artifact
 
-    def download_to_filehandle(self, hash_, fh, hash_type=None):
+    def download_to_handle(self, hash_, fh, hash_type=None):
         """
         Grab the data of artifact identified by hash, and write the data to a file handle
         :param hash_: hash
@@ -409,7 +411,7 @@ class PolyswarmAPI(object):
         :return: A LocalArtifact resource
         """
         hash_ = resources.Hash.from_hashable(hash_, hash_type=hash_type)
-        return self.generator.download(hash_.hash, hash_.hash_type, fh).execute().result
+        return self.generator.download(hash_.hash, hash_.hash_type, handle=fh).execute().result
 
     def stream(self, since=const.MAX_SINCE_TIME_STREAM):
         """

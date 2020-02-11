@@ -54,6 +54,8 @@ class PolyswarmRequest(object):
     def execute(self):
         logger.debug('Executing request.')
         self.request_parameters.setdefault('timeout', self.timeout)
+        if not self.json_response:
+            self.request_parameters.setdefault('stream', True)
         self.raw_result = self.session.request(**self.request_parameters)
         logger.debug('Request returned code %s with content:\n%s',
                      self.raw_result.status_code, self.raw_result.content)
@@ -91,30 +93,31 @@ class PolyswarmRequest(object):
                 raise exceptions.RequestException(self, self._bad_status_message())
             elif self.status_code == 204:
                 raise exceptions.NoResultsException(self, 'The request returned no results.')
-            else:
-                if self.json_response:
-                    self._extract_json_body(result)
-                    self.total = self.json.get('total')
-                    self.limit = self.json.get('limit')
-                    self.offset = self.json.get('offset')
-                    self.order_by = self.json.get('order_by')
-                    self.direction = self.json.get('direction')
-                    self.has_more = self.json.get('has_more')
-                    if 'result' in self.json:
-                        result = self.json['result']
-                    elif 'results' in self.json:
-                        result = self.json['results']
-                    else:
-                        raise exceptions.RequestException(
-                            self,
-                            'The response standard must contain either the "result" or "results" key.'
-                        )
-                    if isinstance(result, list):
-                        self.result = self.result_parser.parse_result_list(self.api_instance, result, **self.parser_kwargs)
-                    else:
-                        self.result = self.result_parser.parse_result(self.api_instance, result, **self.parser_kwargs)
+            elif self.json_response:
+                self._extract_json_body(result)
+                self.total = self.json.get('total')
+                self.limit = self.json.get('limit')
+                self.offset = self.json.get('offset')
+                self.order_by = self.json.get('order_by')
+                self.direction = self.json.get('direction')
+                self.has_more = self.json.get('has_more')
+                if 'result' in self.json:
+                    result = self.json['result']
+                elif 'results' in self.json:
+                    result = self.json['results']
+                else:
+                    raise exceptions.RequestException(
+                        self,
+                        'The response standard must contain either the "result" or "results" key.'
+                    )
+                if isinstance(result, list):
+                    self.result = self.result_parser.parse_result_list(self.api_instance, result, **self.parser_kwargs)
                 else:
                     self.result = self.result_parser.parse_result(self.api_instance, result, **self.parser_kwargs)
+            else:
+                self.result = self.result_parser.parse_result(self.api_instance,
+                                                              result.iter_content(const.DOWNLOAD_CHUNK_SIZE),
+                                                              **self.parser_kwargs)
         except JSONDecodeError as e:
             if self.status_code == 404:
                 raise raise_from(exceptions.NotFoundException(self, 'The requested endpoint does not exist.'), e)
@@ -165,7 +168,7 @@ class PolyswarmRequestGenerator(object):
         self.uri = api_instance.uri
         self.community = api_instance.community
 
-    def download(self, hash_value, hash_type, output_file, create=False):
+    def download(self, hash_value, hash_type, handle=None):
         return PolyswarmRequest(
             self.api_instance,
             {
@@ -174,12 +177,11 @@ class PolyswarmRequestGenerator(object):
                 'stream': True,
             },
             json_response=False,
-            result_parser=resources.LocalArtifact,
-            output_file=output_file,
-            create=create,
+            result_parser=resources.LocalHandle,
+            handle=handle,
         )
 
-    def download_archive(self, u, output_file, create=False):
+    def download_archive(self, u, handle=None):
         """ This method is special, in that it is simply for downloading from S3 """
         return PolyswarmRequest(
             self.api_instance,
@@ -190,9 +192,8 @@ class PolyswarmRequestGenerator(object):
                 'headers': {'Authorization': None}
             },
             json_response=False,
-            result_parser=resources.LocalArtifact,
-            output_file=output_file,
-            create=create,
+            result_parser=resources.LocalHandle,
+            handle=handle,
         )
 
     def stream(self, since=const.MAX_SINCE_TIME_STREAM):
@@ -239,7 +240,7 @@ class PolyswarmRequestGenerator(object):
                 'method': 'POST',
                 'url': '{}/consumer/submission/{}'.format(self.uri, self.community),
                 'files': {
-                    'file': (artifact.artifact_name, artifact.open()),
+                    'file': (artifact.artifact_name, artifact),
                 },
                 # very oddly, when included in files parameter this errors out
                 'data': {'artifact-type': artifact.artifact_type.name}

@@ -1,6 +1,8 @@
 import logging
 import os
 import tempfile
+import io
+import functools
 from binascii import unhexlify
 from enum import Enum
 from hashlib import sha256 as _sha256, sha1 as _sha1, md5 as _md5
@@ -175,9 +177,34 @@ def all_hashes(file_handle, algorithms=(_sha256, _sha1, _md5)):
     return [Hash(h.hexdigest()) for h in hashers]
 
 
-class LocalArtifact(base.Hashable, base.BasePSResourceType):
+class LocalHandle(base.BasePSResourceType):
+    def __init__(self, contents, polyswarm=None, handle=None):
+        super(LocalHandle, self).__init__(polyswarm=polyswarm)
+        self.handle = handle or io.BytesIO()
+        for chunk in contents:
+            self.handle.write(chunk)
+
+    # Inspired by
+    # https://github.com/python/cpython/blob/29500737d45cbca9604d9ce845fb2acc3f531401/Lib/tempfile.py#L461
+    def __getattr__(self, name):
+        # Attribute lookups are delegated to the underlying file
+        # and cached for non-numeric results
+        # (i.e. methods are cached, closed and friends are not)
+        a = getattr(self.handle, name)
+        if hasattr(a, '__call__'):
+            func = a
+            @functools.wraps(func)
+            def func_wrapper(*args, **kwargs):
+                return func(*args, **kwargs)
+            a = func_wrapper
+        if not isinstance(a, int):
+            setattr(self, name, a)
+        return a
+
+
+class LocalArtifact(LocalHandle, base.Hashable):
     """ Artifact for which we have local content """
-    def __init__(self, path=None, content=None, artifact_name=None, artifact_type=None, polyswarm=None, analyze=True):
+    def __init__(self, handle, artifact_name=None, artifact_type=None, polyswarm=None, analyze=True):
         """
         A representation of an artifact we have locally
 
@@ -188,84 +215,55 @@ class LocalArtifact(base.Hashable, base.BasePSResourceType):
         :param polyswarm: PolyswarmAPI instance
         :param analyze: Boolean, if True will run analyses on artifact on startup (Note: this may still run later if False)
         """
-        super(LocalArtifact, self).__init__(polyswarm=polyswarm)
-        if not (path or content):
-            raise exceptions.InvalidValueException("Must provide either a path to a file or the artifact content")
-
-        if content is not None:
-            if isinstance(content, string_types):
-                content = content.encode("utf8")
-            with tempfile.NamedTemporaryFile(delete=False) as file:
-                self.path = file.name
-                file.write(content)
-        else:
-            self.path = path
-
+        # create the LocalHandle with the given handle and don't write anything to it
+        super(LocalArtifact, self).__init__(b'', polyswarm=polyswarm, handle=handle)
         self.artifact_type = artifact_type or ArtifactType.FILE
-        self._artifact_name = artifact_name
+        self.artifact_name = artifact_name or self.hash
 
         self.sha256 = None
         self.sha1 = None
         self.md5 = None
-
         self.analyzed = False
         if analyze:
             self.analyze_artifact()
 
-        super(LocalArtifact, self).__init__()
+    @classmethod
+    def from_path(cls, api, path, artifact_type=None, analyze=False, create=False, **kwargs):
+        if not isinstance(path, string_types):
+            raise exceptions.InvalidValueException('Path should be a string')
+        folder, file_name = os.path.split(path)
+        if create:
+            # TODO: this should be replaced with os.makedirs(path, exist_ok=True)
+            #  once we drop support to python 2.7
+            if not os.path.exists(folder):
+                os.makedirs(folder)
+        elif not os.path.isfile(path):
+            raise exceptions.ArtifactDeletedException("The file does not exist")
+
+        mode = kwargs.pop('mode', 'wb+' if create else 'rb')
+        handler = open(path, mode=mode, **kwargs)
+        return cls(handler, artifact_name=file_name, artifact_type=artifact_type, analyze=analyze, polyswarm=api)
 
     @classmethod
-    def parse_result(cls, api_instance, result, output_file=None, create=False):
-        if isinstance(output_file, string_types):
-            path, file_name = os.path.split(output_file)
-            parsed_result = cls(path=output_file, artifact_name=file_name, analyze=False, polyswarm=api_instance)
-            if create:
-                # TODO: this should be replaced with os.makedirs(path, exist_ok=True)
-                #  once we drop support to python 2.7
-                if not os.path.exists(path):
-                    os.makedirs(path)
-            with open(output_file, 'wb') as file_handle:
-                for chunk in result.iter_content(chunk_size=const.DOWNLOAD_CHUNK_SIZE):
-                    file_handle.write(chunk)
-        else:
-            parsed_result = cls(path=output_file, analyze=False, polyswarm=api_instance)
-            for chunk in result.iter_content(chunk_size=const.DOWNLOAD_CHUNK_SIZE):
-                output_file.write(chunk)
-        return parsed_result
+    def from_content(cls, api, content, artifact_name=None, artifact_type=None, analyze=False):
+        if isinstance(content, string_types):
+            content = content.encode("utf8")
+        handler = io.BytesIO(content)
+        return cls(handler, artifact_name=artifact_name, artifact_type=artifact_type, analyze=analyze, polyswarm=api)
 
     @property
     def hash(self):
         self.analyze_artifact()
         return super(LocalArtifact, self).hash
 
-    @property
-    def artifact_name(self):
-        if self._artifact_name:
-            return self._artifact_name
-        return self.hash
-
-    # TODO: replace with def open(self, *args, mode='rb', **kwargs):
-    #  once we drop support for python 2.7
-    def open(self, *args, **kwargs):
-        mode = kwargs.pop('mode', 'rb')
-        if isinstance(self.path, string_types):
-            self._raise_if_deleted()
-            return open(self.path, *args, mode=mode, **kwargs)
-        else:
-            return self.path
-
     def analyze_artifact(self, force=False):
         self._raise_if_deleted()
         if not self.analyzed or force:
-            with self.open() as fh:
-                self._calc_hashes(fh)
-                fh.seek(0)
-                self._run_analyzers(fh)
+            self.handle.seek(0)
+            self._calc_hashes(self.handle)
+            self.handle.seek(0)
+            self._run_analyzers(self.handle)
             self.analyzed = True
-
-    def _raise_if_deleted(self):
-        if not os.path.isfile(self.path):
-            raise exceptions.ArtifactDeletedException("Tried to use deleted LocalArtifact")
 
     def _calc_hashes(self, fh):
         self.sha256, self.sha1, self.md5 = all_hashes(fh)
@@ -277,9 +275,6 @@ class LocalArtifact(base.Hashable, base.BasePSResourceType):
     def _run_analyzers(self, fh):
         # TODO implement custom analyzer support, so users can implement plugins here.
         return {}
-
-    def delete(self):
-        os.remove(self.path)
 
     def __str__(self):
         return "Artifact <%s>" % self.hash
