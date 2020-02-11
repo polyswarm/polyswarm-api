@@ -60,22 +60,22 @@ class PolyswarmAPI(object):
         """
         raise NotImplementedError()
 
-    def wait_for(self, submission, timeout=const.DEFAULT_SCAN_TIMEOUT):
+    def wait_for(self, scan, timeout=const.DEFAULT_SCAN_TIMEOUT):
         """
-        Wait for a Submission to scan successfully
+        Wait for a Scan to scan successfully
 
-        :param submission: Submission id to wait for
+        :param scan: Scan id to wait for
         :param timeout: Maximum time in seconds to wait before raising a TimeoutException
-        :return: The Submission resource waited on
+        :return: The Scan resource waited on
         """
         start = time.time()
         while True:
-            scan_result = self.lookup(submission)
+            scan_result = self.lookup(scan)
             if scan_result.failed or scan_result.window_closed:
                 return scan_result
             elif -1 < timeout < time.time() - start:
-                raise exceptions.TimeoutException('Timed out waiting for submission {} to finish. Please try again.'
-                                                  .format(submission))
+                raise exceptions.TimeoutException('Timed out waiting for scan {} to finish. Please try again.'
+                                                  .format(scan))
             else:
                 time.sleep(const.POLL_FREQUENCY)
 
@@ -116,7 +116,7 @@ class PolyswarmAPI(object):
 
         :param artifact: List of local.LocalArtifacts or paths to local files
         :param artifact_type: The ArtifactType or strings containing "file" or "url"
-        :return: Generator of Submission resources
+        :return: Generator of Scan resources
         """
         if isinstance(artifact, string_types):
             artifact_type = resources.ArtifactType.parse(artifact_type)
@@ -135,14 +135,14 @@ class PolyswarmAPI(object):
         else:
             raise exceptions.InvalidValueException('Artifacts should be a path to a file or a LocalArtifact instance')
 
-    def lookup(self, submission):
+    def lookup(self, scan):
         """
-        Lookup a submission by Submission id.
+        Lookup a scan by Scan id.
 
-        :param submission: The Submission UUID to lookup
-        :return: Generator of Submission resources
+        :param scan: The Scan UUID to lookup
+        :return: Generator of Scan resources
         """
-        return self.generator.lookup_uuid(submission).execute().result
+        return self.generator.lookup_uuid(scan).execute().result
 
     def rescan(self, hash_, hash_type=None):
         """
@@ -150,23 +150,23 @@ class PolyswarmAPI(object):
 
         :param hash_: Hashable object (Artifact, local.LocalArtifact, or Hash) or hex-encoded SHA256/SHA1/MD5
         :param hash_type: Hash type of the provided hash_. Will attempt to auto-detect if not explicitly provided.
-        :return: A Submission resources
+        :return: A ArtifactInstance resources
         """
         hash_ = resources.Hash.from_hashable(hash_, hash_type=hash_type)
         return self.generator.rescan(hash_).execute().result
 
-    def rescanid(self, submission):
+    def rescanid(self, scan):
         """
-        Re-execute a new submission based on an existing submission.
+        Re-execute a new scan based on an existing scan.
 
-        :param submission: Id of the existing submission
-        :return: A Submission resource
+        :param scan: Id of the existing scan
+        :return: A ArtifactInstance resource
         """
-        return self.generator.rescanid(submission).execute().result
+        return self.generator.rescanid(scan).execute().result
 
     def score(self, uuid_):
         """
-        Lookup a PolyScore(s) for a given submission, by UUID
+        Lookup a PolyScore(s) for a given scan, by UUID
 
         :param uuids: UUIDs to lookup
         :return: Generator of PolyScore resources
