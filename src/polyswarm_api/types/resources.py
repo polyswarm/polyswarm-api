@@ -131,7 +131,7 @@ class ArtifactArchive(base.BasePSJSONType, base.AsInteger):
         self.id = json['id']
         self.community = json['community']
         self.created = date.parse_isoformat(json['created'])
-        self.s3_path = json['s3_path']
+        self.uri = json['uri']
 
 
 class Hunt(base.BasePSJSONType, base.AsInteger):
