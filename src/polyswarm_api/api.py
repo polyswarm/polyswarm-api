@@ -368,6 +368,13 @@ class PolyswarmAPI(object):
         """
         return self.generator.delete_tag(name).execute().result
 
+    def tag_list(self):
+        """
+        Fetch the Tag associated with the given id.
+        :return: A Tag resource
+        """
+        return self.generator.list_tag().execute().consume_results()
+
     def family_create(self, name):
         """
         Create a Tag of the given type for the file identified by the sha256.
@@ -397,6 +404,13 @@ class PolyswarmAPI(object):
         :return: A generator of Tag resources
         """
         return self.generator.update_family(family_name, emerging=emerging).execute().result
+
+    def family_list(self):
+        """
+        Fetch the Tag associated with the given id.
+        :return: A Tag resource
+        """
+        return self.generator.list_family().execute().consume_results()
 
     def download(self, out_dir, hash_, hash_type=None):
         """

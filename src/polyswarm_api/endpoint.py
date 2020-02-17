@@ -534,6 +534,16 @@ class PolyswarmRequestGenerator(object):
             },
             result_parser=resources.Tag,
         )
+
+    def list_tag(self):
+        return PolyswarmRequest(
+            self.api_instance,
+            {
+                'method': 'GET',
+                'url': '{}/tags/tag/list'.format(self.uri),
+            },
+            result_parser=resources.Tag,
+        )
     
     def create_family(self, name):
         parameters = {
@@ -579,6 +589,16 @@ class PolyswarmRequestGenerator(object):
                 'json': {
                     'emerging': emerging if emerging else False
                 },
+            },
+            result_parser=resources.MalwareFamily,
+        )
+
+    def list_family(self):
+        return PolyswarmRequest(
+            self.api_instance,
+            {
+                'method': 'GET',
+                'url': '{}/tags/family/list'.format(self.uri),
             },
             result_parser=resources.MalwareFamily,
         )
