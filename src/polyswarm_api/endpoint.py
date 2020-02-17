@@ -446,10 +446,10 @@ class PolyswarmRequestGenerator(object):
             result_parser=resources.HuntResult,
         )
 
-    def create_tag(self, sha256, tags=None, families=None):
+    def create_tag_link(self, sha256, tags=None, families=None):
         parameters = {
             'method': 'POST',
-            'url': '{}/tags'.format(self.uri),
+            'url': '{}/tags/link'.format(self.uri),
             'json': {'sha256': sha256},
         }
         if tags:
@@ -459,24 +459,24 @@ class PolyswarmRequestGenerator(object):
         return PolyswarmRequest(
             self.api_instance,
             parameters,
-            result_parser=resources.Tag,
+            result_parser=resources.TagLink,
         )
 
-    def get_tag(self, sha256):
+    def get_tag_link(self, sha256):
         return PolyswarmRequest(
             self.api_instance,
             {
                 'method': 'GET',
-                'url': '{}/tags'.format(self.uri),
+                'url': '{}/tags/link'.format(self.uri),
                 'params': {'hash': sha256},
             },
-            result_parser=resources.Tag,
+            result_parser=resources.TagLink,
         )
 
-    def update_tag(self, sha256, tags=None, families=None, remove=False):
+    def update_tag_link(self, sha256, tags=None, families=None, remove=False):
         parameters = {
             'method': 'PUT',
-            'url': '{}/tags'.format(self.uri),
+            'url': '{}/tags/link'.format(self.uri),
             'params': {'hash': sha256},
             'json': {'remove': remove if remove else False},
         }
@@ -487,32 +487,99 @@ class PolyswarmRequestGenerator(object):
         return PolyswarmRequest(
             self.api_instance,
             parameters,
-            result_parser=resources.Tag,
+            result_parser=resources.TagLink,
         )
 
-    def delete_tag(self, sha256):
+    def delete_tag_link(self, sha256):
         return PolyswarmRequest(
             self.api_instance,
             {
                 'method': 'DELETE',
-                'url': '{}/tags'.format(self.uri),
+                'url': '{}/tags/link'.format(self.uri),
                 'params': {'hash': sha256},
             },
+            result_parser=resources.TagLink,
+        )
+
+    def create_tag(self, name):
+        parameters = {
+            'method': 'POST',
+            'url': '{}/tags/tag'.format(self.uri),
+            'json': {'name': name},
+        }
+        return PolyswarmRequest(
+            self.api_instance,
+            parameters,
             result_parser=resources.Tag,
         )
 
-    def list_tags(self, sha256):
+    def get_tag(self, name):
         return PolyswarmRequest(
             self.api_instance,
             {
                 'method': 'GET',
-                'url': '{}/tags/list'.format(self.uri),
-                'params': {'sha256': sha256},
+                'url': '{}/tags/tag'.format(self.uri),
+                'params': {'name': name},
             },
             result_parser=resources.Tag,
         )
 
-    def emerging_family(self, family_name, emerging=True):
+    def delete_tag(self, name):
+        return PolyswarmRequest(
+            self.api_instance,
+            {
+                'method': 'DELETE',
+                'url': '{}/tags/tag'.format(self.uri),
+                'params': {'name': name},
+            },
+            result_parser=resources.Tag,
+        )
+
+    def list_tag(self):
+        return PolyswarmRequest(
+            self.api_instance,
+            {
+                'method': 'GET',
+                'url': '{}/tags/tag/list'.format(self.uri),
+            },
+            result_parser=resources.Tag,
+        )
+    
+    def create_family(self, name):
+        parameters = {
+            'method': 'POST',
+            'url': '{}/tags/family'.format(self.uri),
+            'json': {'name': name},
+        }
+        return PolyswarmRequest(
+            self.api_instance,
+            parameters,
+            result_parser=resources.MalwareFamily,
+        )
+
+    def get_family(self, name):
+        return PolyswarmRequest(
+            self.api_instance,
+            {
+                'method': 'GET',
+                'url': '{}/tags/family'.format(self.uri),
+                'params': {'name': name},
+            },
+            result_parser=resources.MalwareFamily,
+        )
+
+    def delete_family(self, name):
+        return PolyswarmRequest(
+            self.api_instance,
+            {
+                'method': 'DELETE',
+                'url': '{}/tags/family'.format(self.uri),
+                'params': {'name': name},
+            },
+            result_parser=resources.MalwareFamily,
+        )
+
+    def update_family(self, family_name, emerging=True):
         return PolyswarmRequest(
             self.api_instance,
             {
@@ -520,9 +587,18 @@ class PolyswarmRequestGenerator(object):
                 'url': '{}/tags/family'.format(self.uri),
                 'params': {'name': family_name},
                 'json': {
-                    'name': family_name,
                     'emerging': emerging if emerging else False
                 },
+            },
+            result_parser=resources.MalwareFamily,
+        )
+
+    def list_family(self):
+        return PolyswarmRequest(
+            self.api_instance,
+            {
+                'method': 'GET',
+                'url': '{}/tags/family/list'.format(self.uri),
             },
             result_parser=resources.MalwareFamily,
         )

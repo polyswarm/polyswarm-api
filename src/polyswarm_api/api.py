@@ -332,50 +332,85 @@ class PolyswarmAPI(object):
         """
         return self.generator.list_ruleset().execute().consume_results()
 
-    def tag_create(self, sha2566, tags=None, families=None):
+    def tag_link_get(self, sha256):
+        """
+        Fetch the Tag associated with the given id.
+        :return: A Tag resource
+        """
+        return self.generator.get_tag_link(sha256).execute().result
+
+    def tag_link_update(self, sha256, tags=None, families=None, remove=False):
+        """
+        Update a Tag with the given type or value by its id.
+        :return: A Tag resource
+        """
+        return self.generator.update_tag_link(sha256, tags=tags, families=families, remove=remove).execute().result
+
+    def tag_create(self, name):
         """
         Create a Tag of the given type for the file identified by the sha256.
         :param sha256: Hash of the file.
         :return: A Tag resource
         """
-        return self.generator.create_tag(sha2566, tags=tags, families=families).execute().result
+        return self.generator.create_tag(name).execute().result
 
-    def tag_get(self, sha256):
+    def tag_get(self, name):
         """
         Fetch the Tag associated with the given id.
         :return: A Tag resource
         """
-        return self.generator.get_tag(sha256).execute().result
+        return self.generator.get_tag(name).execute().result
 
-    def tag_update(self, sha256, tags=None, families=None, remove=False):
-        """
-        Update a Tag with the given type or value by its id.
-        :return: A Tag resource
-        """
-        return self.generator.update_tag(sha256, tags=tags, families=families, remove=remove).execute().result
-
-    def tag_delete(self, sha256):
+    def tag_delete(self, name):
         """
         Delete the Tag associated with the given id.
         :return: A Tag resource
         """
-        return self.generator.delete_tag(sha256).execute().result
+        return self.generator.delete_tag(name).execute().result
 
-    def tag_list(self, sha256):
+    def tag_list(self):
+        """
+        Fetch the Tag associated with the given id.
+        :return: A Tag resource
+        """
+        return self.generator.list_tag().execute().consume_results()
+
+    def family_create(self, name):
+        """
+        Create a Tag of the given type for the file identified by the sha256.
+        :param sha256: Hash of the file.
+        :return: A Tag resource
+        """
+        return self.generator.create_family(name).execute().result
+
+    def family_get(self, name):
+        """
+        Fetch the Tag associated with the given id.
+        :return: A Tag resource
+        """
+        return self.generator.get_family(name).execute().result
+
+    def family_delete(self, name):
+        """
+        Delete the Tag associated with the given id.
+        :return: A Tag resource
+        """
+        return self.generator.delete_family(name).execute().result
+
+    def family_update(self, family_name, emerging=True):
         """
         Return all tags associated with the file identified by the sha256.
         :param sha256: Hash of the file.
         :return: A generator of Tag resources
         """
-        return self.generator.list_tags(sha256).execute().consume_results()
+        return self.generator.update_family(family_name, emerging=emerging).execute().result
 
-    def family_emerging(self, family_name, emerging=True):
+    def family_list(self):
         """
-        Return all tags associated with the file identified by the sha256.
-        :param sha256: Hash of the file.
-        :return: A generator of Tag resources
+        Fetch the Tag associated with the given id.
+        :return: A Tag resource
         """
-        return self.generator.emerging_family(family_name, emerging=emerging).execute().result
+        return self.generator.list_family().execute().consume_results()
 
     def download(self, out_dir, hash_, hash_type=None):
         """

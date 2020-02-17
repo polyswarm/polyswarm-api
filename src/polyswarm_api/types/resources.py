@@ -306,9 +306,9 @@ class YaraRuleset(base.BasePSJSONType, base.AsInteger):
         return True
 
 
-class Tag(base.BasePSJSONType, base.AsInteger):
+class TagLink(base.BasePSJSONType, base.AsInteger):
     def __init__(self, json, polyswarm=None):
-        super(Tag, self).__init__(json, polyswarm)
+        super(TagLink, self).__init__(json, polyswarm)
         self.id = json.get('id')
         self.sha256 = json.get('sha256')
         self.created = date.parse_isoformat(json.get('created'))
@@ -325,6 +325,15 @@ class MalwareFamily(base.BasePSJSONType, base.AsInteger):
         self.updated = date.parse_isoformat(json.get('updated'))
         self.name = json.get('name')
         self.emerging = date.parse_isoformat(json.get('emerging'))
+
+
+class Tag(base.BasePSJSONType, base.AsInteger):
+    def __init__(self, json, polyswarm=None):
+        super(Tag, self).__init__(json, polyswarm)
+        self.id = json.get('id')
+        self.created = date.parse_isoformat(json.get('created'))
+        self.updated = date.parse_isoformat(json.get('updated'))
+        self.name = json.get('name')
 
 
 #####################################################################
