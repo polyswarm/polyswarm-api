@@ -92,6 +92,18 @@ class PolyswarmAPI(object):
         hash_ = resources.Hash.from_hashable(hash_, hash_type=hash_type)
         return self.generator.search_hash(hash_).execute().consume_results()
 
+    def search_scans(self, hash_):
+        """
+        Search a list of hashes.
+
+        :param hash_: A Hashable object (Artifact, local.LocalArtifact, Hash) or hex-encoded SHA256/SHA1/MD5
+        :param hash_type: Hash type of the provided hash_. Will attempt to auto-detect if not explicitly provided.
+        :return: Generator of ArtifactInstance resources
+        """
+
+        hash_ = resources.Hash.from_hashable(hash_, hash_type='sha256')
+        return self.generator.list_scans(hash_.hash).execute().consume_results()
+
     def search_by_feature(self, feature, *artifacts):
         """
         Search artifacts by feature
