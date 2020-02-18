@@ -331,42 +331,6 @@ class Tag(base.BasePSJSONType, base.AsInteger):
 #####################################################################
 
 
-class Artifact(base.Hashable, base.BasePSJSONType, base.AsInteger):
-    SCHEMA = schemas.artifact_schema
-
-    def __init__(self, json, polyswarm=None):
-        """
-        A representation of artifact data retrieved from the polyswarm API
-        """
-        super(Artifact, self).__init__(json=json, polyswarm=polyswarm)
-
-        self.mimetype = json['mimetype']
-        self.extended_type = json['extended_type']
-        self.first_seen = date.parse_isoformat(json['first_seen'])
-        self.last_seen = date.parse_isoformat(json['last_seen'])
-        self.id = json['id']
-        self.sha256 = Hash(json['sha256'], 'sha256', polyswarm)
-        self.sha1 = Hash(json['sha1'], 'sha1', polyswarm)
-        self.md5 = Hash(json['md5'], 'md5', polyswarm)
-        self.metadata = ArtifactMetadata(self, json.get('artifact_metadata', {}), polyswarm)
-
-    def __str__(self):
-        return "Artifact <%s>" % self.hash
-
-    def download(self, out_path):
-        """
-        Download an artifact
-
-        :param out_path: output path for artifact
-        :return: LocalArtifact instance
-        """
-        if not any([self.sha256, self.md5, self.sha1]):
-            raise exceptions.InvalidValueException('At least one hash type must be defined.')
-        result = self.polyswarm.download(out_path, self)
-        result.artifact = self
-        return result
-
-
 class Assertion(base.BasePSJSONType):
     SCHEMA = schemas.assertion_schema
 
