@@ -1,6 +1,5 @@
 import logging
 import os
-import tempfile
 import io
 import functools
 from binascii import unhexlify
@@ -8,7 +7,6 @@ from enum import Enum
 from hashlib import sha256 as _sha256, sha1 as _sha1, md5 as _md5
 
 from future.utils import raise_from, string_types
-from ordered_set import OrderedSet
 
 from polyswarm_api.const import FILE_CHUNK_SIZE
 
@@ -193,9 +191,11 @@ class LocalHandle(base.BasePSResourceType):
         a = getattr(self.handle, name)
         if hasattr(a, '__call__'):
             func = a
+
             @functools.wraps(func)
             def func_wrapper(*args, **kwargs):
                 return func(*args, **kwargs)
+
             a = func_wrapper
         if not isinstance(a, int):
             setattr(self, name, a)
@@ -208,8 +208,6 @@ class LocalArtifact(LocalHandle, base.Hashable):
         """
         A representation of an artifact we have locally
 
-        :param path: Path to the artifact
-        :param content: Content of the artifact
         :param artifact_name: Name of the artifact
         :param artifact_type: Type of artifact
         :param polyswarm: PolyswarmAPI instance
@@ -267,14 +265,6 @@ class LocalArtifact(LocalHandle, base.Hashable):
 
     def _calc_hashes(self, fh):
         self.sha256, self.sha1, self.md5 = all_hashes(fh)
-
-    def _calc_features(self, fh):
-        # TODO implement feature extraction here. This will be used by search_features function.
-        return {}
-
-    def _run_analyzers(self, fh):
-        # TODO implement custom analyzer support, so users can implement plugins here.
-        return {}
 
     def __str__(self):
         return "Artifact <%s>" % self.hash
@@ -358,25 +348,10 @@ class Artifact(base.Hashable, base.BasePSJSONType, base.AsInteger):
         self.sha256 = Hash(json['sha256'], 'sha256', polyswarm)
         self.sha1 = Hash(json['sha1'], 'sha1', polyswarm)
         self.md5 = Hash(json['md5'], 'md5', polyswarm)
-
-        self.instances = list(
-            sorted(
-                [ArtifactInstance(instance,polyswarm=polyswarm) for instance in json.get('artifact_instances', [])],
-                key=lambda x: x.submitted, reverse=True
-            ))
-
-        # for now, we don't have a special Metadata object, but if something differentiates this
-        # in the future from a simple dict, we can
         self.metadata = ArtifactMetadata(self, json.get('artifact_metadata', {}), polyswarm)
-
-        self._polyscore = None
 
     def __str__(self):
         return "Artifact <%s>" % self.hash
-
-    @classmethod
-    def from_json(cls, json, polyswarm=None):
-        pass
 
     def download(self, out_path):
         """
@@ -390,55 +365,6 @@ class Artifact(base.Hashable, base.BasePSJSONType, base.AsInteger):
         result = self.polyswarm.download(out_path, self)
         result.artifact = self
         return result
-
-    @property
-    def similar(self):
-        return []
-
-    @property
-    def last_scan(self):
-        if len(self.scans) > 0:
-            return self.scans[0]
-        return None
-
-    @property
-    def first_scan(self):
-        if len(self.scans) > 0:
-            return self.scans[-1]
-        return None
-
-    @property
-    def scans(self):
-        # do not report scans as they are running, only once window has closed
-        return list(filter(None, [instance for instance in self.instances
-                                  if instance.window_closed and not instance.failed]))
-
-    @property
-    def scan_permalink(self):
-        if len(self.bounties) == 0:
-            return None
-        return self.instances[0].submission_uuid
-
-    @property
-    def bounties(self):
-        return [instance.bounty for instance in self.instances if instance.bounty]
-
-    @property
-    def filenames(self):
-        """ Unique filenames in all observed instances"""
-        return list(OrderedSet([instance.name for instance in self.instances if instance.name]))
-
-    @property
-    def countries(self):
-        return list(OrderedSet([instance.country for instance in self.instances if instance.country]))
-
-    @property
-    def detections(self):
-        latest = self.last_scan
-        if latest:
-            return [a for a in latest.assertions if a.mask and a.verdict]
-        else:
-            return []
 
 
 class Assertion(base.BasePSJSONType):
@@ -503,9 +429,8 @@ class ArtifactType(Enum):
             return ArtifactType[value.upper()]
         except Exception as e:
             raise raise_from(
-                exceptions.InvalidValueException('Unable to get the artifact type from the provided value {}'
-                                                 .format(value),
-                                                 e))
+                exceptions.InvalidValueException(
+                    'Unable to get the artifact type from the provided value {}'.format(value)), e)
 
     @staticmethod
     def to_string(artifact_type):
