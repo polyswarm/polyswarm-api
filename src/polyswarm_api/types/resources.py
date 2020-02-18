@@ -370,10 +370,12 @@ class ArtifactMetadata(base.BasePSJSONType):
         super(ArtifactMetadata, self).__init__(json=json, polyswarm=polyswarm)
 
         self.artifact = artifact
-        self.hash = json.get('hash', {})
         self.exiftool = json.get('exiftool', {})
+        self.hash = json.get('hash', {})
         self.lief = json.get('lief', {})
         self.pefile = json.get('pefile', {})
+        self.scan = json.get('scan', {})
+        self.strings = json.get('strings', {})
 
 
 #####################################################################
