@@ -78,7 +78,6 @@ class ArtifactInstance(base.BasePSJSONType, base.Hashable, base.AsInteger):
         self.last_seen = date.parse_isoformat(json['last_seen'])
         self.first_seen = date.parse_isoformat(json['first_seen'])
         self.md5 = json['md5']
-        self.metadata = ArtifactMetadata(self, json.get('artifact_metadata', {}), polyswarm)
         self.mimetype = json['mimetype']
         self.result = json['result']
         self.sha1 = json['sha1']
@@ -93,6 +92,22 @@ class ArtifactInstance(base.BasePSJSONType, base.Hashable, base.AsInteger):
         self._detections = None
         self._valid_assertions = None
         self._filenames = None
+
+        self.exiftool = None
+        self.hash_metadata = None
+        self.lief = None
+        self.pefile = None
+        self.scan = None
+        self.strings = None
+        self._parse_metadata(json.get('metadata', []))
+
+    def _parse_metadata(self, metadata_json_list):
+        for metadata_json in metadata_json_list:
+            metadata = ArtifactMetadata(self, metadata_json, self.polyswarm)
+            if metadata.tool == 'hash':
+                self.hash_metadata = metadata
+            else:
+                setattr(self, metadata.tool, metadata)
 
     def __str__(self):
         return "ArtifactInstance-<%s>" % self.hash
@@ -368,14 +383,16 @@ class ArtifactMetadata(base.BasePSJSONType):
 
     def __init__(self, artifact, json, polyswarm=None):
         super(ArtifactMetadata, self).__init__(json=json, polyswarm=polyswarm)
-
         self.artifact = artifact
-        self.exiftool = json.get('exiftool', {})
-        self.hash = json.get('hash', {})
-        self.lief = json.get('lief', {})
-        self.pefile = json.get('pefile', {})
-        self.scan = json.get('scan', {})
-        self.strings = json.get('strings', {})
+        self.tool = json['tool']
+        self.tool_metadata = json['tool_metadata']
+        self.created = json.get('created')
+
+    def __getattr__(self, name):
+        try:
+            return self.tool_metadata[name]
+        except KeyError:
+            raise AttributeError()
 
 
 #####################################################################
