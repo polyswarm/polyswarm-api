@@ -19,8 +19,8 @@ class TimeoutException(PolyswarmAPIException):
 #########################################
 
 class RequestException(PolyswarmException):
-    def __init__(self, request, *args, **kwargs):
-        super(RequestException, self).__init__(*args, **kwargs)
+    def __init__(self, request, *args):
+        super(PolyswarmException, self).__init__(*args)
         self.request = request
 
 
