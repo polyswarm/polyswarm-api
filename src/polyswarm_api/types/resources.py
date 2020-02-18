@@ -61,6 +61,23 @@ class Metadata(base.BasePSJSONType, base.AsInteger):
         self.urls = json.get('strings', empty).get('urls')
 
 
+class MetadataAccessor:
+    def __init__(self, metadata_json_list, polyswarm):
+        self._metadata = {}
+        for metadata_json in metadata_json_list:
+            metadata = ArtifactMetadata(self, metadata_json, polyswarm)
+            self._metadata[metadata.tool] = metadata
+
+    def __contains__(self, item):
+        return item in self._metadata
+
+    def __getattr__(self, name):
+        try:
+            return self._metadata[name]
+        except KeyError:
+            raise AttributeError()
+
+
 class ArtifactInstance(base.BasePSJSONType, base.Hashable, base.AsInteger):
     SCHEMA = schemas.artifact_instance_schema
 
@@ -93,21 +110,7 @@ class ArtifactInstance(base.BasePSJSONType, base.Hashable, base.AsInteger):
         self._valid_assertions = None
         self._filenames = None
 
-        self.exiftool = None
-        self.hash_metadata = None
-        self.lief = None
-        self.pefile = None
-        self.scan = None
-        self.strings = None
-        self._parse_metadata(json.get('metadata', []))
-
-    def _parse_metadata(self, metadata_json_list):
-        for metadata_json in metadata_json_list:
-            metadata = ArtifactMetadata(self, metadata_json, self.polyswarm)
-            if metadata.tool == 'hash':
-                self.hash_metadata = metadata
-            else:
-                setattr(self, metadata.tool, metadata)
+        self.metadata = MetadataAccessor(json.get('metadata', []), polyswarm)
 
     def __str__(self):
         return "ArtifactInstance-<%s>" % self.hash
@@ -387,6 +390,9 @@ class ArtifactMetadata(base.BasePSJSONType):
         self.tool = json['tool']
         self.tool_metadata = json['tool_metadata']
         self.created = json.get('created')
+
+    def __contains__(self, item):
+        return item in self.tool_metadata
 
     def __getattr__(self, name):
         try:
