@@ -16,9 +16,9 @@ except ImportError:
     import mock
 
 
+# TODO: the day we drop python 2.7 support we can use python 3 version of this
 @contextmanager
 def TemporaryDirectory():
-    """The day we drop python 2.7 support we can use python 3 version of this"""
     name = tempfile.mkdtemp()
     try:
         yield name
