@@ -9,8 +9,8 @@ logger = logging.getLogger(__name__)
 
 
 class PolyswarmHTTP(requests.Session):
-    def __init__(self, key, retries, user_agent=const.DEFAULT_USER_AGENT, *args, **kwargs):
-        super(PolyswarmHTTP, self).__init__(*args, **kwargs)
+    def __init__(self, key, retries, user_agent=const.DEFAULT_USER_AGENT):
+        super(PolyswarmHTTP, self).__init__()
         logger.debug('Creating PolyswarmHTTP instance')
         self.requests_retry_session(retries=retries)
 
