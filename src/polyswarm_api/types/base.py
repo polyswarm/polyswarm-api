@@ -43,10 +43,10 @@ class BasePSJSONType(BasePSResourceType):
         # this is expensive on thousands of objects
         # avoid if disabled
         if self.polyswarm and self.polyswarm.validate:
-             self.validate(value)
+             self._validate(value)
         self._json = value
 
-    def validate(self, json, schema=None):
+    def _validate(self, json, schema=None):
         if not schema:
             schema = self.SCHEMA
 
