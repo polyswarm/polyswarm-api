@@ -90,7 +90,7 @@ class PolyswarmAPI(object):
         """
 
         hash_ = resources.Hash.from_hashable(hash_, hash_type=hash_type)
-        return self.generator.search_hash(hash_).execute().consume_results()
+        return self.generator.search_hash(hash_.hash, hash_.hash_type).execute().consume_results()
 
     def search_scans(self, hash_):
         """
@@ -144,7 +144,7 @@ class PolyswarmAPI(object):
                 artifact = resources.LocalArtifact.from_content(self, artifact, artifact_name=artifact,
                                                                 artifact_type=artifact_type)
         if isinstance(artifact, resources.LocalArtifact):
-            return self.generator.submit(artifact).execute().result
+            return self.generator.submit(artifact, artifact.artifact_name, artifact.artifact_type.name).execute().result
         else:
             raise exceptions.InvalidValueException('Artifacts should be a path to a file or a LocalArtifact instance')
 
@@ -166,7 +166,7 @@ class PolyswarmAPI(object):
         :return: A ArtifactInstance resources
         """
         hash_ = resources.Hash.from_hashable(hash_, hash_type=hash_type)
-        return self.generator.rescan(hash_).execute().result
+        return self.generator.rescan(hash_.hash, hash_.hash_type).execute().result
 
     def rescan_id(self, scan):
         """
@@ -178,15 +178,14 @@ class PolyswarmAPI(object):
         return self.generator.rescanid(scan).execute().result
 
     def _parse_rule(self, rule):
-        rule_id = None
         if isinstance(rule, string_types):
-            rule = resources.YaraRuleset(dict(yara=rule), polyswarm=self)
+            rule, rule_id = resources.YaraRuleset(dict(yara=rule), polyswarm=self), None
             try:
                 rule.validate()
             except exceptions.NotImportedException as e:
                 logger.debug('%s\nSkipping validation.', str(e))
         elif isinstance(rule, (resources.YaraRuleset, int)):
-            pass
+            rule, rule_id = None, rule
         else:
             raise exceptions.InvalidValueException('Either yara or rule_id must be provided.')
         return rule, rule_id
@@ -199,7 +198,7 @@ class PolyswarmAPI(object):
         :return: The created Hunt resource
         """
         rule, rule_id = self._parse_rule(rule)
-        return self.generator.create_live_hunt(rule=rule, rule_id=rule_id,
+        return self.generator.create_live_hunt(rule=rule.yara if rule else None, rule_id=rule_id,
                                                active=active, ruleset_name=ruleset_name).execute().result
 
     def live_get(self, hunt=None):
@@ -257,7 +256,7 @@ class PolyswarmAPI(object):
         :return: The created Hunt resource
         """
         rule, rule_id = self._parse_rule(rule)
-        return self.generator.create_historical_hunt(rule=rule, rule_id=rule_id,
+        return self.generator.create_historical_hunt(rule=rule.yara if rule else None, rule_id=rule_id,
                                                      ruleset_name=ruleset_name).execute().result
 
     def historical_get(self, hunt=None):
@@ -308,7 +307,7 @@ class PolyswarmAPI(object):
             rules.validate()
         except exceptions.NotImportedException as e:
             logger.debug('%s\nSkipping validation.', str(e))
-        return self.generator.create_ruleset(rules).execute().result
+        return self.generator.create_ruleset(rules.yara, rules.name, description=rules.description).execute().result
 
     def ruleset_get(self, ruleset_id=None):
         """

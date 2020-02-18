@@ -207,27 +207,27 @@ class PolyswarmRequestGenerator(object):
             result_parser=resources.ArtifactArchive,
         )
 
-    def search_hash(self, h):
+    def search_hash(self, hash_value, hash_type):
         return PolyswarmRequest(
             self.api_instance,
             {
                 'method': 'GET',
-                'url': '{}/search/hash/{}'.format(self.uri, h.hash_type),
+                'url': '{}/search/hash/{}'.format(self.uri, hash_type),
                 'params': {
-                    'hash': h.hash,
+                    'hash': hash_value,
                 },
             },
             result_parser=resources.ArtifactInstance,
         )
 
-    def list_scans(self, h):
+    def list_scans(self, hash_value):
         return PolyswarmRequest(
             self.api_instance,
             {
                 'method': 'GET',
                 'url': '{}/search/instances'.format(self.uri),
                 'params': {
-                    'hash': h,
+                    'hash': hash_value,
                 },
             },
             result_parser=resources.ArtifactInstance,
@@ -246,27 +246,27 @@ class PolyswarmRequestGenerator(object):
             result_parser=resources.Metadata,
         )
 
-    def submit(self, artifact):
+    def submit(self, artifact, artifact_name, artifact_type):
         return PolyswarmRequest(
             self.api_instance,
             {
                 'method': 'POST',
                 'url': '{}/consumer/submission/{}'.format(self.uri, self.community),
                 'files': {
-                    'file': (artifact.artifact_name, artifact),
+                    'file': (artifact_name, artifact),
                 },
                 # very oddly, when included in files parameter this errors out
-                'data': {'artifact-type': artifact.artifact_type.name}
+                'data': {'artifact-type': artifact_type}
             },
             result_parser=resources.ArtifactInstance,
         )
 
-    def rescan(self, h):
+    def rescan(self, hash_value, hash_type):
         return PolyswarmRequest(
             self.api_instance,
             {
                 'method': 'POST',
-                'url': '{}/consumer/submission/{}/rescan/{}/{}'.format(self.uri, self.community, h.hash_type, h.hash),
+                'url': '{}/consumer/submission/{}/rescan/{}/{}'.format(self.uri, self.community, hash_type, hash_value),
             },
             result_parser=resources.ArtifactInstance,
         )
@@ -311,7 +311,7 @@ class PolyswarmRequestGenerator(object):
         if ruleset_name:
             parameters['json']['ruleset_name'] = ruleset_name
         if rule:
-            parameters['json']['yara'] = rule.yara
+            parameters['json']['yara'] = rule
         if rule_id:
             parameters['json']['rule_id'] = str(int(rule_id))
         return PolyswarmRequest(
@@ -398,7 +398,7 @@ class PolyswarmRequestGenerator(object):
         if ruleset_name:
             parameters['json']['ruleset_name'] = ruleset_name
         if rule:
-            parameters['json']['yara'] = rule.yara
+            parameters['json']['yara'] = rule
         if rule_id:
             parameters['json']['rule_id'] = str(int(rule_id))
         return PolyswarmRequest(
@@ -616,17 +616,17 @@ class PolyswarmRequestGenerator(object):
             result_parser=resources.MalwareFamily,
         )
 
-    def create_ruleset(self, rule):
+    def create_ruleset(self, rule, name, description=None):
         parameters = {
             'method': 'POST',
             'url': '{}/hunt/rule'.format(self.uri),
             'json': {
-                'yara': rule.yara,
-                'name': rule.name,
+                'yara': rule,
+                'name': name,
             },
         }
-        if rule.description:
-            parameters['json']['description'] = rule.description
+        if description:
+            parameters['json']['description'] = description
         return PolyswarmRequest(
             self.api_instance,
             parameters,
