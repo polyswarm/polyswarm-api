@@ -40,7 +40,7 @@ class Metadata(base.BasePSJSONType, base.AsInteger):
 
     def __init__(self, json, polyswarm=None):
         super(Metadata, self).__init__(json=json, polyswarm=polyswarm)
-        self.created = date.parse_isoformat(json.get('created'))
+        self.created = date.parse_isoformat(self.artifact.get('created'))
 
         self.id = self.artifact.get('id')
 
