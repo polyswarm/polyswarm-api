@@ -102,7 +102,8 @@ class ArtifactInstance(base.BasePSJSONType, base.Hashable, base.AsInteger):
         self.polyscore = float(json['polyscore']) if json.get('polyscore') is not None else None
         self.permalink = const.DEFAULT_PERMALINK_BASE + '/' + str(self.id)
 
-        metadata = {metadata['tool']: metadata['tool_metadata'] for metadata in json.get('metadata', [])}
+        metadata_json = json.get('metadata') or []
+        metadata = {metadata['tool']: metadata['tool_metadata'] for metadata in metadata_json}
         self.metadata = Metadata(metadata, polyswarm)
 
         self._detections = None
