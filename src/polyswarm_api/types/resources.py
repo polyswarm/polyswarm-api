@@ -36,45 +36,41 @@ class Engine(base.BasePSJSONType):
 
 
 class Metadata(base.BasePSJSONType, base.AsInteger):
+    KNOWN_KEYS = {'artifact', 'exiftool', 'hash', 'lief', 'pefile', 'scan', 'strings'}
+
     def __init__(self, json, polyswarm=None):
         super(Metadata, self).__init__(json=json, polyswarm=polyswarm)
-        self.id = json['artifact']['id']
-        self.created = json['artifact']['created']
+        self.created = date.parse_isoformat(json.get('created'))
 
-        empty = {}
-        self.sha1 = json.get('hash', empty).get('sha1')
-        self.sha256 = json.get('hash', empty).get('sha256')
-        self.md5 = json.get('hash', empty).get('md5')
-        self.ssdeep = json.get('hash', empty).get('ssdeep')
-        self.tlsh = json.get('hash', empty).get('tlsh')
+        self.id = self.artifact.get('id')
 
-        self.first_seen = date.parse_isoformat(json.get('scan', empty).get('first_seen'))
-        self.last_seen = date.parse_isoformat(json.get('scan', empty).get('last_seen'))
-        self.mimetype = json.get('scan', empty).get('mimetype', empty).get('mime')
-        self.extended_mimetype = json.get('scan', empty).get('mimetype', empty).get('extended')
-        self.detections = json.get('scan', empty).get('detections', empty).get('malicious')
-        self.total_detections = json.get('scan', empty).get('detections', empty).get('total')
+        self.sha1 = self.hash.get('sha1')
+        self.sha256 = self.hash.get('sha256')
+        self.md5 = self.hash.get('md5')
+        self.ssdeep = self.hash.get('ssdeep')
+        self.tlsh = self.hash.get('tlsh')
 
-        self.domains = json.get('strings', empty).get('domains')
-        self.ipv4 = json.get('strings', empty).get('ipv4')
-        self.ipv6 = json.get('strings', empty).get('ipv6')
-        self.urls = json.get('strings', empty).get('urls')
+        self.first_seen = date.parse_isoformat(self.scan.get('first_seen'))
+        self.last_seen = date.parse_isoformat(self.scan.get('last_seen'))
+        self.mimetype = self.scan.get('mimetype', {}).get('mime')
+        self.extended_mimetype = self.scan.get('mimetype', {}).get('extended')
+        self.detections = self.scan.get('detections', {}).get('malicious')
+        self.total_detections = self.scan.get('detections', {}).get('total')
 
-
-class MetadataAccessor:
-    def __init__(self, metadata_json_list, polyswarm):
-        self._metadata = {}
-        for metadata_json in metadata_json_list:
-            metadata = ArtifactMetadata(self, metadata_json, polyswarm)
-            self._metadata[metadata.tool] = metadata
+        self.domains = self.strings.get('domains')
+        self.ipv4 = self.strings.get('ipv4')
+        self.ipv6 = self.strings.get('ipv6')
+        self.urls = self.strings.get('urls')
 
     def __contains__(self, item):
-        return item in self._metadata
+        return item in self.json
 
     def __getattr__(self, name):
         try:
-            return self._metadata[name]
+            return self.json[name]
         except KeyError:
+            if name in Metadata.KNOWN_KEYS:
+                return {}
             raise AttributeError()
 
 
@@ -106,11 +102,12 @@ class ArtifactInstance(base.BasePSJSONType, base.Hashable, base.AsInteger):
         self.polyscore = float(json['polyscore']) if json.get('polyscore') is not None else None
         self.permalink = const.DEFAULT_PERMALINK_BASE + '/' + str(self.id)
 
+        metadata = {metadata['tool']: metadata['tool_metadata'] for metadata in json.get('metadata', [])}
+        self.metadata = Metadata(metadata, polyswarm)
+
         self._detections = None
         self._valid_assertions = None
         self._filenames = None
-
-        self.metadata = MetadataAccessor(json.get('metadata', []), polyswarm)
 
     def __str__(self):
         return "ArtifactInstance-<%s>" % self.hash
@@ -379,26 +376,6 @@ class Vote(base.BasePSJSONType):
 
     def __str__(self):
         return "Vote-%s: %s" % (self.arbiter, self.vote)
-
-
-class ArtifactMetadata(base.BasePSJSONType):
-    SCHEMA = schemas.artifact_metadata
-
-    def __init__(self, artifact, json, polyswarm=None):
-        super(ArtifactMetadata, self).__init__(json=json, polyswarm=polyswarm)
-        self.artifact = artifact
-        self.tool = json['tool']
-        self.tool_metadata = json['tool_metadata']
-        self.created = json.get('created')
-
-    def __contains__(self, item):
-        return item in self.tool_metadata
-
-    def __getattr__(self, name):
-        try:
-            return self.tool_metadata[name]
-        except KeyError:
-            raise AttributeError()
 
 
 #####################################################################
