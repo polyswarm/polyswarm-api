@@ -100,7 +100,7 @@ class ArtifactInstance(base.BasePSJSONType, base.Hashable, base.AsInteger):
         self.votes = [Vote(self, v, polyswarm) for v in json['votes']]
         self.window_closed = json['window_closed']
         self.polyscore = float(json['polyscore']) if json.get('polyscore') is not None else None
-        self.permalink = const.DEFAULT_PERMALINK_BASE + '/' + str(self.id)
+        self.permalink = const.DEFAULT_PERMALINK_BASE + '/' + str(self.hash)
 
         metadata_json = json.get('metadata') or []
         metadata = {metadata['tool']: metadata['tool_metadata'] for metadata in metadata_json}
