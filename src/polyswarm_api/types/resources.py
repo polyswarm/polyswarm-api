@@ -271,7 +271,6 @@ class LocalArtifact(LocalHandle, base.Hashable):
         return super(LocalArtifact, self).hash
 
     def analyze_artifact(self, force=False):
-        self._raise_if_deleted()
         if not self.analyzed or force:
             self.handle.seek(0)
             self._calc_hashes(self.handle)
@@ -281,6 +280,10 @@ class LocalArtifact(LocalHandle, base.Hashable):
 
     def _calc_hashes(self, fh):
         self.sha256, self.sha1, self.md5 = all_hashes(fh)
+
+    def _run_analyzers(self, fh):
+        # TODO implement custom analyzer support, so users can implement plugins here.
+        return {}
 
     def __str__(self):
         return "Artifact <%s>" % self.hash
