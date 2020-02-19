@@ -1,4 +1,3 @@
-import io
 import logging
 import time
 import os
@@ -97,7 +96,6 @@ class PolyswarmAPI(object):
         Search a list of hashes.
 
         :param hash_: A Hashable object (Artifact, local.LocalArtifact, Hash) or hex-encoded SHA256/SHA1/MD5
-        :param hash_type: Hash type of the provided hash_. Will attempt to auto-detect if not explicitly provided.
         :return: Generator of ArtifactInstance resources
         """
 
@@ -195,6 +193,8 @@ class PolyswarmAPI(object):
         Create a new live hunt_id, and replace the currently running YARA rules.
 
         :param rule: YaraRuleset object or string containing YARA rules to install
+        :param active: Set the live hunt to active upon creation if True.
+        :param ruleset_name: Name of the ruleset.
         :return: The created Hunt resource
         """
         rule, rule_id = self._parse_rule(rule)
@@ -241,8 +241,10 @@ class PolyswarmAPI(object):
         """
         Get results from a live hunt
 
-        :param hunt: ID of the hunt (None if latest rule results are desired)
+        :param hunt: ID of the hunt (None if results for tha latest active hunt are desired)
         :param since: Fetch results from the last "since" minutes
+        :param tag: Filter hunt results containing the provided tags (comma separated tags, exact match).
+        :param rule_name: Filter hunt results on the provided rule name (exact match).
         :return: Generator of HuntResult resources
         """
         return self.generator.live_hunt_results(hunt_id=hunt, since=since,
@@ -253,6 +255,7 @@ class PolyswarmAPI(object):
         Run a new historical hunt.
 
         :param rule: YaraRuleset object or string containing YARA rules to install
+        :param ruleset_name: Name of the ruleset.
         :return: The created Hunt resource
         """
         rule, rule_id = self._parse_rule(rule)
@@ -290,6 +293,8 @@ class PolyswarmAPI(object):
         Get results from a historical hunt
 
         :param hunt: ID of the hunt (None if latest hunt results are desired)
+        :param tag: Filter hunt results containing the provided tags (comma separated tags, exact match).
+        :param rule_name: Filter hunt results on the provided rule name (exact match).
         :return: Generator of HuntResult resources
         """
         return self.generator.historical_hunt_results(hunt_id=hunt, tag=tag, rule_name=rule_name).execute().consume_results()
@@ -345,81 +350,92 @@ class PolyswarmAPI(object):
 
     def tag_link_get(self, sha256):
         """
-        Fetch the Tag associated with the given id.
-        :return: A Tag resource
+        Fetch the Tags and Families associated with the given sha256.
+
+        :param sha256: The sha256 of the artifact.
+        :return: A TagLink resource
         """
         return self.generator.get_tag_link(sha256).execute().result
 
     def tag_link_update(self, sha256, tags=None, families=None, remove=False):
         """
         Update a Tag with the given type or value by its id.
-        :return: A Tag resource
+        :param sha256: The sha256 of the artifact.
+        :param tags: A list of tags to be added or removed.
+        :param families: A list of families to be added or removed.
+        :param remove: A flag indicating if we should remove the provided tags/families.
+        :return: A TagLink resource
         """
         return self.generator.update_tag_link(sha256, tags=tags, families=families, remove=remove).execute().result
 
     def tag_create(self, name):
         """
-        Create a Tag of the given type for the file identified by the sha256.
-        :param sha256: Hash of the file.
+        Create a Tag.
+        :param name: The tag we want to create.
         :return: A Tag resource
         """
         return self.generator.create_tag(name).execute().result
 
     def tag_get(self, name):
         """
-        Fetch the Tag associated with the given id.
+        Fetch a Tag.
+        :param name: The tag we want to fetch.
         :return: A Tag resource
         """
         return self.generator.get_tag(name).execute().result
 
     def tag_delete(self, name):
         """
-        Delete the Tag associated with the given id.
+        Delete a Tag.
+        :param name: The tag we want to delete.
         :return: A Tag resource
         """
         return self.generator.delete_tag(name).execute().result
 
     def tag_list(self):
         """
-        Fetch the Tag associated with the given id.
-        :return: A Tag resource
+        Fetch all existing Tags.
+        :return: A generator of Tag resources
         """
         return self.generator.list_tag().execute().consume_results()
 
     def family_create(self, name):
         """
-        Create a Tag of the given type for the file identified by the sha256.
-        :param sha256: Hash of the file.
-        :return: A Tag resource
+        Create a Family.
+        :param name: The family name.
+        :return: A MalwareFamily resource
         """
         return self.generator.create_family(name).execute().result
 
     def family_get(self, name):
         """
-        Fetch the Tag associated with the given id.
-        :return: A Tag resource
+        Fetch a Family.
+        :param name: The family name.
+        :return: A MalwareFamily resource
         """
         return self.generator.get_family(name).execute().result
 
     def family_delete(self, name):
         """
-        Delete the Tag associated with the given id.
-        :return: A Tag resource
+        Delete a Family.
+        :param name: The family name.
+        :return: A MalwareFamily resource
         """
         return self.generator.delete_family(name).execute().result
 
     def family_update(self, family_name, emerging=True):
         """
-        Return all tags associated with the file identified by the sha256.
-        :param sha256: Hash of the file.
-        :return: A generator of Tag resources
+        Update the Family emerging status.
+        :param family_name: The family name.
+        :param emerging: A flag indicating if the family should be marked as emerging at this point in time.
+        :return: A MalwareFamily resource
         """
         return self.generator.update_family(family_name, emerging=emerging).execute().result
 
     def family_list(self):
         """
-        Fetch the Tag associated with the given id.
-        :return: A Tag resource
+        Fetch all existing Families
+        :return: A generator of MalwareFamily resources
         """
         return self.generator.list_family().execute().consume_results()
 
@@ -428,7 +444,7 @@ class PolyswarmAPI(object):
         Grab the data of artifact identified by hash, and write the data to a file in the provided directory
         under a file named after the hash_.
         :param out_dir: Destination directory to download the file.
-        :param hash_: hash
+        :param hash_: The hash we should use to lookup the artifact to download.
         :param hash_type: Hash type of the provided hash_. Will attempt to auto-detect if not explicitly provided.
         :return: A LocalArtifact resource
         """
@@ -454,10 +470,10 @@ class PolyswarmAPI(object):
     def download_to_handle(self, hash_, fh, hash_type=None):
         """
         Grab the data of artifact identified by hash, and write the data to a file handle
-        :param hash_: hash
-        :param fh: file handle
+        :param hash_: The hash we should use to lookup the artifact to download.
+        :param fh: A file-like object which we are going to write the contents of the artifact to.
         :param hash_type: Hash type of the provided hash_. Will attempt to auto-detect if not explicitly provided.
-        :return: A LocalArtifact resource
+        :return: A LocalHandle resource
         """
         hash_ = resources.Hash.from_hashable(hash_, hash_type=hash_type)
         return self.generator.download(hash_.hash, hash_.hash_type, handle=fh).execute().result
@@ -466,8 +482,7 @@ class PolyswarmAPI(object):
         """
         Access the stream of artifacts (ask info@polyswarm.io about access)
 
-        :param destination: Directory to save the files
         :param since: Fetch results from the last "since" minutes (up to 2 days)
-        :return: Generator of LocalArtifact resources
+        :return: Generator of ArtifactArchive resources
         """
-        return self.generator.stream(since=since).execute().execute().consume_results()
+        return self.generator.stream(since=since).execute().consume_results()
