@@ -1,54 +1,73 @@
-class PolyswarmAPIException(Exception):
+class PolyswarmException(Exception):
     pass
 
 
-class RequestFailedException(PolyswarmAPIException):
+#########################################
+# API layer exceptions
+#########################################
+
+class PolyswarmAPIException(PolyswarmException):
     pass
 
 
-class BadFormatException(PolyswarmAPIException):
+class TimeoutException(PolyswarmAPIException):
     pass
 
 
-class ServerErrorException(PolyswarmAPIException):
+#########################################
+# Request layer exceptions
+#########################################
+
+class RequestException(PolyswarmException):
+    def __init__(self, request, *args):
+        super(PolyswarmException, self).__init__(*args)
+        self.request = request
+
+
+class UsageLimitsExceededException(RequestException):
     pass
 
 
-class InvalidHashException(PolyswarmAPIException):
+class NotFoundException(RequestException):
     pass
 
 
-class NotFoundException(PolyswarmAPIException):
+class NoResultsException(RequestException):
     pass
 
 
-class MissingAPIInstance(PolyswarmAPIException):
+#########################################
+# Types layer exceptions
+#########################################
+
+
+class TypeException(PolyswarmException):
     pass
 
 
-class InvalidJSONResponse(PolyswarmAPIException):
+class MissingAPIInstanceException(TypeException):
     pass
 
 
-class DecodeError(PolyswarmAPIException):
+class InvalidJSONResponseException(TypeException):
     pass
 
 
-class InvalidArgument(PolyswarmAPIException):
+class DecodeErrorException(TypeException):
     pass
 
 
-class ArtifactDeleted(PolyswarmAPIException):
+class InvalidValueException(TypeException):
     pass
 
 
-class UsageLimitsExceeded(PolyswarmAPIException):
+class ArtifactDeletedException(TypeException):
     pass
 
 
-class InvalidYaraRules(PolyswarmAPIException):
+class InvalidYaraRulesException(TypeException):
     pass
 
 
-class NotImportedException(PolyswarmAPIException):
+class NotImportedException(TypeException):
     pass

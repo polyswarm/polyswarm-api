@@ -1,264 +1,685 @@
-from . import const, utils
-from requests.exceptions import HTTPError
+import logging
+import json
+from future.utils import raise_from
+from copy import deepcopy
+
+from . import const
+from . import http
+from . import exceptions
+from .types import resources
+
+try:
+    from json.decoder import JSONDecodeError
+except ImportError:
+    JSONDecodeError = ValueError
+
+
+logger = logging.getLogger(__name__)
+
+
+class RequestParamsEncoder(json.JSONEncoder):
+    def default(self, obj):
+        try:
+            return json.JSONEncoder.default(self, obj)
+        except Exception:
+            return str(obj)
+
+
+class PolyswarmRequest(object):
+    """This class holds a requests-compatible dictionary and extra information we need to parse the response."""
+    def __init__(self, api_instance, request_parameters, key=None, result_parser=None, json_response=True, **kwargs):
+        logger.debug('Creating PolyswarmRequest instance.\nRequest parameters: %s\nResult parser: %s',
+                     request_parameters, result_parser.__name__)
+        self.api_instance = api_instance
+        # we should not access the api_instance session directly, but provide as a
+        # parameter in the constructor, but this will do for the moment
+        self.session = self.api_instance.session or http.PolyswarmHTTP(key, retries=const.DEFAULT_RETRIES)
+        self.timeout = self.api_instance.timeout or const.DEFAULT_HTTP_TIMEOUT
+        self.request_parameters = request_parameters
+        self.result_parser = result_parser
+        self.json_response = json_response
+        self.raw_result = None
+        self.status_code = None
+        self.status = None
+        self.result = None
+        self.errors = None
+        self.total = None
+        self.limit = None
+        self.offset = None
+        self.order_by = None
+        self.direction = None
+        self.has_more = None
+        self.parser_kwargs = kwargs
+
+    def execute(self):
+        logger.debug('Executing request.')
+        self.request_parameters.setdefault('timeout', self.timeout)
+        if not self.json_response:
+            self.request_parameters.setdefault('stream', True)
+        self.raw_result = self.session.request(**self.request_parameters)
+        logger.debug('Request returned code %s with content:\n%s',
+                     self.raw_result.status_code, self.raw_result.content)
+        if self.result_parser is not None:
+            self.parse_result(self.raw_result)
+        return self
+
+    def _bad_status_message(self):
+        request_parameters = json.dumps(self.request_parameters, indent=4, sort_keys=True, cls=RequestParamsEncoder)
+        message = "Error when running the request:\n{}\n" \
+                  "Return code: {}\n" \
+                  "Message: {}".format(request_parameters,
+                                       self.status_code,
+                                       self.result)
+        if self.errors:
+            message = '{}\nErrors:\n{}'.format(message, '\n'.join(str(error) for error in self.errors))
+        return message
+
+    def _extract_json_body(self, result):
+        self.json = result.json()
+        self.result = self.json.get('result')
+        self.status = self.json.get('status')
+        self.errors = self.json.get('errors')
+
+    def parse_result(self, result):
+        logger.debug('Parsing request results.')
+        self.status_code = result.status_code
+        try:
+            if self.status_code // 100 != 2:
+                self._extract_json_body(result)
+                if self.status_code == 429:
+                    raise exceptions.UsageLimitsExceededException(self, const.USAGE_EXCEEDED_MESSAGE)
+                if self.status_code == 404:
+                    raise exceptions.NotFoundException(self, self.result)
+                raise exceptions.RequestException(self, self._bad_status_message())
+            elif self.status_code == 204:
+                raise exceptions.NoResultsException(self, 'The request returned no results.')
+            elif self.json_response:
+                self._extract_json_body(result)
+                self.total = self.json.get('total')
+                self.limit = self.json.get('limit')
+                self.offset = self.json.get('offset')
+                self.order_by = self.json.get('order_by')
+                self.direction = self.json.get('direction')
+                self.has_more = self.json.get('has_more')
+                if 'result' in self.json:
+                    result = self.json['result']
+                elif 'results' in self.json:
+                    result = self.json['results']
+                else:
+                    raise exceptions.RequestException(
+                        self,
+                        'The response standard must contain either the "result" or "results" key.'
+                    )
+                if isinstance(result, list):
+                    self.result = self.result_parser.parse_result_list(self.api_instance, result, **self.parser_kwargs)
+                else:
+                    self.result = self.result_parser.parse_result(self.api_instance, result, **self.parser_kwargs)
+            else:
+                self.result = self.result_parser.parse_result(self.api_instance,
+                                                              result.iter_content(const.DOWNLOAD_CHUNK_SIZE),
+                                                              **self.parser_kwargs)
+        except JSONDecodeError as e:
+            if self.status_code == 404:
+                raise raise_from(exceptions.NotFoundException(self, 'The requested endpoint does not exist.'), e)
+            else:
+                raise raise_from(exceptions.RequestException(self, 'Server returned non-JSON response.'), e)
+
+    def __iter__(self):
+        return self.consume_results()
+
+    def consume_results(self):
+        # StopIteration is deprecated
+        # As per https://www.python.org/dev/peps/pep-0479/
+        # We simply return upon termination condition
+        request = self
+        while True:
+            # consume items items from list if iterable
+            # of yield the single result if not
+            try:
+                for result in request.result:
+                    yield result
+            except TypeError:
+                yield request.result
+                # if the result is not a list, there is not next page
+                return
+
+            # if the server indicates that there are no more results, return
+            if not request.has_more:
+                return
+            # try to get the next page and execute the request
+            request = request.next_page().execute()
+
+    def next_page(self):
+        new_parameters = deepcopy(self.request_parameters)
+        new_parameters.setdefault('params', {})['offset'] = self.offset
+        new_parameters.setdefault('params', {})['limit'] = self.limit
+        return PolyswarmRequest(
+            self.api_instance,
+            new_parameters,
+            result_parser=self.result_parser,
+        )
 
 
 class PolyswarmRequestGenerator(object):
-    """ This class will return requests-compatible arguments for the API """
-    def __init__(self, uri, community):
-        self.uri = uri
-        self.community = community
+    """ This class will return PolyswarmRequests"""
+    def __init__(self, api_instance):
+        logger.debug('Creating PolyswarmRequestGenerator instance')
+        self.api_instance = api_instance
+        self.uri = api_instance.uri
+        self.community = api_instance.community
 
-        self.consumer_base = '{uri}/consumer'.format(uri=self.uri)
-        self.search_base = '{uri}/search'.format(uri=self.uri)
-        self.download_base = '{uri}/download'.format(uri=self.uri)
-        self.community_base = '{consumer_uri}/{community}'.format(consumer_uri=self.consumer_base, community=community)
-        self.hunt_base = '{uri}/hunt'.format(uri=self.uri)
-        self.stream_base = '{uri}/download/stream'.format(uri=self.uri)
+    def download(self, hash_value, hash_type, handle=None):
+        return PolyswarmRequest(
+            self.api_instance,
+            {
+                'method': 'GET',
+                'url': '{}/download/{}/{}'.format(self.uri, hash_type, hash_value),
+                'stream': True,
+            },
+            json_response=False,
+            result_parser=resources.LocalHandle,
+            handle=handle,
+        )
 
-        self.download_fmt = '{}/{}/{}'
-        self.hash_search_fmt = '{}/{}/{}'
-
-    def download(self, h, fh):
-        return {
-            'method': 'GET',
-            'url': self.download_fmt.format(self.download_base, h.hash_type, h.hash),
-            'stream': True,
-            'output_file': fh,
-        }
-
-    def download_archive(self, u, fh):
+    def download_archive(self, u, handle=None):
         """ This method is special, in that it is simply for downloading from S3 """
-        return {
-            'method': 'GET',
-            'url': u,
-            'stream': True,
-            'output_file': fh,
-            'headers': {'Authorization': None}
-        }
+        return PolyswarmRequest(
+            self.api_instance,
+            {
+                'method': 'GET',
+                'url': u,
+                'stream': True,
+                'headers': {'Authorization': None}
+            },
+            json_response=False,
+            result_parser=resources.LocalHandle,
+            handle=handle,
+        )
 
     def stream(self, since=const.MAX_SINCE_TIME_STREAM):
-        return {
-            'method': 'GET',
-            'url': '{}/download/stream'.format(self.consumer_base),
-            'params': {'since': since},
-        }
-
-    def search_hash(self, h, with_instances=True, with_metadata=True):
-        return {
-            'method': 'GET',
-            'url': self.search_base,
-            'params': {
-                'type': h.hash_type,
-                'hash': h.hash,
-                'with_instances': utils.bool_to_int[with_instances],
-                'with_metadata': utils.bool_to_int[with_metadata]
+        return PolyswarmRequest(
+            self.api_instance,
+            {
+                'method': 'GET',
+                'url': '{}/consumer/download/stream'.format(self.uri),
+                'params': {'since': since},
             },
-        }
+            result_parser=resources.ArtifactArchive,
+        )
 
-    def search_metadata(self, q, with_instances=True, with_metadata=True):
-        return {
-            'method': 'GET',
-            'url': self.search_base,
-            'params': {
-                'type': 'metadata',
-                'with_instances': utils.bool_to_int[with_instances],
-                'with_metadata': utils.bool_to_int[with_metadata]
+    def search_hash(self, hash_value, hash_type):
+        return PolyswarmRequest(
+            self.api_instance,
+            {
+                'method': 'GET',
+                'url': '{}/search/hash/{}'.format(self.uri, hash_type),
+                'params': {
+                    'hash': hash_value,
+                },
             },
-            'json': q.query,
-        }
+            result_parser=resources.ArtifactInstance,
+        )
 
-    def submit(self, artifact):
-        return {
-            'method': 'POST',
-            'url': self.community_base,
-            'files': {
-                'file': (artifact.artifact_name, artifact.file_handle),
+    def list_scans(self, hash_value):
+        return PolyswarmRequest(
+            self.api_instance,
+            {
+                'method': 'GET',
+                'url': '{}/search/instances'.format(self.uri),
+                'params': {
+                    'hash': hash_value,
+                },
             },
-            # very oddly, when included in files parameter this errors out
-            'data': {'artifact-type': artifact.artifact_type.name}
-        }
+            result_parser=resources.ArtifactInstance,
+        )
 
-    def rescan(self, h, **kwargs):
-        return {
-            'method': 'POST',
-            'url': '{}/rescan/{}/{}'.format(self.community_base, h.hash_type, h.hash)
-        }
+    def search_metadata(self, query):
+        return PolyswarmRequest(
+            self.api_instance,
+            {
+                'method': 'GET',
+                'url': '{}/search/metadata/query'.format(self.uri),
+                'params': {
+                    'query': query,
+                },
+            },
+            result_parser=resources.Metadata,
+        )
 
-    def lookup_uuid(self, uuid, **kwargs):
-        return {
+    def submit(self, artifact, artifact_name, artifact_type):
+        return PolyswarmRequest(
+            self.api_instance,
+            {
+                'method': 'POST',
+                'url': '{}/consumer/submission/{}'.format(self.uri, self.community),
+                'files': {
+                    'file': (artifact_name, artifact),
+                },
+                # very oddly, when included in files parameter this errors out
+                'data': {'artifact-type': artifact_type}
+            },
+            result_parser=resources.ArtifactInstance,
+        )
+
+    def rescan(self, hash_value, hash_type):
+        return PolyswarmRequest(
+            self.api_instance,
+            {
+                'method': 'POST',
+                'url': '{}/consumer/submission/{}/rescan/{}/{}'.format(self.uri, self.community, hash_type, hash_value),
+            },
+            result_parser=resources.ArtifactInstance,
+        )
+
+    def rescanid(self, submission_id):
+        return PolyswarmRequest(
+            self.api_instance,
+            {
+                'method': 'POST',
+                'url': '{}/consumer/submission/{}/rescan/{}'.format(self.uri, self.community, int(submission_id)),
+            },
+            result_parser=resources.ArtifactInstance,
+        )
+
+    def lookup_uuid(self, submission_id):
+        return PolyswarmRequest(
+            self.api_instance,
+            {
+                'method': 'GET',
+                'url': '{}/consumer/submission/{}/{}'.format(self.uri, self.community, int(submission_id)),
+            },
+            result_parser=resources.ArtifactInstance,
+        )
+
+    def get_engines(self):
+        return PolyswarmRequest(
+            self.api_instance,
+            {
+                'method': 'GET',
+                'url': '{}/microengines/list'.format(self.uri),
+                'headers': {'Authorization': None},
+            },
+            result_parser=resources.Engine,
+        )
+
+    def create_live_hunt(self, rule=None, rule_id=None, active=True, ruleset_name=None):
+        parameters = {
+                'method': 'POST',
+                'url': '{}/hunt/live'.format(self.uri),
+                'json': {'active': active},
+            }
+        if ruleset_name:
+            parameters['json']['ruleset_name'] = ruleset_name
+        if rule:
+            parameters['json']['yara'] = rule
+        if rule_id:
+            parameters['json']['rule_id'] = str(int(rule_id))
+        return PolyswarmRequest(
+            self.api_instance,
+            parameters,
+            result_parser=resources.Hunt,
+        )
+
+    def get_live_hunt(self, hunt_id=None):
+        return PolyswarmRequest(
+            self.api_instance,
+            {
+                'method': 'GET',
+                'url': '{}/hunt/live'.format(self.uri),
+                'params': {'id': str(int(hunt_id)) if hunt_id else ''},
+            },
+            result_parser=resources.Hunt,
+        )
+
+    def update_live_hunt(self, hunt_id=None, active=False):
+        return PolyswarmRequest(
+            self.api_instance,
+            {
+                'method': 'PUT',
+                'url': '{}/hunt/live'.format(self.uri),
+                'params': {'id': str(int(hunt_id)) if hunt_id else ''},
+                'json': {'active': active},
+            },
+            result_parser=resources.Hunt,
+        )
+
+    def delete_live_hunt(self, hunt_id):
+        return PolyswarmRequest(
+            self.api_instance,
+            {
+                'method': 'DELETE',
+                'url': '{}/hunt/live'.format(self.uri),
+                'params': {'id': str(int(hunt_id)) if hunt_id else ''},
+            },
+            result_parser=resources.Hunt,
+        )
+
+    def live_list(self, since=None, all_=None):
+        parameters = {
             'method': 'GET',
-            'url': '{}/uuid/{}'.format(self.community_base, uuid)
+            'url': '{}/hunt/live/list'.format(self.uri),
+            'params': {},
         }
+        if since is not None:
+            parameters['params']['since'] = since
+        if all_ is not None:
+            parameters['params']['all'] = int(all_)
+        return PolyswarmRequest(
+            self.api_instance,
+            parameters,
+            result_parser=resources.Hunt,
+        )
 
-    def _get_engine_names(self):
-        return {
-            'method': 'GET',
-            'url': '{}/microengines/list'.format(self.uri),
-            'headers': {'Authorization': None},
-        }
-
-    def submit_live_hunt(self, rule):
-        return {
-            'method': 'POST',
-            'url': '{}/live'.format(self.hunt_base),
-            'json': {'yara': rule.ruleset},
-        }
-
-    def live_lookup(self, with_bounty_results=True, with_metadata=True,
-                    limit=const.RESULT_CHUNK_SIZE, offset=0, id=None,
-                    since=0):
+    def live_hunt_results(self, hunt_id=None, since=None, tag=None, rule_name=None):
         req = {
             'method': 'GET',
-            'url': '{}/live/results'.format(self.hunt_base),
+            'url': '{}/hunt/live/results'.format(self.uri),
             'params': {
-                'with_bounty_results': utils.bool_to_int[with_bounty_results],
-                'with_metadata': utils.bool_to_int[with_metadata],
-                'limit': limit,
-                'offset': offset,
                 'since': since,
+                'id': str(int(hunt_id)) if hunt_id else '',
             },
         }
+        if tag is not None:
+            req['params']['tag'] = tag
+        if rule_name is not None:
+            req['params']['rule_name'] = rule_name
+        return PolyswarmRequest(
+            self.api_instance,
+            req,
+            result_parser=resources.HuntResult,
+        )
 
-        if id:
-            req['params']['id'] = id
+    def create_historical_hunt(self, rule=None, rule_id=None, ruleset_name=None):
+        parameters = {
+                'method': 'POST',
+                'url': '{}/hunt/historical'.format(self.uri),
+                'json': {},
+            }
+        if ruleset_name:
+            parameters['json']['ruleset_name'] = ruleset_name
+        if rule:
+            parameters['json']['yara'] = rule
+        if rule_id:
+            parameters['json']['rule_id'] = str(int(rule_id))
+        return PolyswarmRequest(
+            self.api_instance,
+            parameters,
+            result_parser=resources.Hunt,
+        )
 
-        return req
+    def get_historical_hunt(self, hunt_id):
+        return PolyswarmRequest(
+            self.api_instance,
+            {
+                'method': 'GET',
+                'url': '{}/hunt/historical'.format(self.uri),
+                'params': {'id': str(int(hunt_id)) if hunt_id else ''},
+            },
+            result_parser=resources.Hunt,
+        )
 
-    def submit_historical_hunt(self, rule):
-        return {
-            'method': 'POST',
-            'url': '{}/historical'.format(self.hunt_base),
-            'json': {'yara': rule.ruleset},
+    def delete_historical_hunt(self, hunt_id):
+        return PolyswarmRequest(
+            self.api_instance,
+            {
+                'method': 'DELETE',
+                'url': '{}/hunt/historical'.format(self.uri),
+                'params': {'id': str(int(hunt_id)) if hunt_id else ''},
+            },
+            result_parser=resources.Hunt,
+        )
+
+    def historical_list(self, since=None):
+        parameters = {
+            'method': 'GET',
+            'url': '{}/hunt/historical/list'.format(self.uri),
+            'params': {},
         }
+        if since is not None:
+            parameters['params']['since'] = since
+        return PolyswarmRequest(
+            self.api_instance,
+            parameters,
+            result_parser=resources.Hunt,
+        )
 
-    def historical_lookup(self, with_bounty_results=True, with_metadata=True,
-                          limit=const.RESULT_CHUNK_SIZE, offset=0, id=None,
-                          since=0):
+    def historical_hunt_results(self, hunt_id=None, tag=None, rule_name=None):
         req = {
             'method': 'GET',
-            'url': '{}/historical/results'.format(self.hunt_base),
-            'params': {
-                'with_bounty_results': utils.bool_to_int[with_bounty_results],
-                'with_metadata': utils.bool_to_int[with_metadata],
-                'limit': limit,
-                'offset': offset,
-                'since': since,
+            'url': '{}/hunt/historical/results'.format(self.uri),
+            'params': {'id': str(int(hunt_id)) if hunt_id else ''},
+        }
+        if tag is not None:
+            req['params']['tag'] = tag
+        if rule_name is not None:
+            req['params']['rule_name'] = rule_name
+        return PolyswarmRequest(
+            self.api_instance,
+            req,
+            result_parser=resources.HuntResult,
+        )
+
+    def create_tag_link(self, sha256, tags=None, families=None):
+        parameters = {
+            'method': 'POST',
+            'url': '{}/tags/link'.format(self.uri),
+            'json': {'sha256': sha256},
+        }
+        if tags:
+            parameters['json']['tags'] = tags
+        if families:
+            parameters['json']['families'] = families
+        return PolyswarmRequest(
+            self.api_instance,
+            parameters,
+            result_parser=resources.TagLink,
+        )
+
+    def get_tag_link(self, sha256):
+        return PolyswarmRequest(
+            self.api_instance,
+            {
+                'method': 'GET',
+                'url': '{}/tags/link'.format(self.uri),
+                'params': {'hash': sha256},
+            },
+            result_parser=resources.TagLink,
+        )
+
+    def update_tag_link(self, sha256, tags=None, families=None, remove=False):
+        parameters = {
+            'method': 'PUT',
+            'url': '{}/tags/link'.format(self.uri),
+            'params': {'hash': sha256},
+            'json': {'remove': remove if remove else False},
+        }
+        if tags:
+            parameters['json']['tags'] = tags
+        if families:
+            parameters['json']['families'] = families
+        return PolyswarmRequest(
+            self.api_instance,
+            parameters,
+            result_parser=resources.TagLink,
+        )
+
+    def delete_tag_link(self, sha256):
+        return PolyswarmRequest(
+            self.api_instance,
+            {
+                'method': 'DELETE',
+                'url': '{}/tags/link'.format(self.uri),
+                'params': {'hash': sha256},
+            },
+            result_parser=resources.TagLink,
+        )
+
+    def create_tag(self, name):
+        parameters = {
+            'method': 'POST',
+            'url': '{}/tags/tag'.format(self.uri),
+            'json': {'name': name},
+        }
+        return PolyswarmRequest(
+            self.api_instance,
+            parameters,
+            result_parser=resources.Tag,
+        )
+
+    def get_tag(self, name):
+        return PolyswarmRequest(
+            self.api_instance,
+            {
+                'method': 'GET',
+                'url': '{}/tags/tag'.format(self.uri),
+                'params': {'name': name},
+            },
+            result_parser=resources.Tag,
+        )
+
+    def delete_tag(self, name):
+        return PolyswarmRequest(
+            self.api_instance,
+            {
+                'method': 'DELETE',
+                'url': '{}/tags/tag'.format(self.uri),
+                'params': {'name': name},
+            },
+            result_parser=resources.Tag,
+        )
+
+    def list_tag(self):
+        return PolyswarmRequest(
+            self.api_instance,
+            {
+                'method': 'GET',
+                'url': '{}/tags/tag/list'.format(self.uri),
+            },
+            result_parser=resources.Tag,
+        )
+    
+    def create_family(self, name):
+        parameters = {
+            'method': 'POST',
+            'url': '{}/tags/family'.format(self.uri),
+            'json': {'name': name},
+        }
+        return PolyswarmRequest(
+            self.api_instance,
+            parameters,
+            result_parser=resources.MalwareFamily,
+        )
+
+    def get_family(self, name):
+        return PolyswarmRequest(
+            self.api_instance,
+            {
+                'method': 'GET',
+                'url': '{}/tags/family'.format(self.uri),
+                'params': {'name': name},
+            },
+            result_parser=resources.MalwareFamily,
+        )
+
+    def delete_family(self, name):
+        return PolyswarmRequest(
+            self.api_instance,
+            {
+                'method': 'DELETE',
+                'url': '{}/tags/family'.format(self.uri),
+                'params': {'name': name},
+            },
+            result_parser=resources.MalwareFamily,
+        )
+
+    def update_family(self, family_name, emerging=True):
+        return PolyswarmRequest(
+            self.api_instance,
+            {
+                'method': 'PUT',
+                'url': '{}/tags/family'.format(self.uri),
+                'params': {'name': family_name},
+                'json': {
+                    'emerging': emerging if emerging else False
+                },
+            },
+            result_parser=resources.MalwareFamily,
+        )
+
+    def list_family(self):
+        return PolyswarmRequest(
+            self.api_instance,
+            {
+                'method': 'GET',
+                'url': '{}/tags/family/list'.format(self.uri),
+            },
+            result_parser=resources.MalwareFamily,
+        )
+
+    def create_ruleset(self, rule, name, description=None):
+        parameters = {
+            'method': 'POST',
+            'url': '{}/hunt/rule'.format(self.uri),
+            'json': {
+                'yara': rule,
+                'name': name,
             },
         }
+        if description:
+            parameters['json']['description'] = description
+        return PolyswarmRequest(
+            self.api_instance,
+            parameters,
+            result_parser=resources.YaraRuleset,
+        )
 
-        if id:
-            req['params']['id'] = id
+    def get_ruleset(self, ruleset_id=None):
+        return PolyswarmRequest(
+            self.api_instance,
+            {
+                'method': 'GET',
+                'url': '{}/hunt/rule'.format(self.uri),
+                'params': {'id': str(int(ruleset_id))},
+            },
+            result_parser=resources.YaraRuleset,
+        )
 
-        return req
-
-    def historical_delete(self, hunt_id):
-        return {
-            'method': 'DELETE',
-            'url': '{}/historical'.format(self.hunt_base),
-            'params': {'hunt_id': hunt_id}
+    def update_ruleset(self, ruleset_id, name=None, rules=None, description=None):
+        parameters = {
+            'method': 'PUT',
+            'url': '{}/hunt/rule'.format(self.uri),
+            'params': {'id': str(int(ruleset_id))},
+            'json': {},
         }
+        if name:
+            parameters['json']['name'] = name
+        if rules:
+            parameters['json']['yara'] = rules
+        if description:
+            parameters['json']['description'] = description
+        return PolyswarmRequest(
+            self.api_instance,
+            parameters,
+            result_parser=resources.YaraRuleset,
+        )
 
-    def live_delete(self, hunt_id):
-        return {
-            'method': 'DELETE',
-            'url': '{}/live'.format(self.hunt_base),
-            'params': {'hunt_id': hunt_id}
-        }
+    def delete_ruleset(self, ruleset_id):
+        return PolyswarmRequest(
+            self.api_instance,
+            {
+                'method': 'DELETE',
+                'url': '{}/hunt/rule'.format(self.uri),
+                'params': {'id': str(int(ruleset_id))},
+            },
+            result_parser=resources.YaraRuleset,
+        )
 
-    def historical_list(self):
-        return {
-            'method': 'GET',
-            'url': '{}/historical'.format(self.hunt_base),
-            'params': {'all': 'true'},
-        }
-
-    def live_list(self):
-        return {
-            'method': 'GET',
-            'url': '{}/live'.format(self.hunt_base),
-            'params': {'all': 'true'},
-        }
-
-    def score(self, uuid):
-        return {
-            'method': 'GET',
-            'url': '{}/submission/{}/polyscore'.format(self.consumer_base, uuid)
-        }
-
-
-class PolyswarmRequestExecutor(object):
-    """ This class accepts requests from a PolyswarmRequestGenerator and executes it """
-    def __init__(self, session=None, timeout=const.DEFAULT_HTTP_TIMEOUT):
-        self.session = session
-        self.timeout = timeout
-
-    def execute(self, request):
-        if 'timeout' not in request:
-            request['timeout'] = self.timeout
-
-        # this is a special case for handling output to a file
-        output = request.get('output_file', None)
-
-        if 'output_file' in request:
-            del request['output_file']
-
-        req = self.session.request(**request)
-
-        if output:
-            try:
-                return self._download_to_fh(req, output)
-            except HTTPError:
-                return req
-
-        return req
-
-    def _download_to_fh(self, req, fh):
-        raise NotImplementedError
-
-
-class PolyswarmFuturesExecutor(PolyswarmRequestExecutor):
-    def _download_to_fh(self, req, fh):
-        # this is unfortunately the cleanest way I think I can do this with requests-futures
-        # derived partially from https://github.com/ross/requests-futures/issues/54
-        def do_download(r, f):
-            for chunk in r.iter_content(chunk_size=const.DOWNLOAD_CHUNK_SIZE):
-                f.write(chunk)
-            return r
-        resp = req.result()
-        resp.raise_for_status()
-        return self.session.executor.submit(do_download, resp, fh)
-
-
-class PolyswarmSynchronousExecutor(PolyswarmRequestExecutor):
-    def _download_to_fh(self, req, fh):
-        req.raise_for_status()
-        for chunk in req.iter_content(chunk_size=const.DOWNLOAD_CHUNK_SIZE):
-            fh.write(chunk)
-        return req
-
-
-class PolyswarmEndpoint(object):
-    """ This is the PolyswarmEndpoint class, that handles talking with the PolySwarm API"""
-    def __init__(self,  request_generator=None, request_executor=None):
-        self.generator = request_generator
-        self.executor = request_executor
-
-    def __getattr__(self, name):
-        """
-        This function is the black magic behind PolyswarmEndpoint. The goal of the function is to
-        return a callable that chains together a RequestGenerator and a RequestExecutor, but to do
-        this dynamically so that we don't have to manually define a new method for every possible
-        RequestGenerator method.
-
-        As such, we return a closure here, and this closure simply calls the given function name
-        in the RequestGenerator, and passes this into the RequestExecutor's execute function to
-        be run. The end result is a simple calling convention for all methods supported by
-        the provided RequestGenerator, e.g. endpoint.search() -> returns a result.
-
-
-        :param name: unresolved attribute name
-        :return: closure that calls the RequestGenerator then executes it with a RequestExecutor
-        """
-        def endpoint_wrapper(*args, **kwargs):
-            return self.executor.execute(getattr(self.generator, name)(*args, **kwargs))
-        return endpoint_wrapper
+    def list_ruleset(self):
+        return PolyswarmRequest(
+            self.api_instance,
+            {
+                'method': 'GET',
+                'url': '{}/hunt/rule/list'.format(self.uri),
+            },
+            result_parser=resources.YaraRuleset,
+        )

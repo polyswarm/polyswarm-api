@@ -3,19 +3,22 @@ import platform
 from . import _version
 
 # API constants
-DEFAULT_GLOBAL_API = 'https://api.polyswarm.network/v1'
-DEFAULT_PERMALINK_BASE = os.getenv('POLYSWARM_PORTAL_URI', 'https://polyswarm.network/scan/results')
+DEFAULT_GLOBAL_API = 'https://api.polyswarm.network/v2'
+DEFAULT_PERMALINK_BASE = os.getenv('POLYSWARM_PORTAL_URI', 'https://polyswarm.network/scan/results/file')
 DEFAULT_COMMUNITY = 'default'
 DEFAULT_SCAN_TIMEOUT = 60*15
 RESULT_CHUNK_SIZE = 100
+POLL_FREQUENCY = 1
 
 # HTTP settings
 DEFAULT_HTTP_TIMEOUT = 30
-DEFAULT_RETRIES = 3
+DEFAULT_RETRIES = 0
 DEFAULT_BACKOFF = 1
-DEFAULT_RETRY_CODES = (500, 502, 504)
-DEFAULT_USER_AGENT = 'polyswarm-api/{} ({}-{}-{}-{})'.format(_version.__version__, platform.machine(), platform.system(),
-                                                       platform.python_implementation(), platform.python_version())
+DEFAULT_RETRY_CODES = (502, 504)
+DEFAULT_USER_AGENT = 'polyswarm-api/{} ({}-{}-{}-{})'.format(
+    _version.__version__, platform.machine(), platform.system(),
+    platform.python_implementation(), platform.python_version(),
+)
 
 # concurrent HTTP workers
 DEFAULT_WORKER_COUNT = 8

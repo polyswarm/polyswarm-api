@@ -1,15 +1,17 @@
-from requests_futures.sessions import FuturesSession
-from concurrent.futures import ThreadPoolExecutor
+import logging
 import requests
 from urllib3.util.retry import Retry
 from requests.adapters import HTTPAdapter
 
 from . import const
 
+logger = logging.getLogger(__name__)
 
-class PolyswarmHTTPBase(object):
-    def __init__(self, key, retries, user_agent=const.DEFAULT_USER_AGENT, *args, **kwargs):
-        super(PolyswarmHTTPBase, self).__init__(*args, **kwargs)
+
+class PolyswarmHTTP(requests.Session):
+    def __init__(self, key, retries, user_agent=const.DEFAULT_USER_AGENT):
+        super(PolyswarmHTTP, self).__init__()
+        logger.debug('Creating PolyswarmHTTP instance')
         self.requests_retry_session(retries=retries)
 
         if key:
@@ -42,16 +44,3 @@ class PolyswarmHTTPBase(object):
             self.headers.update({'User-Agent': ua})
         else:
             self.headers.pop('User-Agent', None)
-
-class PolyswarmHTTP(PolyswarmHTTPBase, requests.Session):
-    pass
-
-
-class PolyswarmHTTPFutures(PolyswarmHTTPBase, FuturesSession):
-    executor = ThreadPoolExecutor(const.DEFAULT_WORKER_COUNT)
-
-    def __init__(self, *args, **kwargs):
-        if 'executor' not in kwargs:
-            kwargs['executor'] = self.executor
-        super(PolyswarmHTTPFutures, self).__init__(*args, **kwargs)
-
