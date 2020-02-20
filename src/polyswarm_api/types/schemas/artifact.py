@@ -59,6 +59,22 @@ artifact_schema = {
     'required': ['extended_type', 'first_seen', 'id', 'sha256', 'sha1', 'md5', 'mimetype'],
 }
 
+artifact_archive_schema = {
+    'type': 'object',
+    'properties': {
+        'id': {'type': 'string'},
+        's3_path': {
+            'type': 'string',
+        },
+        'community': {
+            'type': 'string',
+        },
+        'created': {'type': 'string'},
+
+    },
+    'required': ['s3_path'],
+}
+
 # TODO fill out more
 artifact_metadata = {
     'type': 'object',

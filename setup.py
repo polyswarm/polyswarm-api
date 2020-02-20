@@ -9,7 +9,7 @@ with open('README.md', 'r') as readme:
 
 setup(
     name='polyswarm-api',
-    version='1.1.2',
+    version='2.0.0',
     description='Client library to simplify interacting with the PolySwarm consumer API',
     long_description=long_description,
     long_description_content_type='text/markdown',
@@ -19,13 +19,13 @@ setup(
     license='MIT',
     python_requires='>=2.7,<4',
     install_requires=[
-        'requests==2.22.0',
-        'pytest==3.9.2',
-        'requests-futures==1.0.0',
-        'jsonschema==3.0.2',
-        'ordered-set==3.1.1',
+        'requests~=2.22.0',
+        'jsonschema~=3.0.2',
+        'ordered-set~=3.1.1',
+        'future~=0.18.2',
+        'python-dateutil~=2.8.1',
     ],
-    extras_require={':python_version < "3.0"': ['futures==3.3.0', 'enum34==1.1.6', 'mock==3.0.4']},
+    extras_require={':python_version < "3.0"': ['futures==3.3.0', 'enum34==1.1.6']},
     include_package_data=True,
     packages=find_packages('src'),
     package_dir={'': 'src'},

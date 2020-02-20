@@ -1,8 +1,10 @@
-from jsonschema import validate, ValidationError
-from enum import Enum
+import logging
 
-from ..log import logger
+from jsonschema import validate, ValidationError
+
 from .. import exceptions
+
+logger = logging.getLogger(__name__)
 
 
 class BasePSType(object):
@@ -10,54 +12,64 @@ class BasePSType(object):
         self.polyswarm = polyswarm
 
 
-class BasePSJSONType(BasePSType):
+class BasePSResourceType(BasePSType):
+    @classmethod
+    def parse_result(cls, api_instance, result, **kwargs):
+        logger.debug('Parsing resource %s', cls.__name__)
+        return cls(result, polyswarm=api_instance, **kwargs)
+
+    @classmethod
+    def parse_result_list(cls, api_instance, json_data, **kwargs):
+        return [cls.parse_result(api_instance, entry, **kwargs) for entry in json_data]
+
+
+class BasePSJSONType(BasePSResourceType):
     SCHEMA = {
         'type': ['object', 'array']
     }
 
     def __init__(self, json=None, polyswarm=None):
-        super(BasePSJSONType, self).__init__(polyswarm)
+        super(BasePSJSONType, self).__init__(polyswarm=polyswarm)
+        self._json = None
+        if json is not None:
+            self.json = json
+
+    @property
+    def json(self):
+        return self._json
+
+    @json.setter
+    def json(self, value):
         # this is expensive on thousands of objects
         # avoid if disabled
-        if polyswarm and polyswarm.validate:
-            self.validate(json)
-        self.json = json
+        if self.polyswarm and self.polyswarm.validate:
+            self._validate(value)
+        self._json = value
 
-    def validate(self, json, schema=None):
+    def _validate(self, json, schema=None):
         if not schema:
             schema = self.SCHEMA
 
         try:
             validate(json, schema)
         except ValidationError:
-            raise exceptions.InvalidJSONResponse("Failed to validate json against schema", json, self.SCHEMA)
+            raise exceptions.InvalidJSONResponseException("Failed to validate json against schema", json, self.SCHEMA)
 
 
-# TODO make polyswarmartifact support 2.7 so this is not necessary
-class ArtifactType(Enum):
-    FILE = 0
-    URL = 1
+# TODO better way to do this with ABC?
+class Hashable:
+    @property
+    def hash(self):
+        return self.sha256
 
-    @staticmethod
-    def from_string(value):
-        if value is not None:
-            try:
-                return ArtifactType[value.upper()]
-            except KeyError:
-                logger.critical('%s is not a supported artifact type', value)
+    @property
+    def hash_type(self):
+        return 'sha256'
 
-    @staticmethod
-    def to_string(artifact_type):
-        return artifact_type.name.lower()
+    def __eq__(self, other):
+        return self.hash == other
 
-    def decode_content(self, content):
-        if content is None:
-            return None
 
-        if self == ArtifactType.URL:
-            try:
-                return content.decode('utf-8')
-            except UnicodeDecodeError:
-                raise exceptions.DecodeError('Error decoding URL')
-        else:
-            return content
+class AsInteger:
+    def __int__(self):
+        return self.id
