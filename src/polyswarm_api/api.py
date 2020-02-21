@@ -51,22 +51,13 @@ class PolyswarmAPI(object):
         engine_name = engine.name if engine else eth_pub
         return engine_name.lower()
 
-    def check_version(self):
-        """
-        Checks GitHub to see if you have the latest version installed.
-        TODO this will be re-enabled when better version info is available in the API
-
-        :return: True,latest_version tuple if latest, False,latest_version tuple if not
-        """
-        raise NotImplementedError()
-
     def wait_for(self, scan, timeout=const.DEFAULT_SCAN_TIMEOUT):
         """
         Wait for a Scan to scan successfully
 
         :param scan: Scan id to wait for
         :param timeout: Maximum time in seconds to wait before raising a TimeoutException
-        :return: The Scan resource waited on
+        :return: The ArtifactInstance resource waited on
         """
         start = time.time()
         while True:
@@ -81,7 +72,7 @@ class PolyswarmAPI(object):
 
     def search(self, hash_, hash_type=None):
         """
-        Search a list of hashes.
+        Search for the latest scans matching the given hash and hash_type.
 
         :param hash_: A Hashable object (Artifact, local.LocalArtifact, Hash) or hex-encoded SHA256/SHA1/MD5
         :param hash_type: Hash type of the provided hash_. Will attempt to auto-detect if not explicitly provided.
@@ -93,24 +84,14 @@ class PolyswarmAPI(object):
 
     def search_scans(self, hash_):
         """
-        Search a list of hashes.
+        Search for all scans ever made matching the given sha256.
 
-        :param hash_: A Hashable object (Artifact, local.LocalArtifact, Hash) or hex-encoded SHA256/SHA1/MD5
+        :param hash_: A Hashable object (Artifact, local.LocalArtifact, Hash) or hex-encoded SHA256
         :return: Generator of ArtifactInstance resources
         """
 
         hash_ = resources.Hash.from_hashable(hash_, hash_type='sha256')
         return self.generator.list_scans(hash_.hash).execute().consume_results()
-
-    def search_by_feature(self, feature, *artifacts):
-        """
-        Search artifacts by feature
-
-        :param feature: Feature to use
-        :param artifacts: List of local.LocalArtifact objects
-        :return: Generator of ArtifactInstance resources
-        """
-        raise NotImplementedError()
 
     def search_by_metadata(self, query):
         """
@@ -125,9 +106,9 @@ class PolyswarmAPI(object):
         """
         Submit artifacts to polyswarm and return UUIDs
 
-        :param artifact: List of local.LocalArtifacts or paths to local files
+        :param artifact: A file-like, path to file, url or LocalArtifact instance
         :param artifact_type: The ArtifactType or strings containing "file" or "url"
-        :return: Generator of Scan resources
+        :return: An ArtifactInstance resource
         """
         artifact_type = resources.ArtifactType.parse(artifact_type)
         # TODO This is a python 2.7 check if artifact is a file-like instance, consider changing
@@ -151,7 +132,7 @@ class PolyswarmAPI(object):
         Lookup a scan by Scan id.
 
         :param scan: The Scan UUID to lookup
-        :return: Generator of Scan resources
+        :return: An ArtifactInstance resource
         """
         return self.generator.lookup_uuid(scan).execute().result
 
