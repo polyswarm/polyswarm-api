@@ -51,22 +51,13 @@ class PolyswarmAPI(object):
         engine_name = engine.name if engine else eth_pub
         return engine_name.lower()
 
-    def check_version(self):
-        """
-        Checks GitHub to see if you have the latest version installed.
-        TODO this will be re-enabled when better version info is available in the API
-
-        :return: True,latest_version tuple if latest, False,latest_version tuple if not
-        """
-        raise NotImplementedError()
-
     def wait_for(self, scan, timeout=const.DEFAULT_SCAN_TIMEOUT):
         """
         Wait for a Scan to scan successfully
 
         :param scan: Scan id to wait for
         :param timeout: Maximum time in seconds to wait before raising a TimeoutException
-        :return: The Scan resource waited on
+        :return: The ArtifactInstance resource waited on
         """
         start = time.time()
         while True:
@@ -102,16 +93,6 @@ class PolyswarmAPI(object):
         hash_ = resources.Hash.from_hashable(hash_, hash_type='sha256')
         return self.generator.list_scans(hash_.hash).execute().consume_results()
 
-    def search_by_feature(self, feature, *artifacts):
-        """
-        Search artifacts by feature
-
-        :param feature: Feature to use
-        :param artifacts: List of local.LocalArtifact objects
-        :return: Generator of ArtifactInstance resources
-        """
-        raise NotImplementedError()
-
     def search_by_metadata(self, query):
         """
         Search artifacts by metadata
@@ -125,9 +106,9 @@ class PolyswarmAPI(object):
         """
         Submit artifacts to polyswarm and return UUIDs
 
-        :param artifact: List of local.LocalArtifacts or paths to local files
+        :param artifact: A file-like, path to file, url or LocalArtifact instance
         :param artifact_type: The ArtifactType or strings containing "file" or "url"
-        :return: Generator of Scan resources
+        :return: An ArtifactInstance resource
         """
         artifact_type = resources.ArtifactType.parse(artifact_type)
         # TODO This is a python 2.7 check if artifact is a file-like instance, consider changing
@@ -151,7 +132,7 @@ class PolyswarmAPI(object):
         Lookup a scan by Scan id.
 
         :param scan: The Scan UUID to lookup
-        :return: Generator of Scan resources
+        :return: An ArtifactInstance resource
         """
         return self.generator.lookup_uuid(scan).execute().result
 
