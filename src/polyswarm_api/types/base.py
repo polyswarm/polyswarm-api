@@ -72,4 +72,4 @@ class Hashable:
 
 class AsInteger:
     def __int__(self):
-        return self.id
+        return int(self.id)
