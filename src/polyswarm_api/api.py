@@ -81,7 +81,7 @@ class PolyswarmAPI(object):
 
     def search(self, hash_, hash_type=None):
         """
-        Search a list of hashes.
+        Search for the latest scans matching the given hash and hash_type.
 
         :param hash_: A Hashable object (Artifact, local.LocalArtifact, Hash) or hex-encoded SHA256/SHA1/MD5
         :param hash_type: Hash type of the provided hash_. Will attempt to auto-detect if not explicitly provided.
@@ -93,9 +93,9 @@ class PolyswarmAPI(object):
 
     def search_scans(self, hash_):
         """
-        Search a list of hashes.
+        Search for all scans ever made matching the given sha256.
 
-        :param hash_: A Hashable object (Artifact, local.LocalArtifact, Hash) or hex-encoded SHA256/SHA1/MD5
+        :param hash_: A Hashable object (Artifact, local.LocalArtifact, Hash) or hex-encoded SHA256
         :return: Generator of ArtifactInstance resources
         """
 
