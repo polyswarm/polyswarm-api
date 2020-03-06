@@ -80,7 +80,7 @@ class ArtifactInstance(base.BasePSJSONType, base.Hashable, base.AsInteger):
     def __init__(self, json, polyswarm=None):
         super(ArtifactInstance, self).__init__(json=json, polyswarm=polyswarm)
         self.id = json['id']
-        self.artifact_id = json['id']
+        self.artifact_id = json['artifact_id']
         self.assertions = [Assertion(self, a, polyswarm) for a in json['assertions']]
         self.country = json['country']
         self.community = json['community']
