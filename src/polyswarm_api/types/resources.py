@@ -54,7 +54,8 @@ class Metadata(base.BasePSJSONType, base.AsInteger):
         self.last_seen = date.parse_isoformat(self.scan.get('last_seen'))
         self.mimetype = self.scan.get('mimetype', {}).get('mime')
         self.extended_mimetype = self.scan.get('mimetype', {}).get('extended')
-        self.detections = self.scan.get('detections', {}).get('malicious')
+        self.malicious = self.scan.get('detections', {}).get('malicious')
+        self.benign = self.scan.get('detections', {}).get('benign')
         self.total_detections = self.scan.get('detections', {}).get('total')
 
         self.domains = self.strings.get('domains')
