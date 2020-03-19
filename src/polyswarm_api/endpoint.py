@@ -514,6 +514,26 @@ class PolyswarmRequestGenerator(object):
             result_parser=resources.TagLink,
         )
 
+    def list_tag_link(self, tags=None, families=None, or_tags=None, or_families=None):
+        parameters = {
+            'method': 'GET',
+            'url': '{}/tags/link/list'.format(self.uri),
+            'params': [],
+        }
+        if tags:
+            parameters['params'].extend(('tag', p) for p in tags)
+        if families:
+            parameters['params'].extend(('family', p) for p in families)
+        if or_tags:
+            parameters['params'].extend(('or_tag', p) for p in or_tags)
+        if or_families:
+            parameters['params'].extend(('of_family', p) for p in or_families)
+        return PolyswarmRequest(
+            self.api_instance,
+            parameters,
+            result_parser=resources.TagLink,
+        )
+
     def create_tag(self, name):
         parameters = {
             'method': 'POST',
