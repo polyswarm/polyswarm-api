@@ -153,8 +153,8 @@ class PolyswarmRequest(object):
         new_parameters = deepcopy(self.request_parameters)
         params = new_parameters.setdefault('params', {})
         if isinstance(params, dict):
-            params.setdefault('params', {})['offset'] = self.offset
-            params.setdefault('params', {})['limit'] = self.limit
+            params['offset'] = self.offset
+            params['limit'] = self.limit
         else:
             params = [p for p in params if p[0] != 'offset' and p[0] != 'limit']
             params.extend([('offset', self.offset), ('limit', self.limit)])
