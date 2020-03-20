@@ -527,7 +527,7 @@ class PolyswarmRequestGenerator(object):
         if or_tags:
             parameters['params'].extend(('or_tag', p) for p in or_tags)
         if or_families:
-            parameters['params'].extend(('of_family', p) for p in or_families)
+            parameters['params'].extend(('or_family', p) for p in or_families)
         return PolyswarmRequest(
             self.api_instance,
             parameters,
