@@ -340,7 +340,7 @@ class PolyswarmAPI(object):
 
     def tag_link_update(self, sha256, tags=None, families=None, remove=False):
         """
-        Update a Tag with the given type or value by its id.
+        Update a TagLink with the given type or value by its id.
         :param sha256: The sha256 of the artifact.
         :param tags: A list of tags to be added or removed.
         :param families: A list of families to be added or removed.
@@ -348,6 +348,18 @@ class PolyswarmAPI(object):
         :return: A TagLink resource
         """
         return self.generator.update_tag_link(sha256, tags=tags, families=families, remove=remove).execute().result
+
+    def tag_link_list(self, tags=None, families=None, or_tags=None, or_families=None):
+        """
+        Fetch all existing TagLinks for the provided tags.
+        :param tags: A list of tags that must be associated with the TagLinks listed.
+        :param families: A list of families that must be associated with the TagLinks listed.
+        :param or_tags: A list of tags where the TagLinks must be associated with at least one.
+        :param or_families: A list of families where the TagLinks must be associated with at least one.
+        :return: A TagLink resource
+        """
+        return self.generator.list_tag_link(tags=tags, families=families,
+                                            or_tags=or_tags, or_families=or_families).execute().consume_results()
 
     def tag_create(self, name):
         """

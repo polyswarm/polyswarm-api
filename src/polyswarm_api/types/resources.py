@@ -323,6 +323,7 @@ class TagLink(base.BasePSJSONType, base.AsInteger):
         self.sha256 = json.get('sha256')
         self.created = date.parse_isoformat(json.get('created'))
         self.updated = date.parse_isoformat(json.get('updated'))
+        self.first_seen = date.parse_isoformat(json.get('first_seen'))
         self.tags = json.get('tags')
         self.families = json.get('families')
 

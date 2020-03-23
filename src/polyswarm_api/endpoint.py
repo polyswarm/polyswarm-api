@@ -151,8 +151,14 @@ class PolyswarmRequest(object):
 
     def next_page(self):
         new_parameters = deepcopy(self.request_parameters)
-        new_parameters.setdefault('params', {})['offset'] = self.offset
-        new_parameters.setdefault('params', {})['limit'] = self.limit
+        params = new_parameters.setdefault('params', {})
+        if isinstance(params, dict):
+            params['offset'] = self.offset
+            params['limit'] = self.limit
+        else:
+            params = [p for p in params if p[0] != 'offset' and p[0] != 'limit']
+            params.extend([('offset', self.offset), ('limit', self.limit)])
+            new_parameters['params'] = params
         return PolyswarmRequest(
             self.api_instance,
             new_parameters,
@@ -511,6 +517,26 @@ class PolyswarmRequestGenerator(object):
                 'url': '{}/tags/link'.format(self.uri),
                 'params': {'hash': sha256},
             },
+            result_parser=resources.TagLink,
+        )
+
+    def list_tag_link(self, tags=None, families=None, or_tags=None, or_families=None):
+        parameters = {
+            'method': 'GET',
+            'url': '{}/tags/link/list'.format(self.uri),
+            'params': [],
+        }
+        if tags:
+            parameters['params'].extend(('tag', p) for p in tags)
+        if families:
+            parameters['params'].extend(('family', p) for p in families)
+        if or_tags:
+            parameters['params'].extend(('or_tag', p) for p in or_tags)
+        if or_families:
+            parameters['params'].extend(('or_family', p) for p in or_families)
+        return PolyswarmRequest(
+            self.api_instance,
+            parameters,
             result_parser=resources.TagLink,
         )
 
