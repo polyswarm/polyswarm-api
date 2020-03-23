@@ -78,9 +78,17 @@ class PolyswarmAPI(object):
         :param hash_type: Hash type of the provided hash_. Will attempt to auto-detect if not explicitly provided.
         :return: Generator of ArtifactInstance resources
         """
-
         hash_ = resources.Hash.from_hashable(hash_, hash_type=hash_type)
         return self.generator.search_hash(hash_.hash, hash_.hash_type).execute().consume_results()
+
+    def search_url(self, url):
+        """
+        Search for the latest scan matching the given url.
+
+        :param url: A url to be searched by exact match
+        :return: Generator of ArtifactInstance resources
+        """
+        return self.generator.search_url(url).execute().consume_results()
 
     def search_scans(self, hash_):
         """
@@ -89,7 +97,6 @@ class PolyswarmAPI(object):
         :param hash_: A Hashable object (Artifact, local.LocalArtifact, Hash) or hex-encoded SHA256
         :return: Generator of ArtifactInstance resources
         """
-
         hash_ = resources.Hash.from_hashable(hash_, hash_type='sha256')
         return self.generator.list_scans(hash_.hash).execute().consume_results()
 

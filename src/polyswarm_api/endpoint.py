@@ -226,6 +226,19 @@ class PolyswarmRequestGenerator(object):
             result_parser=resources.ArtifactInstance,
         )
 
+    def search_url(self, url):
+        return PolyswarmRequest(
+            self.api_instance,
+            {
+                'method': 'GET',
+                'url': '{}/search/url'.format(self.uri),
+                'params': {
+                    'url': url,
+                },
+            },
+            result_parser=resources.ArtifactInstance,
+        )
+
     def list_scans(self, hash_value):
         return PolyswarmRequest(
             self.api_instance,
