@@ -354,8 +354,8 @@ class PolyswarmAPI(object):
         Fetch all existing TagLinks for the provided tags.
         :param tags: A list of tags that must be associated with the TagLinks listed.
         :param families: A list of families that must be associated with the TagLinks listed.
-        :param or_tags: A list of tags that the TagLinks must be associated with at least one.
-        :param or_families: A list of families that the TagLinks must be associated with at least one.
+        :param or_tags: A list of tags where the TagLinks must be associated with at least one.
+        :param or_families: A list of families where the the TagLinks must be associated with at least one.
         :return: A TagLink resource
         """
         return self.generator.list_tag_link(tags=tags, families=families,
