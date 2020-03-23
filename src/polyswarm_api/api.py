@@ -81,14 +81,16 @@ class PolyswarmAPI(object):
         hash_ = resources.Hash.from_hashable(hash_, hash_type=hash_type)
         return self.generator.search_hash(hash_.hash, hash_.hash_type).execute().consume_results()
 
-    def search_url(self, url):
+    def search_url(self, url, hash_type=None):
         """
         Search for the latest scan matching the given url.
 
         :param url: A url to be searched by exact match
+        :param hash_type: The hash type to be used when looking up the url.
+        Defaults to sha256 (other values: md5, sha1).
         :return: Generator of ArtifactInstance resources
         """
-        return self.generator.search_url(url).execute().consume_results()
+        return self.generator.search_url(url, hash_type=hash_type).execute().consume_results()
 
     def search_scans(self, hash_):
         """
