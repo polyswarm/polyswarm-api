@@ -83,7 +83,7 @@ class PolyswarmAPI(object):
 
     def search_url(self, url):
         """
-        Search for the latest scans matching the given hash and hash_type.
+        Search for the latest scan matching the given url.
 
         :param url: A url to be searched by exact match
         :return: Generator of ArtifactInstance resources
