@@ -251,7 +251,10 @@ class LocalArtifact(LocalHandle, base.Hashable):
             # TODO: this should be replaced with os.makedirs(path, exist_ok=True)
             #  once we drop support to python 2.7
             if not os.path.exists(folder):
-                os.makedirs(folder)
+                try:
+                    os.makedirs(folder)
+                except FileExistsError:
+                    pass
         elif not os.path.isfile(path):
             raise exceptions.ArtifactDeletedException("The file does not exist")
 
