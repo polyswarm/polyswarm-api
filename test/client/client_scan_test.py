@@ -80,8 +80,8 @@ class ScanTestCaseV2(TestCase):
                       body=b'X5O!P%@AP[4\\PZX54(P^)7CC)7}$EICAR-STANDARD-ANTIVIRUS-TEST-FILE!$H+H*', stream=True)
         api = PolyswarmAPI(self.test_api_key, uri='http://localhost:9696/{}/consumer'.format(self.api_version), community='gamma')
         with temp_dir({}) as (path, _):
-            result = api.download(path, '275a021bbfb6489e54d471899f7db9d1663fc695ec2fe2a2c4538aabf651fd0f')
-            result.seek(0)
+            api.download(path, '275a021bbfb6489e54d471899f7db9d1663fc695ec2fe2a2c4538aabf651fd0f')
+            result = open(os.path.join(path, '275a021bbfb6489e54d471899f7db9d1663fc695ec2fe2a2c4538aabf651fd0f'), 'rb')
             assert result.read() == b'X5O!P%@AP[4\\PZX54(P^)7CC)7}$EICAR-STANDARD-ANTIVIRUS-TEST-FILE!$H+H*'
 
     @responses.activate
@@ -111,8 +111,8 @@ class ScanTestCaseV2(TestCase):
             result = list(api.stream())
             artifact_archive = result[0]
             assert artifact_archive.uri == 'http://minio:9000/testing/testing/files/27/5a/02/275a021bbfb6489e54d471899f7db9d1663fc695ec2fe2a2c4538aabf651fd0f?response-content-disposition=attachment%3B%20filename%3Dtesting%2Ffiles%2F27%2F5a%2F02%2F275a021bbfb6489e54d471899f7db9d1663fc695ec2fe2a2c4538aabf651fd0f&response-content-type=application%2Foctet-stream&AWSAccessKeyId=AKIAIOSFODNN7EXAMPLE&Signature=VLCdYUh8skB6cRqo7RUfGrycsKo%3D&Expires=1573768889'
-            result = api.download_archive(path, artifact_archive.uri)
-            result.seek(0)
+            api.download_archive(path, artifact_archive.uri)
+            result = open(os.path.join(path, '275a021bbfb6489e54d471899f7db9d1663fc695ec2fe2a2c4538aabf651fd0f'), 'rb')
             assert result.read() == b'X5O!P%@AP[4\\PZX54(P^)7CC)7}$EICAR-STANDARD-ANTIVIRUS-TEST-FILE!$H+H*'
 
     @responses.activate
