@@ -249,7 +249,7 @@ class PolyswarmAPI(object):
         :param rule_name: Filter hunt results on the provided rule name (exact match).
         :return: Generator of HuntResult resources
         """
-        logger.info('List live hunt %s since: %s', hunt)
+        logger.info('List live hunt results %s', hunt)
         return self.generator.live_hunt_results(hunt_id=hunt, since=since,
                                                 tag=tag, rule_name=rule_name).execute().consume_results()
 
