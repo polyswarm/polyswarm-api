@@ -107,7 +107,8 @@ class ArtifactInstance(base.BasePSJSONType, base.Hashable, base.AsInteger):
         metadata = {metadata['tool']: metadata['tool_metadata'] for metadata in metadata_json}
         self.metadata = Metadata(metadata, polyswarm)
 
-        self._detections = None
+        self._malicious_assertions = None
+        self._benign_assertions = None
         self._valid_assertions = None
         self._filenames = None
 
@@ -115,10 +116,16 @@ class ArtifactInstance(base.BasePSJSONType, base.Hashable, base.AsInteger):
         return "ArtifactInstance-<%s>" % self.hash
 
     @property
-    def detections(self):
-        if not self._detections:
-            self._detections = [a for a in self.assertions if a.mask and a.verdict]
-        return self._detections
+    def malicious_assertions(self):
+        if not self._malicious_assertions:
+            self._malicious_assertions = [a for a in self.assertions if a.mask and a.verdict]
+        return self._malicious_assertions
+
+    @property
+    def benign_assertions(self):
+        if not self._benign_assertions:
+            self._benign_assertions = [a for a in self.assertions if a.mask and not a.verdict]
+        return self._benign_assertions
 
     @property
     def valid_assertions(self):
