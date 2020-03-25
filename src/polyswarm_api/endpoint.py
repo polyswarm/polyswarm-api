@@ -722,3 +722,19 @@ class PolyswarmRequestGenerator(object):
             },
             result_parser=resources.YaraRuleset,
         )
+
+    def metadata_rerun(self, hashes, analyses=None, skip_es=None):
+        parameters = {
+            'method': 'POST',
+            'url': '{}/consumer/metadata'.format(self.uri),
+            'json': {'hashes': hashes},
+        }
+        if analyses:
+            parameters['json']['analyses'] = analyses
+        if skip_es:
+            parameters['json']['skip_es'] = skip_es
+        return PolyswarmRequest(
+            self.api_instance,
+            parameters,
+            result_parser=resources.ArtifactInstance,
+        )
