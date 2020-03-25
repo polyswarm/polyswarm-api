@@ -80,32 +80,34 @@ class ArtifactInstance(base.BasePSJSONType, base.Hashable, base.AsInteger):
 
     def __init__(self, json, polyswarm=None):
         super(ArtifactInstance, self).__init__(json=json, polyswarm=polyswarm)
-        self.id = json['id']
+        # Artifact fields
         self.artifact_id = json['artifact_id']
-        self.assertions = [Assertion(self, a, polyswarm) for a in json['assertions']]
-        self.country = json['country']
-        self.community = json['community']
-        self.created = date.parse_isoformat(json['created'])
-        self.extended_type = json['extended_type']
-        self.failed = json['failed']
-        self.filename = json['filename']
-        self.last_seen = date.parse_isoformat(json['last_seen'])
-        self.first_seen = date.parse_isoformat(json['first_seen'])
-        self.md5 = json['md5']
-        self.mimetype = json['mimetype']
-        self.result = json['result']
-        self.sha1 = json['sha1']
         self.sha256 = json['sha256']
+        self.md5 = json['md5']
+        self.sha1 = json['sha1']
+        self.mimetype = json['mimetype']
         self.size = json['size']
-        self.type = json['type']
-        self.votes = [Vote(self, v, polyswarm) for v in json['votes']]
-        self.window_closed = json['window_closed']
-        self.polyscore = float(json['polyscore']) if json.get('polyscore') is not None else None
-        self.permalink = const.DEFAULT_PERMALINK_BASE + '/' + str(self.hash)
-
+        self.extended_type = json['extended_type']
+        self.first_seen = date.parse_isoformat(json['first_seen'])
+        self.last_seen = date.parse_isoformat(json['last_seen'])
         metadata_json = json.get('metadata') or []
         metadata = {metadata['tool']: metadata['tool_metadata'] for metadata in metadata_json}
         self.metadata = Metadata(metadata, polyswarm)
+
+        # ArtifactInstance fields
+        self.id = json.get('id')
+        self.assertions = [Assertion(self, a, polyswarm) for a in json.get('assertions', [])]
+        self.country = json.get('country')
+        self.community = json.get('community')
+        self.created = date.parse_isoformat(json.get('created'))
+        self.failed = json.get('failed')
+        self.filename = json.get('filename')
+        self.result = json.get('result')
+        self.type = json.get('type')
+        self.votes = [Vote(self, v, polyswarm) for v in json.get('votes', [])]
+        self.window_closed = json.get('window_closed')
+        self.polyscore = float(json['polyscore']) if json.get('polyscore') is not None else None
+        self.permalink = const.DEFAULT_PERMALINK_BASE + '/' + str(self.hash)
 
         self._malicious_assertions = None
         self._benign_assertions = None

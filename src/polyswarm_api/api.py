@@ -529,3 +529,7 @@ class PolyswarmAPI(object):
         """
         logger.info('Streaming since %s', since)
         return self.generator.stream(since=since).execute().consume_results()
+
+    def rerun_metadata(self, hashes, analyses=None, skip_es=None):
+        logger.info('Rerunning metadata for hashes %s', hashes)
+        return self.generator.metadata_rerun(hashes, analyses=analyses, skip_es=skip_es).execute().consume_results()
