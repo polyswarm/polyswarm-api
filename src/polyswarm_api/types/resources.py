@@ -54,7 +54,8 @@ class Metadata(base.BasePSJSONType, base.AsInteger):
         self.last_seen = date.parse_isoformat(self.scan.get('last_seen'))
         self.mimetype = self.scan.get('mimetype', {}).get('mime')
         self.extended_mimetype = self.scan.get('mimetype', {}).get('extended')
-        self.detections = self.scan.get('detections', {}).get('malicious')
+        self.malicious = self.scan.get('detections', {}).get('malicious')
+        self.benign = self.scan.get('detections', {}).get('benign')
         self.total_detections = self.scan.get('detections', {}).get('total')
 
         self.domains = self.strings.get('domains')
@@ -79,34 +80,37 @@ class ArtifactInstance(base.BasePSJSONType, base.Hashable, base.AsInteger):
 
     def __init__(self, json, polyswarm=None):
         super(ArtifactInstance, self).__init__(json=json, polyswarm=polyswarm)
-        self.id = json['id']
+        # Artifact fields
         self.artifact_id = json['artifact_id']
-        self.assertions = [Assertion(self, a, polyswarm) for a in json['assertions']]
-        self.country = json['country']
-        self.community = json['community']
-        self.created = date.parse_isoformat(json['created'])
-        self.extended_type = json['extended_type']
-        self.failed = json['failed']
-        self.filename = json['filename']
-        self.last_seen = date.parse_isoformat(json['last_seen'])
-        self.first_seen = date.parse_isoformat(json['first_seen'])
-        self.md5 = json['md5']
-        self.mimetype = json['mimetype']
-        self.result = json['result']
-        self.sha1 = json['sha1']
         self.sha256 = json['sha256']
+        self.md5 = json['md5']
+        self.sha1 = json['sha1']
+        self.mimetype = json['mimetype']
         self.size = json['size']
-        self.type = json['type']
-        self.votes = [Vote(self, v, polyswarm) for v in json['votes']]
-        self.window_closed = json['window_closed']
-        self.polyscore = float(json['polyscore']) if json.get('polyscore') is not None else None
-        self.permalink = const.DEFAULT_PERMALINK_BASE + '/' + str(self.hash)
-
+        self.extended_type = json['extended_type']
+        self.first_seen = date.parse_isoformat(json['first_seen'])
+        self.last_seen = date.parse_isoformat(json['last_seen'])
         metadata_json = json.get('metadata') or []
         metadata = {metadata['tool']: metadata['tool_metadata'] for metadata in metadata_json}
         self.metadata = Metadata(metadata, polyswarm)
 
-        self._detections = None
+        # ArtifactInstance fields
+        self.id = json.get('id')
+        self.assertions = [Assertion(self, a, polyswarm) for a in json.get('assertions', [])]
+        self.country = json.get('country')
+        self.community = json.get('community')
+        self.created = date.parse_isoformat(json.get('created'))
+        self.failed = json.get('failed')
+        self.filename = json.get('filename')
+        self.result = json.get('result')
+        self.type = json.get('type')
+        self.votes = [Vote(self, v, polyswarm) for v in json.get('votes', [])]
+        self.window_closed = json.get('window_closed')
+        self.polyscore = float(json['polyscore']) if json.get('polyscore') is not None else None
+        self.permalink = const.DEFAULT_PERMALINK_BASE + '/' + str(self.hash)
+
+        self._malicious_assertions = None
+        self._benign_assertions = None
         self._valid_assertions = None
         self._filenames = None
 
@@ -114,10 +118,16 @@ class ArtifactInstance(base.BasePSJSONType, base.Hashable, base.AsInteger):
         return "ArtifactInstance-<%s>" % self.hash
 
     @property
-    def detections(self):
-        if not self._detections:
-            self._detections = [a for a in self.assertions if a.mask and a.verdict]
-        return self._detections
+    def malicious_assertions(self):
+        if not self._malicious_assertions:
+            self._malicious_assertions = [a for a in self.assertions if a.mask and a.verdict]
+        return self._malicious_assertions
+
+    @property
+    def benign_assertions(self):
+        if not self._benign_assertions:
+            self._benign_assertions = [a for a in self.assertions if a.mask and not a.verdict]
+        return self._benign_assertions
 
     @property
     def valid_assertions(self):
@@ -250,7 +260,10 @@ class LocalArtifact(LocalHandle, base.Hashable):
             # TODO: this should be replaced with os.makedirs(path, exist_ok=True)
             #  once we drop support to python 2.7
             if not os.path.exists(folder):
-                os.makedirs(folder)
+                try:
+                    os.makedirs(folder)
+                except FileExistsError:
+                    pass
         elif not os.path.isfile(path):
             raise exceptions.ArtifactDeletedException("The file does not exist")
 
@@ -322,6 +335,7 @@ class TagLink(base.BasePSJSONType, base.AsInteger):
         self.sha256 = json.get('sha256')
         self.created = date.parse_isoformat(json.get('created'))
         self.updated = date.parse_isoformat(json.get('updated'))
+        self.first_seen = date.parse_isoformat(json.get('first_seen'))
         self.tags = json.get('tags')
         self.families = json.get('families')
 
