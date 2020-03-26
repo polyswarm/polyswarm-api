@@ -1,4 +1,4 @@
-__version__ = '2.0.3.dev5'
+__version__ = '2.0.3.dev6'
 __release_url__ = 'https://api.github.com/repos/polyswarm/polyswarm-api/releases/latest'
 
 
