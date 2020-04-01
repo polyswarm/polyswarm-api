@@ -87,7 +87,10 @@ class PolyswarmRequest(object):
             if self.status_code // 100 != 2:
                 self._extract_json_body(result)
                 if self.status_code == 429:
-                    raise exceptions.UsageLimitsExceededException(self, const.USAGE_EXCEEDED_MESSAGE)
+                    message = f'{self.result} This may mean you need to purchase a ' \
+                              'larger package, or that you have exceeded rate limits. ' \
+                              'If you continue to have issues, please contact us at info@polyswarm.io.'
+                    raise exceptions.UsageLimitsExceededException(self, message)
                 if self.status_code == 404:
                     raise exceptions.NotFoundException(self, self.result)
                 raise exceptions.RequestException(self, self._bad_status_message())
