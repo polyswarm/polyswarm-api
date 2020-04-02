@@ -2,6 +2,7 @@ import logging
 import os
 import io
 import functools
+import warnings
 from binascii import unhexlify
 from enum import Enum
 from hashlib import sha256 as _sha256, sha1 as _sha1, md5 as _md5
@@ -57,6 +58,7 @@ class Metadata(base.BasePSJSONType, base.AsInteger):
         self.malicious = self.scan.get('detections', {}).get('malicious')
         self.benign = self.scan.get('detections', {}).get('benign')
         self.total_detections = self.scan.get('detections', {}).get('total')
+        self.filenames = self.scan.get('filename')
 
         self.domains = self.strings.get('domains')
         self.ipv4 = self.strings.get('ipv4')
@@ -112,7 +114,6 @@ class ArtifactInstance(base.BasePSJSONType, base.Hashable, base.AsInteger):
         self._malicious_assertions = None
         self._benign_assertions = None
         self._valid_assertions = None
-        self._filenames = None
 
     def __str__(self):
         return "ArtifactInstance-<%s>" % self.hash
@@ -137,14 +138,9 @@ class ArtifactInstance(base.BasePSJSONType, base.Hashable, base.AsInteger):
 
     @property
     def filenames(self):
-        if self._filenames is None:
-            for metadata in self.json.get('metadata', []):
-                if metadata.get('tool') == 'scan':
-                    self._filenames = metadata.get('tool_metadata', {}).get('filename', [])
-                    break
-            else:
-                self._filenames = []
-        return self._filenames
+        warnings.warn('This property is deprecated and will be removed in the next major version. '
+                      'Please use "Metadata().filenames" in the future.')
+        return []
 
 
 class ArtifactArchive(base.BasePSJSONType, base.AsInteger):
