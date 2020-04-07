@@ -489,8 +489,13 @@ class PolyswarmAPI(object):
         hash_ = resources.Hash.from_hashable(hash_, hash_type=hash_type)
         path = os.path.join(out_dir, hash_.hash)
         artifact = resources.LocalArtifact.from_path(self, path, create=True)
-        self.generator.download(hash_.hash, hash_.hash_type, handle=artifact).execute()
-        artifact.handle.close()
+
+        try:
+            self.generator.download(hash_.hash, hash_.hash_type, handle=artifact).execute()
+        except Exception as e:
+            artifact.handle.close()
+            raise e
+
         return artifact
 
     def download_archive(self, out_dir, s3_path):
@@ -504,8 +509,13 @@ class PolyswarmAPI(object):
         logger.info('Downloading %s into %s', s3_path, out_dir)
         path = os.path.join(out_dir, os.path.basename(urlparse(s3_path).path))
         artifact = resources.LocalArtifact.from_path(self, path, create=True)
-        self.generator.download_archive(s3_path, handle=artifact).execute()
-        artifact.handle.close()
+
+        try:
+            self.generator.download_archive(s3_path, handle=artifact).execute()
+        except Exception as e:
+            artifact.handle.close()
+            raise e
+
         return artifact
 
     def download_to_handle(self, hash_, fh, hash_type=None):
