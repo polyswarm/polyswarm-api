@@ -493,8 +493,8 @@ class PolyswarmAPI(object):
         try:
             self.generator.download(hash_.hash, hash_.hash_type, handle=artifact).execute()
         except Exception as e:
-            os.remove(path)
             artifact.handle.close()
+            os.remove(path)
             raise e
 
         artifact.handle.close()
@@ -516,8 +516,8 @@ class PolyswarmAPI(object):
         try:
             self.generator.download_archive(s3_path, handle=artifact).execute()
         except Exception as e:
-            os.remove(path)
             artifact.handle.close()
+            os.remove(path)
             raise e
 
         artifact.handle.close()
