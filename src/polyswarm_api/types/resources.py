@@ -43,10 +43,10 @@ class Metadata(base.BasePSJSONType, base.AsInteger):
         self.created = date.parse_isoformat(self.artifact.get('created'))
 
         self.id = self.artifact.get('id')
+        self.sha1 = self.artifact.get('sha1')
+        self.sha256 = self.artifact.get('sha256')
+        self.md5 = self.artifact.get('md5')
 
-        self.sha1 = self.hash.get('sha1')
-        self.sha256 = self.hash.get('sha256')
-        self.md5 = self.hash.get('md5')
         self.ssdeep = self.hash.get('ssdeep')
         self.tlsh = self.hash.get('tlsh')
 
