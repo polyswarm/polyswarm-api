@@ -48,7 +48,7 @@ class Metadata(base.BasePSJSONType, base.AsInteger):
         self.sha1 = self.artifact.get('sha1')
         self.sha256 = self.artifact.get('sha256')
         self.md5 = self.artifact.get('md5')
-        
+
         self.ssdeep = self.hash.get('ssdeep')
         self.tlsh = self.hash.get('tlsh')
 
