@@ -211,11 +211,7 @@ class LocalHandle(base.BasePSResourceType):
         # Attribute lookups are delegated to the underlying file
         # and cached for non-numeric results
         # (i.e. methods are cached, closed and friends are not)
-        try:
-            a = getattr(self.handle, name)
-        except AttributeError:
-            # delegate to self if not found in the handle
-            return self.__dict__[name]
+        a = getattr(self.handle, name)
 
         if hasattr(a, '__call__'):
             func = a
@@ -242,12 +238,13 @@ class LocalArtifact(LocalHandle, base.Hashable):
         :param analyze: Boolean, if True will run analyses on artifact on startup (Note: this may still run later if False)
         """
         # create the LocalHandle with the given handle and don't write anything to it
+        super(LocalArtifact, self).__init__(b'', polyswarm=polyswarm, handle=handle)
+
         self.sha256 = None
         self.sha1 = None
         self.md5 = None
         self.analyzed = False
 
-        super(LocalArtifact, self).__init__(b'', polyswarm=polyswarm, handle=handle)
         self.artifact_type = artifact_type or ArtifactType.FILE
 
         self.artifact_name = artifact_name or os.path.basename(getattr(handle, 'name', '')) or str(self.hash)
