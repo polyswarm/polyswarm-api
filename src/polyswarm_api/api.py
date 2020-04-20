@@ -114,12 +114,13 @@ class PolyswarmAPI(object):
         logger.info('Searching for metadata %s', query)
         return self.generator.search_metadata(query).execute().consume_results()
 
-    def submit(self, artifact, artifact_type=resources.ArtifactType.FILE):
+    def submit(self, artifact, artifact_type=resources.ArtifactType.FILE, artifact_name=None):
         """
         Submit artifacts to polyswarm and return UUIDs
 
         :param artifact: A file-like, path to file, url or LocalArtifact instance
         :param artifact_type: The ArtifactType or strings containing "file" or "url"
+        :param artifact_name: An appropriate filename for the Artifact
         :return: An ArtifactInstance resource
         """
         logger.info('Submitting artifact of type %s', artifact_type)
@@ -128,12 +129,14 @@ class PolyswarmAPI(object):
         #  to isinstance(artifact, io.IOBase) when deprecating 2.7 and implementing making LocalHandle
         #  inherit io.IOBase, although this will change the method delegation logic in the resource
         if hasattr(artifact, 'read') and hasattr(artifact.read, '__call__'):
-            artifact = resources.LocalArtifact(artifact, artifact_type=artifact_type, polyswarm=self, analyze=False)
+            artifact = resources.LocalArtifact(artifact, artifact_type=artifact_type, polyswarm=self, analyze=False,
+                                               artifact_name=artifact_name)
         elif isinstance(artifact, string_types):
             if artifact_type == resources.ArtifactType.FILE:
-                artifact = resources.LocalArtifact.from_path(self, artifact, artifact_type=artifact_type)
+                artifact = resources.LocalArtifact.from_path(self, artifact, artifact_type=artifact_type,
+                                                             artifact_name=artifact_name)
             elif artifact_type == resources.ArtifactType.URL:
-                artifact = resources.LocalArtifact.from_content(self, artifact, artifact_name=artifact,
+                artifact = resources.LocalArtifact.from_content(self, artifact, artifact_name=artifact_name or artifact,
                                                                 artifact_type=artifact_type)
         if isinstance(artifact, resources.LocalArtifact):
             return self.generator.submit(artifact, artifact.artifact_name, artifact.artifact_type.name).execute().result

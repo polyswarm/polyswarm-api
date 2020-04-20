@@ -44,6 +44,7 @@ class Metadata(base.BasePSJSONType, base.AsInteger):
         self.created = date.parse_isoformat(self.artifact.get('created'))
 
         self.id = self.artifact.get('id')
+
         self.sha1 = self.artifact.get('sha1')
         self.sha256 = self.artifact.get('sha256')
         self.md5 = self.artifact.get('md5')
@@ -211,6 +212,7 @@ class LocalHandle(base.BasePSResourceType):
         # and cached for non-numeric results
         # (i.e. methods are cached, closed and friends are not)
         a = getattr(self.handle, name)
+
         if hasattr(a, '__call__'):
             func = a
 
@@ -237,18 +239,21 @@ class LocalArtifact(LocalHandle, base.Hashable):
         """
         # create the LocalHandle with the given handle and don't write anything to it
         super(LocalArtifact, self).__init__(b'', polyswarm=polyswarm, handle=handle)
-        self.artifact_type = artifact_type or ArtifactType.FILE
-        self.artifact_name = artifact_name or self.hash
 
         self.sha256 = None
         self.sha1 = None
         self.md5 = None
         self.analyzed = False
+
+        self.artifact_type = artifact_type or ArtifactType.FILE
+
+        self.artifact_name = artifact_name or os.path.basename(getattr(handle, 'name', '')) or str(self.hash)
+
         if analyze:
             self.analyze_artifact()
 
     @classmethod
-    def from_path(cls, api, path, artifact_type=None, analyze=False, create=False, **kwargs):
+    def from_path(cls, api, path, artifact_type=None, analyze=False, create=False, artifact_name=None, **kwargs):
         if not isinstance(path, string_types):
             raise exceptions.InvalidValueException('Path should be a string')
         folder, file_name = os.path.split(path)
@@ -265,7 +270,7 @@ class LocalArtifact(LocalHandle, base.Hashable):
 
         mode = kwargs.pop('mode', 'wb+' if create else 'rb')
         handler = open(path, mode=mode, **kwargs)
-        return cls(handler, artifact_name=file_name, artifact_type=artifact_type, analyze=analyze, polyswarm=api)
+        return cls(handler, artifact_name=artifact_name or file_name, artifact_type=artifact_type, analyze=analyze, polyswarm=api)
 
     @classmethod
     def from_content(cls, api, content, artifact_name=None, artifact_type=None, analyze=False):
