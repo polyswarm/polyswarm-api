@@ -2,6 +2,7 @@ import logging
 import os
 import io
 import functools
+import warnings
 from binascii import unhexlify
 from enum import Enum
 from hashlib import sha256 as _sha256, sha1 as _sha1, md5 as _md5
@@ -44,9 +45,10 @@ class Metadata(base.BasePSJSONType, base.AsInteger):
 
         self.id = self.artifact.get('id')
 
-        self.sha1 = self.hash.get('sha1')
-        self.sha256 = self.hash.get('sha256')
-        self.md5 = self.hash.get('md5')
+        self.sha1 = self.artifact.get('sha1')
+        self.sha256 = self.artifact.get('sha256')
+        self.md5 = self.artifact.get('md5')
+
         self.ssdeep = self.hash.get('ssdeep')
         self.tlsh = self.hash.get('tlsh')
 
@@ -57,6 +59,7 @@ class Metadata(base.BasePSJSONType, base.AsInteger):
         self.malicious = self.scan.get('detections', {}).get('malicious')
         self.benign = self.scan.get('detections', {}).get('benign')
         self.total_detections = self.scan.get('detections', {}).get('total')
+        self.filenames = self.scan.get('filename')
 
         self.domains = self.strings.get('domains')
         self.ipv4 = self.strings.get('ipv4')
@@ -112,7 +115,6 @@ class ArtifactInstance(base.BasePSJSONType, base.Hashable, base.AsInteger):
         self._malicious_assertions = None
         self._benign_assertions = None
         self._valid_assertions = None
-        self._filenames = None
 
     def __str__(self):
         return "ArtifactInstance-<%s>" % self.hash
@@ -137,14 +139,9 @@ class ArtifactInstance(base.BasePSJSONType, base.Hashable, base.AsInteger):
 
     @property
     def filenames(self):
-        if self._filenames is None:
-            for metadata in self.json.get('metadata', []):
-                if metadata.get('tool') == 'scan':
-                    self._filenames = metadata.get('tool_metadata', {}).get('filename', [])
-                    break
-            else:
-                self._filenames = []
-        return self._filenames
+        warnings.warn('This property is deprecated and will be removed in the next major version. '
+                      'Please use "Metadata().filenames" in the future.')
+        return []
 
 
 class ArtifactArchive(base.BasePSJSONType, base.AsInteger):
@@ -215,6 +212,7 @@ class LocalHandle(base.BasePSResourceType):
         # and cached for non-numeric results
         # (i.e. methods are cached, closed and friends are not)
         a = getattr(self.handle, name)
+
         if hasattr(a, '__call__'):
             func = a
 
@@ -241,18 +239,21 @@ class LocalArtifact(LocalHandle, base.Hashable):
         """
         # create the LocalHandle with the given handle and don't write anything to it
         super(LocalArtifact, self).__init__(b'', polyswarm=polyswarm, handle=handle)
-        self.artifact_type = artifact_type or ArtifactType.FILE
-        self.artifact_name = artifact_name or self.hash
 
         self.sha256 = None
         self.sha1 = None
         self.md5 = None
         self.analyzed = False
+
+        self.artifact_type = artifact_type or ArtifactType.FILE
+
+        self.artifact_name = artifact_name or os.path.basename(getattr(handle, 'name', '')) or str(self.hash)
+
         if analyze:
             self.analyze_artifact()
 
     @classmethod
-    def from_path(cls, api, path, artifact_type=None, analyze=False, create=False, **kwargs):
+    def from_path(cls, api, path, artifact_type=None, analyze=False, create=False, artifact_name=None, **kwargs):
         if not isinstance(path, string_types):
             raise exceptions.InvalidValueException('Path should be a string')
         folder, file_name = os.path.split(path)
@@ -269,7 +270,7 @@ class LocalArtifact(LocalHandle, base.Hashable):
 
         mode = kwargs.pop('mode', 'wb+' if create else 'rb')
         handler = open(path, mode=mode, **kwargs)
-        return cls(handler, artifact_name=file_name, artifact_type=artifact_type, analyze=analyze, polyswarm=api)
+        return cls(handler, artifact_name=artifact_name or file_name, artifact_type=artifact_type, analyze=analyze, polyswarm=api)
 
     @classmethod
     def from_content(cls, api, content, artifact_name=None, artifact_type=None, analyze=False):
