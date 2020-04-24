@@ -52,8 +52,8 @@ class Metadata(base.BasePSJSONType, base.AsInteger):
         self.ssdeep = self.hash.get('ssdeep')
         self.tlsh = self.hash.get('tlsh')
 
-        self.first_seen = date.parse_isoformat(self.scan.get('first_seen'))
-        self.last_seen = date.parse_isoformat(self.scan.get('last_seen'))
+        self.first_seen =  date.parse_isoformat(self.scan.get('first_scan', {}).get('created'))
+        self.last_scanned = date.parse_isoformat(self.scan.get('latest_scan', {}).get('created'))
         self.mimetype = self.scan.get('mimetype', {}).get('mime')
         self.extended_mimetype = self.scan.get('mimetype', {}).get('extended')
         self.malicious = self.scan.get('detections', {}).get('malicious')
@@ -92,7 +92,9 @@ class ArtifactInstance(base.BasePSJSONType, base.Hashable, base.AsInteger):
         self.size = json['size']
         self.extended_type = json['extended_type']
         self.first_seen = date.parse_isoformat(json['first_seen'])
+        # Deprecated
         self.last_seen = date.parse_isoformat(json['last_seen'])
+        self.last_scanned = date.parse_isoformat(json['last_scanned'])
         metadata_json = json.get('metadata') or []
         metadata = {metadata['tool']: metadata['tool_metadata'] for metadata in metadata_json}
         self.metadata = Metadata(metadata, polyswarm)
