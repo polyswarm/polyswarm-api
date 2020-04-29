@@ -269,18 +269,23 @@ class PolyswarmRequestGenerator(object):
             result_parser=resources.Metadata,
         )
 
-    def submit(self, artifact, artifact_name, artifact_type):
+    def submit(self, artifact, artifact_name, artifact_type, bounty_duration=None):
+        parameters = {
+            'method': 'POST',
+            'url': '{}/consumer/submission/{}'.format(self.uri, self.community),
+            'files': {
+                'file': (artifact_name, artifact),
+            },
+            # very oddly, when included in files parameter this errors out
+            'data': {
+                'artifact-type': artifact_type,
+            }
+        }
+        if bounty_duration:
+            parameters['data']['bounty-duration'] = bounty_duration
         return PolyswarmRequest(
             self.api_instance,
-            {
-                'method': 'POST',
-                'url': '{}/consumer/submission/{}'.format(self.uri, self.community),
-                'files': {
-                    'file': (artifact_name, artifact),
-                },
-                # very oddly, when included in files parameter this errors out
-                'data': {'artifact-type': artifact_type}
-            },
+            parameters,
             result_parser=resources.ArtifactInstance,
         )
 

@@ -114,7 +114,7 @@ class PolyswarmAPI(object):
         logger.info('Searching for metadata %s', query)
         return self.generator.search_metadata(query).execute().consume_results()
 
-    def submit(self, artifact, artifact_type=resources.ArtifactType.FILE, artifact_name=None):
+    def submit(self, artifact, artifact_type=resources.ArtifactType.FILE, artifact_name=None, bounty_duration=None):
         """
         Submit artifacts to polyswarm and return UUIDs
 
@@ -139,7 +139,10 @@ class PolyswarmAPI(object):
                 artifact = resources.LocalArtifact.from_content(self, artifact, artifact_name=artifact_name or artifact,
                                                                 artifact_type=artifact_type)
         if isinstance(artifact, resources.LocalArtifact):
-            return self.generator.submit(artifact, artifact.artifact_name, artifact.artifact_type.name).execute().result
+            return self.generator.submit(artifact,
+                                         artifact.artifact_name,
+                                         artifact.artifact_type.name,
+                                         bounty_duration=bounty_duration).execute().result
         else:
             raise exceptions.InvalidValueException('Artifacts should be a path to a file or a LocalArtifact instance')
 
