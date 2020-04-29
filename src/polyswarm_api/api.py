@@ -156,7 +156,7 @@ class PolyswarmAPI(object):
         logger.info('Lookup scan %s', int(scan))
         return self.generator.lookup_uuid(scan).execute().result
 
-    def rescan(self, hash_, hash_type=None):
+    def rescan(self, hash_, hash_type=None, bounty_duration=None):
         """
         Rescan a file based on and existing hash in the Polyswarm platform
 
@@ -166,7 +166,7 @@ class PolyswarmAPI(object):
         """
         logger.info('Rescan hash %s', hash_)
         hash_ = resources.Hash.from_hashable(hash_, hash_type=hash_type)
-        return self.generator.rescan(hash_.hash, hash_.hash_type).execute().result
+        return self.generator.rescan(hash_.hash, hash_.hash_type, bounty_duration=bounty_duration).execute().result
 
     def rescan_id(self, scan):
         """

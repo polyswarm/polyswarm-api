@@ -289,13 +289,16 @@ class PolyswarmRequestGenerator(object):
             result_parser=resources.ArtifactInstance,
         )
 
-    def rescan(self, hash_value, hash_type):
+    def rescan(self, hash_value, hash_type, bounty_duration=None):
+        parameters = {
+            'method': 'POST',
+            'url': '{}/consumer/submission/{}/rescan/{}/{}'.format(self.uri, self.community, hash_type, hash_value),
+        }
+        if bounty_duration:
+            parameters.setdefault('data', {})['bounty-duration'] = bounty_duration
         return PolyswarmRequest(
             self.api_instance,
-            {
-                'method': 'POST',
-                'url': '{}/consumer/submission/{}/rescan/{}/{}'.format(self.uri, self.community, hash_type, hash_value),
-            },
+            parameters,
             result_parser=resources.ArtifactInstance,
         )
 
