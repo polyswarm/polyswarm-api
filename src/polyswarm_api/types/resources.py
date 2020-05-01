@@ -206,6 +206,8 @@ class LocalHandle(base.BasePSResourceType):
         self.handle = handle or io.BytesIO()
         for chunk in contents:
             self.handle.write(chunk)
+            if hasattr(self.handle, 'flush'):
+                self.handle.flush()
 
     # Inspired by
     # https://github.com/python/cpython/blob/29500737d45cbca9604d9ce845fb2acc3f531401/Lib/tempfile.py#L461
