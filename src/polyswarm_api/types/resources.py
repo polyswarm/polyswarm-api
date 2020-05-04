@@ -52,7 +52,7 @@ class Metadata(base.BasePSJSONType, base.AsInteger):
         self.ssdeep = self.hash.get('ssdeep')
         self.tlsh = self.hash.get('tlsh')
 
-        self.first_seen =  date.parse_isoformat(self.scan.get('first_scan', {}).get('created'))
+        self.first_seen = date.parse_isoformat(self.scan.get('first_scan', {}).get('created'))
         self.last_scanned = date.parse_isoformat(self.scan.get('latest_scan', {}).get('created'))
         self.mimetype = self.scan.get('mimetype', {}).get('mime')
         self.extended_mimetype = self.scan.get('mimetype', {}).get('extended')
