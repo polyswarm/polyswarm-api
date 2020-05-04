@@ -57,9 +57,7 @@ class PolyswarmRequest(object):
         if not self.json_response:
             self.request_parameters.setdefault('stream', True)
         self.raw_result = self.session.request(**self.request_parameters)
-        logger.debug('Request returned code %s with content:\n%s',
-                      self.raw_result.status_code, self.raw_result.content if not self.request_parameters.get('stream', False)
-                     else '')
+        logger.debug('Request returned code %s', self.raw_result.status_code)
         if self.result_parser is not None:
             self.parse_result(self.raw_result)
         return self
