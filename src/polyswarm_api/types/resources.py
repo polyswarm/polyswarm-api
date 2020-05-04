@@ -52,7 +52,7 @@ class Metadata(base.BasePSJSONType, base.AsInteger):
         self.ssdeep = self.hash.get('ssdeep')
         self.tlsh = self.hash.get('tlsh')
 
-        self.first_seen =  date.parse_isoformat(self.scan.get('first_scan', {}).get('created'))
+        self.first_seen = date.parse_isoformat(self.scan.get('first_scan', {}).get('created'))
         self.last_scanned = date.parse_isoformat(self.scan.get('latest_scan', {}).get('created'))
         self.mimetype = self.scan.get('mimetype', {}).get('mime')
         self.extended_mimetype = self.scan.get('mimetype', {}).get('extended')
@@ -206,6 +206,8 @@ class LocalHandle(base.BasePSResourceType):
         self.handle = handle or io.BytesIO()
         for chunk in contents:
             self.handle.write(chunk)
+            if hasattr(self.handle, 'flush'):
+                self.handle.flush()
 
     # Inspired by
     # https://github.com/python/cpython/blob/29500737d45cbca9604d9ce845fb2acc3f531401/Lib/tempfile.py#L461
