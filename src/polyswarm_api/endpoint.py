@@ -269,7 +269,7 @@ class PolyswarmRequestGenerator(object):
             result_parser=resources.Metadata,
         )
 
-    def submit(self, artifact, artifact_name, artifact_type, bounty_duration=None):
+    def submit(self, artifact, artifact_name, artifact_type, scan_config=None):
         parameters = {
             'method': 'POST',
             'url': '{}/consumer/submission/{}'.format(self.uri, self.community),
@@ -281,34 +281,37 @@ class PolyswarmRequestGenerator(object):
                 'artifact-type': artifact_type,
             }
         }
-        if bounty_duration:
-            parameters['data']['bounty-duration'] = bounty_duration
+        if scan_config:
+            parameters['data']['scan-config'] = scan_config
         return PolyswarmRequest(
             self.api_instance,
             parameters,
             result_parser=resources.ArtifactInstance,
         )
 
-    def rescan(self, hash_value, hash_type, bounty_duration=None):
+    def rescan(self, hash_value, hash_type, scan_config=None):
         parameters = {
             'method': 'POST',
             'url': '{}/consumer/submission/{}/rescan/{}/{}'.format(self.uri, self.community, hash_type, hash_value),
         }
-        if bounty_duration:
-            parameters.setdefault('data', {})['bounty-duration'] = bounty_duration
+        if scan_config:
+            parameters.setdefault('data', {})['scan-config'] = scan_config
         return PolyswarmRequest(
             self.api_instance,
             parameters,
             result_parser=resources.ArtifactInstance,
         )
 
-    def rescanid(self, submission_id):
+    def rescanid(self, submission_id, scan_config=None):
+        parameters = {
+            'method': 'POST',
+            'url': '{}/consumer/submission/{}/rescan/{}'.format(self.uri, self.community, int(submission_id)),
+        }
+        if scan_config:
+            parameters.setdefault('data', {})['scan-config'] = scan_config
         return PolyswarmRequest(
             self.api_instance,
-            {
-                'method': 'POST',
-                'url': '{}/consumer/submission/{}/rescan/{}'.format(self.uri, self.community, int(submission_id)),
-            },
+            parameters,
             result_parser=resources.ArtifactInstance,
         )
 
