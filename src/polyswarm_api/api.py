@@ -114,7 +114,7 @@ class PolyswarmAPI(object):
         logger.info('Searching for metadata %s', query)
         return self.generator.search_metadata(query).execute().consume_results()
 
-    def submit(self, artifact, artifact_type=resources.ArtifactType.FILE, artifact_name=None, bounty_duration=None):
+    def submit(self, artifact, artifact_type=resources.ArtifactType.FILE, artifact_name=None, scan_config=None):
         """
         Submit artifacts to polyswarm and return UUIDs
 
@@ -142,7 +142,7 @@ class PolyswarmAPI(object):
             return self.generator.submit(artifact,
                                          artifact.artifact_name,
                                          artifact.artifact_type.name,
-                                         bounty_duration=bounty_duration).execute().result
+                                         scan_config=scan_config).execute().result
         else:
             raise exceptions.InvalidValueException('Artifacts should be a path to a file or a LocalArtifact instance')
 
@@ -156,7 +156,7 @@ class PolyswarmAPI(object):
         logger.info('Lookup scan %s', int(scan))
         return self.generator.lookup_uuid(scan).execute().result
 
-    def rescan(self, hash_, hash_type=None, bounty_duration=None):
+    def rescan(self, hash_, hash_type=None, scan_config=None):
         """
         Rescan a file based on and existing hash in the Polyswarm platform
 
@@ -166,9 +166,9 @@ class PolyswarmAPI(object):
         """
         logger.info('Rescan hash %s', hash_)
         hash_ = resources.Hash.from_hashable(hash_, hash_type=hash_type)
-        return self.generator.rescan(hash_.hash, hash_.hash_type, bounty_duration=bounty_duration).execute().result
+        return self.generator.rescan(hash_.hash, hash_.hash_type, scan_config=scan_config).execute().result
 
-    def rescan_id(self, scan):
+    def rescan_id(self, scan, scan_config=None):
         """
         Re-execute a new scan based on an existing scan.
 
@@ -176,7 +176,7 @@ class PolyswarmAPI(object):
         :return: A ArtifactInstance resource
         """
         logger.info('Rescan id %s', int(scan))
-        return self.generator.rescanid(scan).execute().result
+        return self.generator.rescanid(scan, scan_config=scan_config).execute().result
 
     def _parse_rule(self, rule):
         if isinstance(rule, string_types):
