@@ -139,6 +139,8 @@ class PolyswarmAPI(object):
             elif artifact_type == resources.ArtifactType.URL:
                 artifact = resources.LocalArtifact.from_content(self, artifact, artifact_name=artifact_name or artifact,
                                                                 artifact_type=artifact_type)
+        if artifact_type == resources.ArtifactType.URL:
+            scan_config = scan_config or 'more-time'
         if isinstance(artifact, resources.LocalArtifact):
             return self.generator.submit(artifact,
                                          artifact.artifact_name,
