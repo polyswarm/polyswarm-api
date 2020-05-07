@@ -121,7 +121,7 @@ class PolyswarmAPI(object):
         :param artifact: A file-like, path to file, url or LocalArtifact instance
         :param artifact_type: The ArtifactType or strings containing "file" or "url"
         :param artifact_name: An appropriate filename for the Artifact
-        :param scan_config: The scan configuration to be used
+        :param scan_config: The scan configuration to be used, e.g.: "default", "more-time", "most-time"
         :return: An ArtifactInstance resource
         """
         logger.info('Submitting artifact of type %s', artifact_type)
@@ -165,7 +165,7 @@ class PolyswarmAPI(object):
 
         :param hash_: Hashable object (Artifact, local.LocalArtifact, or Hash) or hex-encoded SHA256/SHA1/MD5
         :param hash_type: Hash type of the provided hash_. Will attempt to auto-detect if not explicitly provided.
-        :param scan_config: The scan configuration to be used
+        :param scan_config: The scan configuration to be used, e.g.: "default", "more-time", "most-time"
         :return: A ArtifactInstance resources
         """
         logger.info('Rescan hash %s', hash_)
@@ -177,7 +177,7 @@ class PolyswarmAPI(object):
         Re-execute a new scan based on an existing scan.
 
         :param scan: Id of the existing scan
-        :param scan_config: The scan configuration to be used
+        :param scan_config: The scan configuration to be used, e.g.: "default", "more-time", "most-time"
         :return: A ArtifactInstance resource
         """
         logger.info('Rescan id %s', int(scan))
