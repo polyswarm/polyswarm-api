@@ -114,13 +114,14 @@ class PolyswarmAPI(object):
         logger.info('Searching for metadata %s', query)
         return self.generator.search_metadata(query).execute().consume_results()
 
-    def submit(self, artifact, artifact_type=resources.ArtifactType.FILE, artifact_name=None):
+    def submit(self, artifact, artifact_type=resources.ArtifactType.FILE, artifact_name=None, scan_config=None):
         """
         Submit artifacts to polyswarm and return UUIDs
 
         :param artifact: A file-like, path to file, url or LocalArtifact instance
         :param artifact_type: The ArtifactType or strings containing "file" or "url"
         :param artifact_name: An appropriate filename for the Artifact
+        :param scan_config: The scan configuration to be used, e.g.: "default", "more-time", "most-time"
         :return: An ArtifactInstance resource
         """
         logger.info('Submitting artifact of type %s', artifact_type)
@@ -138,8 +139,13 @@ class PolyswarmAPI(object):
             elif artifact_type == resources.ArtifactType.URL:
                 artifact = resources.LocalArtifact.from_content(self, artifact, artifact_name=artifact_name or artifact,
                                                                 artifact_type=artifact_type)
+        if artifact_type == resources.ArtifactType.URL:
+            scan_config = scan_config or 'more-time'
         if isinstance(artifact, resources.LocalArtifact):
-            return self.generator.submit(artifact, artifact.artifact_name, artifact.artifact_type.name).execute().result
+            return self.generator.submit(artifact,
+                                         artifact.artifact_name,
+                                         artifact.artifact_type.name,
+                                         scan_config=scan_config).execute().result
         else:
             raise exceptions.InvalidValueException('Artifacts should be a path to a file or a LocalArtifact instance')
 
@@ -153,27 +159,29 @@ class PolyswarmAPI(object):
         logger.info('Lookup scan %s', int(scan))
         return self.generator.lookup_uuid(scan).execute().result
 
-    def rescan(self, hash_, hash_type=None):
+    def rescan(self, hash_, hash_type=None, scan_config=None):
         """
         Rescan a file based on and existing hash in the Polyswarm platform
 
         :param hash_: Hashable object (Artifact, local.LocalArtifact, or Hash) or hex-encoded SHA256/SHA1/MD5
         :param hash_type: Hash type of the provided hash_. Will attempt to auto-detect if not explicitly provided.
+        :param scan_config: The scan configuration to be used, e.g.: "default", "more-time", "most-time"
         :return: A ArtifactInstance resources
         """
         logger.info('Rescan hash %s', hash_)
         hash_ = resources.Hash.from_hashable(hash_, hash_type=hash_type)
-        return self.generator.rescan(hash_.hash, hash_.hash_type).execute().result
+        return self.generator.rescan(hash_.hash, hash_.hash_type, scan_config=scan_config).execute().result
 
-    def rescan_id(self, scan):
+    def rescan_id(self, scan, scan_config=None):
         """
         Re-execute a new scan based on an existing scan.
 
         :param scan: Id of the existing scan
+        :param scan_config: The scan configuration to be used, e.g.: "default", "more-time", "most-time"
         :return: A ArtifactInstance resource
         """
         logger.info('Rescan id %s', int(scan))
-        return self.generator.rescanid(scan).execute().result
+        return self.generator.rescanid(scan, scan_config=scan_config).execute().result
 
     def _parse_rule(self, rule):
         if isinstance(rule, string_types):

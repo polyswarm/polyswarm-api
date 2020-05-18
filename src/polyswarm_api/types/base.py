@@ -34,6 +34,9 @@ class BasePSJSONType(BasePSResourceType):
         if json is not None:
             self.json = json
 
+    def __reduce__(self):
+        return (type(self), (self.__dict__.get('_json'), self.polyswarm))
+
     @property
     def json(self):
         return self._json

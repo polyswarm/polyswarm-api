@@ -57,8 +57,7 @@ class PolyswarmRequest(object):
         if not self.json_response:
             self.request_parameters.setdefault('stream', True)
         self.raw_result = self.session.request(**self.request_parameters)
-        logger.debug('Request returned code %s with content:\n%s',
-                     self.raw_result.status_code, self.raw_result.content)
+        logger.debug('Request returned code %s', self.raw_result.status_code)
         if self.result_parser is not None:
             self.parse_result(self.raw_result)
         return self
@@ -269,38 +268,49 @@ class PolyswarmRequestGenerator(object):
             result_parser=resources.Metadata,
         )
 
-    def submit(self, artifact, artifact_name, artifact_type):
+    def submit(self, artifact, artifact_name, artifact_type, scan_config=None):
+        parameters = {
+            'method': 'POST',
+            'url': '{}/consumer/submission/{}'.format(self.uri, self.community),
+            'files': {
+                'file': (artifact_name, artifact),
+            },
+            # very oddly, when included in files parameter this errors out
+            'data': {
+                'artifact-type': artifact_type,
+            }
+        }
+        if scan_config:
+            parameters['data']['scan-config'] = scan_config
         return PolyswarmRequest(
             self.api_instance,
-            {
-                'method': 'POST',
-                'url': '{}/consumer/submission/{}'.format(self.uri, self.community),
-                'files': {
-                    'file': (artifact_name, artifact),
-                },
-                # very oddly, when included in files parameter this errors out
-                'data': {'artifact-type': artifact_type}
-            },
+            parameters,
             result_parser=resources.ArtifactInstance,
         )
 
-    def rescan(self, hash_value, hash_type):
+    def rescan(self, hash_value, hash_type, scan_config=None):
+        parameters = {
+            'method': 'POST',
+            'url': '{}/consumer/submission/{}/rescan/{}/{}'.format(self.uri, self.community, hash_type, hash_value),
+        }
+        if scan_config:
+            parameters.setdefault('data', {})['scan-config'] = scan_config
         return PolyswarmRequest(
             self.api_instance,
-            {
-                'method': 'POST',
-                'url': '{}/consumer/submission/{}/rescan/{}/{}'.format(self.uri, self.community, hash_type, hash_value),
-            },
+            parameters,
             result_parser=resources.ArtifactInstance,
         )
 
-    def rescanid(self, submission_id):
+    def rescanid(self, submission_id, scan_config=None):
+        parameters = {
+            'method': 'POST',
+            'url': '{}/consumer/submission/{}/rescan/{}'.format(self.uri, self.community, int(submission_id)),
+        }
+        if scan_config:
+            parameters.setdefault('data', {})['scan-config'] = scan_config
         return PolyswarmRequest(
             self.api_instance,
-            {
-                'method': 'POST',
-                'url': '{}/consumer/submission/{}/rescan/{}'.format(self.uri, self.community, int(submission_id)),
-            },
+            parameters,
             result_parser=resources.ArtifactInstance,
         )
 
