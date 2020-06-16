@@ -22,12 +22,11 @@ logger = logging.getLogger(__name__)
 class PolyswarmAPI(object):
     """A synchronous interface to the public and private PolySwarm APIs."""
 
-    def __init__(self, key, uri=None, community=None, validate_schemas=False, timeout=None):
+    def __init__(self, key, uri=None, community=None, timeout=None):
         """
         :param key: PolySwarm API key
         :param uri: PolySwarm API URI
         :param community: Community to scan against.
-        :param validate_schemas: Validate JSON objects when creating response objects. Will impact performance.
         :param timeout: Maximum time to wait for an http response on every request.
         """
         logger.info('Creating PolyswarmAPI instance: api_key: %s, api_uri: %s, community: %s', key, uri, community)
@@ -36,7 +35,6 @@ class PolyswarmAPI(object):
         self.timeout = timeout or const.DEFAULT_HTTP_TIMEOUT
         self.session = http.PolyswarmHTTP(key, retries=const.DEFAULT_RETRIES)
         self.generator = endpoint.PolyswarmRequestGenerator(self)
-        self.validate = validate_schemas
         self._engines = None
 
     @property

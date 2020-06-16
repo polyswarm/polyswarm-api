@@ -1,9 +1,5 @@
 import logging
 
-from jsonschema import validate, ValidationError
-
-from .. import exceptions
-
 logger = logging.getLogger(__name__)
 
 
@@ -30,33 +26,10 @@ class BasePSJSONType(BasePSResourceType):
 
     def __init__(self, json=None, polyswarm=None):
         super(BasePSJSONType, self).__init__(polyswarm=polyswarm)
-        self._json = None
-        if json is not None:
-            self.json = json
+        self.json = json
 
     def __reduce__(self):
         return (type(self), (self.__dict__.get('_json'), self.polyswarm))
-
-    @property
-    def json(self):
-        return self._json
-
-    @json.setter
-    def json(self, value):
-        # this is expensive on thousands of objects
-        # avoid if disabled
-        if self.polyswarm and self.polyswarm.validate:
-            self._validate(value)
-        self._json = value
-
-    def _validate(self, json, schema=None):
-        if not schema:
-            schema = self.SCHEMA
-
-        try:
-            validate(json, schema)
-        except ValidationError:
-            raise exceptions.InvalidJSONResponseException("Failed to validate json against schema", json, self.SCHEMA)
 
 
 # TODO better way to do this with ABC?
