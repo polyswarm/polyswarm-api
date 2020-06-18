@@ -17,59 +17,6 @@ from polyswarm_api import settings, exceptions
 logger = logging.getLogger(__name__)
 
 
-class BaseResource:
-    def __init__(self, api=None):
-        self.api = api
-
-    @classmethod
-    def parse_result(cls, api, content, **kwargs):
-        logger.debug('Parsing resource %s', cls.__name__)
-        return cls(content, api=api, **kwargs)
-
-
-class BaseJsonResource(BaseResource):
-    def __init__(self, json=None, api=None):
-        super(BaseJsonResource, self).__init__(api=api)
-        self.json = json
-
-    @classmethod
-    def parse_result_list(cls, api_instance, json_data, **kwargs):
-        return [cls.parse_result(api_instance, entry, **kwargs) for entry in json_data]
-
-    def __reduce__(self):
-        return (type(self), (self.__dict__.get('json'), self.api))
-
-
-# TODO better way to do this with ABC?
-class Hashable:
-    @property
-    def hash(self):
-        return self.sha256
-
-    @property
-    def hash_type(self):
-        return 'sha256'
-
-    def __eq__(self, other):
-        return self.hash == other
-
-
-class AsInteger:
-    def __int__(self):
-        return int(self.id)
-
-
-def parse_isoformat(date_string):
-    """ Parses the current date format version """
-    if date_string:
-        return parser.isoparse(date_string)
-    else:
-        return None
-
-
-JSONDecodeError = ValueError
-
-
 class PolyswarmSession(requests.Session):
     def __init__(self, key, retries, user_agent=settings.DEFAULT_USER_AGENT):
         super(PolyswarmSession, self).__init__()
@@ -118,7 +65,7 @@ class RequestParamsEncoder(json.JSONEncoder):
 
 class PolyswarmRequest(object):
     """This class holds a requests-compatible dictionary and extra information we need to parse the response."""
-    def __init__(self, api_instance, request_parameters, key=None, result_parser=None, json_response=True, **kwargs):
+    def __init__(self, api_instance, request_parameters, key=None, result_parser=None, **kwargs):
         logger.debug('Creating PolyswarmRequest instance.\nRequest parameters: %s\nResult parser: %s',
                      request_parameters, result_parser.__name__)
         self.api_instance = api_instance
@@ -128,7 +75,6 @@ class PolyswarmRequest(object):
         self.timeout = self.api_instance.timeout or settings.DEFAULT_HTTP_TIMEOUT
         self.request_parameters = request_parameters
         self.result_parser = result_parser
-        self.json_response = json_response
         self.raw_result = None
         self.status_code = None
         self.status = None
@@ -145,7 +91,7 @@ class PolyswarmRequest(object):
     def execute(self):
         logger.debug('Executing request.')
         self.request_parameters.setdefault('timeout', self.timeout)
-        if not self.json_response:
+        if not issubclass(self.result_parser, BaseJsonResource):
             self.request_parameters.setdefault('stream', True)
         self.raw_result = self.session.request(**self.request_parameters)
         logger.debug('Request returned code %s', self.raw_result.status_code)
@@ -187,7 +133,7 @@ class PolyswarmRequest(object):
                 raise exceptions.RequestException(self, self._bad_status_message())
             elif self.status_code == 204:
                 raise exceptions.NoResultsException(self, 'The request returned no results.')
-            elif self.json_response:
+            elif issubclass(self.result_parser, BaseJsonResource):
                 self._extract_json_body(result)
                 self.total = self.json.get('total')
                 self.limit = self.json.get('limit')
@@ -258,3 +204,53 @@ class PolyswarmRequest(object):
             new_parameters,
             result_parser=self.result_parser,
         )
+
+
+class BaseResource:
+    def __init__(self, api=None):
+        self.api = api
+
+    @classmethod
+    def parse_result(cls, api, content, **kwargs):
+        logger.debug('Parsing resource %s', cls.__name__)
+        return cls(content, api=api, **kwargs)
+
+
+class BaseJsonResource(BaseResource):
+    def __init__(self, json=None, api=None):
+        super(BaseJsonResource, self).__init__(api=api)
+        self.json = json
+
+    @classmethod
+    def parse_result_list(cls, api_instance, json_data, **kwargs):
+        return [cls.parse_result(api_instance, entry, **kwargs) for entry in json_data]
+
+    def __reduce__(self):
+        return (type(self), (self.__dict__.get('json'), self.api))
+
+
+# TODO better way to do this with ABC?
+class Hashable:
+    @property
+    def hash(self):
+        return self.sha256
+
+    @property
+    def hash_type(self):
+        return 'sha256'
+
+    def __eq__(self, other):
+        return self.hash == other
+
+
+class AsInteger:
+    def __int__(self):
+        return int(self.id)
+
+
+def parse_isoformat(date_string):
+    """ Parses the current date format version """
+    if date_string:
+        return parser.isoparse(date_string)
+    else:
+        return None

@@ -533,7 +533,6 @@ class LocalHandle(core.BaseResource):
                 'url': '{}/download/{}/{}'.format(api.uri, hash_type, hash_value),
                 'stream': True,
             },
-            json_response=False,
             result_parser=cls,
             handle=handle,
         )
@@ -549,7 +548,6 @@ class LocalHandle(core.BaseResource):
                 'stream': True,
                 'headers': {'Authorization': None}
             },
-            json_response=False,
             result_parser=cls,
             handle=handle,
         )
