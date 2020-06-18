@@ -19,7 +19,6 @@ except ImportError:
 from polyswarm_api import exceptions
 from polyswarm_api import const
 from . import base
-from . import schemas
 from . import date
 
 logger = logging.getLogger(__name__)
@@ -79,8 +78,6 @@ class Metadata(base.BasePSJSONType, base.AsInteger):
 
 
 class ArtifactInstance(base.BasePSJSONType, base.Hashable, base.AsInteger):
-    SCHEMA = schemas.artifact_instance_schema
-
     def __init__(self, json, polyswarm=None):
         super(ArtifactInstance, self).__init__(json=json, polyswarm=polyswarm)
         # Artifact fields
@@ -147,8 +144,6 @@ class ArtifactInstance(base.BasePSJSONType, base.Hashable, base.AsInteger):
 
 
 class ArtifactArchive(base.BasePSJSONType, base.AsInteger):
-    SCHEMA = schemas.artifact_archive_schema
-
     def __init__(self, json, polyswarm=None):
         super(ArtifactArchive, self).__init__(json=json, polyswarm=polyswarm)
         self.id = json['id']
@@ -158,8 +153,6 @@ class ArtifactArchive(base.BasePSJSONType, base.AsInteger):
 
 
 class Hunt(base.BasePSJSONType, base.AsInteger):
-    SCHEMA = schemas.hunt_status
-
     def __init__(self, json, polyswarm=None):
         super(Hunt, self).__init__(json=json, polyswarm=polyswarm)
         # active only present for live hunts
@@ -171,8 +164,6 @@ class Hunt(base.BasePSJSONType, base.AsInteger):
 
 
 class HuntResult(base.BasePSJSONType, base.AsInteger):
-    SCHEMA = schemas.hunt_result
-
     def __init__(self, json, polyswarm=None):
         super(HuntResult, self).__init__(json=json, polyswarm=polyswarm)
         self.id = json['id']
@@ -370,8 +361,6 @@ class Tag(base.BasePSJSONType, base.AsInteger):
 
 
 class Assertion(base.BasePSJSONType):
-    SCHEMA = schemas.assertion_schema
-
     def __init__(self, scanfile, json, polyswarm=None):
         super(Assertion, self).__init__(json=json, polyswarm=polyswarm)
         self.scanfile = scanfile
@@ -389,8 +378,6 @@ class Assertion(base.BasePSJSONType):
 
 
 class Vote(base.BasePSJSONType):
-    SCHEMA = schemas.vote_schema
-
     def __init__(self, scanfile, json, polyswarm=None):
         super(Vote, self).__init__(json=json, polyswarm=polyswarm)
         self.scanfile = scanfile
@@ -465,8 +452,6 @@ def is_valid_sha256(value):
 
 
 class Hash(base.Hashable, base.BasePSType):
-    SCHEMA = {'type': ['string', 'null']}
-
     SUPPORTED_HASH_TYPES = {
         'sha1': is_valid_sha1,
         'sha256': is_valid_sha256,
