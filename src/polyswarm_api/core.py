@@ -9,23 +9,20 @@ class BaseResource:
     def __init__(self, api=None):
         self.api = api
 
-    def deserialize(self, contents):
-        raise NotImplementedError('desserialize() is not implemented for this resource: %s', self.__class__)
-
     @classmethod
-    def parse_result(cls, api, result, **kwargs):
+    def parse_result(cls, api, content, **kwargs):
         logger.debug('Parsing resource %s', cls.__name__)
-        return cls(result, api=api, **kwargs)
-
-    @classmethod
-    def parse_result_list(cls, api_instance, json_data, **kwargs):
-        return [cls.parse_result(api_instance, entry, **kwargs) for entry in json_data]
+        return cls(content, api=api, **kwargs)
 
 
 class BaseJsonResource(BaseResource):
     def __init__(self, json=None, api=None):
         super(BaseJsonResource, self).__init__(api=api)
         self.json = json
+
+    @classmethod
+    def parse_result_list(cls, api_instance, json_data, **kwargs):
+        return [cls.parse_result(api_instance, entry, **kwargs) for entry in json_data]
 
     def __reduce__(self):
         return (type(self), (self.__dict__.get('json'), self.api))

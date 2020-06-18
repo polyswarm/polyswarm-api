@@ -10,6 +10,7 @@ from hashlib import sha256 as _sha256, sha1 as _sha1, md5 as _md5
 from future.utils import raise_from, string_types
 
 from polyswarm_api.settings import FILE_CHUNK_SIZE
+from polyswarm_api.requests import PolyswarmRequest
 
 try:
     import yara
@@ -31,6 +32,18 @@ class Engine(core.BaseJsonResource):
         super(Engine, self).__init__(json=json, api=api)
         self.address = json['address'].lower()
         self.name = json.get('name')
+
+    @classmethod
+    def get_engines(cls, api):
+        return PolyswarmRequest(
+            api,
+            {
+                'method': 'GET',
+                'url': '{}/microengines/list'.format(api.uri),
+                'headers': {'Authorization': None},
+            },
+            result_parser=cls,
+        )
 
 
 class Metadata(core.BaseJsonResource, core.AsInteger):
@@ -62,6 +75,20 @@ class Metadata(core.BaseJsonResource, core.AsInteger):
         self.ipv4 = self.strings.get('ipv4')
         self.ipv6 = self.strings.get('ipv6')
         self.urls = self.strings.get('urls')
+
+    @classmethod
+    def search_metadata(cls, api, query):
+        return PolyswarmRequest(
+            api,
+            {
+                'method': 'GET',
+                'url': '{}/search/metadata/query'.format(api.uri),
+                'params': {
+                    'query': query,
+                },
+            },
+            result_parser=cls,
+        )
 
     def __contains__(self, item):
         return item in self.json
@@ -113,6 +140,125 @@ class ArtifactInstance(core.BaseJsonResource, core.Hashable, core.AsInteger):
         self._benign_assertions = None
         self._valid_assertions = None
 
+    @classmethod
+    def search_hash(cls, api, hash_value, hash_type):
+        return PolyswarmRequest(
+            api,
+            {
+                'method': 'GET',
+                'url': '{}/search/hash/{}'.format(api.uri, hash_type),
+                'params': {
+                    'hash': hash_value,
+                },
+            },
+            result_parser=cls,
+        )
+
+    @classmethod
+    def search_url(cls, api, url):
+        return PolyswarmRequest(
+            api,
+            {
+                'method': 'GET',
+                'url': '{}/search/url'.format(api.uri),
+                'params': {
+                    'url': url,
+                },
+            },
+            result_parser=cls,
+        )
+
+    @classmethod
+    def list_scans(cls, api, hash_value):
+        return PolyswarmRequest(
+            api,
+            {
+                'method': 'GET',
+                'url': '{}/search/instances'.format(api.uri),
+                'params': {
+                    'hash': hash_value,
+                },
+            },
+            result_parser=cls,
+        )
+
+    @classmethod
+    def submit(cls, api, artifact, artifact_name, artifact_type, scan_config=None):
+        parameters = {
+            'method': 'POST',
+            'url': '{}/consumer/submission/{}'.format(api.uri, api.community),
+            'files': {
+                'file': (artifact_name, artifact),
+            },
+            # very oddly, when included in files parameter this errors out
+            'data': {
+                'artifact-type': artifact_type,
+            }
+        }
+        if scan_config:
+            parameters['data']['scan-config'] = scan_config
+        return PolyswarmRequest(
+            api,
+            parameters,
+            result_parser=cls,
+        )
+
+    @classmethod
+    def rescan(cls, api, hash_value, hash_type, scan_config=None):
+        parameters = {
+            'method': 'POST',
+            'url': '{}/consumer/submission/{}/rescan/{}/{}'.format(api.uri, api.community, hash_type, hash_value),
+        }
+        if scan_config:
+            parameters.setdefault('data', {})['scan-config'] = scan_config
+        return PolyswarmRequest(
+            api,
+            parameters,
+            result_parser=cls,
+        )
+
+    @classmethod
+    def rescanid(cls, api, submission_id, scan_config=None):
+        parameters = {
+            'method': 'POST',
+            'url': '{}/consumer/submission/{}/rescan/{}'.format(api.uri, api.community, int(submission_id)),
+        }
+        if scan_config:
+            parameters.setdefault('data', {})['scan-config'] = scan_config
+        return PolyswarmRequest(
+            api,
+            parameters,
+            result_parser=cls,
+        )
+
+    @classmethod
+    def lookup_uuid(cls, api, submission_id):
+        return PolyswarmRequest(
+            api,
+            {
+                'method': 'GET',
+                'url': '{}/consumer/submission/{}/{}'.format(api.uri, api.community, int(submission_id)),
+            },
+            result_parser=cls,
+        )
+
+    @classmethod
+    def metadata_rerun(cls, api, hashes, analyses=None, skip_es=None):
+        parameters = {
+            'method': 'POST',
+            'url': '{}/consumer/metadata'.format(api.uri),
+            'json': {'hashes': hashes},
+        }
+        if analyses:
+            parameters['json']['analyses'] = analyses
+        if skip_es:
+            parameters['json']['skip_es'] = skip_es
+        return PolyswarmRequest(
+            api,
+            parameters,
+            result_parser=cls,
+        )
+
     def __str__(self):
         return "ArtifactInstance-<%s>" % self.hash
 
@@ -149,6 +295,18 @@ class ArtifactArchive(core.BaseJsonResource, core.AsInteger):
         self.created = core.parse_isoformat(json['created'])
         self.uri = json['uri']
 
+    @classmethod
+    def stream(cls, api, since=settings.MAX_SINCE_TIME_STREAM):
+        return PolyswarmRequest(
+            api,
+            {
+                'method': 'GET',
+                'url': '{}/consumer/download/stream'.format(api.uri),
+                'params': {'since': since},
+            },
+            result_parser=cls,
+        )
+
 
 class Hunt(core.BaseJsonResource, core.AsInteger):
     def __init__(self, json, api=None):
@@ -159,6 +317,141 @@ class Hunt(core.BaseJsonResource, core.AsInteger):
         self.status = json['status']
         self.active = json.get('active')
         self.ruleset_name = json.get('ruleset_name')
+
+
+class LiveHunt(Hunt):
+    @classmethod
+    def create_live_hunt(cls, api, rule=None, rule_id=None, active=True, ruleset_name=None):
+        parameters = {
+            'method': 'POST',
+            'url': '{}/hunt/live'.format(api.uri),
+            'json': {'active': active},
+        }
+        if ruleset_name:
+            parameters['json']['ruleset_name'] = ruleset_name
+        if rule:
+            parameters['json']['yara'] = rule
+        if rule_id:
+            parameters['json']['rule_id'] = str(int(rule_id))
+        return PolyswarmRequest(
+            api,
+            parameters,
+            result_parser=cls,
+        )
+
+    @classmethod
+    def get_live_hunt(cls, api, hunt_id=None):
+        return PolyswarmRequest(
+            api,
+            {
+                'method': 'GET',
+                'url': '{}/hunt/live'.format(api.uri),
+                'params': {'id': str(int(hunt_id)) if hunt_id else ''},
+            },
+            result_parser=cls,
+        )
+
+    @classmethod
+    def update_live_hunt(cls, api, hunt_id=None, active=False):
+        return PolyswarmRequest(
+            api,
+            {
+                'method': 'PUT',
+                'url': '{}/hunt/live'.format(api.uri),
+                'params': {'id': str(int(hunt_id)) if hunt_id else ''},
+                'json': {'active': active},
+            },
+            result_parser=cls,
+        )
+
+    @classmethod
+    def delete_live_hunt(cls, api, hunt_id):
+        return PolyswarmRequest(
+            api,
+            {
+                'method': 'DELETE',
+                'url': '{}/hunt/live'.format(api.uri),
+                'params': {'id': str(int(hunt_id)) if hunt_id else ''},
+            },
+            result_parser=cls,
+        )
+
+    @classmethod
+    def live_list(cls, api, since=None, all_=None):
+        parameters = {
+            'method': 'GET',
+            'url': '{}/hunt/live/list'.format(api.uri),
+            'params': {},
+        }
+        if since is not None:
+            parameters['params']['since'] = since
+        if all_ is not None:
+            parameters['params']['all'] = int(all_)
+        return PolyswarmRequest(
+            api,
+            parameters,
+            result_parser=cls,
+        )
+
+
+class HistoricalHunt(Hunt):
+    @classmethod
+    def create_historical_hunt(cls, api, rule=None, rule_id=None, ruleset_name=None):
+        parameters = {
+            'method': 'POST',
+            'url': '{}/hunt/historical'.format(api.uri),
+            'json': {},
+        }
+        if ruleset_name:
+            parameters['json']['ruleset_name'] = ruleset_name
+        if rule:
+            parameters['json']['yara'] = rule
+        if rule_id:
+            parameters['json']['rule_id'] = str(int(rule_id))
+        return PolyswarmRequest(
+            api,
+            parameters,
+            result_parser=cls,
+        )
+
+    @classmethod
+    def get_historical_hunt(cls, api, hunt_id):
+        return PolyswarmRequest(
+            api,
+            {
+                'method': 'GET',
+                'url': '{}/hunt/historical'.format(api.uri),
+                'params': {'id': str(int(hunt_id)) if hunt_id else ''},
+            },
+            result_parser=cls,
+        )
+
+    @classmethod
+    def delete_historical_hunt(cls, api, hunt_id):
+        return PolyswarmRequest(
+            api,
+            {
+                'method': 'DELETE',
+                'url': '{}/hunt/historical'.format(api.uri),
+                'params': {'id': str(int(hunt_id)) if hunt_id else ''},
+            },
+            result_parser=cls,
+        )
+
+    @classmethod
+    def historical_list(cls, api, since=None):
+        parameters = {
+            'method': 'GET',
+            'url': '{}/hunt/historical/list'.format(api.uri),
+            'params': {},
+        }
+        if since is not None:
+            parameters['params']['since'] = since
+        return PolyswarmRequest(
+            api,
+            parameters,
+            result_parser=cls,
+        )
 
 
 class HuntResult(core.BaseJsonResource, core.AsInteger):
@@ -172,6 +465,43 @@ class HuntResult(core.BaseJsonResource, core.AsInteger):
         self.historicalscan_id = json['historicalscan_id']
         self.livescan_id = json['livescan_id']
         self.artifact = ArtifactInstance(json['artifact'], api)
+
+    @classmethod
+    def live_hunt_results(cls, api, hunt_id=None, since=None, tag=None, rule_name=None):
+        req = {
+            'method': 'GET',
+            'url': '{}/hunt/live/results'.format(api.uri),
+            'params': {
+                'since': since,
+                'id': str(int(hunt_id)) if hunt_id else '',
+            },
+        }
+        if tag is not None:
+            req['params']['tag'] = tag
+        if rule_name is not None:
+            req['params']['rule_name'] = rule_name
+        return PolyswarmRequest(
+            api,
+            req,
+            result_parser=cls,
+        )
+
+    @classmethod
+    def historical_hunt_results(cls, api, hunt_id=None, tag=None, rule_name=None):
+        req = {
+            'method': 'GET',
+            'url': '{}/hunt/historical/results'.format(api.uri),
+            'params': {'id': str(int(hunt_id)) if hunt_id else ''},
+        }
+        if tag is not None:
+            req['params']['tag'] = tag
+        if rule_name is not None:
+            req['params']['rule_name'] = rule_name
+        return PolyswarmRequest(
+            api,
+            req,
+            result_parser=cls,
+        )
 
 
 def _read_chunks(file_handle):
@@ -190,13 +520,43 @@ def all_hashes(file_handle, algorithms=(_sha256, _sha1, _md5)):
 
 
 class LocalHandle(core.BaseResource):
-    def __init__(self, contents, api=None, handle=None):
+    def __init__(self, content, api=None, handle=None):
         super(LocalHandle, self).__init__(api=api)
         self.handle = handle or io.BytesIO()
-        for chunk in contents:
+        for chunk in content:
             self.handle.write(chunk)
             if hasattr(self.handle, 'flush'):
                 self.handle.flush()
+
+    @classmethod
+    def download(cls, api, hash_value, hash_type, handle=None):
+        return PolyswarmRequest(
+            api,
+            {
+                'method': 'GET',
+                'url': '{}/download/{}/{}'.format(api.uri, hash_type, hash_value),
+                'stream': True,
+            },
+            json_response=False,
+            result_parser=cls,
+            handle=handle,
+        )
+
+    @classmethod
+    def download_archive(cls, api, u, handle=None):
+        """ This method is special, in that it is simply for downloading from S3 """
+        return PolyswarmRequest(
+            api,
+            {
+                'method': 'GET',
+                'url': u,
+                'stream': True,
+                'headers': {'Authorization': None}
+            },
+            json_response=False,
+            result_parser=cls,
+            handle=handle,
+        )
 
     # Inspired by
     # https://github.com/python/cpython/blob/29500737d45cbca9604d9ce845fb2acc3f531401/Lib/tempfile.py#L461
@@ -310,6 +670,79 @@ class YaraRuleset(core.BaseJsonResource, core.AsInteger):
         if not self.yara:
             raise exceptions.InvalidValueException("Must provide yara ruleset content")
 
+    @classmethod
+    def create_ruleset(cls, api, rule, name, description=None):
+        parameters = {
+            'method': 'POST',
+            'url': '{}/hunt/rule'.format(api.uri),
+            'json': {
+                'yara': rule,
+                'name': name,
+            },
+        }
+        if description:
+            parameters['json']['description'] = description
+        return PolyswarmRequest(
+            api,
+            parameters,
+            result_parser=cls,
+        )
+
+    @classmethod
+    def get_ruleset(cls, api, ruleset_id=None):
+        return PolyswarmRequest(
+            api,
+            {
+                'method': 'GET',
+                'url': '{}/hunt/rule'.format(api.uri),
+                'params': {'id': str(int(ruleset_id))},
+            },
+            result_parser=cls,
+        )
+
+    @classmethod
+    def update_ruleset(cls, api, ruleset_id, name=None, rules=None, description=None):
+        parameters = {
+            'method': 'PUT',
+            'url': '{}/hunt/rule'.format(api.uri),
+            'params': {'id': str(int(ruleset_id))},
+            'json': {},
+        }
+        if name:
+            parameters['json']['name'] = name
+        if rules:
+            parameters['json']['yara'] = rules
+        if description:
+            parameters['json']['description'] = description
+        return PolyswarmRequest(
+            api,
+            parameters,
+            result_parser=cls,
+        )
+
+    @classmethod
+    def delete_ruleset(cls, api, ruleset_id):
+        return PolyswarmRequest(
+            api,
+            {
+                'method': 'DELETE',
+                'url': '{}/hunt/rule'.format(api.uri),
+                'params': {'id': str(int(ruleset_id))},
+            },
+            result_parser=cls,
+        )
+
+    @classmethod
+    def list_ruleset(cls, api):
+        return PolyswarmRequest(
+            api,
+            {
+                'method': 'GET',
+                'url': '{}/hunt/rule/list'.format(api.uri),
+            },
+            result_parser=cls,
+        )
+
     def validate(self):
         if not yara:
             raise exceptions.NotImportedException("Cannot validate rules locally without yara-python")
@@ -333,6 +766,86 @@ class TagLink(core.BaseJsonResource, core.AsInteger):
         self.tags = json.get('tags')
         self.families = json.get('families')
 
+    @classmethod
+    def create_tag_link(cls, api, sha256, tags=None, families=None):
+        parameters = {
+            'method': 'POST',
+            'url': '{}/tags/link'.format(api.uri),
+            'json': {'sha256': sha256},
+        }
+        if tags:
+            parameters['json']['tags'] = tags
+        if families:
+            parameters['json']['families'] = families
+        return PolyswarmRequest(
+            api,
+            parameters,
+            result_parser=cls,
+        )
+
+    @classmethod
+    def get_tag_link(cls, api, sha256):
+        return PolyswarmRequest(
+            api,
+            {
+                'method': 'GET',
+                'url': '{}/tags/link'.format(api.uri),
+                'params': {'hash': sha256},
+            },
+            result_parser=cls,
+        )
+
+    @classmethod
+    def update_tag_link(cls, api, sha256, tags=None, families=None, remove=False):
+        parameters = {
+            'method': 'PUT',
+            'url': '{}/tags/link'.format(api.uri),
+            'params': {'hash': sha256},
+            'json': {'remove': remove if remove else False},
+        }
+        if tags:
+            parameters['json']['tags'] = tags
+        if families:
+            parameters['json']['families'] = families
+        return PolyswarmRequest(
+            api,
+            parameters,
+            result_parser=cls,
+        )
+
+    @classmethod
+    def delete_tag_link(cls, api, sha256):
+        return PolyswarmRequest(
+            api,
+            {
+                'method': 'DELETE',
+                'url': '{}/tags/link'.format(api.uri),
+                'params': {'hash': sha256},
+            },
+            result_parser=cls,
+        )
+
+    @classmethod
+    def list_tag_link(cls, api, tags=None, families=None, or_tags=None, or_families=None):
+        parameters = {
+            'method': 'GET',
+            'url': '{}/tags/link/list'.format(api.uri),
+            'params': [],
+        }
+        if tags:
+            parameters['params'].extend(('tag', p) for p in tags)
+        if families:
+            parameters['params'].extend(('family', p) for p in families)
+        if or_tags:
+            parameters['params'].extend(('or_tag', p) for p in or_tags)
+        if or_families:
+            parameters['params'].extend(('or_family', p) for p in or_families)
+        return PolyswarmRequest(
+            api,
+            parameters,
+            result_parser=cls,
+        )
+
 
 class MalwareFamily(core.BaseJsonResource, core.AsInteger):
     def __init__(self, json, api=None):
@@ -343,6 +856,69 @@ class MalwareFamily(core.BaseJsonResource, core.AsInteger):
         self.name = json.get('name')
         self.emerging = core.parse_isoformat(json.get('emerging'))
 
+    @classmethod
+    def create_family(cls, api, name):
+        parameters = {
+            'method': 'POST',
+            'url': '{}/tags/family'.format(api.uri),
+            'json': {'name': name},
+        }
+        return PolyswarmRequest(
+            api,
+            parameters,
+            result_parser=cls,
+        )
+
+    @classmethod
+    def get_family(cls, api, name):
+        return PolyswarmRequest(
+            api,
+            {
+                'method': 'GET',
+                'url': '{}/tags/family'.format(api.uri),
+                'params': {'name': name},
+            },
+            result_parser=cls,
+        )
+
+    @classmethod
+    def delete_family(cls, api, name):
+        return PolyswarmRequest(
+            api,
+            {
+                'method': 'DELETE',
+                'url': '{}/tags/family'.format(api.uri),
+                'params': {'name': name},
+            },
+            result_parser=cls,
+        )
+
+    @classmethod
+    def update_family(cls, api, family_name, emerging=True):
+        return PolyswarmRequest(
+            api,
+            {
+                'method': 'PUT',
+                'url': '{}/tags/family'.format(api.uri),
+                'params': {'name': family_name},
+                'json': {
+                    'emerging': emerging if emerging else False
+                },
+            },
+            result_parser=cls,
+        )
+
+    @classmethod
+    def list_family(cls, api):
+        return PolyswarmRequest(
+            api,
+            {
+                'method': 'GET',
+                'url': '{}/tags/family/list'.format(api.uri),
+            },
+            result_parser=cls,
+        )
+
 
 class Tag(core.BaseJsonResource, core.AsInteger):
     def __init__(self, json, api=None):
@@ -351,6 +927,54 @@ class Tag(core.BaseJsonResource, core.AsInteger):
         self.created = core.parse_isoformat(json.get('created'))
         self.updated = core.parse_isoformat(json.get('updated'))
         self.name = json.get('name')
+
+    @classmethod
+    def create_tag(cls, api, name):
+        parameters = {
+            'method': 'POST',
+            'url': '{}/tags/tag'.format(api.uri),
+            'json': {'name': name},
+        }
+        return PolyswarmRequest(
+            api,
+            parameters,
+            result_parser=cls,
+        )
+
+    @classmethod
+    def get_tag(cls, api, name):
+        return PolyswarmRequest(
+            api,
+            {
+                'method': 'GET',
+                'url': '{}/tags/tag'.format(api.uri),
+                'params': {'name': name},
+            },
+            result_parser=cls,
+        )
+
+    @classmethod
+    def delete_tag(cls, api, name):
+        return PolyswarmRequest(
+            api,
+            {
+                'method': 'DELETE',
+                'url': '{}/tags/tag'.format(api.uri),
+                'params': {'name': name},
+            },
+            result_parser=cls,
+        )
+
+    @classmethod
+    def list_tag(cls, api):
+        return PolyswarmRequest(
+            api,
+            {
+                'method': 'GET',
+                'url': '{}/tags/tag/list'.format(api.uri),
+            },
+            result_parser=cls,
+        )
 
 
 #####################################################################

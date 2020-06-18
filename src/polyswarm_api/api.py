@@ -29,13 +29,12 @@ class PolyswarmAPI(object):
         self.community = community or settings.DEFAULT_COMMUNITY
         self.timeout = timeout or settings.DEFAULT_HTTP_TIMEOUT
         self.session = requests.PolyswarmSession(key, retries=settings.DEFAULT_RETRIES)
-        self.generator = requests.PolyswarmRequestGenerator(self)
         self._engines = None
 
     @property
     def engines(self):
         if not self._engines:
-            self._engines = self.generator.get_engines().execute().result
+            self._engines = resources.Engine.get_engines(self).execute().result
             self._engines = {e.address.lower(): e for e in self._engines}
         return self._engines
 
@@ -74,7 +73,7 @@ class PolyswarmAPI(object):
         """
         logger.info('Searching for hash %s', hash_)
         hash_ = resources.Hash.from_hashable(hash_, hash_type=hash_type)
-        return self.generator.search_hash(hash_.hash, hash_.hash_type).execute().consume_results()
+        return resources.ArtifactInstance.search_hash(self, hash_.hash, hash_.hash_type).execute().consume_results()
 
     def search_url(self, url):
         """
@@ -84,7 +83,7 @@ class PolyswarmAPI(object):
         :return: Generator of ArtifactInstance resources
         """
         logger.info('Searching for url %s', url)
-        return self.generator.search_url(url).execute().consume_results()
+        return resources.ArtifactInstance.search_url(self, url).execute().consume_results()
 
     def search_scans(self, hash_):
         """
@@ -95,7 +94,7 @@ class PolyswarmAPI(object):
         """
         logger.info('Searching for scans %s', hash_)
         hash_ = resources.Hash.from_hashable(hash_, hash_type='sha256')
-        return self.generator.list_scans(hash_.hash).execute().consume_results()
+        return resources.ArtifactInstance.list_scans(self, hash_.hash).execute().consume_results()
 
     def search_by_metadata(self, query):
         """
@@ -105,7 +104,7 @@ class PolyswarmAPI(object):
         :return: Generator of ArtifactInstance resources
         """
         logger.info('Searching for metadata %s', query)
-        return self.generator.search_metadata(query).execute().consume_results()
+        return resources.Metadata.search_metadata(self, query).execute().consume_results()
 
     def submit(self, artifact, artifact_type=resources.ArtifactType.FILE, artifact_name=None, scan_config=None):
         """
@@ -135,10 +134,10 @@ class PolyswarmAPI(object):
         if artifact_type == resources.ArtifactType.URL:
             scan_config = scan_config or 'more-time'
         if isinstance(artifact, resources.LocalArtifact):
-            return self.generator.submit(artifact,
-                                         artifact.artifact_name,
-                                         artifact.artifact_type.name,
-                                         scan_config=scan_config).execute().result
+            return resources.ArtifactInstance.submit(self, artifact,
+                                                     artifact.artifact_name,
+                                                     artifact.artifact_type.name,
+                                                     scan_config=scan_config).execute().result
         else:
             raise exceptions.InvalidValueException('Artifacts should be a path to a file or a LocalArtifact instance')
 
@@ -150,7 +149,7 @@ class PolyswarmAPI(object):
         :return: An ArtifactInstance resource
         """
         logger.info('Lookup scan %s', int(scan))
-        return self.generator.lookup_uuid(scan).execute().result
+        return resources.ArtifactInstance.lookup_uuid(self, scan).execute().result
 
     def rescan(self, hash_, hash_type=None, scan_config=None):
         """
@@ -163,7 +162,7 @@ class PolyswarmAPI(object):
         """
         logger.info('Rescan hash %s', hash_)
         hash_ = resources.Hash.from_hashable(hash_, hash_type=hash_type)
-        return self.generator.rescan(hash_.hash, hash_.hash_type, scan_config=scan_config).execute().result
+        return resources.ArtifactInstance.rescan(self, hash_.hash, hash_.hash_type, scan_config=scan_config).execute().result
 
     def rescan_id(self, scan, scan_config=None):
         """
@@ -174,7 +173,7 @@ class PolyswarmAPI(object):
         :return: A ArtifactInstance resource
         """
         logger.info('Rescan id %s', int(scan))
-        return self.generator.rescanid(scan, scan_config=scan_config).execute().result
+        return resources.ArtifactInstance.rescanid(self, scan, scan_config=scan_config).execute().result
 
     def _parse_rule(self, rule):
         if isinstance(rule, string_types):
@@ -200,8 +199,8 @@ class PolyswarmAPI(object):
         """
         logger.info('Create live hunt %s', rule)
         rule, rule_id = self._parse_rule(rule)
-        return self.generator.create_live_hunt(rule=rule.yara if rule else None, rule_id=rule_id,
-                                               active=active, ruleset_name=ruleset_name).execute().result
+        return resources.LiveHunt.create_live_hunt(self, rule=rule.yara if rule else None, rule_id=rule_id,
+                                                   active=active, ruleset_name=ruleset_name).execute().result
 
     def live_get(self, hunt=None):
         """
@@ -211,7 +210,7 @@ class PolyswarmAPI(object):
         :return: The Hunt resource
         """
         logger.info('Get live hunt %s', hunt)
-        return self.generator.get_live_hunt(hunt).execute().result
+        return resources.LiveHunt.get_live_hunt(self, hunt).execute().result
 
     def live_update(self, active, hunt=None):
         """
@@ -222,7 +221,7 @@ class PolyswarmAPI(object):
         :return: The updated Hunt resource
         """
         logger.info('Update live hunt %s', hunt)
-        return self.generator.update_live_hunt(hunt, active=active).execute().result
+        return resources.LiveHunt.update_live_hunt(self, hunt, active=active).execute().result
 
     def live_delete(self, hunt=None):
         """
@@ -232,7 +231,7 @@ class PolyswarmAPI(object):
         :return: The deleted Hunt resource
         """
         logger.info('Delete live hunt %s', hunt)
-        return self.generator.delete_live_hunt(hunt).execute().result
+        return resources.LiveHunt.delete_live_hunt(self, hunt).execute().result
 
     def live_list(self, since=None, all_=None):
         """
@@ -241,7 +240,7 @@ class PolyswarmAPI(object):
         :return: Generator of Hunt resources
         """
         logger.info('List live hunts since: %s all: %s', since, all_)
-        return self.generator.live_list(since=since, all_=all_).execute().consume_results()
+        return resources.LiveHunt.live_list(self, since=since, all_=all_).execute().consume_results()
 
     def live_results(self, hunt=None, since=None, tag=None, rule_name=None):
         """
@@ -254,8 +253,8 @@ class PolyswarmAPI(object):
         :return: Generator of HuntResult resources
         """
         logger.info('List live hunt results %s', hunt)
-        return self.generator.live_hunt_results(hunt_id=hunt, since=since,
-                                                tag=tag, rule_name=rule_name).execute().consume_results()
+        return resources.HuntResult.live_hunt_results(self, hunt_id=hunt, since=since,
+                                                      tag=tag, rule_name=rule_name).execute().consume_results()
 
     def historical_create(self, rule=None, ruleset_name=None):
         """
@@ -267,8 +266,8 @@ class PolyswarmAPI(object):
         """
         logger.info('Create historical hunt %s', rule)
         rule, rule_id = self._parse_rule(rule)
-        return self.generator.create_historical_hunt(rule=rule.yara if rule else None, rule_id=rule_id,
-                                                     ruleset_name=ruleset_name).execute().result
+        return resources.HistoricalHunt.create_historical_hunt(self, rule=rule.yara if rule else None, rule_id=rule_id,
+                                                               ruleset_name=ruleset_name).execute().result
 
     def historical_get(self, hunt=None):
         """
@@ -278,7 +277,7 @@ class PolyswarmAPI(object):
         :return: The Hunt resource
         """
         logger.info('Get historical hunt %s', hunt)
-        return self.generator.get_historical_hunt(hunt).execute().result
+        return resources.HistoricalHunt.get_historical_hunt(self, hunt).execute().result
 
     def historical_delete(self, hunt):
         """
@@ -288,7 +287,7 @@ class PolyswarmAPI(object):
         :return: The deleted Hunt resource
         """
         logger.info('Delete historical hunt %s', hunt)
-        return self.generator.delete_historical_hunt(hunt).execute().result
+        return resources.HistoricalHunt.delete_historical_hunt(self, hunt).execute().result
 
     def historical_list(self, since=None):
         """
@@ -297,7 +296,7 @@ class PolyswarmAPI(object):
         :return: Generator of Hunt resources
         """
         logger.info('List historical hunts since: %s', since)
-        return self.generator.historical_list(since=since).execute().consume_results()
+        return resources.HistoricalHunt.historical_list(self, since=since).execute().consume_results()
 
     def historical_results(self, hunt=None, tag=None, rule_name=None):
         """
@@ -309,7 +308,7 @@ class PolyswarmAPI(object):
         :return: Generator of HuntResult resources
         """
         logger.info('List historical results for hunt: %s', hunt)
-        return self.generator.historical_hunt_results(hunt_id=hunt, tag=tag, rule_name=rule_name).execute().consume_results()
+        return resources.HuntResult.historical_hunt_results(self, hunt_id=hunt, tag=tag, rule_name=rule_name).execute().consume_results()
 
     def ruleset_create(self, name, rules, description=None):
         """
@@ -325,7 +324,7 @@ class PolyswarmAPI(object):
             rules.validate()
         except exceptions.NotImportedException as e:
             logger.debug('%s\nSkipping validation.', str(e))
-        return self.generator.create_ruleset(rules.yara, rules.name, description=rules.description).execute().result
+        return resources.YaraRuleset.create_ruleset(self, rules.yara, rules.name, description=rules.description).execute().result
 
     def ruleset_get(self, ruleset_id=None):
         """
@@ -334,7 +333,7 @@ class PolyswarmAPI(object):
         :return: A YaraRuleset resource
         """
         logger.info('Get ruleset %s', ruleset_id)
-        return self.generator.get_ruleset(ruleset_id).execute().result
+        return resources.YaraRuleset.get_ruleset(self, ruleset_id).execute().result
 
     def ruleset_update(self, ruleset_id, name=None, rules=None, description=None):
         """
@@ -346,7 +345,7 @@ class PolyswarmAPI(object):
         :return: The updated YaraRuleset resource
         """
         logger.info('Update ruleset %s', ruleset_id)
-        return self.generator.update_ruleset(ruleset_id, name=name, rules=rules, description=description).execute().result
+        return resources.YaraRuleset.update_ruleset(self, ruleset_id, name=name, rules=rules, description=description).execute().result
 
     def ruleset_delete(self, ruleset_id):
         """
@@ -355,7 +354,7 @@ class PolyswarmAPI(object):
         :return: A YaraRuleset resource
         """
         logger.info('Delete ruleset %s', ruleset_id)
-        return self.generator.delete_ruleset(ruleset_id).execute().result
+        return resources.YaraRuleset.delete_ruleset(self, ruleset_id).execute().result
 
     def ruleset_list(self):
         """
@@ -363,7 +362,7 @@ class PolyswarmAPI(object):
         :return: A generator of YaraRuleset resources
         """
         logger.info('List rulesets')
-        return self.generator.list_ruleset().execute().consume_results()
+        return resources.YaraRuleset.list_ruleset(self).execute().consume_results()
 
     def tag_link_get(self, sha256):
         """
@@ -373,7 +372,7 @@ class PolyswarmAPI(object):
         :return: A TagLink resource
         """
         logger.info('Get tag link %s', sha256)
-        return self.generator.get_tag_link(sha256).execute().result
+        return resources.TagLink.get_tag_link(self, sha256).execute().result
 
     def tag_link_update(self, sha256, tags=None, families=None, remove=False):
         """
@@ -385,7 +384,7 @@ class PolyswarmAPI(object):
         :return: A TagLink resource
         """
         logger.info('Update tag link %s', sha256)
-        return self.generator.update_tag_link(sha256, tags=tags, families=families, remove=remove).execute().result
+        return resources.TagLink.update_tag_link(self, sha256, tags=tags, families=families, remove=remove).execute().result
 
     def tag_link_list(self, tags=None, families=None, or_tags=None, or_families=None):
         """
@@ -397,8 +396,8 @@ class PolyswarmAPI(object):
         :return: A TagLink resource
         """
         logger.info('List tag links')
-        return self.generator.list_tag_link(tags=tags, families=families,
-                                            or_tags=or_tags, or_families=or_families).execute().consume_results()
+        return resources.TagLink.list_tag_link(self, tags=tags, families=families,
+                                               or_tags=or_tags, or_families=or_families).execute().consume_results()
 
     def tag_create(self, name):
         """
@@ -407,7 +406,7 @@ class PolyswarmAPI(object):
         :return: A Tag resource
         """
         logger.info('Create tag %s', name)
-        return self.generator.create_tag(name).execute().result
+        return resources.Tag.create_tag(self, name).execute().result
 
     def tag_get(self, name):
         """
@@ -416,7 +415,7 @@ class PolyswarmAPI(object):
         :return: A Tag resource
         """
         logger.info('Get tag %s', name)
-        return self.generator.get_tag(name).execute().result
+        return resources.Tag.get_tag(self, name).execute().result
 
     def tag_delete(self, name):
         """
@@ -425,7 +424,7 @@ class PolyswarmAPI(object):
         :return: A Tag resource
         """
         logger.info('Delete tag %s', name)
-        return self.generator.delete_tag(name).execute().result
+        return resources.Tag.delete_tag(self, name).execute().result
 
     def tag_list(self):
         """
@@ -433,7 +432,7 @@ class PolyswarmAPI(object):
         :return: A generator of Tag resources
         """
         logger.info('List tags')
-        return self.generator.list_tag().execute().consume_results()
+        return resources.Tag.list_tag(self).execute().consume_results()
 
     def family_create(self, name):
         """
@@ -442,7 +441,7 @@ class PolyswarmAPI(object):
         :return: A MalwareFamily resource
         """
         logger.info('Creating family %s', name)
-        return self.generator.create_family(name).execute().result
+        return resources.MalwareFamily.create_family(self, name).execute().result
 
     def family_get(self, name):
         """
@@ -451,7 +450,7 @@ class PolyswarmAPI(object):
         :return: A MalwareFamily resource
         """
         logger.info('Getting family %s', name)
-        return self.generator.get_family(name).execute().result
+        return resources.MalwareFamily.get_family(self, name).execute().result
 
     def family_delete(self, name):
         """
@@ -460,7 +459,7 @@ class PolyswarmAPI(object):
         :return: A MalwareFamily resource
         """
         logger.info('Deleting family %s', name)
-        return self.generator.delete_family(name).execute().result
+        return resources.MalwareFamily.delete_family(self, name).execute().result
 
     def family_update(self, family_name, emerging=True):
         """
@@ -470,7 +469,7 @@ class PolyswarmAPI(object):
         :return: A MalwareFamily resource
         """
         logger.info('Updating family %s', family_name)
-        return self.generator.update_family(family_name, emerging=emerging).execute().result
+        return resources.MalwareFamily.update_family(self, family_name, emerging=emerging).execute().result
 
     def family_list(self):
         """
@@ -478,7 +477,7 @@ class PolyswarmAPI(object):
         :return: A generator of MalwareFamily resources
         """
         logger.info('Listing families')
-        return self.generator.list_family().execute().consume_results()
+        return resources.MalwareFamily.list_family(self).execute().consume_results()
 
     def download(self, out_dir, hash_, hash_type=None):
         """
@@ -495,7 +494,7 @@ class PolyswarmAPI(object):
         artifact = resources.LocalArtifact.from_path(self, path, create=True)
 
         try:
-            self.generator.download(hash_.hash, hash_.hash_type, handle=artifact).execute()
+            resources.LocalHandle.download(self, hash_.hash, hash_.hash_type, handle=artifact).execute()
         except Exception as e:
             artifact.handle.close()
             os.remove(path)
@@ -518,7 +517,7 @@ class PolyswarmAPI(object):
         artifact = resources.LocalArtifact.from_path(self, path, create=True)
 
         try:
-            self.generator.download_archive(s3_path, handle=artifact).execute()
+            resources.LocalHandle.download_archive(self, s3_path, handle=artifact).execute()
         except Exception as e:
             artifact.handle.close()
             os.remove(path)
@@ -538,7 +537,7 @@ class PolyswarmAPI(object):
         """
         logger.info('Downloading %s into handle', hash_)
         hash_ = resources.Hash.from_hashable(hash_, hash_type=hash_type)
-        return self.generator.download(hash_.hash, hash_.hash_type, handle=fh).execute().result
+        return resources.LocalHandle.download(self, hash_.hash, hash_.hash_type, handle=fh).execute().result
 
     def stream(self, since=settings.MAX_SINCE_TIME_STREAM):
         """
@@ -548,8 +547,8 @@ class PolyswarmAPI(object):
         :return: Generator of ArtifactArchive resources
         """
         logger.info('Streaming since %s', since)
-        return self.generator.stream(since=since).execute().consume_results()
+        return resources.ArtifactArchive.stream(self, since=since).execute().consume_results()
 
     def rerun_metadata(self, hashes, analyses=None, skip_es=None):
         logger.info('Rerunning metadata for hashes %s', hashes)
-        return self.generator.metadata_rerun(hashes, analyses=analyses, skip_es=skip_es).execute().consume_results()
+        return resources.ArtifactInstance.metadata_rerun(self, hashes, analyses=analyses, skip_es=skip_es).execute().consume_results()
