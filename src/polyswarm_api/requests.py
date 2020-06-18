@@ -1,12 +1,14 @@
 import logging
 import json
+
+import requests
 from future.utils import raise_from
 from copy import deepcopy
 
-from . import const
-from . import http
-from . import exceptions
-from .types import resources
+from requests.adapters import HTTPAdapter
+from urllib3 import Retry
+
+from polyswarm_api import settings, exceptions, resources
 
 try:
     from json.decoder import JSONDecodeError
@@ -15,6 +17,44 @@ except ImportError:
 
 
 logger = logging.getLogger(__name__)
+
+
+class PolyswarmSession(requests.Session):
+    def __init__(self, key, retries, user_agent=settings.DEFAULT_USER_AGENT):
+        super(PolyswarmSession, self).__init__()
+        logger.debug('Creating PolyswarmHTTP instance')
+        self.requests_retry_session(retries=retries)
+
+        if key:
+            self.set_auth(key)
+
+        if user_agent:
+            self.set_user_agent(user_agent)
+
+    def requests_retry_session(self, retries=settings.DEFAULT_RETRIES, backoff_factor=settings.DEFAULT_BACKOFF,
+                               status_forcelist=settings.DEFAULT_RETRY_CODES):
+        retry = Retry(
+            total=retries,
+            read=retries,
+            connect=retries,
+            backoff_factor=backoff_factor,
+            status_forcelist=status_forcelist,
+        )
+        adapter = HTTPAdapter(max_retries=retry)
+        self.mount('http://', adapter)
+        self.mount('https://', adapter)
+
+    def set_auth(self, key):
+        if key:
+            self.headers.update({'Authorization': key})
+        else:
+            self.headers.pop('Authorization', None)
+
+    def set_user_agent(self, ua):
+        if ua:
+            self.headers.update({'User-Agent': ua})
+        else:
+            self.headers.pop('User-Agent', None)
 
 
 class RequestParamsEncoder(json.JSONEncoder):
@@ -33,8 +73,8 @@ class PolyswarmRequest(object):
         self.api_instance = api_instance
         # we should not access the api_instance session directly, but provide as a
         # parameter in the constructor, but this will do for the moment
-        self.session = self.api_instance.session or http.PolyswarmHTTP(key, retries=const.DEFAULT_RETRIES)
-        self.timeout = self.api_instance.timeout or const.DEFAULT_HTTP_TIMEOUT
+        self.session = self.api_instance.session or PolyswarmSession(key, retries=settings.DEFAULT_RETRIES)
+        self.timeout = self.api_instance.timeout or settings.DEFAULT_HTTP_TIMEOUT
         self.request_parameters = request_parameters
         self.result_parser = result_parser
         self.json_response = json_response
@@ -119,7 +159,7 @@ class PolyswarmRequest(object):
                     self.result = self.result_parser.parse_result(self.api_instance, result, **self.parser_kwargs)
             else:
                 self.result = self.result_parser.parse_result(self.api_instance,
-                                                              result.iter_content(const.DOWNLOAD_CHUNK_SIZE),
+                                                              result.iter_content(settings.DOWNLOAD_CHUNK_SIZE),
                                                               **self.parser_kwargs)
         except JSONDecodeError as e:
             if self.status_code == 404:
@@ -205,7 +245,7 @@ class PolyswarmRequestGenerator(object):
             handle=handle,
         )
 
-    def stream(self, since=const.MAX_SINCE_TIME_STREAM):
+    def stream(self, since=settings.MAX_SINCE_TIME_STREAM):
         return PolyswarmRequest(
             self.api_instance,
             {

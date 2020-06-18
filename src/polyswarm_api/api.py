@@ -9,12 +9,7 @@ except ImportError:
 
 from future.utils import string_types
 
-from . import exceptions
-from . import const
-from . import endpoint
-from . import http
-from .types import resources
-
+from polyswarm_api import exceptions, resources, settings, requests
 
 logger = logging.getLogger(__name__)
 
@@ -30,11 +25,11 @@ class PolyswarmAPI(object):
         :param timeout: Maximum time to wait for an http response on every request.
         """
         logger.info('Creating PolyswarmAPI instance: api_key: %s, api_uri: %s, community: %s', key, uri, community)
-        self.uri = uri or const.DEFAULT_GLOBAL_API
-        self.community = community or const.DEFAULT_COMMUNITY
-        self.timeout = timeout or const.DEFAULT_HTTP_TIMEOUT
-        self.session = http.PolyswarmHTTP(key, retries=const.DEFAULT_RETRIES)
-        self.generator = endpoint.PolyswarmRequestGenerator(self)
+        self.uri = uri or settings.DEFAULT_GLOBAL_API
+        self.community = community or settings.DEFAULT_COMMUNITY
+        self.timeout = timeout or settings.DEFAULT_HTTP_TIMEOUT
+        self.session = requests.PolyswarmSession(key, retries=settings.DEFAULT_RETRIES)
+        self.generator = requests.PolyswarmRequestGenerator(self)
         self._engines = None
 
     @property
@@ -49,7 +44,7 @@ class PolyswarmAPI(object):
         engine_name = engine.name if engine else eth_pub
         return engine_name.lower()
 
-    def wait_for(self, scan, timeout=const.DEFAULT_SCAN_TIMEOUT):
+    def wait_for(self, scan, timeout=settings.DEFAULT_SCAN_TIMEOUT):
         """
         Wait for a Scan to scan successfully
 
@@ -67,7 +62,7 @@ class PolyswarmAPI(object):
                 raise exceptions.TimeoutException('Timed out waiting for scan {} to finish. Please try again.'
                                                   .format(scan))
             else:
-                time.sleep(const.POLL_FREQUENCY)
+                time.sleep(settings.POLL_FREQUENCY)
 
     def search(self, hash_, hash_type=None):
         """
@@ -545,7 +540,7 @@ class PolyswarmAPI(object):
         hash_ = resources.Hash.from_hashable(hash_, hash_type=hash_type)
         return self.generator.download(hash_.hash, hash_.hash_type, handle=fh).execute().result
 
-    def stream(self, since=const.MAX_SINCE_TIME_STREAM):
+    def stream(self, since=settings.MAX_SINCE_TIME_STREAM):
         """
         Access the stream of artifacts (ask info@polyswarm.io about access)
 
