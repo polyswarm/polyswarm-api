@@ -123,7 +123,7 @@ class PolyswarmAPI(object):
         #  to isinstance(artifact, io.IOBase) when deprecating 2.7 and implementing making LocalHandle
         #  inherit io.IOBase, although this will change the method delegation logic in the resource
         if hasattr(artifact, 'read') and hasattr(artifact.read, '__call__'):
-            artifact = resources.LocalArtifact(artifact, artifact_type=artifact_type, polyswarm=self, analyze=False,
+            artifact = resources.LocalArtifact(artifact, artifact_type=artifact_type, api=self, analyze=False,
                                                artifact_name=artifact_name)
         elif isinstance(artifact, string_types):
             if artifact_type == resources.ArtifactType.FILE:
@@ -178,7 +178,7 @@ class PolyswarmAPI(object):
 
     def _parse_rule(self, rule):
         if isinstance(rule, string_types):
-            rule, rule_id = resources.YaraRuleset(dict(yara=rule), polyswarm=self), None
+            rule, rule_id = resources.YaraRuleset(dict(yara=rule), api=self), None
             try:
                 rule.validate()
             except exceptions.NotImportedException as e:
@@ -320,7 +320,7 @@ class PolyswarmAPI(object):
         :return: A YaraRuleset resource
         """
         logger.info('Create ruleset %s: %s', name, rules)
-        rules = resources.YaraRuleset(dict(name=name, description=description, yara=rules), polyswarm=self)
+        rules = resources.YaraRuleset(dict(name=name, description=description, yara=rules), api=self)
         try:
             rules.validate()
         except exceptions.NotImportedException as e:

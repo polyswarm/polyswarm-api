@@ -26,18 +26,18 @@ logger = logging.getLogger(__name__)
 # Resources returned by the API
 #####################################################################
 
-class Engine(core.BasePSJSONType):
-    def __init__(self, json, polyswarm=None):
-        super(Engine, self).__init__(json=json, polyswarm=polyswarm)
+class Engine(core.BaseJsonResource):
+    def __init__(self, json, api=None):
+        super(Engine, self).__init__(json=json, api=api)
         self.address = json['address'].lower()
         self.name = json.get('name')
 
 
-class Metadata(core.BasePSJSONType, core.AsInteger):
+class Metadata(core.BaseJsonResource, core.AsInteger):
     KNOWN_KEYS = {'artifact', 'exiftool', 'hash', 'lief', 'pefile', 'scan', 'strings'}
 
-    def __init__(self, json, polyswarm=None):
-        super(Metadata, self).__init__(json=json, polyswarm=polyswarm)
+    def __init__(self, json, api=None):
+        super(Metadata, self).__init__(json=json, api=api)
         self.created = core.parse_isoformat(self.artifact.get('created'))
 
         self.id = self.artifact.get('id')
@@ -75,9 +75,9 @@ class Metadata(core.BasePSJSONType, core.AsInteger):
             raise AttributeError()
 
 
-class ArtifactInstance(core.BasePSJSONType, core.Hashable, core.AsInteger):
-    def __init__(self, json, polyswarm=None):
-        super(ArtifactInstance, self).__init__(json=json, polyswarm=polyswarm)
+class ArtifactInstance(core.BaseJsonResource, core.Hashable, core.AsInteger):
+    def __init__(self, json, api=None):
+        super(ArtifactInstance, self).__init__(json=json, api=api)
         # Artifact fields
         self.artifact_id = json['artifact_id']
         self.sha256 = json['sha256']
@@ -92,11 +92,11 @@ class ArtifactInstance(core.BasePSJSONType, core.Hashable, core.AsInteger):
         self.last_scanned = core.parse_isoformat(json['last_scanned'])
         metadata_json = json.get('metadata') or []
         metadata = {metadata['tool']: metadata['tool_metadata'] for metadata in metadata_json}
-        self.metadata = Metadata(metadata, polyswarm)
+        self.metadata = Metadata(metadata, api)
 
         # ArtifactInstance fields
         self.id = json.get('id')
-        self.assertions = [Assertion(self, a, polyswarm) for a in json.get('assertions', [])]
+        self.assertions = [Assertion(self, a, api) for a in json.get('assertions', [])]
         self.country = json.get('country')
         self.community = json.get('community')
         self.created = core.parse_isoformat(json.get('created'))
@@ -104,7 +104,7 @@ class ArtifactInstance(core.BasePSJSONType, core.Hashable, core.AsInteger):
         self.filename = json.get('filename')
         self.result = json.get('result')
         self.type = json.get('type')
-        self.votes = [Vote(self, v, polyswarm) for v in json.get('votes', [])]
+        self.votes = [Vote(self, v, api) for v in json.get('votes', [])]
         self.window_closed = json.get('window_closed')
         self.polyscore = float(json['polyscore']) if json.get('polyscore') is not None else None
         self.permalink = settings.DEFAULT_PERMALINK_BASE + '/' + str(self.hash)
@@ -141,18 +141,18 @@ class ArtifactInstance(core.BasePSJSONType, core.Hashable, core.AsInteger):
         return []
 
 
-class ArtifactArchive(core.BasePSJSONType, core.AsInteger):
-    def __init__(self, json, polyswarm=None):
-        super(ArtifactArchive, self).__init__(json=json, polyswarm=polyswarm)
+class ArtifactArchive(core.BaseJsonResource, core.AsInteger):
+    def __init__(self, json, api=None):
+        super(ArtifactArchive, self).__init__(json=json, api=api)
         self.id = json['id']
         self.community = json['community']
         self.created = core.parse_isoformat(json['created'])
         self.uri = json['uri']
 
 
-class Hunt(core.BasePSJSONType, core.AsInteger):
-    def __init__(self, json, polyswarm=None):
-        super(Hunt, self).__init__(json=json, polyswarm=polyswarm)
+class Hunt(core.BaseJsonResource, core.AsInteger):
+    def __init__(self, json, api=None):
+        super(Hunt, self).__init__(json=json, api=api)
         # active only present for live hunts
         self.id = json['id']
         self.created = core.parse_isoformat(json['created'])
@@ -161,9 +161,9 @@ class Hunt(core.BasePSJSONType, core.AsInteger):
         self.ruleset_name = json.get('ruleset_name')
 
 
-class HuntResult(core.BasePSJSONType, core.AsInteger):
-    def __init__(self, json, polyswarm=None):
-        super(HuntResult, self).__init__(json=json, polyswarm=polyswarm)
+class HuntResult(core.BaseJsonResource, core.AsInteger):
+    def __init__(self, json, api=None):
+        super(HuntResult, self).__init__(json=json, api=api)
         self.id = json['id']
         self.rule_name = json['rule_name']
         self.tags = json['tags']
@@ -171,7 +171,7 @@ class HuntResult(core.BasePSJSONType, core.AsInteger):
         self.sha256 = json['sha256']
         self.historicalscan_id = json['historicalscan_id']
         self.livescan_id = json['livescan_id']
-        self.artifact = ArtifactInstance(json['artifact'], polyswarm)
+        self.artifact = ArtifactInstance(json['artifact'], api)
 
 
 def _read_chunks(file_handle):
@@ -189,9 +189,9 @@ def all_hashes(file_handle, algorithms=(_sha256, _sha1, _md5)):
     return [Hash(h.hexdigest()) for h in hashers]
 
 
-class LocalHandle(core.BasePSResourceType):
-    def __init__(self, contents, polyswarm=None, handle=None):
-        super(LocalHandle, self).__init__(polyswarm=polyswarm)
+class LocalHandle(core.BaseResource):
+    def __init__(self, contents, api=None, handle=None):
+        super(LocalHandle, self).__init__(api=api)
         self.handle = handle or io.BytesIO()
         for chunk in contents:
             self.handle.write(chunk)
@@ -221,17 +221,17 @@ class LocalHandle(core.BasePSResourceType):
 
 class LocalArtifact(LocalHandle, core.Hashable):
     """ Artifact for which we have local content """
-    def __init__(self, handle, artifact_name=None, artifact_type=None, polyswarm=None, analyze=True):
+    def __init__(self, handle, artifact_name=None, artifact_type=None, api=None, analyze=True):
         """
         A representation of an artifact we have locally
 
         :param artifact_name: Name of the artifact
         :param artifact_type: Type of artifact
-        :param polyswarm: PolyswarmAPI instance
+        :param api: PolyswarmAPI instance
         :param analyze: Boolean, if True will run analyses on artifact on startup (Note: this may still run later if False)
         """
         # create the LocalHandle with the given handle and don't write anything to it
-        super(LocalArtifact, self).__init__(b'', polyswarm=polyswarm, handle=handle)
+        super(LocalArtifact, self).__init__(b'', api=api, handle=handle)
 
         self.sha256 = None
         self.sha1 = None
@@ -263,14 +263,14 @@ class LocalArtifact(LocalHandle, core.Hashable):
 
         mode = kwargs.pop('mode', 'wb+' if create else 'rb')
         handler = open(path, mode=mode, **kwargs)
-        return cls(handler, artifact_name=artifact_name or file_name, artifact_type=artifact_type, analyze=analyze, polyswarm=api)
+        return cls(handler, artifact_name=artifact_name or file_name, artifact_type=artifact_type, analyze=analyze, api=api)
 
     @classmethod
     def from_content(cls, api, content, artifact_name=None, artifact_type=None, analyze=False):
         if isinstance(content, string_types):
             content = content.encode("utf8")
         handler = io.BytesIO(content)
-        return cls(handler, artifact_name=artifact_name, artifact_type=artifact_type, analyze=analyze, polyswarm=api)
+        return cls(handler, artifact_name=artifact_name, artifact_type=artifact_type, analyze=analyze, api=api)
 
     @property
     def hash(self):
@@ -296,9 +296,9 @@ class LocalArtifact(LocalHandle, core.Hashable):
         return "Artifact <%s>" % self.hash
 
 
-class YaraRuleset(core.BasePSJSONType, core.AsInteger):
-    def __init__(self, json, polyswarm=None):
-        super(YaraRuleset, self).__init__(json, polyswarm)
+class YaraRuleset(core.BaseJsonResource, core.AsInteger):
+    def __init__(self, json, api=None):
+        super(YaraRuleset, self).__init__(json, api)
         self.yara = json['yara']
         self.name = json.get('name')
         self.id = json.get('id')
@@ -322,9 +322,9 @@ class YaraRuleset(core.BasePSJSONType, core.AsInteger):
         return True
 
 
-class TagLink(core.BasePSJSONType, core.AsInteger):
-    def __init__(self, json, polyswarm=None):
-        super(TagLink, self).__init__(json, polyswarm)
+class TagLink(core.BaseJsonResource, core.AsInteger):
+    def __init__(self, json, api=None):
+        super(TagLink, self).__init__(json, api)
         self.id = json.get('id')
         self.sha256 = json.get('sha256')
         self.created = core.parse_isoformat(json.get('created'))
@@ -334,9 +334,9 @@ class TagLink(core.BasePSJSONType, core.AsInteger):
         self.families = json.get('families')
 
 
-class MalwareFamily(core.BasePSJSONType, core.AsInteger):
-    def __init__(self, json, polyswarm=None):
-        super(MalwareFamily, self).__init__(json, polyswarm)
+class MalwareFamily(core.BaseJsonResource, core.AsInteger):
+    def __init__(self, json, api=None):
+        super(MalwareFamily, self).__init__(json, api)
         self.id = json.get('id')
         self.created = core.parse_isoformat(json.get('created'))
         self.updated = core.parse_isoformat(json.get('updated'))
@@ -344,9 +344,9 @@ class MalwareFamily(core.BasePSJSONType, core.AsInteger):
         self.emerging = core.parse_isoformat(json.get('emerging'))
 
 
-class Tag(core.BasePSJSONType, core.AsInteger):
-    def __init__(self, json, polyswarm=None):
-        super(Tag, self).__init__(json, polyswarm)
+class Tag(core.BaseJsonResource, core.AsInteger):
+    def __init__(self, json, api=None):
+        super(Tag, self).__init__(json, api)
         self.id = json.get('id')
         self.created = core.parse_isoformat(json.get('created'))
         self.updated = core.parse_isoformat(json.get('updated'))
@@ -358,9 +358,9 @@ class Tag(core.BasePSJSONType, core.AsInteger):
 #####################################################################
 
 
-class Assertion(core.BasePSJSONType):
-    def __init__(self, scanfile, json, polyswarm=None):
-        super(Assertion, self).__init__(json=json, polyswarm=polyswarm)
+class Assertion(core.BaseJsonResource):
+    def __init__(self, scanfile, json, api=None):
+        super(Assertion, self).__init__(json=json, api=api)
         self.scanfile = scanfile
         self.author = json['author']
         self.author_name = json['author_name']
@@ -375,9 +375,9 @@ class Assertion(core.BasePSJSONType):
         return "Assertion-%s: %s" % (self.engine_name, self.verdict)
 
 
-class Vote(core.BasePSJSONType):
-    def __init__(self, scanfile, json, polyswarm=None):
-        super(Vote, self).__init__(json=json, polyswarm=polyswarm)
+class Vote(core.BaseJsonResource):
+    def __init__(self, scanfile, json, api=None):
+        super(Vote, self).__init__(json=json, api=api)
         self.scanfile = scanfile
         self.arbiter = json['arbiter']
         self.vote = json['vote']
@@ -449,15 +449,15 @@ def is_valid_sha256(value):
     return is_hex(value)
 
 
-class Hash(core.Hashable, core.BasePSType):
+class Hash(core.Hashable):
     SUPPORTED_HASH_TYPES = {
         'sha1': is_valid_sha1,
         'sha256': is_valid_sha256,
         'md5': is_valid_md5,
     }
 
-    def __init__(self, hash_, hash_type=None, polyswarm=None):
-        super(Hash, self).__init__(polyswarm=polyswarm)
+    def __init__(self, hash_, hash_type=None):
+        super(Hash, self).__init__()
         hash_ = hash_.strip()
 
         if hash_type and hash_type not in Hash.SUPPORTED_HASH_TYPES:
@@ -475,7 +475,7 @@ class Hash(core.Hashable, core.BasePSType):
         self._hash = hash_
 
     @classmethod
-    def from_hashable(cls, hash_, polyswarm=None, hash_type=None):
+    def from_hashable(cls, hash_, hash_type=None):
         """
         Coerce to Hashable object
 
@@ -489,7 +489,7 @@ class Hash(core.Hashable, core.BasePSType):
                 raise exceptions.InvalidValueException('Detected hash type {}, got {} for hashable {}'
                                                        .format(hash_.hash_type, hash_type, hash_.hash))
             return hash_
-        return Hash(hash_, hash_type=hash_type, polyswarm=polyswarm)
+        return Hash(hash_, hash_type=hash_type)
 
     @classmethod
     def get_hash_type(cls, value):
@@ -501,11 +501,6 @@ class Hash(core.Hashable, core.BasePSType):
     @property
     def raw(self):
         return unhexlify(self.hash)
-
-    def search(self):
-        if not self.polyswarm:
-            raise exceptions.MissingAPIInstanceException("Missing API instance")
-        return self.polyswarm.search_hashes([self])
 
     @property
     def hash(self):

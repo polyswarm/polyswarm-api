@@ -5,33 +5,30 @@ from dateutil import parser
 logger = logging.getLogger(__name__)
 
 
-class BasePSType(object):
-    def __init__(self, polyswarm=None):
-        self.polyswarm = polyswarm
+class BaseResource:
+    def __init__(self, api=None):
+        self.api = api
 
+    def deserialize(self, contents):
+        raise NotImplementedError('desserialize() is not implemented for this resource: %s', self.__class__)
 
-class BasePSResourceType(BasePSType):
     @classmethod
-    def parse_result(cls, api_instance, result, **kwargs):
+    def parse_result(cls, api, result, **kwargs):
         logger.debug('Parsing resource %s', cls.__name__)
-        return cls(result, polyswarm=api_instance, **kwargs)
+        return cls(result, api=api, **kwargs)
 
     @classmethod
     def parse_result_list(cls, api_instance, json_data, **kwargs):
         return [cls.parse_result(api_instance, entry, **kwargs) for entry in json_data]
 
 
-class BasePSJSONType(BasePSResourceType):
-    SCHEMA = {
-        'type': ['object', 'array']
-    }
-
-    def __init__(self, json=None, polyswarm=None):
-        super(BasePSJSONType, self).__init__(polyswarm=polyswarm)
+class BaseJsonResource(BaseResource):
+    def __init__(self, json=None, api=None):
+        super(BaseJsonResource, self).__init__(api=api)
         self.json = json
 
     def __reduce__(self):
-        return (type(self), (self.__dict__.get('_json'), self.polyswarm))
+        return (type(self), (self.__dict__.get('json'), self.api))
 
 
 # TODO better way to do this with ABC?
