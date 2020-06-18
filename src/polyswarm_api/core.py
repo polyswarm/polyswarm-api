@@ -225,9 +225,6 @@ class BaseJsonResource(BaseResource):
     def parse_result_list(cls, api_instance, json_data, **kwargs):
         return [cls.parse_result(api_instance, entry, **kwargs) for entry in json_data]
 
-    def __reduce__(self):
-        return (type(self), (self.__dict__.get('json'), self.api))
-
 
 # TODO better way to do this with ABC?
 class Hashable:
