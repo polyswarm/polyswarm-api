@@ -2,6 +2,8 @@ import logging
 import time
 import os
 
+import polyswarm_api.core
+
 try:
     from urllib.parse import urlparse
 except ImportError:
@@ -9,7 +11,7 @@ except ImportError:
 
 from future.utils import string_types
 
-from polyswarm_api import exceptions, resources, settings, requests
+from polyswarm_api import exceptions, resources, settings
 
 logger = logging.getLogger(__name__)
 
@@ -28,7 +30,7 @@ class PolyswarmAPI(object):
         self.uri = uri or settings.DEFAULT_GLOBAL_API
         self.community = community or settings.DEFAULT_COMMUNITY
         self.timeout = timeout or settings.DEFAULT_HTTP_TIMEOUT
-        self.session = requests.PolyswarmSession(key, retries=settings.DEFAULT_RETRIES)
+        self.session = polyswarm_api.core.PolyswarmSession(key, retries=settings.DEFAULT_RETRIES)
         self._engines = None
 
     @property
