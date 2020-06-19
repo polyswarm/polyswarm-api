@@ -218,6 +218,7 @@ class BaseResource(object):
 
 class BaseJsonResource(BaseResource):
     RESOURCE_ENDPOINT = None
+    RESOURCE_ID_KEY = 'id'
 
     def __init__(self, json=None, api=None):
         super(BaseJsonResource, self).__init__(api=api)
@@ -228,24 +229,160 @@ class BaseJsonResource(BaseResource):
         return [cls.parse_result(api_instance, entry, **kwargs) for entry in json_data]
 
     @classmethod
-    def get(cls, api):
-        pass
+    def _endpoint(cls, api, **kwargs):
+        if cls.RESOURCE_ENDPOINT is None:
+            raise exceptions.InvalidValueException('RESOURCE_ENDPOINT is not configured for this resource.')
+        return '{api.uri}{endpoint}'.format(api=api, endpoint=cls.RESOURCE_ENDPOINT, **kwargs)
 
     @classmethod
-    def create(cls, api):
-        pass
+    def _list_endpoint(cls, api, **kwargs):
+        return cls._endpoint(api, **kwargs) + '/list'
 
     @classmethod
-    def update(cls, api):
-        pass
+    def _create_endpoint(cls, api, **kwargs):
+        return cls._endpoint(api, **kwargs)
 
     @classmethod
-    def delete(cls, api):
-        pass
+    def _get_endpoint(cls, api, **kwargs):
+        return cls._endpoint(api, **kwargs)
 
     @classmethod
-    def list(cls, api):
-        pass
+    def _update_endpoint(cls, api, **kwargs):
+        return cls._endpoint(api, **kwargs)
+
+    @classmethod
+    def _delete_endpoint(cls, api, **kwargs):
+        return cls._endpoint(api, **kwargs)
+
+    @classmethod
+    def _params(cls, *param_keys, **kwargs):
+        params = {}
+        json_params = {}
+        for k, v in kwargs.items():
+            # try to parse "*_id" stuff as integer
+            if k.endswith('_id'):
+                try:
+                    parsed_value = str(int(v))
+                except Exception:
+                    # fallback to string
+                    parsed_value = str(v)
+            elif isinstance(v, bool):
+                parsed_value = int(v)
+            else:
+                parsed_value = v
+            if k in param_keys:
+                params[k] = parsed_value
+            else:
+                json_params[k] = parsed_value
+        json_params = kwargs
+        params = params if params else None
+        json_params = json_params if json_params else None
+        return params, json_params
+
+    @classmethod
+    def _list_params(cls, **kwargs):
+        return cls._params(cls.RESOURCE_ID_KEY, **kwargs)
+
+    @classmethod
+    def _create_params(cls, **kwargs):
+        return cls._params(cls.RESOURCE_ID_KEY, **kwargs)
+
+    @classmethod
+    def _get_params(cls, **kwargs):
+        return cls._params(cls.RESOURCE_ID_KEY, **kwargs)
+
+    @classmethod
+    def _update_params(cls, **kwargs):
+        return cls._params(cls.RESOURCE_ID_KEY, **kwargs)
+
+    @classmethod
+    def _delete_params(cls, **kwargs):
+        return cls._params(cls.RESOURCE_ID_KEY, **kwargs)
+
+    @classmethod
+    def _list_headers(cls, **kwargs):
+        return None
+
+    @classmethod
+    def _create_headers(cls, **kwargs):
+        return None
+
+    @classmethod
+    def _get_headers(cls, **kwargs):
+        return None
+
+    @classmethod
+    def _update_headers(cls, **kwargs):
+        return None
+
+    @classmethod
+    def _delete_headers(cls, **kwargs):
+        return None
+
+    @classmethod
+    def create(cls, api, **kwargs):
+        params, json_params = cls._create_params(**kwargs)
+        return PolyswarmRequest(
+            api,
+            {'method': 'POST',
+             'url': cls._create_endpoint(api, **kwargs),
+             'params': params,
+             'json': json_params,
+             'headers': cls._create_headers()},
+            result_parser=cls,
+        )
+
+    @classmethod
+    def get(cls, api, **kwargs):
+        params, json_params = cls._get_params(**kwargs)
+        return PolyswarmRequest(
+            api,
+            {'method': 'GET',
+             'url': cls._get_endpoint(api, **kwargs),
+             'params': params,
+             'json': json_params,
+             'headers': cls._get_headers()},
+            result_parser=cls,
+        )
+
+    @classmethod
+    def update(cls, api, **kwargs):
+        params, json_params = cls._update_params(**kwargs)
+        return PolyswarmRequest(
+            api,
+            {'method': 'PUT',
+             'url': cls._update_endpoint(api, **kwargs),
+             'params': params,
+             'json': json_params,
+             'headers': cls._update_headers()},
+            result_parser=cls,
+        )
+
+    @classmethod
+    def delete(cls, api, **kwargs):
+        params, json_params = cls._delete_params(**kwargs)
+        return PolyswarmRequest(
+            api,
+            {'method': 'DELETE',
+             'url': cls._delete_endpoint(api, **kwargs),
+             'params': params,
+             'json': json_params,
+             'headers': cls._delete_headers()},
+            result_parser=cls,
+        )
+
+    @classmethod
+    def list(cls, api, **kwargs):
+        params, json_params = cls._list_params(**kwargs)
+        return PolyswarmRequest(
+            api,
+            {'method': 'GET',
+             'url': cls._list_endpoint(api, **kwargs),
+             'params': params,
+             'json': json_params,
+             'headers': cls._list_headers()},
+            result_parser=cls,
+        )
 
 
 # TODO better way to do this with ABC?

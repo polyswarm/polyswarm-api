@@ -24,25 +24,20 @@ logger = logging.getLogger(__name__)
 #####################################################################
 
 class Engine(core.BaseJsonResource):
+    RESOURCE_ENDPOINT = '/microengines'
+
     def __init__(self, json, api=None):
         super(Engine, self).__init__(json=json, api=api)
         self.address = json['address'].lower()
         self.name = json.get('name')
 
     @classmethod
-    def get_engines(cls, api):
-        return core.PolyswarmRequest(
-            api,
-            {
-                'method': 'GET',
-                'url': '{}/microengines/list'.format(api.uri),
-                'headers': {'Authorization': None},
-            },
-            result_parser=cls,
-        )
+    def _list_headers(cls):
+        return {'Authorization': None}
 
 
 class Metadata(core.BaseJsonResource, core.AsInteger):
+    RESOURCE_ENDPOINT = '/search/metadata/query'
     KNOWN_KEYS = {'artifact', 'exiftool', 'hash', 'lief', 'pefile', 'scan', 'strings'}
 
     def __init__(self, json, api=None):
@@ -73,18 +68,8 @@ class Metadata(core.BaseJsonResource, core.AsInteger):
         self.urls = self.strings.get('urls')
 
     @classmethod
-    def search_metadata(cls, api, query):
-        return core.PolyswarmRequest(
-            api,
-            {
-                'method': 'GET',
-                'url': '{}/search/metadata/query'.format(api.uri),
-                'params': {
-                    'query': query,
-                },
-            },
-            result_parser=cls,
-        )
+    def _get_params(cls, **kwargs):
+        return cls._params('query', **kwargs)
 
     def __contains__(self, item):
         return item in self.json
@@ -316,138 +301,19 @@ class Hunt(core.BaseJsonResource, core.AsInteger):
 
 
 class LiveHunt(Hunt):
-    @classmethod
-    def create_live_hunt(cls, api, rule=None, rule_id=None, active=True, ruleset_name=None):
-        parameters = {
-            'method': 'POST',
-            'url': '{}/hunt/live'.format(api.uri),
-            'json': {'active': active},
-        }
-        if ruleset_name:
-            parameters['json']['ruleset_name'] = ruleset_name
-        if rule:
-            parameters['json']['yara'] = rule
-        if rule_id:
-            parameters['json']['rule_id'] = str(int(rule_id))
-        return core.PolyswarmRequest(
-            api,
-            parameters,
-            result_parser=cls,
-        )
+    RESOURCE_ENDPOINT = '/hunt/live'
 
     @classmethod
-    def get_live_hunt(cls, api, hunt_id=None):
-        return core.PolyswarmRequest(
-            api,
-            {
-                'method': 'GET',
-                'url': '{}/hunt/live'.format(api.uri),
-                'params': {'id': str(int(hunt_id)) if hunt_id else ''},
-            },
-            result_parser=cls,
-        )
-
-    @classmethod
-    def update_live_hunt(cls, api, hunt_id=None, active=False):
-        return core.PolyswarmRequest(
-            api,
-            {
-                'method': 'PUT',
-                'url': '{}/hunt/live'.format(api.uri),
-                'params': {'id': str(int(hunt_id)) if hunt_id else ''},
-                'json': {'active': active},
-            },
-            result_parser=cls,
-        )
-
-    @classmethod
-    def delete_live_hunt(cls, api, hunt_id):
-        return core.PolyswarmRequest(
-            api,
-            {
-                'method': 'DELETE',
-                'url': '{}/hunt/live'.format(api.uri),
-                'params': {'id': str(int(hunt_id)) if hunt_id else ''},
-            },
-            result_parser=cls,
-        )
-
-    @classmethod
-    def live_list(cls, api, since=None, all_=None):
-        parameters = {
-            'method': 'GET',
-            'url': '{}/hunt/live/list'.format(api.uri),
-            'params': {},
-        }
-        if since is not None:
-            parameters['params']['since'] = since
-        if all_ is not None:
-            parameters['params']['all'] = int(all_)
-        return core.PolyswarmRequest(
-            api,
-            parameters,
-            result_parser=cls,
-        )
+    def _list_params(cls, **kwargs):
+        return cls._params('since', 'all', **kwargs)
 
 
 class HistoricalHunt(Hunt):
-    @classmethod
-    def create_historical_hunt(cls, api, rule=None, rule_id=None, ruleset_name=None):
-        parameters = {
-            'method': 'POST',
-            'url': '{}/hunt/historical'.format(api.uri),
-            'json': {},
-        }
-        if ruleset_name:
-            parameters['json']['ruleset_name'] = ruleset_name
-        if rule:
-            parameters['json']['yara'] = rule
-        if rule_id:
-            parameters['json']['rule_id'] = str(int(rule_id))
-        return core.PolyswarmRequest(
-            api,
-            parameters,
-            result_parser=cls,
-        )
+    RESOURCE_ENDPOINT = '/hunt/historical'
 
     @classmethod
-    def get_historical_hunt(cls, api, hunt_id):
-        return core.PolyswarmRequest(
-            api,
-            {
-                'method': 'GET',
-                'url': '{}/hunt/historical'.format(api.uri),
-                'params': {'id': str(int(hunt_id)) if hunt_id else ''},
-            },
-            result_parser=cls,
-        )
-
-    @classmethod
-    def delete_historical_hunt(cls, api, hunt_id):
-        return core.PolyswarmRequest(
-            api,
-            {
-                'method': 'DELETE',
-                'url': '{}/hunt/historical'.format(api.uri),
-                'params': {'id': str(int(hunt_id)) if hunt_id else ''},
-            },
-            result_parser=cls,
-        )
-
-    @classmethod
-    def historical_list(cls, api, since=None):
-        parameters = {
-            'method': 'GET',
-            'url': '{}/hunt/historical/list'.format(api.uri),
-            'params': {},
-        }
-        if since is not None:
-            parameters['params']['since'] = since
-        return core.PolyswarmRequest(
-            api,
-            parameters,
-            result_parser=cls,
-        )
+    def _list_params(cls, **kwargs):
+        return cls._params('since', **kwargs)
 
 
 class HuntResult(core.BaseJsonResource, core.AsInteger):
@@ -651,6 +517,8 @@ class LocalArtifact(LocalHandle, core.Hashable):
 
 
 class YaraRuleset(core.BaseJsonResource, core.AsInteger):
+    RESOURCE_ENDPOINT = '/hunt/rule'
+
     def __init__(self, json, api=None):
         super(YaraRuleset, self).__init__(json, api)
         self.yara = json['yara']
@@ -663,79 +531,6 @@ class YaraRuleset(core.BaseJsonResource, core.AsInteger):
 
         if not self.yara:
             raise exceptions.InvalidValueException("Must provide yara ruleset content")
-
-    @classmethod
-    def create_ruleset(cls, api, rule, name, description=None):
-        parameters = {
-            'method': 'POST',
-            'url': '{}/hunt/rule'.format(api.uri),
-            'json': {
-                'yara': rule,
-                'name': name,
-            },
-        }
-        if description:
-            parameters['json']['description'] = description
-        return core.PolyswarmRequest(
-            api,
-            parameters,
-            result_parser=cls,
-        )
-
-    @classmethod
-    def get_ruleset(cls, api, ruleset_id=None):
-        return core.PolyswarmRequest(
-            api,
-            {
-                'method': 'GET',
-                'url': '{}/hunt/rule'.format(api.uri),
-                'params': {'id': str(int(ruleset_id))},
-            },
-            result_parser=cls,
-        )
-
-    @classmethod
-    def update_ruleset(cls, api, ruleset_id, name=None, rules=None, description=None):
-        parameters = {
-            'method': 'PUT',
-            'url': '{}/hunt/rule'.format(api.uri),
-            'params': {'id': str(int(ruleset_id))},
-            'json': {},
-        }
-        if name:
-            parameters['json']['name'] = name
-        if rules:
-            parameters['json']['yara'] = rules
-        if description:
-            parameters['json']['description'] = description
-        return core.PolyswarmRequest(
-            api,
-            parameters,
-            result_parser=cls,
-        )
-
-    @classmethod
-    def delete_ruleset(cls, api, ruleset_id):
-        return core.PolyswarmRequest(
-            api,
-            {
-                'method': 'DELETE',
-                'url': '{}/hunt/rule'.format(api.uri),
-                'params': {'id': str(int(ruleset_id))},
-            },
-            result_parser=cls,
-        )
-
-    @classmethod
-    def list_ruleset(cls, api):
-        return core.PolyswarmRequest(
-            api,
-            {
-                'method': 'GET',
-                'url': '{}/hunt/rule/list'.format(api.uri),
-            },
-            result_parser=cls,
-        )
 
     def validate(self):
         if not yara:
@@ -750,6 +545,9 @@ class YaraRuleset(core.BaseJsonResource, core.AsInteger):
 
 
 class TagLink(core.BaseJsonResource, core.AsInteger):
+    RESOURCE_ENDPOINT = '/tags/link'
+    RESOURCE_ID_KEY = 'hash'
+
     def __init__(self, json, api=None):
         super(TagLink, self).__init__(json, api)
         self.id = json.get('id')
@@ -761,87 +559,20 @@ class TagLink(core.BaseJsonResource, core.AsInteger):
         self.families = json.get('families')
 
     @classmethod
-    def create_tag_link(cls, api, sha256, tags=None, families=None):
-        parameters = {
-            'method': 'POST',
-            'url': '{}/tags/link'.format(api.uri),
-            'json': {'sha256': sha256},
-        }
-        if tags:
-            parameters['json']['tags'] = tags
-        if families:
-            parameters['json']['families'] = families
-        return core.PolyswarmRequest(
-            api,
-            parameters,
-            result_parser=cls,
-        )
-
-    @classmethod
-    def get_tag_link(cls, api, sha256):
-        return core.PolyswarmRequest(
-            api,
-            {
-                'method': 'GET',
-                'url': '{}/tags/link'.format(api.uri),
-                'params': {'hash': sha256},
-            },
-            result_parser=cls,
-        )
-
-    @classmethod
-    def update_tag_link(cls, api, sha256, tags=None, families=None, remove=False):
-        parameters = {
-            'method': 'PUT',
-            'url': '{}/tags/link'.format(api.uri),
-            'params': {'hash': sha256},
-            'json': {'remove': remove if remove else False},
-        }
-        if tags:
-            parameters['json']['tags'] = tags
-        if families:
-            parameters['json']['families'] = families
-        return core.PolyswarmRequest(
-            api,
-            parameters,
-            result_parser=cls,
-        )
-
-    @classmethod
-    def delete_tag_link(cls, api, sha256):
-        return core.PolyswarmRequest(
-            api,
-            {
-                'method': 'DELETE',
-                'url': '{}/tags/link'.format(api.uri),
-                'params': {'hash': sha256},
-            },
-            result_parser=cls,
-        )
-
-    @classmethod
-    def list_tag_link(cls, api, tags=None, families=None, or_tags=None, or_families=None):
-        parameters = {
-            'method': 'GET',
-            'url': '{}/tags/link/list'.format(api.uri),
-            'params': [],
-        }
-        if tags:
-            parameters['params'].extend(('tag', p) for p in tags)
-        if families:
-            parameters['params'].extend(('family', p) for p in families)
-        if or_tags:
-            parameters['params'].extend(('or_tag', p) for p in or_tags)
-        if or_families:
-            parameters['params'].extend(('or_family', p) for p in or_families)
-        return core.PolyswarmRequest(
-            api,
-            parameters,
-            result_parser=cls,
-        )
+    def _list_params(cls, **kwargs):
+        params = []
+        empty = tuple()
+        params.extend(('tag', p) for p in kwargs.get('tags', empty))
+        params.extend(('family', p) for p in kwargs.get('families', empty))
+        params.extend(('or_tag', p) for p in kwargs.get('or_tags', empty))
+        params.extend(('or_family', p) for p in kwargs.get('or_families', empty))
+        return params, None
 
 
 class MalwareFamily(core.BaseJsonResource, core.AsInteger):
+    RESOURCE_ENDPOINT = '/tags/family'
+    RESOURCE_ID_KEY = 'name'
+
     def __init__(self, json, api=None):
         super(MalwareFamily, self).__init__(json, api)
         self.id = json.get('id')
@@ -850,125 +581,17 @@ class MalwareFamily(core.BaseJsonResource, core.AsInteger):
         self.name = json.get('name')
         self.emerging = core.parse_isoformat(json.get('emerging'))
 
-    @classmethod
-    def create_family(cls, api, name):
-        parameters = {
-            'method': 'POST',
-            'url': '{}/tags/family'.format(api.uri),
-            'json': {'name': name},
-        }
-        return core.PolyswarmRequest(
-            api,
-            parameters,
-            result_parser=cls,
-        )
-
-    @classmethod
-    def get_family(cls, api, name):
-        return core.PolyswarmRequest(
-            api,
-            {
-                'method': 'GET',
-                'url': '{}/tags/family'.format(api.uri),
-                'params': {'name': name},
-            },
-            result_parser=cls,
-        )
-
-    @classmethod
-    def delete_family(cls, api, name):
-        return core.PolyswarmRequest(
-            api,
-            {
-                'method': 'DELETE',
-                'url': '{}/tags/family'.format(api.uri),
-                'params': {'name': name},
-            },
-            result_parser=cls,
-        )
-
-    @classmethod
-    def update_family(cls, api, family_name, emerging=True):
-        return core.PolyswarmRequest(
-            api,
-            {
-                'method': 'PUT',
-                'url': '{}/tags/family'.format(api.uri),
-                'params': {'name': family_name},
-                'json': {
-                    'emerging': emerging if emerging else False
-                },
-            },
-            result_parser=cls,
-        )
-
-    @classmethod
-    def list_family(cls, api):
-        return core.PolyswarmRequest(
-            api,
-            {
-                'method': 'GET',
-                'url': '{}/tags/family/list'.format(api.uri),
-            },
-            result_parser=cls,
-        )
-
 
 class Tag(core.BaseJsonResource, core.AsInteger):
+    RESOURCE_ENDPOINT = '/tags/family'
+    RESOURCE_ID_KEY = 'name'
+
     def __init__(self, json, api=None):
         super(Tag, self).__init__(json, api)
         self.id = json.get('id')
         self.created = core.parse_isoformat(json.get('created'))
         self.updated = core.parse_isoformat(json.get('updated'))
         self.name = json.get('name')
-
-    @classmethod
-    def create_tag(cls, api, name):
-        parameters = {
-            'method': 'POST',
-            'url': '{}/tags/tag'.format(api.uri),
-            'json': {'name': name},
-        }
-        return core.PolyswarmRequest(
-            api,
-            parameters,
-            result_parser=cls,
-        )
-
-    @classmethod
-    def get_tag(cls, api, name):
-        return core.PolyswarmRequest(
-            api,
-            {
-                'method': 'GET',
-                'url': '{}/tags/tag'.format(api.uri),
-                'params': {'name': name},
-            },
-            result_parser=cls,
-        )
-
-    @classmethod
-    def delete_tag(cls, api, name):
-        return core.PolyswarmRequest(
-            api,
-            {
-                'method': 'DELETE',
-                'url': '{}/tags/tag'.format(api.uri),
-                'params': {'name': name},
-            },
-            result_parser=cls,
-        )
-
-    @classmethod
-    def list_tag(cls, api):
-        return core.PolyswarmRequest(
-            api,
-            {
-                'method': 'GET',
-                'url': '{}/tags/tag/list'.format(api.uri),
-            },
-            result_parser=cls,
-        )
 
 
 #####################################################################
