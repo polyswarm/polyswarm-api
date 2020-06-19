@@ -508,10 +508,10 @@ class YaraRuleset(core.BaseJsonResource, core.AsInteger):
     def validate(self):
         try:
             yara.compile(source=self.yara)
-        except yara.SyntaxError as e:
-            raise exceptions.InvalidYaraRulesException('Malformed yara file: {}'.format(e.args[0]) + '\n')
         except AttributeError:
             raise exceptions.NotImportedException("Cannot validate rules locally without yara-python")
+        except yara.SyntaxError as e:
+            raise exceptions.InvalidYaraRulesException('Malformed yara file: {}'.format(e.args[0]) + '\n')
         return True
 
 
