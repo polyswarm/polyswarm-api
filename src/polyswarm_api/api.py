@@ -255,8 +255,8 @@ class PolyswarmAPI(object):
         :return: Generator of HuntResult resources
         """
         logger.info('List live hunt results %s', hunt)
-        return resources.HuntResult.live_hunt_results(self, hunt_id=hunt, since=since,
-                                                      tag=tag, rule_name=rule_name).execute().consume_results()
+        return resources.LiveHuntResult.get(self, id=hunt, since=since,
+                                            tag=tag, rule_name=rule_name).execute().consume_results()
 
     def historical_create(self, rule=None, ruleset_name=None):
         """
@@ -310,7 +310,7 @@ class PolyswarmAPI(object):
         :return: Generator of HuntResult resources
         """
         logger.info('List historical results for hunt: %s', hunt)
-        return resources.HuntResult.historical_hunt_results(self, hunt_id=hunt, tag=tag, rule_name=rule_name).execute().consume_results()
+        return resources.HistoricalHuntResult.get(self, id=hunt, tag=tag, rule_name=rule_name).execute().consume_results()
 
     def ruleset_create(self, name, rules, description=None):
         """

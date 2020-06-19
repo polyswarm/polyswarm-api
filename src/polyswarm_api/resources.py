@@ -328,42 +328,21 @@ class HuntResult(core.BaseJsonResource, core.AsInteger):
         self.livescan_id = json['livescan_id']
         self.artifact = ArtifactInstance(json['artifact'], api)
 
-    @classmethod
-    def live_hunt_results(cls, api, hunt_id=None, since=None, tag=None, rule_name=None):
-        req = {
-            'method': 'GET',
-            'url': '{}/hunt/live/results'.format(api.uri),
-            'params': {
-                'since': since,
-                'id': str(int(hunt_id)) if hunt_id else '',
-            },
-        }
-        if tag is not None:
-            req['params']['tag'] = tag
-        if rule_name is not None:
-            req['params']['rule_name'] = rule_name
-        return core.PolyswarmRequest(
-            api,
-            req,
-            result_parser=cls,
-        )
+
+class LiveHuntResult(HuntResult):
+    RESOURCE_ENDPOINT = '/hunt/live/results'
 
     @classmethod
-    def historical_hunt_results(cls, api, hunt_id=None, tag=None, rule_name=None):
-        req = {
-            'method': 'GET',
-            'url': '{}/hunt/historical/results'.format(api.uri),
-            'params': {'id': str(int(hunt_id)) if hunt_id else ''},
-        }
-        if tag is not None:
-            req['params']['tag'] = tag
-        if rule_name is not None:
-            req['params']['rule_name'] = rule_name
-        return core.PolyswarmRequest(
-            api,
-            req,
-            result_parser=cls,
-        )
+    def _get_params(cls, **kwargs):
+        return cls._params('id', 'since', 'tag', 'rule_name', **kwargs)
+
+
+class HistoricalHuntResult(HuntResult):
+    RESOURCE_ENDPOINT = '/hunt/historical/results'
+
+    @classmethod
+    def _get_params(cls, **kwargs):
+        return cls._params('id', 'tag', 'rule_name', **kwargs)
 
 
 def _read_chunks(file_handle):
