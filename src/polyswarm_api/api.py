@@ -549,7 +549,7 @@ class PolyswarmAPI(object):
         :return: Generator of ArtifactArchive resources
         """
         logger.info('Streaming since %s', since)
-        return resources.ArtifactArchive.stream(self, since=since).execute().consume_results()
+        return resources.ArtifactArchive.get(self, since=since).execute().consume_results()
 
     def rerun_metadata(self, hashes, analyses=None, skip_es=None):
         logger.info('Rerunning metadata for hashes %s', hashes)

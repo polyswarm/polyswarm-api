@@ -269,6 +269,8 @@ class ArtifactInstance(core.BaseJsonResource, core.Hashable, core.AsInteger):
 
 
 class ArtifactArchive(core.BaseJsonResource, core.AsInteger):
+    RESOURCE_ENDPOINT = '/consumer/download/stream'
+
     def __init__(self, json, api=None):
         super(ArtifactArchive, self).__init__(json=json, api=api)
         self.id = json['id']
@@ -277,16 +279,8 @@ class ArtifactArchive(core.BaseJsonResource, core.AsInteger):
         self.uri = json['uri']
 
     @classmethod
-    def stream(cls, api, since=settings.MAX_SINCE_TIME_STREAM):
-        return core.PolyswarmRequest(
-            api,
-            {
-                'method': 'GET',
-                'url': '{}/consumer/download/stream'.format(api.uri),
-                'params': {'since': since},
-            },
-            result_parser=cls,
-        )
+    def _get_params(cls, **kwargs):
+        return cls._params('since', **kwargs)
 
 
 class Hunt(core.BaseJsonResource, core.AsInteger):
@@ -512,14 +506,12 @@ class YaraRuleset(core.BaseJsonResource, core.AsInteger):
             raise exceptions.InvalidValueException("Must provide yara ruleset content")
 
     def validate(self):
-        if not yara:
-            raise exceptions.NotImportedException("Cannot validate rules locally without yara-python")
-
         try:
             yara.compile(source=self.yara)
         except yara.SyntaxError as e:
             raise exceptions.InvalidYaraRulesException('Malformed yara file: {}'.format(e.args[0]) + '\n')
-
+        except AttributeError:
+            raise exceptions.NotImportedException("Cannot validate rules locally without yara-python")
         return True
 
 
