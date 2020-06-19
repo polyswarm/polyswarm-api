@@ -300,23 +300,23 @@ class BaseJsonResource(BaseResource):
         return cls._params(cls.RESOURCE_ID_KEY, **kwargs)
 
     @classmethod
-    def _list_headers(cls, **kwargs):
+    def _list_headers(cls, api):
         return None
 
     @classmethod
-    def _create_headers(cls, **kwargs):
+    def _create_headers(cls, api):
         return None
 
     @classmethod
-    def _get_headers(cls, **kwargs):
+    def _get_headers(cls, api):
         return None
 
     @classmethod
-    def _update_headers(cls, **kwargs):
+    def _update_headers(cls, api):
         return None
 
     @classmethod
-    def _delete_headers(cls, **kwargs):
+    def _delete_headers(cls, api):
         return None
 
     @classmethod
@@ -328,7 +328,7 @@ class BaseJsonResource(BaseResource):
              'url': cls._create_endpoint(api, **kwargs),
              'params': params,
              'json': json_params,
-             'headers': cls._create_headers()},
+             'headers': cls._create_headers(api)},
             result_parser=cls,
         )
 
@@ -341,7 +341,7 @@ class BaseJsonResource(BaseResource):
              'url': cls._get_endpoint(api, **kwargs),
              'params': params,
              'json': json_params,
-             'headers': cls._get_headers()},
+             'headers': cls._get_headers(api)},
             result_parser=cls,
         )
 
@@ -354,7 +354,7 @@ class BaseJsonResource(BaseResource):
              'url': cls._update_endpoint(api, **kwargs),
              'params': params,
              'json': json_params,
-             'headers': cls._update_headers()},
+             'headers': cls._update_headers(api)},
             result_parser=cls,
         )
 
@@ -367,7 +367,7 @@ class BaseJsonResource(BaseResource):
              'url': cls._delete_endpoint(api, **kwargs),
              'params': params,
              'json': json_params,
-             'headers': cls._delete_headers()},
+             'headers': cls._delete_headers(api)},
             result_parser=cls,
         )
 
@@ -380,7 +380,7 @@ class BaseJsonResource(BaseResource):
              'url': cls._list_endpoint(api, **kwargs),
              'params': params,
              'json': json_params,
-             'headers': cls._list_headers()},
+             'headers': cls._list_headers(api)},
             result_parser=cls,
         )
 

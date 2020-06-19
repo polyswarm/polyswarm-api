@@ -32,7 +32,7 @@ class Engine(core.BaseJsonResource):
         self.name = json.get('name')
 
     @classmethod
-    def _list_headers(cls):
+    def _list_headers(cls, api):
         return {'Authorization': None}
 
 
