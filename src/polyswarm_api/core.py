@@ -206,7 +206,7 @@ class PolyswarmRequest(object):
         )
 
 
-class BaseResource:
+class BaseResource(object):
     def __init__(self, api=None):
         self.api = api
 
@@ -217,6 +217,8 @@ class BaseResource:
 
 
 class BaseJsonResource(BaseResource):
+    RESOURCE_ENDPOINT = None
+
     def __init__(self, json=None, api=None):
         super(BaseJsonResource, self).__init__(api=api)
         self.json = json
@@ -225,9 +227,29 @@ class BaseJsonResource(BaseResource):
     def parse_result_list(cls, api_instance, json_data, **kwargs):
         return [cls.parse_result(api_instance, entry, **kwargs) for entry in json_data]
 
+    @classmethod
+    def get(cls, api):
+        pass
+
+    @classmethod
+    def create(cls, api):
+        pass
+
+    @classmethod
+    def update(cls, api):
+        pass
+
+    @classmethod
+    def delete(cls, api):
+        pass
+
+    @classmethod
+    def list(cls, api):
+        pass
+
 
 # TODO better way to do this with ABC?
-class Hashable:
+class Hashable(object):
     @property
     def hash(self):
         return self.sha256
@@ -240,7 +262,7 @@ class Hashable:
         return self.hash == other
 
 
-class AsInteger:
+class AsInteger(object):
     def __int__(self):
         return int(self.id)
 
