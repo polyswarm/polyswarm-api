@@ -2,6 +2,7 @@ import json
 import logging
 from copy import deepcopy
 from urllib3 import Retry
+from binascii import unhexlify
 try:
     from json.decoder import JSONDecodeError
 except ImportError:
@@ -207,8 +208,13 @@ class PolyswarmRequest(object):
 
 
 class BaseResource(object):
-    def __init__(self, api=None):
+    def __init__(self, content, *args, **kwargs):
+        # hack to behave as in python 3, signature should be
+        # __init__(self, content, *args, api=None, **kwargs)
+        api = kwargs.pop('api', None)
+        super(BaseResource, self).__init__(*args, **kwargs)
         self.api = api
+        self._content = content
 
     @classmethod
     def parse_result(cls, api, content, **kwargs):
@@ -220,9 +226,9 @@ class BaseJsonResource(BaseResource):
     RESOURCE_ENDPOINT = None
     RESOURCE_ID_KEY = 'id'
 
-    def __init__(self, json=None, api=None):
-        super(BaseJsonResource, self).__init__(api=api)
-        self.json = json
+    def __init__(self, content, *args, **kwargs):
+        super(BaseJsonResource, self).__init__(content, *args, **kwargs)
+        self.json = content
 
     @classmethod
     def parse_result_list(cls, api_instance, json_data, **kwargs):
@@ -385,15 +391,89 @@ class BaseJsonResource(BaseResource):
         )
 
 
-# TODO better way to do this with ABC?
+def is_hex(value):
+    try:
+        _ = int(value, 16)
+        return True
+    except ValueError:
+        return False
+
+
+def is_valid_sha1(value):
+    if len(value) != 40:
+        return False
+    return is_hex(value)
+
+
+def is_valid_md5(value):
+    if len(value) != 32:
+        return False
+    return is_hex(value)
+
+
+def is_valid_sha256(value):
+    if len(value) != 64:
+        return False
+    return is_hex(value)
+
+
 class Hashable(object):
+    SUPPORTED_HASH_TYPES = {
+        'sha1': is_valid_sha1,
+        'sha256': is_valid_sha256,
+        'md5': is_valid_md5,
+    }
+
+    def __init__(self, *args, **kwargs):
+        # hack to behave as in python 3, signature should be
+        # __init__(self, content, *args, hash_value=None, hash_type=None, validate_hash=False, **kwargs)
+        hash_value = kwargs.pop('hash_value', None)
+        hash_type = kwargs.pop('hash_type', None)
+        validate_hash = kwargs.pop('validate_hash', False)
+        super(Hashable, self).__init__(*args, **kwargs)
+
+        self._hash = hash_value.strip() if hash_value is not None else None
+
+        if hash_type:
+            if hash_type not in self.SUPPORTED_HASH_TYPES:
+                raise exceptions.InvalidValueException('Hash type provided is not supported.')
+            self._hash_type = hash_type
+        else:
+            self._hash_type = self.resolve_hash_type()
+
+        if self._hash_type is None:
+            raise exceptions.InvalidValueException('Invalid hash provided: {}'.format(self._hash))
+
+        if validate_hash:
+            self.validate()
+
     @property
     def hash(self):
-        return self.sha256
+        return self._hash
+
+    @hash.setter
+    def hash(self, value):
+        self._hash = value.strip() if value is not None else None
 
     @property
     def hash_type(self):
-        return 'sha256'
+        return self._hash_type
+
+    def validate(self):
+        hash_type = self.resolve_hash_type()
+        if self.hash_type != hash_type:
+            raise exceptions.InvalidValueException('Detected hash type {}, got type {} for hash {}'
+                                                   .format(hash_type, self.hash_type, self.hash))
+
+    def resolve_hash_type(self):
+        for hash_type, validator in self.SUPPORTED_HASH_TYPES.items():
+            if validator(self._hash):
+                return hash_type
+        return None
+
+    @property
+    def raw(self):
+        return unhexlify(self.hash)
 
     def __eq__(self, other):
         return self.hash == other

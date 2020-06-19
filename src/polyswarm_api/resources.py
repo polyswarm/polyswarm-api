@@ -3,7 +3,6 @@ import os
 import io
 import functools
 import warnings
-from binascii import unhexlify
 from enum import Enum
 from hashlib import sha256 as _sha256, sha1 as _sha1, md5 as _md5
 
@@ -26,10 +25,10 @@ logger = logging.getLogger(__name__)
 class Engine(core.BaseJsonResource):
     RESOURCE_ENDPOINT = '/microengines'
 
-    def __init__(self, json, api=None):
-        super(Engine, self).__init__(json=json, api=api)
-        self.address = json['address'].lower()
-        self.name = json.get('name')
+    def __init__(self, content, api=None):
+        super(Engine, self).__init__(content=content, api=api)
+        self.address = content['address'].lower()
+        self.name = content.get('name')
 
     @classmethod
     def _list_headers(cls, api):
@@ -40,8 +39,8 @@ class Metadata(core.BaseJsonResource, core.AsInteger):
     RESOURCE_ENDPOINT = '/search/metadata/query'
     KNOWN_KEYS = {'artifact', 'exiftool', 'hash', 'lief', 'pefile', 'scan', 'strings'}
 
-    def __init__(self, json, api=None):
-        super(Metadata, self).__init__(json=json, api=api)
+    def __init__(self, content, api=None):
+        super(Metadata, self).__init__(content=content, api=api)
         self.created = core.parse_isoformat(self.artifact.get('created'))
 
         self.id = self.artifact.get('id')
@@ -84,37 +83,38 @@ class Metadata(core.BaseJsonResource, core.AsInteger):
 
 
 class ArtifactInstance(core.BaseJsonResource, core.Hashable, core.AsInteger):
-    def __init__(self, json, api=None):
-        super(ArtifactInstance, self).__init__(json=json, api=api)
+    def __init__(self, content, api=None):
+        super(ArtifactInstance, self).__init__(content=content, api=api,
+                                               hash_value=content['sha256'], hash_type='sha256')
         # Artifact fields
-        self.artifact_id = json['artifact_id']
-        self.sha256 = json['sha256']
-        self.md5 = json['md5']
-        self.sha1 = json['sha1']
-        self.mimetype = json['mimetype']
-        self.size = json['size']
-        self.extended_type = json['extended_type']
-        self.first_seen = core.parse_isoformat(json['first_seen'])
+        self.sha256 = content['sha256']
+        self.artifact_id = content['artifact_id']
+        self.md5 = content['md5']
+        self.sha1 = content['sha1']
+        self.mimetype = content['mimetype']
+        self.size = content['size']
+        self.extended_type = content['extended_type']
+        self.first_seen = core.parse_isoformat(content['first_seen'])
         # Deprecated
-        self.last_seen = core.parse_isoformat(json['last_seen'])
-        self.last_scanned = core.parse_isoformat(json['last_scanned'])
-        metadata_json = json.get('metadata') or []
+        self.last_seen = core.parse_isoformat(content['last_seen'])
+        self.last_scanned = core.parse_isoformat(content['last_scanned'])
+        metadata_json = content.get('metadata') or []
         metadata = {metadata['tool']: metadata['tool_metadata'] for metadata in metadata_json}
         self.metadata = Metadata(metadata, api)
 
         # ArtifactInstance fields
-        self.id = json.get('id')
-        self.assertions = [Assertion(self, a, api) for a in json.get('assertions', [])]
-        self.country = json.get('country')
-        self.community = json.get('community')
-        self.created = core.parse_isoformat(json.get('created'))
-        self.failed = json.get('failed')
-        self.filename = json.get('filename')
-        self.result = json.get('result')
-        self.type = json.get('type')
-        self.votes = [Vote(self, v, api) for v in json.get('votes', [])]
-        self.window_closed = json.get('window_closed')
-        self.polyscore = float(json['polyscore']) if json.get('polyscore') is not None else None
+        self.id = content.get('id')
+        self.assertions = [Assertion(a, api=api, scanfile=self) for a in content.get('assertions', [])]
+        self.country = content.get('country')
+        self.community = content.get('community')
+        self.created = core.parse_isoformat(content.get('created'))
+        self.failed = content.get('failed')
+        self.filename = content.get('filename')
+        self.result = content.get('result')
+        self.type = content.get('type')
+        self.votes = [Vote(v, api=api, scanfile=self) for v in content.get('votes', [])]
+        self.window_closed = content.get('window_closed')
+        self.polyscore = float(content['polyscore']) if content.get('polyscore') is not None else None
         self.permalink = settings.DEFAULT_PERMALINK_BASE + '/' + str(self.hash)
 
         self._malicious_assertions = None
@@ -271,12 +271,12 @@ class ArtifactInstance(core.BaseJsonResource, core.Hashable, core.AsInteger):
 class ArtifactArchive(core.BaseJsonResource, core.AsInteger):
     RESOURCE_ENDPOINT = '/consumer/download/stream'
 
-    def __init__(self, json, api=None):
-        super(ArtifactArchive, self).__init__(json=json, api=api)
-        self.id = json['id']
-        self.community = json['community']
-        self.created = core.parse_isoformat(json['created'])
-        self.uri = json['uri']
+    def __init__(self, content, api=None):
+        super(ArtifactArchive, self).__init__(content=content, api=api)
+        self.id = content['id']
+        self.community = content['community']
+        self.created = core.parse_isoformat(content['created'])
+        self.uri = content['uri']
 
     @classmethod
     def _get_params(cls, **kwargs):
@@ -284,14 +284,14 @@ class ArtifactArchive(core.BaseJsonResource, core.AsInteger):
 
 
 class Hunt(core.BaseJsonResource, core.AsInteger):
-    def __init__(self, json, api=None):
-        super(Hunt, self).__init__(json=json, api=api)
+    def __init__(self, content, api=None):
+        super(Hunt, self).__init__(content=content, api=api)
         # active only present for live hunts
-        self.id = json['id']
-        self.created = core.parse_isoformat(json['created'])
-        self.status = json['status']
-        self.active = json.get('active')
-        self.ruleset_name = json.get('ruleset_name')
+        self.id = content['id']
+        self.created = core.parse_isoformat(content['created'])
+        self.status = content['status']
+        self.active = content.get('active')
+        self.ruleset_name = content.get('ruleset_name')
 
 
 class LiveHunt(Hunt):
@@ -311,16 +311,16 @@ class HistoricalHunt(Hunt):
 
 
 class HuntResult(core.BaseJsonResource, core.AsInteger):
-    def __init__(self, json, api=None):
-        super(HuntResult, self).__init__(json=json, api=api)
-        self.id = json['id']
-        self.rule_name = json['rule_name']
-        self.tags = json['tags']
-        self.created = core.parse_isoformat(json['created'])
-        self.sha256 = json['sha256']
-        self.historicalscan_id = json['historicalscan_id']
-        self.livescan_id = json['livescan_id']
-        self.artifact = ArtifactInstance(json['artifact'], api)
+    def __init__(self, content, api=None):
+        super(HuntResult, self).__init__(content=content, api=api)
+        self.id = content['id']
+        self.rule_name = content['rule_name']
+        self.tags = content['tags']
+        self.created = core.parse_isoformat(content['created'])
+        self.sha256 = content['sha256']
+        self.historicalscan_id = content['historicalscan_id']
+        self.livescan_id = content['livescan_id']
+        self.artifact = ArtifactInstance(content['artifact'], api)
 
 
 class LiveHuntResult(HuntResult):
@@ -355,8 +355,8 @@ def all_hashes(file_handle, algorithms=(_sha256, _sha1, _md5)):
 
 
 class LocalHandle(core.BaseResource):
-    def __init__(self, content, api=None, handle=None):
-        super(LocalHandle, self).__init__(api=api)
+    def __init__(self, content, api=None, handle=None, **kwargs):
+        super(LocalHandle, self).__init__(content, api=api, **kwargs)
         self.handle = handle or io.BytesIO()
         for chunk in content:
             self.handle.write(chunk)
@@ -424,7 +424,7 @@ class LocalArtifact(LocalHandle, core.Hashable):
         :param analyze: Boolean, if True will run analyses on artifact on startup (Note: this may still run later if False)
         """
         # create the LocalHandle with the given handle and don't write anything to it
-        super(LocalArtifact, self).__init__(b'', api=api, handle=handle)
+        super(LocalArtifact, self).__init__(b'', api=api, handle=handle, hash_type='sha256')
 
         self.sha256 = None
         self.sha1 = None
@@ -477,6 +477,8 @@ class LocalArtifact(LocalHandle, core.Hashable):
             self.handle.seek(0)
             self._run_analyzers(self.handle)
             self.analyzed = True
+            # define the hash value only when analyzed
+            self._hash = self.sha256
 
     def _calc_hashes(self, fh):
         self.sha256, self.sha1, self.md5 = all_hashes(fh)
@@ -492,15 +494,15 @@ class LocalArtifact(LocalHandle, core.Hashable):
 class YaraRuleset(core.BaseJsonResource, core.AsInteger):
     RESOURCE_ENDPOINT = '/hunt/rule'
 
-    def __init__(self, json, api=None):
-        super(YaraRuleset, self).__init__(json, api)
-        self.yara = json['yara']
-        self.name = json.get('name')
-        self.id = json.get('id')
-        self.description = json.get('description')
-        self.created = core.parse_isoformat(json.get('created'))
-        self.modified = core.parse_isoformat(json.get('modified'))
-        self.deleted = json.get('deleted')
+    def __init__(self, content, api=None):
+        super(YaraRuleset, self).__init__(content, api=api)
+        self.yara = content['yara']
+        self.name = content.get('name')
+        self.id = content.get('id')
+        self.description = content.get('description')
+        self.created = core.parse_isoformat(content.get('created'))
+        self.modified = core.parse_isoformat(content.get('modified'))
+        self.deleted = content.get('deleted')
 
         if not self.yara:
             raise exceptions.InvalidValueException("Must provide yara ruleset content")
@@ -519,15 +521,15 @@ class TagLink(core.BaseJsonResource, core.AsInteger):
     RESOURCE_ENDPOINT = '/tags/link'
     RESOURCE_ID_KEY = 'hash'
 
-    def __init__(self, json, api=None):
-        super(TagLink, self).__init__(json, api)
-        self.id = json.get('id')
-        self.sha256 = json.get('sha256')
-        self.created = core.parse_isoformat(json.get('created'))
-        self.updated = core.parse_isoformat(json.get('updated'))
-        self.first_seen = core.parse_isoformat(json.get('first_seen'))
-        self.tags = json.get('tags')
-        self.families = json.get('families')
+    def __init__(self, content, api=None):
+        super(TagLink, self).__init__(content, api=api)
+        self.id = content.get('id')
+        self.sha256 = content.get('sha256')
+        self.created = core.parse_isoformat(content.get('created'))
+        self.updated = core.parse_isoformat(content.get('updated'))
+        self.first_seen = core.parse_isoformat(content.get('first_seen'))
+        self.tags = content.get('tags')
+        self.families = content.get('families')
 
     @classmethod
     def _list_params(cls, **kwargs):
@@ -544,25 +546,25 @@ class MalwareFamily(core.BaseJsonResource, core.AsInteger):
     RESOURCE_ENDPOINT = '/tags/family'
     RESOURCE_ID_KEY = 'name'
 
-    def __init__(self, json, api=None):
-        super(MalwareFamily, self).__init__(json, api)
-        self.id = json.get('id')
-        self.created = core.parse_isoformat(json.get('created'))
-        self.updated = core.parse_isoformat(json.get('updated'))
-        self.name = json.get('name')
-        self.emerging = core.parse_isoformat(json.get('emerging'))
+    def __init__(self, content, api=None):
+        super(MalwareFamily, self).__init__(content, api=api)
+        self.id = content.get('id')
+        self.created = core.parse_isoformat(content.get('created'))
+        self.updated = core.parse_isoformat(content.get('updated'))
+        self.name = content.get('name')
+        self.emerging = core.parse_isoformat(content.get('emerging'))
 
 
 class Tag(core.BaseJsonResource, core.AsInteger):
     RESOURCE_ENDPOINT = '/tags/family'
     RESOURCE_ID_KEY = 'name'
 
-    def __init__(self, json, api=None):
-        super(Tag, self).__init__(json, api)
-        self.id = json.get('id')
-        self.created = core.parse_isoformat(json.get('created'))
-        self.updated = core.parse_isoformat(json.get('updated'))
-        self.name = json.get('name')
+    def __init__(self, content, api=None):
+        super(Tag, self).__init__(content, api=api)
+        self.id = content.get('id')
+        self.created = core.parse_isoformat(content.get('created'))
+        self.updated = core.parse_isoformat(content.get('updated'))
+        self.name = content.get('name')
 
 
 #####################################################################
@@ -571,28 +573,28 @@ class Tag(core.BaseJsonResource, core.AsInteger):
 
 
 class Assertion(core.BaseJsonResource):
-    def __init__(self, scanfile, json, api=None):
-        super(Assertion, self).__init__(json=json, api=api)
+    def __init__(self, content, api=None, scanfile=None):
+        super(Assertion, self).__init__(content, api=api)
         self.scanfile = scanfile
-        self.author = json['author']
-        self.author_name = json['author_name']
-        self.engine_name = json['engine'].get('name')
-        self.bid = int(json['bid'])
-        self.mask = json['mask']
+        self.author = content['author']
+        self.author_name = content['author_name']
+        self.engine_name = content['engine'].get('name')
+        self.bid = int(content['bid'])
+        self.mask = content['mask']
         # deal with metadata being a string instead of null
-        self.metadata = json['metadata'] if json['metadata'] else {}
-        self.verdict = json['verdict']
+        self.metadata = content['metadata'] if content['metadata'] else {}
+        self.verdict = content['verdict']
 
     def __str__(self):
         return "Assertion-%s: %s" % (self.engine_name, self.verdict)
 
 
 class Vote(core.BaseJsonResource):
-    def __init__(self, scanfile, json, api=None):
-        super(Vote, self).__init__(json=json, api=api)
+    def __init__(self, content, api=None, scanfile=None):
+        super(Vote, self).__init__(content, api=api)
         self.scanfile = scanfile
-        self.arbiter = json['arbiter']
-        self.vote = json['vote']
+        self.arbiter = content['arbiter']
+        self.vote = content['vote']
 
     def __str__(self):
         return "Vote-%s: %s" % (self.arbiter, self.vote)
@@ -635,56 +637,9 @@ class ArtifactType(Enum):
             return content
 
 
-def is_hex(value):
-    try:
-        _ = int(value, 16)
-        return True
-    except ValueError:
-        return False
-
-
-def is_valid_sha1(value):
-    if len(value) != 40:
-        return False
-    return is_hex(value)
-
-
-def is_valid_md5(value):
-    if len(value) != 32:
-        return False
-    return is_hex(value)
-
-
-def is_valid_sha256(value):
-    if len(value) != 64:
-        return False
-    return is_hex(value)
-
-
 class Hash(core.Hashable):
-    SUPPORTED_HASH_TYPES = {
-        'sha1': is_valid_sha1,
-        'sha256': is_valid_sha256,
-        'md5': is_valid_md5,
-    }
-
     def __init__(self, hash_, hash_type=None):
-        super(Hash, self).__init__()
-        hash_ = hash_.strip()
-
-        if hash_type and hash_type not in Hash.SUPPORTED_HASH_TYPES:
-            raise exceptions.InvalidValueException('Hash type provided is not supported.')
-
-        self._hash_type = Hash.get_hash_type(hash_)
-
-        if self._hash_type is None:
-            raise exceptions.InvalidValueException('Invalid hash provided: {}'.format(hash_))
-
-        if hash_type and self.hash_type != hash_type:
-            raise exceptions.InvalidValueException('Detected hash type {}, got {} for hash {}'
-                                                   .format(hash_type, self.hash_type, hash_))
-
-        self._hash = hash_
+        super(Hash, self).__init__(hash_value=hash_, hash_type=hash_type, validate_hash=True)
 
     @classmethod
     def from_hashable(cls, hash_, hash_type=None):
@@ -700,27 +655,8 @@ class Hash(core.Hashable):
             if hash_type and hash_.hash_type != hash_type:
                 raise exceptions.InvalidValueException('Detected hash type {}, got {} for hashable {}'
                                                        .format(hash_.hash_type, hash_type, hash_.hash))
-            return hash_
+            return Hash(hash_.hash, hash_type=hash_type)
         return Hash(hash_, hash_type=hash_type)
-
-    @classmethod
-    def get_hash_type(cls, value):
-        for hash_type, check in cls.SUPPORTED_HASH_TYPES.items():
-            if check(value):
-                return hash_type
-        return None
-
-    @property
-    def raw(self):
-        return unhexlify(self.hash)
-
-    @property
-    def hash(self):
-        return self._hash
-
-    @property
-    def hash_type(self):
-        return self._hash_type
 
     def __hash__(self):
         return hash(self.hash)
