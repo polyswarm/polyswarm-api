@@ -138,9 +138,10 @@ class PolyswarmRequest(object):
                               'rate limits. If you continue to have issues, ' \
                               'please contact us at info@polyswarm.io.'.format(self._result)
                     raise exceptions.UsageLimitsExceededException(self, message)
-                if self.status_code == 404:
+                elif self.status_code == 404:
                     raise exceptions.NotFoundException(self, self._result)
-                raise exceptions.RequestException(self, self._bad_status_message())
+                else:
+                    raise exceptions.RequestException(self, self._bad_status_message())
             elif self.status_code == 204:
                 raise exceptions.NoResultsException(self, 'The request returned no results.')
             elif issubclass(self.result_parser, BaseJsonResource):
