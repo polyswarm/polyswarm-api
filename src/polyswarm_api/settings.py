@@ -1,6 +1,6 @@
 import os
 import platform
-from . import _version
+import polyswarm_api
 
 # API constants
 DEFAULT_GLOBAL_API = 'https://api.polyswarm.network/v2'
@@ -16,7 +16,7 @@ DEFAULT_RETRIES = 0
 DEFAULT_BACKOFF = 1
 DEFAULT_RETRY_CODES = (502, 504)
 DEFAULT_USER_AGENT = 'polyswarm-api/{} ({}-{}-{}-{})'.format(
-    _version.__version__, platform.machine(), platform.system(),
+    polyswarm_api.__version__, platform.machine(), platform.system(),
     platform.python_implementation(), platform.python_version(),
 )
 
