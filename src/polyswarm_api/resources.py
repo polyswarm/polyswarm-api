@@ -199,7 +199,7 @@ class ArtifactInstance(core.BaseJsonResource, core.Hashable):
         ).execute()
 
     @classmethod
-    def rescanid(cls, api, submission_id, scan_config=None):
+    def rescan_id(cls, api, submission_id, scan_config=None):
         parameters = {
             'method': 'POST',
             'url': '{}/consumer/submission/{}/rescan/{}'.format(api.uri, api.community, int(submission_id)),

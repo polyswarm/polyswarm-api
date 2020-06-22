@@ -175,7 +175,7 @@ class PolyswarmAPI(object):
         :return: A ArtifactInstance resource
         """
         logger.info('Rescan id %s', int(scan))
-        return resources.ArtifactInstance.rescanid(self, scan, scan_config=scan_config).result()
+        return resources.ArtifactInstance.rescan_id(self, scan, scan_config=scan_config).result()
 
     def _parse_rule(self, rule):
         if isinstance(rule, string_types):
