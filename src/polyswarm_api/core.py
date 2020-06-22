@@ -79,15 +79,24 @@ class PolyswarmRequest(object):
         self.raw_result = None
         self.status_code = None
         self.status = None
-        self.result = None
         self.errors = None
+        self._result = None
+
+        self._paginated = False
         self.total = None
         self.limit = None
         self.offset = None
         self.order_by = None
         self.direction = None
         self.has_more = None
+
         self.parser_kwargs = kwargs
+
+    def result(self):
+        if self._paginated:
+            return self.consume_results()
+        else:
+            return self._result
 
     def execute(self):
         logger.debug('Executing request.')
@@ -106,14 +115,14 @@ class PolyswarmRequest(object):
                   "Return code: {}\n" \
                   "Message: {}".format(request_parameters,
                                        self.status_code,
-                                       self.result)
+                                       self._result)
         if self.errors:
             message = '{}\nErrors:\n{}'.format(message, '\n'.join(str(error) for error in self.errors))
         return message
 
     def _extract_json_body(self, result):
         self.json = result.json()
-        self.result = self.json.get('result')
+        self._result = self.json.get('result')
         self.status = self.json.get('status')
         self.errors = self.json.get('errors')
 
@@ -127,15 +136,18 @@ class PolyswarmRequest(object):
                     message = '{} This may mean you need to purchase a ' \
                               'larger package, or that you have exceeded ' \
                               'rate limits. If you continue to have issues, ' \
-                              'please contact us at info@polyswarm.io.'.format(self.result)
+                              'please contact us at info@polyswarm.io.'.format(self._result)
                     raise exceptions.UsageLimitsExceededException(self, message)
                 if self.status_code == 404:
-                    raise exceptions.NotFoundException(self, self.result)
+                    raise exceptions.NotFoundException(self, self._result)
                 raise exceptions.RequestException(self, self._bad_status_message())
             elif self.status_code == 204:
                 raise exceptions.NoResultsException(self, 'The request returned no results.')
             elif issubclass(self.result_parser, BaseJsonResource):
                 self._extract_json_body(result)
+                if 'has_more' in self.json:
+                    # has_more will always be present, being either False or True
+                    self._paginated = True
                 self.total = self.json.get('total')
                 self.limit = self.json.get('limit')
                 self.offset = self.json.get('offset')
@@ -152,13 +164,13 @@ class PolyswarmRequest(object):
                         'The response standard must contain either the "result" or "results" key.'
                     )
                 if isinstance(result, list):
-                    self.result = self.result_parser.parse_result_list(self.api_instance, result, **self.parser_kwargs)
+                    self._result = self.result_parser.parse_result_list(self.api_instance, result, **self.parser_kwargs)
                 else:
-                    self.result = self.result_parser.parse_result(self.api_instance, result, **self.parser_kwargs)
+                    self._result = self.result_parser.parse_result(self.api_instance, result, **self.parser_kwargs)
             else:
-                self.result = self.result_parser.parse_result(self.api_instance,
-                                                              result.iter_content(settings.DOWNLOAD_CHUNK_SIZE),
-                                                              **self.parser_kwargs)
+                self._result = self.result_parser.parse_result(self.api_instance,
+                                                               result.iter_content(settings.DOWNLOAD_CHUNK_SIZE),
+                                                               **self.parser_kwargs)
         except JSONDecodeError as e:
             if self.status_code == 404:
                 raise raise_from(exceptions.NotFoundException(self, 'The requested endpoint does not exist.'), e)
@@ -177,10 +189,10 @@ class PolyswarmRequest(object):
             # consume items items from list if iterable
             # of yield the single result if not
             try:
-                for result in request.result:
+                for result in request._result:
                     yield result
             except TypeError:
-                yield request.result
+                yield request._result
                 # if the result is not a list, there is not next page
                 return
 
