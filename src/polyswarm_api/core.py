@@ -230,6 +230,12 @@ class BaseJsonResource(BaseResource):
         super(BaseJsonResource, self).__init__(content, *args, **kwargs)
         self.json = content
 
+    def __int__(self):
+        id_ = getattr(self, 'id', None)
+        if id_ is None:
+            raise TypeError('Resource {} does not have an id and can not be cast to int'.format(type(self).__name__))
+        return int(id_)
+
     @classmethod
     def parse_result_list(cls, api_instance, json_data, **kwargs):
         return [cls.parse_result(api_instance, entry, **kwargs) for entry in json_data]
@@ -477,11 +483,6 @@ class Hashable(object):
 
     def __eq__(self, other):
         return self.hash == other
-
-
-class AsInteger(object):
-    def __int__(self):
-        return int(self.id)
 
 
 def parse_isoformat(date_string):

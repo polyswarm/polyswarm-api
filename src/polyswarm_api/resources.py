@@ -35,7 +35,7 @@ class Engine(core.BaseJsonResource):
         return {'Authorization': None}
 
 
-class Metadata(core.BaseJsonResource, core.AsInteger):
+class Metadata(core.BaseJsonResource):
     RESOURCE_ENDPOINT = '/search/metadata/query'
     KNOWN_KEYS = {'artifact', 'exiftool', 'hash', 'lief', 'pefile', 'scan', 'strings'}
 
@@ -82,7 +82,7 @@ class Metadata(core.BaseJsonResource, core.AsInteger):
             raise AttributeError()
 
 
-class ArtifactInstance(core.BaseJsonResource, core.Hashable, core.AsInteger):
+class ArtifactInstance(core.BaseJsonResource, core.Hashable):
     def __init__(self, content, api=None):
         super(ArtifactInstance, self).__init__(content=content, api=api,
                                                hash_value=content['sha256'], hash_type='sha256')
@@ -268,7 +268,7 @@ class ArtifactInstance(core.BaseJsonResource, core.Hashable, core.AsInteger):
         return []
 
 
-class ArtifactArchive(core.BaseJsonResource, core.AsInteger):
+class ArtifactArchive(core.BaseJsonResource):
     RESOURCE_ENDPOINT = '/consumer/download/stream'
 
     def __init__(self, content, api=None):
@@ -283,7 +283,7 @@ class ArtifactArchive(core.BaseJsonResource, core.AsInteger):
         return cls._params('since', **kwargs)
 
 
-class Hunt(core.BaseJsonResource, core.AsInteger):
+class Hunt(core.BaseJsonResource):
     def __init__(self, content, api=None):
         super(Hunt, self).__init__(content=content, api=api)
         # active only present for live hunts
@@ -310,7 +310,7 @@ class HistoricalHunt(Hunt):
         return cls._params('since', **kwargs)
 
 
-class HuntResult(core.BaseJsonResource, core.AsInteger):
+class HuntResult(core.BaseJsonResource):
     def __init__(self, content, api=None):
         super(HuntResult, self).__init__(content=content, api=api)
         self.id = content['id']
@@ -491,7 +491,7 @@ class LocalArtifact(LocalHandle, core.Hashable):
         return "Artifact <%s>" % self.hash
 
 
-class YaraRuleset(core.BaseJsonResource, core.AsInteger):
+class YaraRuleset(core.BaseJsonResource):
     RESOURCE_ENDPOINT = '/hunt/rule'
 
     def __init__(self, content, api=None):
@@ -517,7 +517,7 @@ class YaraRuleset(core.BaseJsonResource, core.AsInteger):
         return True
 
 
-class TagLink(core.BaseJsonResource, core.AsInteger):
+class TagLink(core.BaseJsonResource):
     RESOURCE_ENDPOINT = '/tags/link'
     RESOURCE_ID_KEY = 'hash'
 
@@ -542,7 +542,7 @@ class TagLink(core.BaseJsonResource, core.AsInteger):
         return params, None
 
 
-class MalwareFamily(core.BaseJsonResource, core.AsInteger):
+class MalwareFamily(core.BaseJsonResource):
     RESOURCE_ENDPOINT = '/tags/family'
     RESOURCE_ID_KEY = 'name'
 
@@ -555,7 +555,7 @@ class MalwareFamily(core.BaseJsonResource, core.AsInteger):
         self.emerging = core.parse_isoformat(content.get('emerging'))
 
 
-class Tag(core.BaseJsonResource, core.AsInteger):
+class Tag(core.BaseJsonResource):
     RESOURCE_ENDPOINT = '/tags/family'
     RESOURCE_ID_KEY = 'name'
 
@@ -638,8 +638,8 @@ class ArtifactType(Enum):
 
 
 class Hash(core.Hashable):
-    def __init__(self, hash_, hash_type=None):
-        super(Hash, self).__init__(hash_value=hash_, hash_type=hash_type, validate_hash=True)
+    def __init__(self, hash_, hash_type=None, validate_hash=True):
+        super(Hash, self).__init__(hash_value=hash_, hash_type=hash_type, validate_hash=validate_hash)
 
     @classmethod
     def from_hashable(cls, hash_, hash_type=None):
