@@ -188,7 +188,7 @@ class PolyswarmRequest(object):
             if not request.has_more:
                 return
             # try to get the next page and execute the request
-            request = request.next_page().execute()
+            request = request.next_page()
 
     def next_page(self):
         new_parameters = deepcopy(self.request_parameters)
@@ -204,7 +204,7 @@ class PolyswarmRequest(object):
             self.api_instance,
             new_parameters,
             result_parser=self.result_parser,
-        )
+        ).execute()
 
 
 class BaseResource(object):
@@ -342,7 +342,7 @@ class BaseJsonResource(BaseResource):
              'json': json_params,
              'headers': cls._create_headers(api)},
             result_parser=cls,
-        )
+        ).execute()
 
     @classmethod
     def get(cls, api, **kwargs):
@@ -355,7 +355,7 @@ class BaseJsonResource(BaseResource):
              'json': json_params,
              'headers': cls._get_headers(api)},
             result_parser=cls,
-        )
+        ).execute()
 
     @classmethod
     def update(cls, api, **kwargs):
@@ -368,7 +368,7 @@ class BaseJsonResource(BaseResource):
              'json': json_params,
              'headers': cls._update_headers(api)},
             result_parser=cls,
-        )
+        ).execute()
 
     @classmethod
     def delete(cls, api, **kwargs):
@@ -381,7 +381,7 @@ class BaseJsonResource(BaseResource):
              'json': json_params,
              'headers': cls._delete_headers(api)},
             result_parser=cls,
-        )
+        ).execute()
 
     @classmethod
     def list(cls, api, **kwargs):
@@ -394,7 +394,7 @@ class BaseJsonResource(BaseResource):
              'json': json_params,
              'headers': cls._list_headers(api)},
             result_parser=cls,
-        )
+        ).execute()
 
 
 def is_hex(value):

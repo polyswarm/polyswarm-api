@@ -133,7 +133,7 @@ class ArtifactInstance(core.BaseJsonResource, core.Hashable):
                 },
             },
             result_parser=cls,
-        )
+        ).execute()
 
     @classmethod
     def search_url(cls, api, url):
@@ -147,7 +147,7 @@ class ArtifactInstance(core.BaseJsonResource, core.Hashable):
                 },
             },
             result_parser=cls,
-        )
+        ).execute()
 
     @classmethod
     def list_scans(cls, api, hash_value):
@@ -161,7 +161,7 @@ class ArtifactInstance(core.BaseJsonResource, core.Hashable):
                 },
             },
             result_parser=cls,
-        )
+        ).execute()
 
     @classmethod
     def submit(cls, api, artifact, artifact_name, artifact_type, scan_config=None):
@@ -182,7 +182,7 @@ class ArtifactInstance(core.BaseJsonResource, core.Hashable):
             api,
             parameters,
             result_parser=cls,
-        )
+        ).execute()
 
     @classmethod
     def rescan(cls, api, hash_value, hash_type, scan_config=None):
@@ -196,7 +196,7 @@ class ArtifactInstance(core.BaseJsonResource, core.Hashable):
             api,
             parameters,
             result_parser=cls,
-        )
+        ).execute()
 
     @classmethod
     def rescanid(cls, api, submission_id, scan_config=None):
@@ -210,7 +210,7 @@ class ArtifactInstance(core.BaseJsonResource, core.Hashable):
             api,
             parameters,
             result_parser=cls,
-        )
+        ).execute()
 
     @classmethod
     def lookup_uuid(cls, api, submission_id):
@@ -221,7 +221,7 @@ class ArtifactInstance(core.BaseJsonResource, core.Hashable):
                 'url': '{}/consumer/submission/{}/{}'.format(api.uri, api.community, int(submission_id)),
             },
             result_parser=cls,
-        )
+        ).execute()
 
     @classmethod
     def metadata_rerun(cls, api, hashes, analyses=None, skip_es=None):
@@ -238,7 +238,7 @@ class ArtifactInstance(core.BaseJsonResource, core.Hashable):
             api,
             parameters,
             result_parser=cls,
-        )
+        ).execute()
 
     def __str__(self):
         return "ArtifactInstance-<%s>" % self.hash
@@ -374,7 +374,7 @@ class LocalHandle(core.BaseResource):
             },
             result_parser=cls,
             handle=handle,
-        )
+        ).execute()
 
     @classmethod
     def download_archive(cls, api, u, handle=None):
@@ -389,7 +389,7 @@ class LocalHandle(core.BaseResource):
             },
             result_parser=cls,
             handle=handle,
-        )
+        ).execute()
 
     # Inspired by
     # https://github.com/python/cpython/blob/29500737d45cbca9604d9ce845fb2acc3f531401/Lib/tempfile.py#L461
