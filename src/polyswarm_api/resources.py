@@ -556,7 +556,7 @@ class MalwareFamily(core.BaseJsonResource):
 
 
 class Tag(core.BaseJsonResource):
-    RESOURCE_ENDPOINT = '/tags/family'
+    RESOURCE_ENDPOINT = '/tags/tag'
     RESOURCE_ID_KEY = 'name'
 
     def __init__(self, content, api=None):
