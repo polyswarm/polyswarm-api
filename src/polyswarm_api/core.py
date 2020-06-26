@@ -280,7 +280,7 @@ class BaseJsonResource(BaseResource):
         return cls._endpoint(api, **kwargs)
 
     @classmethod
-    def _params(cls, *param_keys, **kwargs):
+    def _params(cls, method, *param_keys, **kwargs):
         params = {}
         json_params = {}
         for k, v in kwargs.items():
@@ -296,33 +296,36 @@ class BaseJsonResource(BaseResource):
                     parsed_value = int(v)
                 else:
                     parsed_value = v
-                if k in param_keys:
+                if method == 'POST':
+                    json_params[k] = parsed_value
+                elif method == 'GET' or k in param_keys:
                     params[k] = parsed_value
                 else:
                     json_params[k] = parsed_value
+
         params = params if params else None
         json_params = json_params if json_params else None
         return params, json_params
 
     @classmethod
     def _list_params(cls, **kwargs):
-        return cls._params(cls.RESOURCE_ID_KEY, **kwargs)
+        return cls._params('GET', cls.RESOURCE_ID_KEY, **kwargs)
 
     @classmethod
     def _create_params(cls, **kwargs):
-        return cls._params(cls.RESOURCE_ID_KEY, **kwargs)
+        return cls._params('POST', cls.RESOURCE_ID_KEY, **kwargs)
 
     @classmethod
     def _get_params(cls, **kwargs):
-        return cls._params(cls.RESOURCE_ID_KEY, **kwargs)
+        return cls._params('GET', cls.RESOURCE_ID_KEY, **kwargs)
 
     @classmethod
     def _update_params(cls, **kwargs):
-        return cls._params(cls.RESOURCE_ID_KEY, **kwargs)
+        return cls._params('PUT', cls.RESOURCE_ID_KEY, **kwargs)
 
     @classmethod
     def _delete_params(cls, **kwargs):
-        return cls._params(cls.RESOURCE_ID_KEY, **kwargs)
+        return cls._params('DELETE', cls.RESOURCE_ID_KEY, **kwargs)
 
     @classmethod
     def _list_headers(cls, api):
