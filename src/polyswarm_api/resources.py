@@ -66,10 +66,6 @@ class Metadata(core.BaseJsonResource):
         self.ipv6 = self.strings.get('ipv6')
         self.urls = self.strings.get('urls')
 
-    @classmethod
-    def _get_params(cls, **kwargs):
-        return cls._params('query', **kwargs)
-
     def __contains__(self, item):
         return item in self.json
 
@@ -278,10 +274,6 @@ class ArtifactArchive(core.BaseJsonResource):
         self.created = core.parse_isoformat(content['created'])
         self.uri = content['uri']
 
-    @classmethod
-    def _get_params(cls, **kwargs):
-        return cls._params('since', **kwargs)
-
 
 class Hunt(core.BaseJsonResource):
     def __init__(self, content, api=None):
@@ -297,17 +289,9 @@ class Hunt(core.BaseJsonResource):
 class LiveHunt(Hunt):
     RESOURCE_ENDPOINT = '/hunt/live'
 
-    @classmethod
-    def _list_params(cls, **kwargs):
-        return cls._params('since', 'all', **kwargs)
-
 
 class HistoricalHunt(Hunt):
     RESOURCE_ENDPOINT = '/hunt/historical'
-
-    @classmethod
-    def _list_params(cls, **kwargs):
-        return cls._params('since', **kwargs)
 
 
 class HuntResult(core.BaseJsonResource):
@@ -326,17 +310,9 @@ class HuntResult(core.BaseJsonResource):
 class LiveHuntResult(HuntResult):
     RESOURCE_ENDPOINT = '/hunt/live/results'
 
-    @classmethod
-    def _get_params(cls, **kwargs):
-        return cls._params('id', 'since', 'tag', 'rule_name', **kwargs)
-
 
 class HistoricalHuntResult(HuntResult):
     RESOURCE_ENDPOINT = '/hunt/historical/results'
-
-    @classmethod
-    def _get_params(cls, **kwargs):
-        return cls._params('id', 'tag', 'rule_name', **kwargs)
 
 
 def _read_chunks(file_handle):
