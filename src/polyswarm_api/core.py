@@ -284,22 +284,22 @@ class BaseJsonResource(BaseResource):
         params = {}
         json_params = {}
         for k, v in kwargs.items():
-            # try to parse "*_id" stuff as integer
-            if k.endswith('_id'):
-                try:
-                    parsed_value = str(int(v))
-                except Exception:
-                    # fallback to string
-                    parsed_value = str(v)
-            elif isinstance(v, bool):
-                parsed_value = int(v)
-            else:
-                parsed_value = v
-            if k in param_keys:
-                params[k] = parsed_value
-            else:
-                json_params[k] = parsed_value
-        json_params = kwargs
+            if v is not None:
+                # try to parse "*_id" stuff as integer
+                if k.endswith('_id'):
+                    try:
+                        parsed_value = str(int(v))
+                    except Exception:
+                        # fallback to string
+                        parsed_value = str(v)
+                elif isinstance(v, bool):
+                    parsed_value = int(v)
+                else:
+                    parsed_value = v
+                if k in param_keys:
+                    params[k] = parsed_value
+                else:
+                    json_params[k] = parsed_value
         params = params if params else None
         json_params = json_params if json_params else None
         return params, json_params
@@ -345,69 +345,40 @@ class BaseJsonResource(BaseResource):
         return None
 
     @classmethod
+    def _build_request(cls, api, method, url, headers, params, json_params):
+        request_params = {'method': method, 'url': url}
+        if params:
+            request_params['params'] = params
+        if json_params:
+            request_params['json'] = json_params
+        if headers:
+            request_params['headers'] = headers
+        return PolyswarmRequest(api, request_params, result_parser=cls)
+
+    @classmethod
     def create(cls, api, **kwargs):
-        params, json_params = cls._create_params(**kwargs)
-        return PolyswarmRequest(
-            api,
-            {'method': 'POST',
-             'url': cls._create_endpoint(api, **kwargs),
-             'params': params,
-             'json': json_params,
-             'headers': cls._create_headers(api)},
-            result_parser=cls,
-        ).execute()
+        return cls._build_request(api, 'POST', cls._create_endpoint(api, **kwargs),
+                                  cls._create_headers(api), *cls._create_params(**kwargs)).execute()
 
     @classmethod
     def get(cls, api, **kwargs):
-        params, json_params = cls._get_params(**kwargs)
-        return PolyswarmRequest(
-            api,
-            {'method': 'GET',
-             'url': cls._get_endpoint(api, **kwargs),
-             'params': params,
-             'json': json_params,
-             'headers': cls._get_headers(api)},
-            result_parser=cls,
-        ).execute()
+        return cls._build_request(api, 'GET', cls._get_endpoint(api, **kwargs),
+                                  cls._get_headers(api), *cls._get_params(**kwargs)).execute()
 
     @classmethod
     def update(cls, api, **kwargs):
-        params, json_params = cls._update_params(**kwargs)
-        return PolyswarmRequest(
-            api,
-            {'method': 'PUT',
-             'url': cls._update_endpoint(api, **kwargs),
-             'params': params,
-             'json': json_params,
-             'headers': cls._update_headers(api)},
-            result_parser=cls,
-        ).execute()
+        return cls._build_request(api, 'PUT', cls._update_endpoint(api, **kwargs),
+                                  cls._update_headers(api), *cls._update_params(**kwargs)).execute()
 
     @classmethod
     def delete(cls, api, **kwargs):
-        params, json_params = cls._delete_params(**kwargs)
-        return PolyswarmRequest(
-            api,
-            {'method': 'DELETE',
-             'url': cls._delete_endpoint(api, **kwargs),
-             'params': params,
-             'json': json_params,
-             'headers': cls._delete_headers(api)},
-            result_parser=cls,
-        ).execute()
+        return cls._build_request(api, 'DELETE', cls._delete_endpoint(api, **kwargs),
+                                  cls._delete_headers(api), *cls._delete_params(**kwargs)).execute()
 
     @classmethod
     def list(cls, api, **kwargs):
-        params, json_params = cls._list_params(**kwargs)
-        return PolyswarmRequest(
-            api,
-            {'method': 'GET',
-             'url': cls._list_endpoint(api, **kwargs),
-             'params': params,
-             'json': json_params,
-             'headers': cls._list_headers(api)},
-            result_parser=cls,
-        ).execute()
+        return cls._build_request(api, 'GET', cls._list_endpoint(api, **kwargs),
+                                  cls._list_headers(api), *cls._list_params(**kwargs)).execute()
 
 
 def is_hex(value):
