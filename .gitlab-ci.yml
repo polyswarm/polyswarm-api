@@ -72,10 +72,11 @@ release-pypi:
     - kube
   stage: release
   script:
+    # release to internal pypi but do not tag yet
+    - e2e release --skip-tag --remote https://github.com/polyswarm/$CI_PROJECT_NAME.git
+    # release to public pypi and tag
     - e2e release
       -u $PUBLIC_TWINE_USERNAME
       -p $PUBLIC_TWINE_PASSWORD
       -r $PUBLIC_TWINE_REPOSITORY_URL
       --remote https://github.com/polyswarm/$CI_PROJECT_NAME.git
-    # release to internal pypi as well
-    - twine upload --skip-existing --disable-progress-bar --non-interactive dist/*
