@@ -77,3 +77,5 @@ release-pypi:
       -p $PUBLIC_TWINE_PASSWORD
       -r $PUBLIC_TWINE_REPOSITORY_URL
       --remote https://github.com/polyswarm/$CI_PROJECT_NAME.git
+    # release to internal pypi as well
+    - twine upload --skip-existing --disable-progress-bar --non-interactive dist/*
