@@ -36,8 +36,9 @@ test-run27:
   image: python:2.7
   stage: test
   before_script:
-    - pip install -r requirements.txt
+    - pip install --upgrade pip
   script:
+    - pip install -r requirements.txt
     - pip install .
     - pytest -s -v
 
@@ -47,8 +48,9 @@ test-run35:
   image: python:3.5
   stage: test
   before_script:
-    - pip install -r requirements.txt
+    - pip install --upgrade pip
   script:
+    - pip install -r requirements.txt
     - pip install .
     - pytest -s -v
 
@@ -58,8 +60,9 @@ test-run36:
   image: python:3.6
   stage: test
   before_script:
-    - pip install -r requirements.txt
+    - pip install --upgrade pip
   script:
+    - pip install -r requirements.txt
     - pip install .
     - pytest -s -v
 
