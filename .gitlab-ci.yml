@@ -1,19 +1,40 @@
-image: docker:stable
-
-services:
-  - docker:dind
+image: $REPO_URL/stage
 
 stages:
+  - build
   - test
   - release
+
+default:
+  before_script:
+    - pip install --upgrade pip
+    - pip install -q $END_TO_END_LIB@$CI_COMMIT_REF_NAME || pip install -q $END_TO_END_LIB
+    - e2e init
+
+###############################################################
+# Build Stage (jobs inside a stage run in parallel)
+###############################################################
+
+dev-pypi:
+  tags:
+    - kube
+  stage: build
+  before_script:
+    - pip3 install -q --upgrade pip setuptools twine wheel bump2version
+  script:
+    - SHORT_SHA=$(git rev-parse --short HEAD) bumpversion --no-commit --no-tag local
+    - python setup.py -q bdist_wheel
+    - twine upload --skip-existing --disable-progress-bar --non-interactive dist/*
+
+###############################################################
+# Test Stage
+###############################################################
 
 test-run27:
   tags:
     - kube
   image: python:2.7
   stage: test
-  before_script:
-    - pip install --upgrade pip
   script:
     - pip install -r requirements.txt
     - pip install .
@@ -24,8 +45,6 @@ test-run35:
     - kube
   image: python:3.5
   stage: test
-  before_script:
-    - pip3 install --upgrade pip
   script:
     - pip install -r requirements.txt
     - pip3 install .
@@ -36,36 +55,22 @@ test-run36:
     - kube
   image: python:3.6
   stage: test
-  before_script:
-    - pip3 install --upgrade pip
   script:
     - pip install -r requirements.txt
     - pip3 install .
     - pytest -s -v
 
+###############################################################
+# Release Stage
+###############################################################
 
-push-to-pypi:
+release-pypi:
   tags:
     - kube
-  image: python:3.6
   stage: release
-  only:
-    - tags
-  before_script:
-    - pip3 install --upgrade pip setuptools twine wheel
   script:
-    - pip install -r requirements.txt
-    - python setup.py sdist bdist_wheel
-
-    # check git tag version vs setup.py version. bail if not equal.
-    - >-
-      tagver=$(git describe --abbrev=0 --tags)
-      setupver=$(grep "version=" setup.py | cut -d"'" -f 2)
-
-      if [ $tagver != $setupver ]; then
-        echo "git tag version ($tagver) does not match setup.py version ($setupver)"
-        exit 1
-      fi
-
-    # using env variables from Gitlab: TWINE_USERNAME, TWINE_PASSWORD, TWINE_REPOSITORY_URL
-    - twine upload dist/*
+    - e2e release
+      -u $PUBLIC_TWINE_USERNAME
+      -p $PUBLIC_TWINE_PASSWORD
+      -r $PUBLIC_TWINE_REPOSITORY_URL
+      --remote https://github.com/polyswarm/$CI_PROJECT_NAME.git
