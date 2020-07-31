@@ -249,6 +249,36 @@ class BaseJsonResource(BaseResource):
             raise TypeError('Resource {} does not have an id and can not be cast to int'.format(type(self).__name__))
         return int(id_)
 
+    def _get(self, path, default=None, content=None):
+        """
+        Helper for rendering attributes of child objects in the json that might be None.
+        Returns the default value if some of the items in the path is not present.
+        """
+        previous_attribute = 'resource_json'
+        obj = content or self.json
+        try:
+            for attribute in path.split('.'):
+                if obj is None:
+                    raise KeyError(f'{previous_attribute} is None, can not resolve full path')
+                if attribute.endswith(']'):
+                    # handling the list case, e.g.: "root.list_attr[2]"
+                    attribute, _, index = attribute.rpartition('[')
+                    index = int(index.rstrip(']'))
+                    obj = obj[attribute]
+                    if obj is None:
+                        raise KeyError(f'{attribute} is None, but is it supposed to be a list')
+                    elif not isinstance(obj, list):
+                        raise ValueError(f'Can not access index for {attribute}, it is not a list.')
+                    else:
+                        obj = obj[index]
+                else:
+                    obj = obj[attribute]
+                previous_attribute = attribute
+            return obj
+        except (KeyError, IndexError) as e:
+            logger.debug('Returning default value: %s', e)
+            return default
+
     @classmethod
     def parse_result_list(cls, api_instance, json_data, **kwargs):
         return [cls.parse_result(api_instance, entry, **kwargs) for entry in json_data]
