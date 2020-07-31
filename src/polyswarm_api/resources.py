@@ -43,28 +43,27 @@ class Metadata(core.BaseJsonResource):
         super(Metadata, self).__init__(content=content, api=api)
         self.created = core.parse_isoformat(self.artifact.get('created'))
 
-        self.id = self.artifact.get('id')
+        self.id = self._get('artifact.id')
+        self.sha1 = self._get('artifact.sha1')
+        self.sha256 = self._get('artifact.sha256')
+        self.md5 = self._get('artifact.md5')
 
-        self.sha1 = self.artifact.get('sha1')
-        self.sha256 = self.artifact.get('sha256')
-        self.md5 = self.artifact.get('md5')
+        self.ssdeep = self._get('hash.ssdeep')
+        self.tlsh = self._get('hash.tlsh')
 
-        self.ssdeep = self.hash.get('ssdeep')
-        self.tlsh = self.hash.get('tlsh')
+        self.first_seen = core.parse_isoformat(self._get('scan.first_scan.created'))
+        self.last_scanned = core.parse_isoformat(self._get('scan.latest_scan.created'))
+        self.mimetype = self._get('scan.mimetype.mime')
+        self.extended_mimetype = self._get('scan.mimetype.extended')
+        self.malicious = self._get('scan.detections.malicious')
+        self.benign = self._get('scan.detections.benign')
+        self.total_detections = self._get('scan.detections.total')
+        self.filenames = self._get('scan.filename')
 
-        self.first_seen = core.parse_isoformat(self.scan.get('first_scan', {}).get('created'))
-        self.last_scanned = core.parse_isoformat(self.scan.get('latest_scan', {}).get('created'))
-        self.mimetype = self.scan.get('mimetype', {}).get('mime')
-        self.extended_mimetype = self.scan.get('mimetype', {}).get('extended')
-        self.malicious = self.scan.get('detections', {}).get('malicious')
-        self.benign = self.scan.get('detections', {}).get('benign')
-        self.total_detections = self.scan.get('detections', {}).get('total')
-        self.filenames = self.scan.get('filename')
-
-        self.domains = self.strings.get('domains')
-        self.ipv4 = self.strings.get('ipv4')
-        self.ipv6 = self.strings.get('ipv6')
-        self.urls = self.strings.get('urls')
+        self.domains = self._get('strings.domains')
+        self.ipv4 = self._get('strings.ipv4')
+        self.ipv6 = self._get('strings.ipv6')
+        self.urls = self._get('strings.urls')
 
     def __contains__(self, item):
         return item in self.json
