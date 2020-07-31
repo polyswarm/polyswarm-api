@@ -17,3 +17,6 @@ dist
 _build
 _static
 _templates
+
+docker-compose.yaml
+e2e.yaml

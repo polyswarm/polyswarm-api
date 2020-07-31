@@ -8,6 +8,7 @@ from contextlib import contextmanager
 from future.utils import string_types
 
 from polyswarm_api.api import PolyswarmAPI
+from polyswarm_api import core
 from polyswarm_api import exceptions
 
 try:
@@ -36,6 +37,24 @@ def temp_dir(files_dict):
             open(file_path, mode=mode).write(file_content)
             files.append(file_path)
         yield tmp_dir, files
+
+
+class JsonResourceTestCase(TestCase):
+    def test_json_get(self):
+        obj = core.BaseJsonResource({
+            'path1': {
+                'path2': [
+                    {
+                        'path3': 'value1',
+                        'path4': 'value2'
+                    },
+                ],
+            },
+        })
+        assert obj._get('path1.path2[0].path3') == 'value1'
+        assert obj._get('path1.path2[0].path4') == 'value2'
+        assert obj._get('path1.path2[1].path4') is None
+        assert obj._get('path1.path3.path5') is None
 
 
 class ScanTestCaseV2(TestCase):
