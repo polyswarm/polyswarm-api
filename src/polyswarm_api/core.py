@@ -259,16 +259,16 @@ class BaseJsonResource(BaseResource):
         try:
             for attribute in path.split('.'):
                 if obj is None:
-                    raise KeyError(f'{previous_attribute} is None, can not resolve full path')
+                    raise KeyError('{} is None, can not resolve full path'.format(previous_attribute))
                 if attribute.endswith(']'):
                     # handling the list case, e.g.: "root.list_attr[2]"
                     attribute, _, index = attribute.rpartition('[')
                     index = int(index.rstrip(']'))
                     obj = obj[attribute]
                     if obj is None:
-                        raise KeyError(f'{attribute} is None, but is it supposed to be a list')
+                        raise KeyError('{} is None, but is it supposed to be a list'.format(attribute))
                     elif not isinstance(obj, list):
-                        raise ValueError(f'Can not access index for {attribute}, it is not a list.')
+                        raise ValueError('Can not access index for {}, it is not a list.'.format(attribute))
                     else:
                         obj = obj[index]
                 else:
