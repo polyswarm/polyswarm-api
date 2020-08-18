@@ -398,8 +398,8 @@ class PolyswarmAPI(object):
         :return: A TagLink resource
         """
         logger.info('List tag links')
-        return resources.TagLink.list_tag_link(self, tags=tags, families=families,
-                                               or_tags=or_tags, or_families=or_families).result()
+        return resources.TagLink.list(self, tags=tags, families=families,
+                                      or_tags=or_tags, or_families=or_families).result()
 
     def tag_create(self, name):
         """
