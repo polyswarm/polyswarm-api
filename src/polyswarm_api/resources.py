@@ -83,7 +83,7 @@ class ArtifactInstance(core.BaseJsonResource, core.Hashable):
                                                hash_value=content['sha256'], hash_type='sha256')
         # Artifact fields
         self.sha256 = content['sha256']
-        self.artifact_id = content['artifact_id']
+        self.artifact_id = content.get('artifact_id')
         self.md5 = content['md5']
         self.sha1 = content['sha1']
         self.mimetype = content['mimetype']
@@ -91,8 +91,8 @@ class ArtifactInstance(core.BaseJsonResource, core.Hashable):
         self.extended_type = content['extended_type']
         self.first_seen = core.parse_isoformat(content['first_seen'])
         # Deprecated
-        self.last_seen = core.parse_isoformat(content['last_seen'])
-        self.last_scanned = core.parse_isoformat(content['last_scanned'])
+        self.last_seen = core.parse_isoformat(content.get('last_seen'))
+        self.last_scanned = core.parse_isoformat(content.get('last_scanned'))
         metadata_json = content.get('metadata') or []
         metadata = {metadata['tool']: metadata['tool_metadata'] for metadata in metadata_json}
         self.metadata = Metadata(metadata, api)
