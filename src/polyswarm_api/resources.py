@@ -35,6 +35,10 @@ class Engine(core.BaseJsonResource):
         return {'Authorization': None}
 
 
+class ToolMetadata(core.BaseJsonResource):
+    RESOURCE_ENDPOINT = '/artifact/metadata'
+
+
 class Metadata(core.BaseJsonResource):
     RESOURCE_ENDPOINT = '/search/metadata/query'
     KNOWN_KEYS = {'artifact', 'exiftool', 'hash', 'lief', 'pefile', 'scan', 'strings'}

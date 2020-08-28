@@ -321,3 +321,24 @@ class ScanTestCaseV2(TestCase):
         with pytest.raises(exceptions.NoResultsException):
             list(api.ruleset_list())
 
+    @responses.activate
+    def test_tool_metadata(self):
+        responses.add(responses.POST, 'http://localhost:9696/v2/artifact/metadata',
+                      json={'result': {'created': '2020-08-28T21:44:16.131066', 'tool': 'test_tool_1', 'tool_metadata': {'key': 'value'}}, 'status': 'OK'},
+                      )
+        responses.add(responses.POST, 'http://localhost:9696/v2/artifact/metadata',
+                      json={'result': {'created': '2020-08-28T21:44:40.217268', 'tool': 'test_tool_2', 'tool_metadata': {'key2': 'value2'}}, 'status': 'OK'},
+                      )
+        responses.add(responses.GET, 'http://localhost:9696/v2/artifact/metadata/list',
+                      json={'has_more': False, 'limit': 50, 'offset': 'gAAAAABfSXri8LTKNfG5oaYItIx3YAViJ9SpBq0QnpE3N_CdkSX-_ymT4ShD-gwUC-HdDfSW4S9Q0RRaMi7zug4Wdond7LKbeA==', 'result': [{'created': '2020-08-28T21:44:40.217268', 'tool': 'test_tool_2', 'tool_metadata': {'key2': 'value2'}}, {'created': '2020-08-28T21:44:16.131066', 'tool': 'test_tool_1', 'tool_metadata': {'key': 'value'}}], 'status': 'OK'},
+                      )
+        api = PolyswarmAPI(self.test_api_key, uri='http://localhost:9696/{}'.format(self.api_version), community='gamma')
+        api.tool_metadata_create(
+            '275a021bbfb6489e54d471899f7db9d1663fc695ec2fe2a2c4538aabf651fd0f', 'test_tool_1', {'key': 'value'})
+        api.tool_metadata_create(
+            '275a021bbfb6489e54d471899f7db9d1663fc695ec2fe2a2c4538aabf651fd0f', 'test_tool_2', {'key2': 'value2'})
+        metadata = list(api.tool_metadata_list('275a021bbfb6489e54d471899f7db9d1663fc695ec2fe2a2c4538aabf651fd0f'))
+        assert metadata[0].json['tool'] == 'test_tool_2'
+        assert metadata[0].json['tool_metadata'] == {'key2': 'value2'}
+        assert metadata[1].json['tool'] == 'test_tool_1'
+        assert metadata[1].json['tool_metadata'] == {'key': 'value'}
