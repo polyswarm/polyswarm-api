@@ -554,3 +554,11 @@ class PolyswarmAPI(object):
     def rerun_metadata(self, hashes, analyses=None, skip_es=None):
         logger.info('Rerunning metadata for hashes %s', hashes)
         return resources.ArtifactInstance.metadata_rerun(self, hashes, analyses=analyses, skip_es=skip_es).result()
+
+    def tool_metadata_create(self, sha256, tool, tool_metadata):
+        logger.info('Create tool metadata %s %s %s', sha256, tool, tool_metadata)
+        return resources.ToolMetadata.create(self, sha256=sha256, tool=tool, tool_metadata=tool_metadata).result()
+
+    def tool_metadata_list(self, sha256):
+        logger.info('List tool metadata')
+        return resources.ToolMetadata.list(self, sha256=sha256).result()
