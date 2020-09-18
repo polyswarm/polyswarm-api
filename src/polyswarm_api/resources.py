@@ -39,6 +39,10 @@ class ToolMetadata(core.BaseJsonResource):
     RESOURCE_ENDPOINT = '/artifact/metadata'
 
 
+class MetadataMapping(core.BaseJsonResource):
+    RESOURCE_ENDPOINT = '/search/metadata/mappings'
+
+
 class Metadata(core.BaseJsonResource):
     RESOURCE_ENDPOINT = '/search/metadata/query'
     KNOWN_KEYS = {'artifact', 'exiftool', 'hash', 'lief', 'pefile', 'scan', 'strings'}

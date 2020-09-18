@@ -98,6 +98,10 @@ class PolyswarmAPI(object):
         hash_ = resources.Hash.from_hashable(hash_, hash_type='sha256')
         return resources.ArtifactInstance.list_scans(self, hash_.hash).result()
 
+    def metadata_mapping(self):
+        logger.info('Retrieving the metadata mapping')
+        return resources.MetadataMapping.get(self).result()
+
     def search_by_metadata(self, query):
         """
         Search artifacts by metadata
