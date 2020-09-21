@@ -102,15 +102,17 @@ class PolyswarmAPI(object):
         logger.info('Retrieving the metadata mapping')
         return resources.MetadataMapping.get(self).result()
 
-    def search_by_metadata(self, query):
+    def search_by_metadata(self, query, include=None, exclude=None):
         """
         Search artifacts by metadata
 
         :param query: A query string
+        :param include: A list of fields to be included in the result (.* wildcards are accepted)
+        :param exclude: A list of fields to be excluded from the result (.* wildcards are accepted)
         :return: Generator of ArtifactInstance resources
         """
         logger.info('Searching for metadata %s', query)
-        return resources.Metadata.get(self, query=query).result()
+        return resources.Metadata.get(self, query=query, include=include, exclude=exclude).result()
 
     def submit(self, artifact, artifact_type=resources.ArtifactType.FILE, artifact_name=None, scan_config=None):
         """

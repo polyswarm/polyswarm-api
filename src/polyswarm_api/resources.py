@@ -84,6 +84,17 @@ class Metadata(core.BaseJsonResource):
                 return {}
             raise AttributeError()
 
+    @classmethod
+    def _get_params(cls, **kwargs):
+        params = []
+        include = kwargs.pop('include', ()) or ()
+        exclude = kwargs.pop('exclude', ()) or ()
+        params.extend(('include', v) for v in include)
+        params.extend(('exclude', v) for v in exclude)
+        super_params, json_params = super(Metadata, cls)._get_params(**kwargs)
+        params.extend(super_params.items())
+        return params, json_params
+
 
 class ArtifactInstance(core.BaseJsonResource, core.Hashable):
     def __init__(self, content, api=None):
