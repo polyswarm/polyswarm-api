@@ -39,6 +39,10 @@ class ToolMetadata(core.BaseJsonResource):
     RESOURCE_ENDPOINT = '/artifact/metadata'
 
 
+class MetadataMapping(core.BaseJsonResource):
+    RESOURCE_ENDPOINT = '/search/metadata/mappings'
+
+
 class Metadata(core.BaseJsonResource):
     RESOURCE_ENDPOINT = '/search/metadata/query'
     KNOWN_KEYS = {'artifact', 'exiftool', 'hash', 'lief', 'pefile', 'scan', 'strings'}
@@ -79,6 +83,17 @@ class Metadata(core.BaseJsonResource):
             if name in Metadata.KNOWN_KEYS:
                 return {}
             raise AttributeError()
+
+    @classmethod
+    def _get_params(cls, **kwargs):
+        params = []
+        include = kwargs.pop('include', ()) or ()
+        exclude = kwargs.pop('exclude', ()) or ()
+        params.extend(('include', v) for v in include)
+        params.extend(('exclude', v) for v in exclude)
+        super_params, json_params = super(Metadata, cls)._get_params(**kwargs)
+        params.extend(super_params.items())
+        return params, json_params
 
 
 class ArtifactInstance(core.BaseJsonResource, core.Hashable):
