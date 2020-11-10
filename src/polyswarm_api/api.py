@@ -7,7 +7,7 @@ import polyswarm_api.core
 try:
     from urllib.parse import urlparse
 except ImportError:
-    from urlparse import urlparse
+    from urlparse import urlparse  # type: ignore
 
 from future.utils import string_types
 
