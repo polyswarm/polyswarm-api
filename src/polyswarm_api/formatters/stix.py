@@ -2,6 +2,7 @@ import datetime
 from typing import Iterable
 
 from stix2.v21 import sro, sdo, observables
+from stix2.exceptions import STIXError
 
 from polyswarm_api.resources import ArtifactInstance, Metadata, Assertion
 
@@ -69,17 +70,13 @@ class StixEncoder:
 
     def encode_instance_as_file(self, inst):
         if inst.type != 'FILE':
-            return
+            raise ValueError('Cannot encode %s as observables.File' % self)
 
         try:
             extensions = {
-                'windows-pebinary-ext':
-                    next(self.encode(
-                        inst.metadata,
-                        into=observables.WindowsPEBinaryExt,
-                    ))
+                'windows-pebinary-ext': next(self.encode(inst.metadata, into=observables.WindowsPEBinaryExt))
             }
-        except (KeyError, StopIteration):
+        except STIXError:
             extensions = {}
 
         yield observables.File(
@@ -98,15 +95,16 @@ class StixEncoder:
         try:
             file = yield from return_final(self.encode(inst, into=observables.File))
             sample_refs = [file.id]
-        except StopIteration:
+        except (ValueError, STIXError):
             sample_refs = None
-        families = (
-            a.metadata.get('malware_family') for a in inst.assertions if a.engine_name not in {'k7', 'K7'}
-        )
 
         yield sdo.Malware(
             is_family=False,
-            aliases=list(set(filter(None, families))) or None,
+            aliases=list(set(filter(None, (
+                a.metadata.get('malware_family')
+                for a in inst.assertions
+                if a.engine_name != 'K7'
+            )))) or None,
             first_seen=inst.first_seen,
             last_seen=inst.last_seen,
             sample_refs=sample_refs,
@@ -133,7 +131,7 @@ class StixEncoder:
     def encode_metadata_as_windows_pe_header(self, meta):
         def version_part(nth_split, k):
             try:
-                return str(meta.exiftool[k]).split('.')[nth_split]
+                return str(meta.exiftool.get(k)).split('.')[nth_split]
             except KeyError:
                 return None
 
@@ -156,8 +154,8 @@ class StixEncoder:
 
     def encode_metadata_as_windows_pe_binary(self, meta):
         try:
-            optional_header = next(self.encode(meta, into=observables.WindowsPEOptionalHeaderType))
-        except (StopIteration, ValueError):
+            optional_header = next(self.encode(meta, into=observables.WindowsPEOptionalHeaderType), None)
+        except STIXError:
             optional_header = None
 
         yield observables.WindowsPEBinaryExt(
