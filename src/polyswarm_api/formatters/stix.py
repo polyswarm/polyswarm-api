@@ -100,19 +100,13 @@ class StixEncoder:
             sample_refs = [file.id]
         except StopIteration:
             sample_refs = None
+        families = (
+            a.metadata.get('malware_family') for a in inst.assertions if a.engine_name not in {'k7', 'K7'}
+        )
 
         yield sdo.Malware(
             is_family=False,
-            aliases=list(
-                set(
-                    filter(
-                        None, (
-                            a.metadata.get('malware_family')
-                            for a in inst.assertions if a.engine_name not in {'k7', 'K7'}
-                        )
-                    )
-                )
-            ) or None,
+            aliases=list(set(filter(None, families))) or None,
             first_seen=inst.first_seen,
             last_seen=inst.last_seen,
             sample_refs=sample_refs,
