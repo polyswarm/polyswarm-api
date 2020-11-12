@@ -1,5 +1,4 @@
 import datetime
-from collections import defaultdict
 from typing import Iterable
 
 from stix2.v21 import sro, sdo, observables
@@ -26,7 +25,7 @@ def capedate(d):
     return datetime.datetime.strptime(d, '%Y-%m-%d %H:%M:%S')
 
 
-def emitlast(it):
+def return_final(it):
     """Yield from an iterator, returning the final (root) STIX object yielded"""
     o = None
     for o in it:
@@ -38,22 +37,22 @@ class StixEncoder:
     """
     >>> StixEncoder()
     """
-    registry = defaultdict(dict)
+    registry = {}
 
     def encode(self, o, into=None):
         """
-        Encode a Polyswarm object (``o``) into corresponding
+        Encode a PolySwarm object (``o``) into corresponding
         STIX objects, which may be selected with ``into`
         """
-        source = type(o)
-        if source in self.registry:
-            yield from self.registry[source][into](self, o)
+        key = (type(o), into) if into else type(o)
+        if key in self.registry:
+            yield from self.registry[key](self, o)
         elif isinstance(o, Iterable):
             for elt in o:
-                yield from self.encode(elt, into=into)
+                yield from self.encode(elt, into)
 
     def encode_instance(self, inst):
-        malware = yield from emitlast(self.encode(inst, into=sdo.Malware))
+        malware = yield from return_final(self.encode(inst, into=sdo.Malware))
 
         for assertion in inst.assertions:
             for o in self.encode(assertion):
@@ -66,8 +65,7 @@ class StixEncoder:
                         relationship_type='analysis_of',
                     )
         # yield from encode(inst.metadata)
-
-    registry[ArtifactInstance][None] = encode_instance
+    registry[ArtifactInstance] = encode_instance
 
     def encode_instance_as_file(self, inst):
         if inst.type != 'FILE':
@@ -94,12 +92,11 @@ class StixEncoder:
             mtime=exifdate(inst.metadata.exiftool['filemodifydate']),
             extensions=extensions,
         )
-
-    registry[ArtifactInstance][observables.File] = encode_instance_as_file
+    registry[ArtifactInstance, observables.File] = encode_instance_as_file
 
     def encode_instance_as_malware(self, inst):
         try:
-            file = yield from emitlast(self.encode(inst, into=observables.File))
+            file = yield from return_final(self.encode(inst, into=observables.File))
             sample_refs = [file.id]
         except StopIteration:
             sample_refs = None
@@ -120,13 +117,11 @@ class StixEncoder:
             last_seen=inst.last_seen,
             sample_refs=sample_refs,
         )
-
-    registry[ArtifactInstance][sdo.Malware] = encode_instance_as_malware
+    registry[ArtifactInstance, sdo.Malware] = encode_instance_as_malware
 
     def encode_assertion(self, assertion):
         yield from self.encode(assertion, into=sdo.MalwareAnalysis)
-
-    registry[Assertion][None] = encode_assertion
+    registry[Assertion] = encode_assertion
 
     def encode_assertion_as_malware_analysis(self, assertion):
         scanner = assertion.metadata.get('scanner', {})
@@ -139,8 +134,7 @@ class StixEncoder:
                 False: 'benign'
             }.get(assertion.verdict)
         )
-
-    registry[Assertion][sdo.MalwareAnalysis] = encode_assertion_as_malware_analysis
+    registry[Assertion, sdo.MalwareAnalysis] = encode_assertion_as_malware_analysis
 
     def encode_metadata_as_windows_pe_header(self, meta):
         def version_part(nth_split, k):
@@ -164,8 +158,7 @@ class StixEncoder:
             major_image_version=version_part(0, 'imageversion'),
             minor_image_version=version_part(1, 'imageversion'),
         )
-
-    registry[Metadata][observables.WindowsPEOptionalHeaderType] = encode_metadata_as_windows_pe_header
+    registry[Metadata, observables.WindowsPEOptionalHeaderType] = encode_metadata_as_windows_pe_header
 
     def encode_metadata_as_windows_pe_binary(self, meta):
         try:
@@ -179,8 +172,4 @@ class StixEncoder:
             imphash=meta.pefile.get('imphash'),
             optional_header=optional_header,
         )
-
-    registry[Metadata][observables.WindowsPEBinaryExt] = encode_metadata_as_windows_pe_binary
-
-
-list(StixEncoder().encode(t1))
+    registry[Metadata, observables.WindowsPEBinaryExt] = encode_metadata_as_windows_pe_binary
