@@ -26,11 +26,6 @@ def capedate(d):
     return datetime.datetime.strptime(d, '%Y-%m-%d %H:%M:%S')
 
 
-def encode(o, into=None):
-    """Convert Polyswarm objects into their STIX representation"""
-    yield from StixEncoder().encode(o, into=into)
-
-
 def emitlast(it):
     """Yield from an iterator, returning the final (root) STIX object yielded"""
     o = None
@@ -43,21 +38,7 @@ class StixEncoder:
     """
     >>> StixEncoder()
     """
-
-    def __init__(self):
-        self._populate_registry()
-
-    def _populate_registry(self):
-        """
-        Populate the dispatch registry, used to invoke different behavior
-        depending on the type of the object being encoded or type desired.
-        """
-        self.registry = defaultdict(dict)
-        for attr in dir(self.__class__):
-            fn = getattr(self, attr)
-            if callable(fn) and hasattr(fn, '_registration'):
-                source, into = fn._registration
-                self.registry[source][into] = fn
+    registry = defaultdict(dict)
 
     def encode(self, o, into=None):
         """
@@ -66,20 +47,12 @@ class StixEncoder:
         """
         source = type(o)
         if source in self.registry:
-            yield from self.registry[source][into](o)
+            yield from self.registry[source][into](self, o)
         elif isinstance(o, Iterable):
             for elt in o:
                 yield from self.encode(elt, into=into)
 
-    def register(source, into=None):
-        def wrapper(fn):
-            fn._registration = [source, into]
-            return fn
-
-        return wrapper
-
-    @register(ArtifactInstance)
-    def _encode_ArtifactInstance(self, inst):
+    def encode_instance(self, inst):
         malware = yield from emitlast(self.encode(inst, into=sdo.Malware))
 
         for assertion in inst.assertions:
@@ -92,11 +65,11 @@ class StixEncoder:
                         target_ref=malware.id,
                         relationship_type='analysis_of',
                     )
-
         # yield from encode(inst.metadata)
 
-    @register(ArtifactInstance, into=observables.File)
-    def _encode_ArtifactInstance_as_File(self, inst):
+    registry[ArtifactInstance][None] = encode_instance
+
+    def encode_instance_as_file(self, inst):
         if inst.type != 'FILE':
             return
 
@@ -122,8 +95,9 @@ class StixEncoder:
             extensions=extensions,
         )
 
-    @register(ArtifactInstance, into=sdo.Malware)
-    def _encode_ArtifactInstance_as_Malware(self, inst):
+    registry[ArtifactInstance][observables.File] = encode_instance_as_file
+
+    def encode_instance_as_malware(self, inst):
         try:
             file = yield from emitlast(self.encode(inst, into=observables.File))
             sample_refs = [file.id]
@@ -132,22 +106,29 @@ class StixEncoder:
 
         yield sdo.Malware(
             is_family=False,
-            aliases=list(set(filter(None, (
-                a.metadata.get('malware_family')
-                for a in inst.assertions
-                if a.engine_name not in {'k7', 'K7'}
-            )))) or None,
+            aliases=list(
+                set(
+                    filter(
+                        None, (
+                            a.metadata.get('malware_family')
+                            for a in inst.assertions if a.engine_name not in {'k7', 'K7'}
+                        )
+                    )
+                )
+            ) or None,
             first_seen=inst.first_seen,
             last_seen=inst.last_seen,
             sample_refs=sample_refs,
         )
 
-    @register(Assertion)
-    def _encode_Assertion(self, assertion):
+    registry[ArtifactInstance][sdo.Malware] = encode_instance_as_malware
+
+    def encode_assertion(self, assertion):
         yield from self.encode(assertion, into=sdo.MalwareAnalysis)
 
-    @register(Assertion, into=sdo.MalwareAnalysis)
-    def _encode_Assertion_MalwareAnalysis(self, assertion):
+    registry[Assertion][None] = encode_assertion
+
+    def encode_assertion_as_malware_analysis(self, assertion):
         scanner = assertion.metadata.get('scanner', {})
         yield sdo.MalwareAnalysis(
             product=assertion.author_name,
@@ -159,8 +140,9 @@ class StixEncoder:
             }.get(assertion.verdict)
         )
 
-    @register(Metadata, into=observables.WindowsPEOptionalHeaderType)
-    def _encode_Metadata_as_WindowsPEOptionalHeaderType(self, meta):
+    registry[Assertion][sdo.MalwareAnalysis] = encode_assertion_as_malware_analysis
+
+    def encode_metadata_as_windows_pe_header(self, meta):
         def version_part(nth_split, k):
             try:
                 return str(meta.exiftool[k]).split('.')[nth_split]
@@ -183,8 +165,9 @@ class StixEncoder:
             minor_image_version=version_part(1, 'imageversion'),
         )
 
-    @register(Metadata, into=observables.WindowsPEBinaryExt)
-    def _encode_Metadata_as_WindowsPEBinaryExt(self, meta):
+    registry[Metadata][observables.WindowsPEOptionalHeaderType] = encode_metadata_as_windows_pe_header
+
+    def encode_metadata_as_windows_pe_binary(self, meta):
         try:
             optional_header = next(self.encode(meta, into=observables.WindowsPEOptionalHeaderType))
         except (StopIteration, ValueError):
@@ -196,3 +179,8 @@ class StixEncoder:
             imphash=meta.pefile.get('imphash'),
             optional_header=optional_header,
         )
+
+    registry[Metadata][observables.WindowsPEBinaryExt] = encode_metadata_as_windows_pe_binary
+
+
+list(StixEncoder().encode(t1))
