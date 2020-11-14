@@ -382,7 +382,7 @@ class PolyswarmAPI(object):
         logger.info('Get tag link %s', sha256)
         return resources.TagLink.get(self, hash=sha256).result()
 
-    def tag_link_update(self, sha256, tags=None, families=None, remove=False):
+    def tag_link_update(self, sha256, tags=None, families=None, emerging=None, remove=False):
         """
         Update a TagLink with the given type or value by its id.
         :param sha256: The sha256 of the artifact.
@@ -392,7 +392,8 @@ class PolyswarmAPI(object):
         :return: A TagLink resource
         """
         logger.info('Update tag link %s', sha256)
-        return resources.TagLink.update(self, hash=sha256, tags=tags, families=families, remove=remove).result()
+        return resources.TagLink.update(self, hash=sha256, tags=tags, families=families,
+                                        emerging=emerging, remove=remove).result()
 
     def tag_link_list(self, tags=None, families=None, or_tags=None, or_families=None):
         """

@@ -524,6 +524,7 @@ class TagLink(core.BaseJsonResource):
         self.first_seen = core.parse_isoformat(content.get('first_seen'))
         self.tags = content.get('tags')
         self.families = content.get('families')
+        self.emerging = core.parse_isoformat(content.get('emerging'))
 
     @classmethod
     def _list_params(cls, **kwargs):
@@ -533,6 +534,7 @@ class TagLink(core.BaseJsonResource):
         params.extend(('family', p) for p in kwargs.get('families', empty))
         params.extend(('or_tag', p) for p in kwargs.get('or_tags', empty))
         params.extend(('or_family', p) for p in kwargs.get('or_families', empty))
+        params.append(('emerging', kwargs.get('emerging', empty)))
         return params, None
 
 
