@@ -8,9 +8,11 @@ from hashlib import sha256 as _sha256, sha1 as _sha1, md5 as _md5
 
 from future.utils import raise_from, string_types
 
+# Windows might rase an OSError instead of an ImportError like this
+# OSError: [WinError 193] %1 is not a valid Win32 application
 try:
     import yara
-except ImportError:
+except (ImportError, OSError):
     yara = None
 
 from polyswarm_api import exceptions, core, settings
