@@ -8,9 +8,11 @@ from hashlib import sha256 as _sha256, sha1 as _sha1, md5 as _md5
 
 from future.utils import raise_from, string_types
 
+# Windows might rase an OSError instead of an ImportError like this
+# OSError: [WinError 193] %1 is not a valid Win32 application
 try:
     import yara
-except ImportError:
+except (ImportError, OSError):
     yara = None
 
 from polyswarm_api import exceptions, core, settings
@@ -524,6 +526,7 @@ class TagLink(core.BaseJsonResource):
         self.first_seen = core.parse_isoformat(content.get('first_seen'))
         self.tags = content.get('tags')
         self.families = content.get('families')
+        self.emerging = core.parse_isoformat(content.get('emerging'))
 
     @classmethod
     def _list_params(cls, **kwargs):
@@ -533,6 +536,7 @@ class TagLink(core.BaseJsonResource):
         params.extend(('family', p) for p in kwargs.get('families', empty))
         params.extend(('or_tag', p) for p in kwargs.get('or_tags', empty))
         params.extend(('or_family', p) for p in kwargs.get('or_families', empty))
+        params.append(('emerging', kwargs.get('emerging', empty)))
         return params, None
 
 
