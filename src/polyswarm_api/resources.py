@@ -138,6 +138,19 @@ class ArtifactInstance(core.BaseJsonResource, core.Hashable):
         self._valid_assertions = None
 
     @classmethod
+    def exists_hash(cls, api, hash_value, hash_type):
+        return core.PolyswarmRequest(
+            api,
+            {
+                'method': 'HEAD',
+                'url': '{}/search/hash/{}'.format(api.uri, hash_type),
+                'params': {
+                    'hash': hash_value,
+                },
+            },
+        ).execute()
+
+    @classmethod
     def search_hash(cls, api, hash_value, hash_type):
         return core.PolyswarmRequest(
             api,
