@@ -65,6 +65,22 @@ class PolyswarmAPI(object):
             else:
                 time.sleep(settings.POLL_FREQUENCY)
 
+    def exists(self, hash_, hash_type=None):
+        """
+        Search for the latest scans matching the given hash and hash_type.
+
+        :param hash_: A Hashable object (Artifact, local.LocalArtifact, Hash) or hex-encoded SHA256/SHA1/MD5
+        :param hash_type: Hash type of the provided hash_. Will attempt to auto-detect if not explicitly provided.
+        :return: A boolean if the instance exists for search.
+        """
+        logger.info('Exists for hash %s', hash_)
+        hash_ = resources.Hash.from_hashable(hash_, hash_type=hash_type)
+        result = resources.ArtifactInstance.exists_hash(self, hash_.hash, hash_.hash_type).result()
+        if str(result) == '200':
+            return True
+        else:
+            return False
+
     def search(self, hash_, hash_type=None):
         """
         Search for the latest scans matching the given hash and hash_type.

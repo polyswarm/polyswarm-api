@@ -68,7 +68,7 @@ class PolyswarmRequest(object):
     """This class holds a requests-compatible dictionary and extra information we need to parse the response."""
     def __init__(self, api_instance, request_parameters, key=None, result_parser=None, **kwargs):
         logger.debug('Creating PolyswarmRequest instance.\nRequest parameters: %s\nResult parser: %s',
-                     request_parameters, result_parser.__name__)
+                     request_parameters, result_parser.__name__ if result_parser else 'No result parser')
         self.api_instance = api_instance
         # we should not access the api_instance session directly, but provide as a
         # parameter in the constructor, but this will do for the moment
@@ -101,12 +101,11 @@ class PolyswarmRequest(object):
     def execute(self):
         logger.debug('Executing request.')
         self.request_parameters.setdefault('timeout', self.timeout)
-        if not issubclass(self.result_parser, BaseJsonResource):
+        if self.result_parser and not issubclass(self.result_parser, BaseJsonResource):
             self.request_parameters.setdefault('stream', True)
         self.raw_result = self.session.request(**self.request_parameters)
         logger.debug('Request returned code %s', self.raw_result.status_code)
-        if self.result_parser is not None:
-            self.parse_result(self.raw_result)
+        self.parse_result(self.raw_result)
         return self
 
     def _bad_status_message(self):
@@ -127,8 +126,14 @@ class PolyswarmRequest(object):
         self.errors = self.json.get('errors')
 
     def parse_result(self, result):
-        logger.debug('Parsing request results.')
         self.status_code = result.status_code
+        if self.request_parameters['method'] == 'HEAD':
+            logger.debug('HEAD method does not return results, setting it to the status code.')
+            self._result = self.status_code
+        if not self.result_parser:
+            logger.debug('Result parser is not defined, skipping parsing results.')
+            return
+        logger.debug('Parsing request results.')
         try:
             if self.status_code // 100 != 2:
                 self._extract_json_body(result)
@@ -302,6 +307,10 @@ class BaseJsonResource(BaseResource):
         return cls._endpoint(api, **kwargs)
 
     @classmethod
+    def _head_endpoint(cls, api, **kwargs):
+        return cls._endpoint(api, **kwargs)
+
+    @classmethod
     def _update_endpoint(cls, api, **kwargs):
         return cls._endpoint(api, **kwargs)
 
@@ -350,6 +359,10 @@ class BaseJsonResource(BaseResource):
         return cls._params('GET', cls.RESOURCE_ID_KEY, **kwargs)
 
     @classmethod
+    def _head_params(cls, **kwargs):
+        return cls._params('HEAD', cls.RESOURCE_ID_KEY, **kwargs)
+
+    @classmethod
     def _update_params(cls, **kwargs):
         return cls._params('PUT', cls.RESOURCE_ID_KEY, **kwargs)
 
@@ -367,6 +380,10 @@ class BaseJsonResource(BaseResource):
 
     @classmethod
     def _get_headers(cls, api):
+        return None
+
+    @classmethod
+    def _head_headers(cls, api):
         return None
 
     @classmethod
@@ -397,6 +414,11 @@ class BaseJsonResource(BaseResource):
     def get(cls, api, **kwargs):
         return cls._build_request(api, 'GET', cls._get_endpoint(api, **kwargs),
                                   cls._get_headers(api), *cls._get_params(**kwargs)).execute()
+
+    @classmethod
+    def head(cls, api, **kwargs):
+        return cls._build_request(api, 'HEAD', cls._head_endpoint(api, **kwargs),
+                                  cls._head_headers(api), *cls._head_params(**kwargs)).execute()
 
     @classmethod
     def update(cls, api, **kwargs):
