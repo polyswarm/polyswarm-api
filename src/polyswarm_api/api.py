@@ -369,7 +369,7 @@ class PolyswarmAPI(object):
         :return: The updated YaraRuleset resource
         """
         logger.info('Update ruleset %s', ruleset_id)
-        return resources.YaraRuleset.update(self, id=ruleset_id, name=name, rules=rules, description=description).result()
+        return resources.YaraRuleset.update(self, id=ruleset_id, name=name, yara=rules, description=description).result()
 
     def ruleset_delete(self, ruleset_id):
         """
