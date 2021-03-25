@@ -585,3 +585,8 @@ class PolyswarmAPI(object):
     def tool_metadata_list(self, sha256):
         logger.info('List tool metadata')
         return resources.ToolMetadata.list(self, sha256=sha256).result()
+
+    def __repr__(self):
+        clsname = '{0.__module__}.{0.__name__}'.format(self.__class__)
+        attrs = 'uri={0.uri}, community={0.community}, timeout={0.timeout}'.format(self)
+        return '<{}({}) at 0x{:x}>'.format(clsname, attrs, id(self))
