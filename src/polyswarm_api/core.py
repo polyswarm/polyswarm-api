@@ -181,7 +181,7 @@ class PolyswarmRequest(object):
             if self.status_code == 404:
                 raise raise_from(exceptions.NotFoundException(self, 'The requested endpoint does not exist.'), e)
             else:
-                raise raise_from(exceptions.RequestException(self, 'Server returned non-JSON response.'), e)
+                raise raise_from(exceptions.RequestException(self, 'Server returned non-JSON response: %s' % result), e)
 
     def __iter__(self):
         return self.consume_results()
