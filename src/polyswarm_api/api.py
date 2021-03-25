@@ -588,5 +588,5 @@ class PolyswarmAPI(object):
 
     def __repr__(self):
         clsname = '{0.__module__}.{0.__name__}'.format(self.__class__)
-        attrs = 'uri={0.uri}, community={0.community}, timeout={0.timeout}'.format(self)
+        attrs = 'uri={0.uri!r}, community={0.community!r}, timeout={0.timeout!r}'.format(self)
         return '<{}({}) at 0x{:x}>'.format(clsname, attrs, id(self))
