@@ -1,6 +1,5 @@
 import logging
 import time
-import os
 
 import polyswarm_api.core
 
@@ -515,16 +514,7 @@ class PolyswarmAPI(object):
         """
         logger.info('Downloading %s into %s', hash_, out_dir)
         hash_ = resources.Hash.from_hashable(hash_, hash_type=hash_type)
-        path = os.path.join(out_dir, hash_.hash)
-        artifact = resources.LocalArtifact.from_path(self, path, create=True)
-
-        try:
-            resources.LocalHandle.download(self, hash_.hash, hash_.hash_type, handle=artifact)
-        except Exception as e:
-            artifact.handle.close()
-            os.remove(path)
-            raise e
-
+        artifact = resources.LocalArtifact.download(self, hash_.hash, hash_.hash_type, folder=out_dir).result()
         artifact.handle.close()
 
         return artifact
@@ -538,16 +528,7 @@ class PolyswarmAPI(object):
         :return: A LocalArtifact resource
         """
         logger.info('Downloading %s into %s', s3_path, out_dir)
-        path = os.path.join(out_dir, os.path.basename(urlparse(s3_path).path))
-        artifact = resources.LocalArtifact.from_path(self, path, create=True)
-
-        try:
-            resources.LocalHandle.download_archive(self, s3_path, handle=artifact)
-        except Exception as e:
-            artifact.handle.close()
-            os.remove(path)
-            raise e
-
+        artifact = resources.LocalArtifact.download_archive(self, s3_path, folder=out_dir).result()
         artifact.handle.close()
 
         return artifact
@@ -562,7 +543,7 @@ class PolyswarmAPI(object):
         """
         logger.info('Downloading %s into handle', hash_)
         hash_ = resources.Hash.from_hashable(hash_, hash_type=hash_type)
-        return resources.LocalHandle.download(self, hash_.hash, hash_.hash_type, handle=fh).result()
+        return resources.LocalArtifact.download(self, hash_.hash, hash_.hash_type, handle=fh).result()
 
     def stream(self, since=settings.MAX_SINCE_TIME_STREAM):
         """
