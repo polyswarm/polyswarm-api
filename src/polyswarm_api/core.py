@@ -174,14 +174,13 @@ class PolyswarmRequest(object):
                 else:
                     self._result = self.result_parser.parse_result(self.api_instance, result, **self.parser_kwargs)
             else:
-                self._result = self.result_parser.parse_result(self.api_instance,
-                                                               result.iter_content(settings.DOWNLOAD_CHUNK_SIZE),
-                                                               **self.parser_kwargs)
+                self._result = self.result_parser.parse_result(self.api_instance, result, **self.parser_kwargs)
         except JSONDecodeError as e:
             if self.status_code == 404:
                 raise raise_from(exceptions.NotFoundException(self, 'The requested endpoint does not exist.'), e)
             else:
-                raise raise_from(exceptions.RequestException(self, 'Server returned non-JSON response.'), e)
+                err_msg = 'Server returned non-JSON response [{}]: {}'.format(self.status_code, result)
+                raise raise_from(exceptions.RequestException(self, err_msg), e)
 
     def __iter__(self):
         return self.consume_results()
