@@ -6,6 +6,11 @@ import warnings
 from enum import Enum
 from hashlib import sha256 as _sha256, sha1 as _sha1, md5 as _md5
 
+try:
+    from urllib.parse import urlparse
+except ImportError:
+    from urlparse import urlparse
+
 from future.utils import raise_from, string_types
 
 # Windows might rase an OSError instead of an ImportError like this
@@ -363,17 +368,93 @@ def all_hashes(file_handle, algorithms=(_sha256, _sha1, _md5)):
     return [Hash(h.hexdigest()) for h in hashers]
 
 
-class LocalHandle(core.BaseResource):
-    def __init__(self, content, api=None, handle=None, **kwargs):
-        super(LocalHandle, self).__init__(content, api=api, **kwargs)
-        self.handle = handle or io.BytesIO()
-        for chunk in content:
-            self.handle.write(chunk)
-            if hasattr(self.handle, 'flush'):
-                self.handle.flush()
+class LocalArtifact(core.BaseResource, core.Hashable):
+    """ Artifact for which we have local content """
+    def __init__(self, response, api=None, handle=None, folder=None,
+                 artifact_name=None, artifact_type=None, analyze=False, **kwargs):
+        """
+        A representation of an artifact we have locally
+
+        :param artifact_name: Name of the artifact
+        :param artifact_type: Type of artifact
+        :param api: PolyswarmAPI instance
+        :param analyze: Boolean, if True will run analyses on artifact on startup (Note: this may still run later if False)
+        """
+        # check if we have a destination to store the file
+        # raise an error if we don't have exacltly one
+        if folder and handle:
+            raise exceptions.InvalidValueException('Only one of path or handle should be defined.')
+        if not (folder or handle):
+            raise exceptions.InvalidValueException('At least one of path or handle must be defined.')
+
+        # initialize super classes and default values
+        super(LocalArtifact, self).__init__(response, api=api, hash_type='sha256')
+        self.sha256 = None
+        self.sha1 = None
+        self.md5 = None
+        self.analyzed = False
+        self.artifact_type = artifact_type or ArtifactType.FILE
+
+        # resolve the file name
+        if artifact_name:
+            # prioritize explicitly provided name
+            self.artifact_name = artifact_name
+        else:
+            if response:
+                # respect content-disposition if there is a response
+                filename = response.headers.get('content-disposition', '').partition('filename=')[2]
+                if filename:
+                    self.artifact_name = filename
+                elif os.path.basename(getattr(handle, 'name', '')):
+                    self.artifact_name = os.path.basename(getattr(handle, 'name', ''))
+                else:
+                    self.artifact_name = os.path.basename(urlparse(response.url).path)
+            elif os.path.basename(getattr(handle, 'name', '')):
+                # if there is no response and no artifact_name, try to get from the handle
+                self.artifact_name = os.path.basename(getattr(handle, 'name', ''))
+
+        # resolve the handle to be used
+        # only one of handle or folder can be provided (we checked for this above)
+        # if one was explicitly provided, use it
+        # if we have a folder, use a file named after file_name in that folder
+        # otherwise use an in-memory handle
+        remove_on_error = False
+        try:
+            if folder:
+                # TODO: this should be replaced with os.makedirs(path, exist_ok=True)
+                #  once we drop support to python 2.7
+                if not os.path.exists(folder):
+                    try:
+                        os.makedirs(folder)
+                    except FileExistsError:
+                        pass
+                remove_on_error = True
+                self.handle = open(os.path.join(folder, self.artifact_name), mode='wb+', **kwargs)
+            else:
+                self.handle = handle or io.BytesIO()
+
+            if response:
+                # process the content in the response if available, write to handle
+                for chunk in response.iter_content(settings.DOWNLOAD_CHUNK_SIZE):
+                    self.handle.write(chunk)
+                    if hasattr(self.handle, 'flush'):
+                        self.handle.flush()
+            if analyze:
+                # analyze the artifact in case it is needed
+                self.analyze_artifact()
+        except Exception:
+            try:
+                if remove_on_error and self.handle:
+                    # make sure we cleanup the handle
+                    # if an exception happened and this is a file we created
+                    self.handle.close()
+                    os.remove(self.handle.name)
+            except Exception:
+                logger.exception('Failed to cleanup the target file.')
+            raise
 
     @classmethod
-    def download(cls, api, hash_value, hash_type, handle=None):
+    def download(cls, api, hash_value, hash_type, handle=None, folder=None, artifact_name=None):
         return core.PolyswarmRequest(
             api,
             {
@@ -383,10 +464,12 @@ class LocalHandle(core.BaseResource):
             },
             result_parser=cls,
             handle=handle,
+            folder=folder,
+            artifact_name=artifact_name,
         ).execute()
 
     @classmethod
-    def download_archive(cls, api, u, handle=None):
+    def download_archive(cls, api, u, handle=None, folder=None, artifact_name=None):
         """ This method is special, in that it is simply for downloading from S3 """
         return core.PolyswarmRequest(
             api,
@@ -398,6 +481,8 @@ class LocalHandle(core.BaseResource):
             },
             result_parser=cls,
             handle=handle,
+            folder=folder,
+            artifact_name=artifact_name,
         ).execute()
 
     # Inspired by
@@ -420,59 +505,24 @@ class LocalHandle(core.BaseResource):
             setattr(self, name, a)
         return a
 
-
-class LocalArtifact(LocalHandle, core.Hashable):
-    """ Artifact for which we have local content """
-    def __init__(self, handle, artifact_name=None, artifact_type=None, api=None, analyze=True):
-        """
-        A representation of an artifact we have locally
-
-        :param artifact_name: Name of the artifact
-        :param artifact_type: Type of artifact
-        :param api: PolyswarmAPI instance
-        :param analyze: Boolean, if True will run analyses on artifact on startup (Note: this may still run later if False)
-        """
-        # create the LocalHandle with the given handle and don't write anything to it
-        super(LocalArtifact, self).__init__(b'', api=api, handle=handle, hash_type='sha256')
-
-        self.sha256 = None
-        self.sha1 = None
-        self.md5 = None
-        self.analyzed = False
-
-        self.artifact_type = artifact_type or ArtifactType.FILE
-
-        self.artifact_name = artifact_name or os.path.basename(getattr(handle, 'name', '')) or str(self.hash)
-
-        if analyze:
-            self.analyze_artifact()
-
     @classmethod
-    def from_path(cls, api, path, artifact_type=None, analyze=False, create=False, artifact_name=None, **kwargs):
+    def from_path(cls, api, path, artifact_type=None, analyze=False, artifact_name=None, **kwargs):
         if not isinstance(path, string_types):
             raise exceptions.InvalidValueException('Path should be a string')
-        folder, file_name = os.path.split(path)
-        if create:
-            # TODO: this should be replaced with os.makedirs(path, exist_ok=True)
-            #  once we drop support to python 2.7
-            if not os.path.exists(folder):
-                try:
-                    os.makedirs(folder)
-                except FileExistsError:
-                    pass
-        elif not os.path.isfile(path):
-            raise exceptions.ArtifactDeletedException("The file does not exist")
-
-        mode = kwargs.pop('mode', 'wb+' if create else 'rb')
-        handler = open(path, mode=mode, **kwargs)
-        return cls(handler, artifact_name=artifact_name or file_name, artifact_type=artifact_type, analyze=analyze, api=api)
+        artifact_name = artifact_name or os.path.basename(path)
+        handle = open(path, mode='rb', **kwargs)
+        # create the LocalHandle with the given handle and don't write anything to it
+        return cls(b'', handle=handle, artifact_name=artifact_name,
+                   artifact_type=artifact_type, analyze=analyze, api=api)
 
     @classmethod
     def from_content(cls, api, content, artifact_name=None, artifact_type=None, analyze=False):
         if isinstance(content, string_types):
             content = content.encode("utf8")
-        handler = io.BytesIO(content)
-        return cls(handler, artifact_name=artifact_name, artifact_type=artifact_type, analyze=analyze, api=api)
+        handle = io.BytesIO(content)
+        # create the LocalHandle with the given handle and don't write anything to it
+        return cls(b'', handle=handle, artifact_name=artifact_name,
+                   artifact_type=artifact_type, analyze=analyze, api=api)
 
     @property
     def hash(self):
