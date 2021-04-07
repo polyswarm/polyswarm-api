@@ -380,54 +380,77 @@ class LocalArtifact(core.BaseResource, core.Hashable):
         :param api: PolyswarmAPI instance
         :param analyze: Boolean, if True will run analyses on artifact on startup (Note: this may still run later if False)
         """
+        # check if we have a destination to store the file
+        # raise an error if we don't have exacltly one
         if folder and handle:
             raise exceptions.InvalidValueException('Only one of path or handle should be defined.')
         if not (folder or handle):
             raise exceptions.InvalidValueException('At least one of path or handle must be defined.')
 
+        # initialize super classes and default values
+        super(LocalArtifact, self).__init__(response, api=api, hash_type='sha256')
+        self.sha256 = None
+        self.sha1 = None
+        self.md5 = None
+        self.analyzed = False
+        self.artifact_type = artifact_type or ArtifactType.FILE
+
+        # resolve the file name
         if artifact_name:
+            # prioritize explicitly provided name
             self.artifact_name = artifact_name
         else:
-            filename = response.headers.get('content-disposition', '').partition('filename=')[2]
-            if filename:
-                self.artifact_name = filename
+            if response:
+                # respect content-disposition if there is a response
+                filename = response.headers.get('content-disposition', '').partition('filename=')[2]
+                if filename:
+                    self.artifact_name = filename
+                elif os.path.basename(getattr(handle, 'name', '')):
+                    self.artifact_name = os.path.basename(getattr(handle, 'name', ''))
+                else:
+                    self.artifact_name = os.path.basename(urlparse(response.url).path)
             elif os.path.basename(getattr(handle, 'name', '')):
+                # if there is no response and no artifact_name, try to get from the handle
                 self.artifact_name = os.path.basename(getattr(handle, 'name', ''))
-            else:
-                self.artifact_name = os.path.basename(urlparse(response.url).path)
 
-        # if a handle is not given, we create one from the provided path
+        # resolve the handle to be used
+        # only one of handle or folder can be provided (we checked for this above)
+        # if one was explicitly provided, use it
+        # if we have a folder, use a file named after file_name in that folder
+        # otherwise use an in-memory handle
         remove_on_error = False
-        if folder:
-            # TODO: this should be replaced with os.makedirs(path, exist_ok=True)
-            #  once we drop support to python 2.7
-            if not os.path.exists(folder):
-                try:
-                    os.makedirs(folder)
-                except FileExistsError:
-                    pass
-            handle = open(os.path.join(folder, self.artifact_name), mode='wb+', **kwargs)
-            remove_on_error = True
         try:
-            super(LocalArtifact, self).__init__(response, api=api, hash_type='sha256')
-            self.handle = handle or io.BytesIO()
-            for chunk in response.iter_content(settings.DOWNLOAD_CHUNK_SIZE):
-                self.handle.write(chunk)
-                if hasattr(self.handle, 'flush'):
-                    self.handle.flush()
+            if folder:
+                # TODO: this should be replaced with os.makedirs(path, exist_ok=True)
+                #  once we drop support to python 2.7
+                if not os.path.exists(folder):
+                    try:
+                        os.makedirs(folder)
+                    except FileExistsError:
+                        pass
+                remove_on_error = True
+                self.handle = open(os.path.join(folder, self.artifact_name), mode='wb+', **kwargs)
+            else:
+                self.handle = handle or io.BytesIO()
 
-            self.sha256 = None
-            self.sha1 = None
-            self.md5 = None
-            self.analyzed = False
-            self.artifact_type = artifact_type or ArtifactType.FILE
-
+            if response:
+                # process the content in the response if available, write to handle
+                for chunk in response.iter_content(settings.DOWNLOAD_CHUNK_SIZE):
+                    self.handle.write(chunk)
+                    if hasattr(self.handle, 'flush'):
+                        self.handle.flush()
             if analyze:
+                # analyze the artifact in case it is needed
                 self.analyze_artifact()
         except Exception:
-            if remove_on_error:
-                handle.handle.close()
-                os.remove(folder)
+            try:
+                if remove_on_error and self.handle:
+                    # make sure we cleanup the handle
+                    # if an exception happened and this is a file we created
+                    self.handle.close()
+                    os.remove(self.handle.name)
+            except Exception:
+                logger.exception('Failed to cleanup the target file.')
             raise
 
     @classmethod
