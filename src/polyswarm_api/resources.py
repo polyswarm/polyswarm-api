@@ -50,7 +50,7 @@ class Engine(core.BaseJsonResource):
         return self.canonicalize(self.address or self.id)
 
     @classmethod
-    def canonicalize(cls, ident, remove=re.compile(r'[^A-Za-z0-9]')):
+    def canonicalize(cls, ident, pattern=re.compile(r'[^A-Za-z0-9]')):
         """
         Lowercase & strip symbols + whitespace from `ident`
         """
