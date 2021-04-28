@@ -173,16 +173,6 @@ class ScanTestCaseV2(TestCase):
         assert result[0].sha256 == '275a021bbfb6489e54d471899f7db9d1663fc695ec2fe2a2c4538aabf651fd0f'
 
     @responses.activate
-    def test_resolve_engine_name(self):
-        responses.add(responses.GET, 'http://localhost:3000/api/v1/microengines/list',
-                      json={'results': [{'id': 1, 'createdAt': '2019-11-01T21:27:47.109Z', 'modifiedAt': '2019-11-01T21:27:47.109Z', 'archivedAt': None, 'name': 'eicar', 'description': 'eicar', 'address': '0x05328f171b8c1463eaFDACCA478D9EE6a1d923F8', 'userId': 1, 'verificationStatus': 'verified', 'tags': []}]}
-                      )
-        # This still does not have a v2 path
-        api = PolyswarmAPI(self.test_api_key, uri='http://localhost:3000/api/v1', community='gamma')
-        result = api.resolve_engine_name('0x05328f171b8c1463eaFDACCA478D9EE6a1d923F8')
-        assert result == 'eicar'
-
-    @responses.activate
     def test_live(self):
         responses.add(responses.POST, 'http://localhost:9696/v2/hunt/live',
                       json={'result': {'active': True, 'created': '2019-11-14T20:52:13.740679', 'id': '40665587544314424', 'status': 'SUCCESS'}, 'status': 'OK'}
