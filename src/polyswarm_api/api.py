@@ -35,15 +35,16 @@ class PolyswarmAPI(object):
     @property
     def engines(self):
         if self._engines is None:
-            engines = resources.Engine.list(self).result()
-            self._engines = {e.id: e for e in engines}
+            self.refresh_engine_cache()
+
         return self._engines
 
-    def engine_cache_clear(self):
+    def refresh_engine_cache(self):
         """
-        Clear the current engine-listing cache
+        Rrefresh the cached engine listing
         """
-        self._engines = None
+        engines = resources.Engine.list(self).result()
+        self._engines = {e.id: e for e in engines}
 
     def wait_for(self, scan, timeout=settings.DEFAULT_SCAN_TIMEOUT):
         """
