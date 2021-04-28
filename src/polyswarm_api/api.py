@@ -39,6 +39,12 @@ class PolyswarmAPI(object):
             self._engines = {e.canonical_id: e for e in engines}
         return self._engines
 
+    def resolve_engine_name(self, name):
+        canonical = resources.Engine.canonicalize(name)
+        if canonical not in self.engines:
+            return canonical
+        return self.engines[canonical].name
+
     def engine_cache_clear(self):
         """
         Clear the current engine-listing cache
