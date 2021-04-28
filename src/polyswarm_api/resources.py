@@ -35,7 +35,7 @@ class Engine(core.BaseJsonResource):
     def __init__(self, content, api=None):
         super(Engine, self).__init__(content=content, api=api)
         self.id = content['engineId']
-        self.address = content.get('address') 
+        self.address = content.get('address')
         if isinstance(self.address, str):
             self.address = self.address.lower()
         self.name = content['name']
