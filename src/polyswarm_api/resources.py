@@ -35,7 +35,7 @@ class Engine(core.BaseJsonResource):
 
     def __init__(self, content, api=None):
         super(Engine, self).__init__(content=content, api=api)
-        self.id = content.get('id')
+        self.id = content['engineId']
         self.address = content.get('address') 
         if isinstance(self.address, str):
             self.address = self.address.lower()
@@ -55,6 +55,14 @@ class Engine(core.BaseJsonResource):
         Lowercase & strip symbols + whitespace from `ident`
         """
         return pattern.sub('', ident.lower())
+
+    def __hash__(self):
+        return hash(self.id)
+
+    def __eq__(self, other):
+        if isinstance(other, Engine):
+            return self.id == other.id
+        return False
 
 class ToolMetadata(core.BaseJsonResource):
     RESOURCE_ENDPOINT = '/artifact/metadata'
