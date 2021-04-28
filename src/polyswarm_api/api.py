@@ -36,7 +36,7 @@ class PolyswarmAPI(object):
     def engines(self):
         if self._engines is None:
             engines = resources.Engine.list(self).result()
-            self._engines = {e.canonical_id: e for e in engines}
+            self._engines = {e.id: e for e in engines}
         return self._engines
 
     def engine_cache_clear(self):

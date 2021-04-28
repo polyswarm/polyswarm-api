@@ -2,7 +2,6 @@ import logging
 import os
 import io
 import functools
-import re
 import warnings
 from enum import Enum
 from hashlib import sha256 as _sha256, sha1 as _sha1, md5 as _md5
@@ -44,17 +43,6 @@ class Engine(core.BaseJsonResource):
     @classmethod
     def _list_headers(cls, api):
         return {'Authorization': None}
-
-    @property
-    def canonical_id(self):
-        return self.canonicalize(self.address or self.id)
-
-    @classmethod
-    def canonicalize(cls, ident, pattern=re.compile(r'[^A-Za-z0-9]')):
-        """
-        Lowercase & strip symbols + whitespace from `ident`
-        """
-        return pattern.sub('', ident.lower())
 
     def __hash__(self):
         return hash(self.id)
