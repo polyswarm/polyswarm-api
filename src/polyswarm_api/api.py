@@ -34,15 +34,22 @@ class PolyswarmAPI(object):
 
     @property
     def engines(self):
-        if not self._engines:
-            self._engines = resources.Engine.list(self).result()
-            self._engines = {e.address.lower(): e for e in self._engines}
+        if self._engines is None:
+            engines = resources.Engine.list(self).result()
+            self._engines = {e.canonical_id: e for e in engines}
         return self._engines
 
-    def resolve_engine_name(self, eth_pub):
-        engine = self.engines.get(eth_pub.lower())
-        engine_name = engine.name if engine else eth_pub
-        return engine_name.lower()
+    def resolve_engine_name(self, name):
+        canonical = resources.Engine.canonicalize(name)
+        if canonical not in self.engines:
+            return canonical
+        return self.engines[canonical].name
+
+    def engine_cache_clear(self):
+        """
+        Clear the current engine-listing cache
+        """
+        self._engines = None
 
     def wait_for(self, scan, timeout=settings.DEFAULT_SCAN_TIMEOUT):
         """

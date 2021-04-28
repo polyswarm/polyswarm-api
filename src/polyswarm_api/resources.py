@@ -2,6 +2,7 @@ import logging
 import os
 import io
 import functools
+import re
 import warnings
 from enum import Enum
 from hashlib import sha256 as _sha256, sha1 as _sha1, md5 as _md5
@@ -34,13 +35,26 @@ class Engine(core.BaseJsonResource):
 
     def __init__(self, content, api=None):
         super(Engine, self).__init__(content=content, api=api)
-        self.address = content['address'].lower()
-        self.name = content.get('name')
+        self.id = content.get('id')
+        self.address = content.get('address') 
+        if isinstance(self.address, str):
+            self.address = self.address.lower()
+        self.name = content['name']
 
     @classmethod
     def _list_headers(cls, api):
         return {'Authorization': None}
 
+    @property
+    def canonical_id(self):
+        return self.canonicalize(self.address or self.id)
+
+    @classmethod
+    def canonicalize(cls, ident, remove=re.compile(r'[^A-Za-z0-9]')):
+        """
+        Lowercase & strip symbols + whitespace from `ident`
+        """
+        return pattern.sub('', ident.lower())
 
 class ToolMetadata(core.BaseJsonResource):
     RESOURCE_ENDPOINT = '/artifact/metadata'
