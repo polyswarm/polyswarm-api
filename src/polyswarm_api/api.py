@@ -43,8 +43,10 @@ class PolyswarmAPI(object):
         """
         Rrefresh the cached engine listing
         """
-        self._engines = tuple(resources.Engine.list(self).result())
-        return self._engines
+        engines = tuple(resources.Engine.list(self).result())
+        if len(engines) == 0:
+            raise exceptions.InvalidValueException("Recieved empty engines listing")
+        self._engines = engines
 
     def wait_for(self, scan, timeout=settings.DEFAULT_SCAN_TIMEOUT):
         """
