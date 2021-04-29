@@ -44,6 +44,7 @@ class PolyswarmAPI(object):
         Rrefresh the cached engine listing
         """
         self._engines = tuple(resources.Engine.list(self).result())
+        return self._engines
 
     def wait_for(self, scan, timeout=settings.DEFAULT_SCAN_TIMEOUT):
         """

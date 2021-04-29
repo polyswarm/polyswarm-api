@@ -34,11 +34,21 @@ class Engine(core.BaseJsonResource):
 
     def __init__(self, content, api=None):
         super(Engine, self).__init__(content=content, api=api)
-        self.id = content['engineId']
-        self.address = content.get('address')
-        if isinstance(self.address, str):
-            self.address = self.address.lower()
+        self.id = str(content['id'])
         self.name = content['name']
+
+        if 'address' in content and isinstance(content['address'], str):
+            self.address = content['address'].lower()
+        else:
+            self.address = None
+
+        self.engine_type = content.get('engineType')
+        self.verified = content.get('status') == 'verified'
+
+        # These fields can be `null`; don't replace w/ default value in `get()`
+        self.artifact_types = tuple(content.get('artifactTypes') or ())
+        self.tags = tuple(content.get('tags') or ())
+        self.communities = tuple(content.get('communities') or ())
 
     @classmethod
     def _list_headers(cls, api):
@@ -51,6 +61,10 @@ class Engine(core.BaseJsonResource):
         if isinstance(other, Engine):
             return self.id == other.id
         return False
+
+    @property
+    def is_arbiter(self):
+        return self.engine_type == 'arbiter'
 
 class ToolMetadata(core.BaseJsonResource):
     RESOURCE_ENDPOINT = '/artifact/metadata'
