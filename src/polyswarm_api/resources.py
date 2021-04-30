@@ -46,9 +46,9 @@ class Engine(core.BaseJsonResource):
         self.verified = content.get('status') == 'verified'
 
         # These fields can be `null`; don't replace w/ default value in `get()`
-        self.artifact_types = tuple(content.get('artifactTypes') or ())
-        self.tags = tuple(content.get('tags') or ())
-        self.communities = tuple(content.get('communities') or ())
+        self.artifact_types = content.get('artifactTypes') or []
+        self.tags = content.get('tags') or []
+        self.communities = content.get('communities') or []
 
     @classmethod
     def _list_headers(cls, api):
