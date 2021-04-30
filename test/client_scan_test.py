@@ -252,6 +252,17 @@ class ScanTestCaseV2(TestCase):
         api = PolyswarmAPI(self.test_api_key, uri='http://localhost:3000/api/v1', community='gamma')
         assert {'Intezer', 'IRIS-H', 'Test', 'K7-Arbiter'} == {e.name for e in api.engines}
         assert {'K7-Arbiter'} == {e.name for e in api.engines if e.is_arbiter()}
+
+        # Verify handling of invalid responses
+        responses.replace(responses.GET, 'http://localhost:3000/api/v1/microengines/list', status=500)
+        with pytest.raises(exceptions.RequestException):
+            api.refresh_engine_cache()
+
+        responses.replace(responses.GET, 'http://localhost:3000/api/v1/microengines/list', json=None)
+        with pytest.raises(exceptions.RequestException):
+            api.refresh_engine_cache()
+
+        # Run tests after failed `refresh_engine_cache` to verify that we haven't cleared `api.engines`
         assert {
             'Intezer': '0x73653aaafa73ec3cebb9c0500d81f94b1153ecdf',
             'IRIS-H': '84858992620316109',
