@@ -58,11 +58,8 @@ class Engine(core.BaseJsonResource):
         return hash(self.id)
 
     def __eq__(self, other):
-        if isinstance(other, Engine):
-            return self.id == other.id
-        return False
+        return self.id == other.id if isinstance(other, Engine) else False
 
-    @property
     def is_arbiter(self):
         return self.engine_type == 'arbiter'
 
