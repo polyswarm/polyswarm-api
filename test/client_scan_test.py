@@ -258,8 +258,8 @@ class ScanTestCaseV2(TestCase):
         with pytest.raises(exceptions.RequestException):
             api.refresh_engine_cache()
 
-        responses.replace(responses.GET, 'http://localhost:3000/api/v1/microengines/list', json=None)
-        with pytest.raises(exceptions.RequestException):
+        responses.replace(responses.GET, 'http://localhost:3000/api/v1/microengines/list', json={"results": []})
+        with pytest.raises(exceptions.InvalidValueException):
             api.refresh_engine_cache()
 
         # Run tests after failed `refresh_engine_cache` to verify that we haven't cleared `api.engines`
