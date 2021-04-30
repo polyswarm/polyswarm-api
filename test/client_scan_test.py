@@ -243,7 +243,7 @@ class ScanTestCaseV2(TestCase):
             "communities": [ "pi", "sigma" ],
             "mimetypes": [ "application/octet-stream" ],
             "tags": [ "engine", "file" ],
-            "description": "“”",
+            "description": "",
             "name": "Intezer",
             "id": "49931709284165436"
             }
