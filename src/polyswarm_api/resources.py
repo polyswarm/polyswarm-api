@@ -37,9 +37,9 @@ class Engine(core.BaseJsonResource):
         self.id = str(content['id'])
         self.name = content['name']
 
-        if 'address' in content and isinstance(content['address'], str):
+        try:
             self.address = content['address'].lower()
-        else:
+        except:
             self.address = None
 
         self.engine_type = content.get('engineType')

@@ -43,8 +43,8 @@ class PolyswarmAPI(object):
         """
         Rrefresh the cached engine listing
         """
-        engines = tuple(resources.Engine.list(self).result())
-        if len(engines) == 0:
+        engines = list(resources.Engine.list(self).result())
+        if not engines:
             raise exceptions.InvalidValueException("Recieved empty engines listing")
         self._engines = engines
 
