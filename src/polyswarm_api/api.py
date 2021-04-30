@@ -34,7 +34,7 @@ class PolyswarmAPI(object):
 
     @property
     def engines(self):
-        if self._engines is None:
+        if not self._engines:
             self.refresh_engine_cache()
 
         return self._engines
