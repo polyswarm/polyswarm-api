@@ -258,6 +258,7 @@ class ScanTestCaseV2(TestCase):
             'K7-Arbiter': '0x2a1eeee60a652961a4b6981b6103cdcb63efbd6b',
             'Test': None,
         } == {e.name: e.address for e in api.engines}
+        assert len(set(api.engines)) == 4
 
 
     @responses.activate
