@@ -34,13 +34,34 @@ class Engine(core.BaseJsonResource):
 
     def __init__(self, content, api=None):
         super(Engine, self).__init__(content=content, api=api)
-        self.address = content['address'].lower()
-        self.name = content.get('name')
+        self.id = str(content['id'])
+        self.name = content['name']
+
+        try:
+            self.address = content['address'].lower()
+        except:
+            self.address = None
+
+        self.engine_type = content.get('engineType')
+        self.verified = content.get('status') == 'verified'
+
+        # These fields can be `null`; don't replace w/ default value in `get()`
+        self.artifact_types = content.get('artifactTypes') or []
+        self.tags = content.get('tags') or []
+        self.communities = content.get('communities') or []
 
     @classmethod
     def _list_headers(cls, api):
         return {'Authorization': None}
 
+    def __hash__(self):
+        return hash(self.id)
+
+    def __eq__(self, other):
+        return self.id == other.id if isinstance(other, Engine) else False
+
+    def is_arbiter(self):
+        return self.engine_type == 'arbiter'
 
 class ToolMetadata(core.BaseJsonResource):
     RESOURCE_ENDPOINT = '/artifact/metadata'
