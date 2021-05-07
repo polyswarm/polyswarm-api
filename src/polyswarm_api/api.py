@@ -35,14 +35,18 @@ class PolyswarmAPI(object):
     @property
     def engines(self):
         if not self._engines:
-            self._engines = resources.Engine.list(self).result()
-            self._engines = {e.address.lower(): e for e in self._engines}
+            self.refresh_engine_cache()
+
         return self._engines
 
-    def resolve_engine_name(self, eth_pub):
-        engine = self.engines.get(eth_pub.lower())
-        engine_name = engine.name if engine else eth_pub
-        return engine_name.lower()
+    def refresh_engine_cache(self):
+        """
+        Rrefresh the cached engine listing
+        """
+        engines = list(resources.Engine.list(self).result())
+        if not engines:
+            raise exceptions.InvalidValueException("Recieved empty engines listing")
+        self._engines = engines
 
     def wait_for(self, scan, timeout=settings.DEFAULT_SCAN_TIMEOUT):
         """

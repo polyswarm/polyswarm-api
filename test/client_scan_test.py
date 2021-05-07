@@ -174,13 +174,103 @@ class ScanTestCaseV2(TestCase):
 
     @responses.activate
     def test_resolve_engine_name(self):
-        responses.add(responses.GET, 'http://localhost:3000/api/v1/microengines/list',
-                      json={'results': [{'id': 1, 'createdAt': '2019-11-01T21:27:47.109Z', 'modifiedAt': '2019-11-01T21:27:47.109Z', 'archivedAt': None, 'name': 'eicar', 'description': 'eicar', 'address': '0x05328f171b8c1463eaFDACCA478D9EE6a1d923F8', 'userId': 1, 'verificationStatus': 'verified', 'tags': []}]}
-                      )
+        responses.add(responses.GET, 'http://localhost:3000/api/v1/microengines/list', json={'results': [
+        {
+            "address": "0x2A1EEEe60A652961a4B6981b6103CDcb63efBD6b",
+            "engineId": "8565030964589685",
+            "vendorWebsite": "http://www.polyswarm.io",
+            "accountNumber": 181953637296,
+            "engineType": "arbiter",
+            "artifactTypes": [ "file" ],
+            "maxFileSize": "34603020",
+            "createdAt": "2019-04-24T22:36:51.000Z",
+            "modifiedAt": "2021-04-26T17:34:13.523Z",
+            "archivedAt": None,
+            "status": "disabled",
+            "communities": [ "pi" ],
+            "mimetypes": [ "application/octet-stream" ],
+            "tags": [ "arbiter" ],
+            "description": "K7 Arbiter Microengine",
+            "name": "K7-Arbiter",
+            "id": "8565030964589685"
+        },
+        {
+            "address": None,
+            "engineId": "8565030964589685",
+            "accountNumber": 191777777796,
+            "engineType": "engine",
+            "artifactTypes": [ "file" ],
+            "createdAt": "2019-04-24T22:36:51.000Z",
+            "modifiedAt": "2021-04-26T17:34:13.523Z",
+            "archivedAt": None,
+            "status": "verified",
+            "communities": [ "pi" ],
+            "tags": [ "engine" ],
+            "description": "",
+            "name": "Test",
+            "id": "9128037974787675"
+        },{
+            "address": "84858992620316109",
+            "engineId": "84858992620316109",
+            "vendorWebsite": "http://www.polyswarm.io",
+            "accountNumber": 181953637296,
+            "engineType": "engine",
+            "artifactTypes": [ "file" ],
+            "maxFileSize": "34603016",
+            "createdAt": "2019-04-24T22:44:40.000Z",
+            "modifiedAt": "2021-04-26T17:34:13.744Z",
+            "archivedAt": None,
+            "status": "disabled",
+            "communities": [ "pi", "sigma" ],
+            "mimetypes": [ "application/pdf", "application/vnd.ms-access" ],
+            "tags": ["engine"],
+            "description": "IRIS-H microengine",
+            "name": "IRIS-H",
+            "id": "84858992620316109"
+            },
+        {
+            "address": "0x73653AAAfa73EC3CEBb9c0500d81f94B1153ecDF",
+            "engineId": "49931709284165436",
+            "vendorWebsite": "http://www.polyswarm.io",
+            "accountNumber": 181953637296,
+            "engineType": "engine",
+            "artifactTypes": [ "file" ],
+            "maxFileSize": "34603015",
+            "createdAt": "2019-08-29T19:51:38.000Z",
+            "modifiedAt": "2021-04-26T17:34:13.520Z",
+            "archivedAt": None,
+            "status": "disabled",
+            "communities": [ "pi", "sigma" ],
+            "mimetypes": [ "application/octet-stream" ],
+            "tags": [ "engine", "file" ],
+            "description": "",
+            "name": "Intezer",
+            "id": "49931709284165436"
+            }
+        ]})
         # This still does not have a v2 path
         api = PolyswarmAPI(self.test_api_key, uri='http://localhost:3000/api/v1', community='gamma')
-        result = api.resolve_engine_name('0x05328f171b8c1463eaFDACCA478D9EE6a1d923F8')
-        assert result == 'eicar'
+        assert {'Intezer', 'IRIS-H', 'Test', 'K7-Arbiter'} == {e.name for e in api.engines}
+        assert {'K7-Arbiter'} == {e.name for e in api.engines if e.is_arbiter()}
+
+        # Verify handling of invalid responses
+        responses.replace(responses.GET, 'http://localhost:3000/api/v1/microengines/list', status=500)
+        with pytest.raises(exceptions.RequestException):
+            api.refresh_engine_cache()
+
+        responses.replace(responses.GET, 'http://localhost:3000/api/v1/microengines/list', json={"results": []})
+        with pytest.raises(exceptions.InvalidValueException):
+            api.refresh_engine_cache()
+
+        # Run tests after failed `refresh_engine_cache` to verify that we haven't cleared `api.engines`
+        assert {
+            'Intezer': '0x73653aaafa73ec3cebb9c0500d81f94b1153ecdf',
+            'IRIS-H': '84858992620316109',
+            'K7-Arbiter': '0x2a1eeee60a652961a4b6981b6103cdcb63efbd6b',
+            'Test': None,
+        } == {e.name: e.address for e in api.engines}
+        assert len(set(api.engines)) == 4
+
 
     @responses.activate
     def test_live(self):
