@@ -527,6 +527,12 @@ class LocalArtifact(core.BaseResource, core.Hashable):
         return a
 
     @classmethod
+    def from_handle(cls, api, handle, artifact_type=None, analyze=False, artifact_name=None, **kwargs):
+        # create the LocalHandle with the given handle and don't write anything to it
+        return cls(b'', handle=handle, artifact_name=artifact_name,
+                   artifact_type=artifact_type, analyze=analyze, api=api)
+
+    @classmethod
     def from_path(cls, api, path, artifact_type=None, analyze=False, artifact_name=None, **kwargs):
         if not isinstance(path, string_types):
             raise exceptions.InvalidValueException('Path should be a string')

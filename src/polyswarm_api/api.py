@@ -149,8 +149,8 @@ class PolyswarmAPI(object):
         #  to isinstance(artifact, io.IOBase) when deprecating 2.7 and implementing making LocalHandle
         #  inherit io.IOBase, although this will change the method delegation logic in the resource
         if hasattr(artifact, 'read') and hasattr(artifact.read, '__call__'):
-            artifact = resources.LocalArtifact(artifact, artifact_type=artifact_type, api=self, analyze=False,
-                                               artifact_name=artifact_name)
+            artifact = resources.LocalArtifact.from_handle(self, artifact, artifact_name=artifact_name or '',
+                                                           artifact_type=artifact_type)
         elif isinstance(artifact, string_types):
             if artifact_type == resources.ArtifactType.FILE:
                 artifact = resources.LocalArtifact.from_path(self, artifact, artifact_type=artifact_type,
