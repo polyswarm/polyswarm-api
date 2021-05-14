@@ -19,9 +19,9 @@ setup(
     license='MIT',
     python_requires='>=2.7,!=3.0.*,!=3.1.*,!=3.2.*,!=3.3.*,!=3.4.*,<4',
     install_requires=[
-        'requests~=2.22.0',
-        'future~=0.18.2',
-        'python-dateutil~=2.8.1',
+        'requests~=2.22',
+        'future~=0.18',
+        'python-dateutil~=2.8',
     ],
     extras_require={':python_version < "3.0"': ['enum34==1.1.6']},
     include_package_data=True,
