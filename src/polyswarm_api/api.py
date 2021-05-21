@@ -518,6 +518,17 @@ class PolyswarmAPI(object):
         logger.info('Get assertions %s', assertions_id)
         return resources.Assertions.get(self, id=assertions_id).result()
 
+    def votes_create(self, engine_id, date_start, date_end):
+        logger.info('Create votes %s %s %s', engine_id, date_start, date_end)
+        return resources.Votes.create(self,
+                                      engine_id=engine_id,
+                                      date_start=date_start,
+                                      date_end=date_end).result()
+
+    def votes_get(self, votes_id):
+        logger.info('Get votes %s', votes_id)
+        return resources.Votes.get(self, id=votes_id).result()
+
     def download(self, out_dir, hash_, hash_type=None):
         """
         Grab the data of artifact identified by hash, and write the data to a file in the provided directory
