@@ -374,6 +374,14 @@ class HistoricalHuntResult(HuntResult):
     RESOURCE_ENDPOINT = '/hunt/historical/results'
 
 
+class Assertions(core.BaseJsonResource):
+    RESOURCE_ENDPOINT = '/consumer/assertions'
+
+
+class Votes(core.BaseJsonResource):
+    RESOURCE_ENDPOINT = '/consumer/assertions'
+
+
 def _read_chunks(file_handle):
     while True:
         data = file_handle.read(settings.FILE_CHUNK_SIZE)
