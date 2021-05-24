@@ -374,6 +374,38 @@ class HistoricalHuntResult(HuntResult):
     RESOURCE_ENDPOINT = '/hunt/historical/results'
 
 
+class Assertions(core.BaseJsonResource):
+    RESOURCE_ENDPOINT = '/consumer/assertions'
+
+    def __init__(self, content, api=None):
+        super(Assertions, self).__init__(content=content, api=api)
+        self.id = content['id']
+        self.engine_id = content['engine_id']
+        self.created = core.parse_isoformat(content['created'])
+        self.storage_path = content['storage_path']
+        self.true_positive = content['true_positive']
+        self.true_negative = content['true_negative']
+        self.false_positive = content['false_positive']
+        self.false_negative = content['false_negative']
+        self.total = content['total']
+
+
+class Votes(core.BaseJsonResource):
+    RESOURCE_ENDPOINT = '/consumer/votes'
+
+    def __init__(self, content, api=None):
+        super(Votes, self).__init__(content=content, api=api)
+        self.id = content['id']
+        self.engine_id = content['engine_id']
+        self.created = core.parse_isoformat(content['created'])
+        self.storage_path = content['storage_path']
+        self.true_positive = content['true_positive']
+        self.true_negative = content['true_negative']
+        self.false_positive = content['false_positive']
+        self.false_negative = content['false_negative']
+        self.total = content['total']
+
+
 def _read_chunks(file_handle):
     while True:
         data = file_handle.read(settings.FILE_CHUNK_SIZE)
