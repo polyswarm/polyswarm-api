@@ -374,11 +374,11 @@ class HistoricalHuntResult(HuntResult):
     RESOURCE_ENDPOINT = '/hunt/historical/results'
 
 
-class Assertions(core.BaseJsonResource):
-    RESOURCE_ENDPOINT = '/consumer/assertions'
+class AssertionsJob(core.BaseJsonResource):
+    RESOURCE_ENDPOINT = '/consumer/assertions-job'
 
     def __init__(self, content, api=None):
-        super(Assertions, self).__init__(content=content, api=api)
+        super(AssertionsJob, self).__init__(content=content, api=api)
         self.id = content['id']
         self.engine_id = content['engine_id']
         self.created = core.parse_isoformat(content['created'])
@@ -390,11 +390,11 @@ class Assertions(core.BaseJsonResource):
         self.total = content['total']
 
 
-class Votes(core.BaseJsonResource):
-    RESOURCE_ENDPOINT = '/consumer/votes'
+class VotesJob(core.BaseJsonResource):
+    RESOURCE_ENDPOINT = '/consumer/votes-job'
 
     def __init__(self, content, api=None):
-        super(Votes, self).__init__(content=content, api=api)
+        super(VotesJob, self).__init__(content=content, api=api)
         self.id = content['id']
         self.engine_id = content['engine_id']
         self.created = core.parse_isoformat(content['created'])
