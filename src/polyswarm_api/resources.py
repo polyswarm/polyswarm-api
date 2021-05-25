@@ -387,6 +387,8 @@ class AssertionsJob(core.BaseJsonResource):
         self.true_negative = content['true_negative']
         self.false_positive = content['false_positive']
         self.false_negative = content['false_negative']
+        self.suspicious = content['suspicious']
+        self.unknown = content['unknown']
         self.total = content['total']
 
 
@@ -403,6 +405,8 @@ class VotesJob(core.BaseJsonResource):
         self.true_negative = content['true_negative']
         self.false_positive = content['false_positive']
         self.false_negative = content['false_negative']
+        self.suspicious = content['suspicious']
+        self.unknown = content['unknown']
         self.total = content['total']
 
 
