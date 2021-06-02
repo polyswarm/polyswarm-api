@@ -1,0 +1,286 @@
+interactions:
+- request:
+    body: '{"yara": "rule eicar_av_test {\n    /*\n       Per standard, match only
+      if entire file is EICAR string plus optional trailing whitespace.\n       The
+      raw EICAR string to be matched is:\n       X5O!P%@AP[4\\PZX54(P^)7CC)7}$EICAR-STANDARD-ANTIVIRUS-TEST-FILE!$H+H*\n    */\n\n    meta:\n        description
+      = \"This is a standard AV test, intended to verify that BinaryAlert is working
+      correctly.\"\n        author = \"Austin Byers | Airbnb CSIRT\"\n        reference
+      = \"http://www.eicar.org/86-0-Intended-use.html\"\n\n    strings:\n        $eicar_regex
+      = /^X5O!P%@AP\\[4\\\\PZX54\\(P\\^\\)7CC\\)7\\}\\$EICAR-STANDARD-ANTIVIRUS-TEST-FILE!\\$H\\+H\\*\\s*$/\n\n    condition:\n        all
+      of them\n}\n\nrule eicar_substring_test {\n    /*\n       More generic - match
+      just the embedded EICAR string (e.g. in packed executables, PDFs, etc)\n    */\n\n    meta:\n        description
+      = \"Standard AV test, checking for an EICAR substring\"\n        author = \"Austin
+      Byers | Airbnb CSIRT\"\n\n    strings:\n        $eicar_substring = \"$EICAR-STANDARD-ANTIVIRUS-TEST-FILE!\"\n\n    condition:\n        all
+      of them\n}", "name": "test"}'
+    headers:
+      Accept:
+      - '*/*'
+      Accept-Encoding:
+      - gzip, deflate
+      Authorization:
+      - '11111111111111111111111111111111'
+      Connection:
+      - keep-alive
+      Content-Length:
+      - '1129'
+      Content-Type:
+      - application/json
+      User-Agent:
+      - polyswarm-api/2.9.0 (x86_64-Linux-CPython-3.6.5)
+    method: POST
+    uri: http://localhost:9696/v2/hunt/rule
+  response:
+    body:
+      string: '{"result":{"created":"2021-06-02T21:32:37.058828","deleted":false,"description":null,"id":"16619485220575133","modified":"2021-06-02T21:32:37.058828","name":"test","yara":"rule
+        eicar_av_test {\n    /*\n       Per standard, match only if entire file is
+        EICAR string plus optional trailing whitespace.\n       The raw EICAR string
+        to be matched is:\n       X5O!P%@AP[4\\PZX54(P^)7CC)7}$EICAR-STANDARD-ANTIVIRUS-TEST-FILE!$H+H*\n    */\n\n    meta:\n        description
+        = \"This is a standard AV test, intended to verify that BinaryAlert is working
+        correctly.\"\n        author = \"Austin Byers | Airbnb CSIRT\"\n        reference
+        = \"http://www.eicar.org/86-0-Intended-use.html\"\n\n    strings:\n        $eicar_regex
+        = /^X5O!P%@AP\\[4\\\\PZX54\\(P\\^\\)7CC\\)7\\}\\$EICAR-STANDARD-ANTIVIRUS-TEST-FILE!\\$H\\+H\\*\\s*$/\n\n    condition:\n        all
+        of them\n}\n\nrule eicar_substring_test {\n    /*\n       More generic - match
+        just the embedded EICAR string (e.g. in packed executables, PDFs, etc)\n    */\n\n    meta:\n        description
+        = \"Standard AV test, checking for an EICAR substring\"\n        author =
+        \"Austin Byers | Airbnb CSIRT\"\n\n    strings:\n        $eicar_substring
+        = \"$EICAR-STANDARD-ANTIVIRUS-TEST-FILE!\"\n\n    condition:\n        all
+        of them\n}"},"status":"OK"}
+
+        '
+    headers:
+      Content-Length:
+      - '1291'
+      Content-Type:
+      - application/json
+      Date:
+      - Wed, 02 Jun 2021 21:32:37 GMT
+      Server:
+      - Werkzeug/1.0.1 Python/3.7.3
+      X-Billing-ID:
+      - '1'
+    status:
+      code: 200
+      message: OK
+- request:
+    body: null
+    headers:
+      Accept:
+      - '*/*'
+      Accept-Encoding:
+      - gzip, deflate
+      Authorization:
+      - '11111111111111111111111111111111'
+      Connection:
+      - keep-alive
+      User-Agent:
+      - polyswarm-api/2.9.0 (x86_64-Linux-CPython-3.6.5)
+    method: GET
+    uri: http://localhost:9696/v2/hunt/rule/list
+  response:
+    body:
+      string: '{"has_more":false,"limit":50,"offset":"gAAAAABgt_j1mNu7UrPtNlDcACh4oOK5W9KpW7EhjHfuBfaNOlQ35kjYDuHmNnStNGtIUxa6AY02mOu_Rj5gOU8mmJHmHIWdzA==","result":[{"created":"2021-06-02T21:32:37.058828","deleted":false,"description":null,"id":"16619485220575133","modified":"2021-06-02T21:32:37.058828","name":"test","yara":"rule
+        eicar_av_test {\n    /*\n       Per standard, match only if entire file is
+        EICAR string plus optional trailing whitespace.\n       The raw EICAR string
+        to be matched is:\n       X5O!P%@AP[4\\PZX54(P^)7CC)7}$EICAR-STANDARD-ANTIVIRUS-TEST-FILE!$H+H*\n    */\n\n    meta:\n        description
+        = \"This is a standard AV test, intended to verify that BinaryAlert is working
+        correctly.\"\n        author = \"Austin Byers | Airbnb CSIRT\"\n        reference
+        = \"http://www.eicar.org/86-0-Intended-use.html\"\n\n    strings:\n        $eicar_regex
+        = /^X5O!P%@AP\\[4\\\\PZX54\\(P\\^\\)7CC\\)7\\}\\$EICAR-STANDARD-ANTIVIRUS-TEST-FILE!\\$H\\+H\\*\\s*$/\n\n    condition:\n        all
+        of them\n}\n\nrule eicar_substring_test {\n    /*\n       More generic - match
+        just the embedded EICAR string (e.g. in packed executables, PDFs, etc)\n    */\n\n    meta:\n        description
+        = \"Standard AV test, checking for an EICAR substring\"\n        author =
+        \"Austin Byers | Airbnb CSIRT\"\n\n    strings:\n        $eicar_substring
+        = \"$EICAR-STANDARD-ANTIVIRUS-TEST-FILE!\"\n\n    condition:\n        all
+        of them\n}"}],"status":"OK"}
+
+        '
+    headers:
+      Content-Length:
+      - '1433'
+      Content-Type:
+      - application/json
+      Date:
+      - Wed, 02 Jun 2021 21:32:37 GMT
+      Server:
+      - Werkzeug/1.0.1 Python/3.7.3
+      X-Billing-ID:
+      - '1'
+    status:
+      code: 200
+      message: OK
+- request:
+    body: null
+    headers:
+      Accept:
+      - '*/*'
+      Accept-Encoding:
+      - gzip, deflate
+      Authorization:
+      - '11111111111111111111111111111111'
+      Connection:
+      - keep-alive
+      User-Agent:
+      - polyswarm-api/2.9.0 (x86_64-Linux-CPython-3.6.5)
+    method: GET
+    uri: http://localhost:9696/v2/hunt/rule?id=16619485220575133
+  response:
+    body:
+      string: '{"result":{"created":"2021-06-02T21:32:37.058828","deleted":false,"description":null,"id":"16619485220575133","modified":"2021-06-02T21:32:37.058828","name":"test","yara":"rule
+        eicar_av_test {\n    /*\n       Per standard, match only if entire file is
+        EICAR string plus optional trailing whitespace.\n       The raw EICAR string
+        to be matched is:\n       X5O!P%@AP[4\\PZX54(P^)7CC)7}$EICAR-STANDARD-ANTIVIRUS-TEST-FILE!$H+H*\n    */\n\n    meta:\n        description
+        = \"This is a standard AV test, intended to verify that BinaryAlert is working
+        correctly.\"\n        author = \"Austin Byers | Airbnb CSIRT\"\n        reference
+        = \"http://www.eicar.org/86-0-Intended-use.html\"\n\n    strings:\n        $eicar_regex
+        = /^X5O!P%@AP\\[4\\\\PZX54\\(P\\^\\)7CC\\)7\\}\\$EICAR-STANDARD-ANTIVIRUS-TEST-FILE!\\$H\\+H\\*\\s*$/\n\n    condition:\n        all
+        of them\n}\n\nrule eicar_substring_test {\n    /*\n       More generic - match
+        just the embedded EICAR string (e.g. in packed executables, PDFs, etc)\n    */\n\n    meta:\n        description
+        = \"Standard AV test, checking for an EICAR substring\"\n        author =
+        \"Austin Byers | Airbnb CSIRT\"\n\n    strings:\n        $eicar_substring
+        = \"$EICAR-STANDARD-ANTIVIRUS-TEST-FILE!\"\n\n    condition:\n        all
+        of them\n}"},"status":"OK"}
+
+        '
+    headers:
+      Content-Length:
+      - '1291'
+      Content-Type:
+      - application/json
+      Date:
+      - Wed, 02 Jun 2021 21:32:37 GMT
+      Server:
+      - Werkzeug/1.0.1 Python/3.7.3
+      X-Billing-ID:
+      - '1'
+    status:
+      code: 200
+      message: OK
+- request:
+    body: '{"name": "test2", "description": "test"}'
+    headers:
+      Accept:
+      - '*/*'
+      Accept-Encoding:
+      - gzip, deflate
+      Authorization:
+      - '11111111111111111111111111111111'
+      Connection:
+      - keep-alive
+      Content-Length:
+      - '40'
+      Content-Type:
+      - application/json
+      User-Agent:
+      - polyswarm-api/2.9.0 (x86_64-Linux-CPython-3.6.5)
+    method: PUT
+    uri: http://localhost:9696/v2/hunt/rule?id=16619485220575133
+  response:
+    body:
+      string: '{"result":{"created":"2021-06-02T21:32:37.058828","deleted":false,"description":"test","id":"16619485220575133","modified":"2021-06-02T21:32:37.521258","name":"test2","yara":"rule
+        eicar_av_test {\n    /*\n       Per standard, match only if entire file is
+        EICAR string plus optional trailing whitespace.\n       The raw EICAR string
+        to be matched is:\n       X5O!P%@AP[4\\PZX54(P^)7CC)7}$EICAR-STANDARD-ANTIVIRUS-TEST-FILE!$H+H*\n    */\n\n    meta:\n        description
+        = \"This is a standard AV test, intended to verify that BinaryAlert is working
+        correctly.\"\n        author = \"Austin Byers | Airbnb CSIRT\"\n        reference
+        = \"http://www.eicar.org/86-0-Intended-use.html\"\n\n    strings:\n        $eicar_regex
+        = /^X5O!P%@AP\\[4\\\\PZX54\\(P\\^\\)7CC\\)7\\}\\$EICAR-STANDARD-ANTIVIRUS-TEST-FILE!\\$H\\+H\\*\\s*$/\n\n    condition:\n        all
+        of them\n}\n\nrule eicar_substring_test {\n    /*\n       More generic - match
+        just the embedded EICAR string (e.g. in packed executables, PDFs, etc)\n    */\n\n    meta:\n        description
+        = \"Standard AV test, checking for an EICAR substring\"\n        author =
+        \"Austin Byers | Airbnb CSIRT\"\n\n    strings:\n        $eicar_substring
+        = \"$EICAR-STANDARD-ANTIVIRUS-TEST-FILE!\"\n\n    condition:\n        all
+        of them\n}"},"status":"OK"}
+
+        '
+    headers:
+      Content-Length:
+      - '1294'
+      Content-Type:
+      - application/json
+      Date:
+      - Wed, 02 Jun 2021 21:32:37 GMT
+      Server:
+      - Werkzeug/1.0.1 Python/3.7.3
+      X-Billing-ID:
+      - '1'
+    status:
+      code: 200
+      message: OK
+- request:
+    body: null
+    headers:
+      Accept:
+      - '*/*'
+      Accept-Encoding:
+      - gzip, deflate
+      Authorization:
+      - '11111111111111111111111111111111'
+      Connection:
+      - keep-alive
+      Content-Length:
+      - '0'
+      User-Agent:
+      - polyswarm-api/2.9.0 (x86_64-Linux-CPython-3.6.5)
+    method: DELETE
+    uri: http://localhost:9696/v2/hunt/rule?id=16619485220575133
+  response:
+    body:
+      string: '{"result":{"created":"2021-06-02T21:32:37.058828","deleted":true,"description":"test","id":"16619485220575133","modified":"2021-06-02T21:32:37.661577","name":"test2","yara":"rule
+        eicar_av_test {\n    /*\n       Per standard, match only if entire file is
+        EICAR string plus optional trailing whitespace.\n       The raw EICAR string
+        to be matched is:\n       X5O!P%@AP[4\\PZX54(P^)7CC)7}$EICAR-STANDARD-ANTIVIRUS-TEST-FILE!$H+H*\n    */\n\n    meta:\n        description
+        = \"This is a standard AV test, intended to verify that BinaryAlert is working
+        correctly.\"\n        author = \"Austin Byers | Airbnb CSIRT\"\n        reference
+        = \"http://www.eicar.org/86-0-Intended-use.html\"\n\n    strings:\n        $eicar_regex
+        = /^X5O!P%@AP\\[4\\\\PZX54\\(P\\^\\)7CC\\)7\\}\\$EICAR-STANDARD-ANTIVIRUS-TEST-FILE!\\$H\\+H\\*\\s*$/\n\n    condition:\n        all
+        of them\n}\n\nrule eicar_substring_test {\n    /*\n       More generic - match
+        just the embedded EICAR string (e.g. in packed executables, PDFs, etc)\n    */\n\n    meta:\n        description
+        = \"Standard AV test, checking for an EICAR substring\"\n        author =
+        \"Austin Byers | Airbnb CSIRT\"\n\n    strings:\n        $eicar_substring
+        = \"$EICAR-STANDARD-ANTIVIRUS-TEST-FILE!\"\n\n    condition:\n        all
+        of them\n}"},"status":"OK"}
+
+        '
+    headers:
+      Content-Length:
+      - '1293'
+      Content-Type:
+      - application/json
+      Date:
+      - Wed, 02 Jun 2021 21:32:37 GMT
+      Server:
+      - Werkzeug/1.0.1 Python/3.7.3
+      X-Billing-ID:
+      - '1'
+    status:
+      code: 200
+      message: OK
+- request:
+    body: null
+    headers:
+      Accept:
+      - '*/*'
+      Accept-Encoding:
+      - gzip, deflate
+      Authorization:
+      - '11111111111111111111111111111111'
+      Connection:
+      - keep-alive
+      User-Agent:
+      - polyswarm-api/2.9.0 (x86_64-Linux-CPython-3.6.5)
+    method: GET
+    uri: http://localhost:9696/v2/hunt/rule/list
+  response:
+    body:
+      string: ''
+    headers:
+      Content-Type:
+      - text/html; charset=utf-8
+      Date:
+      - Wed, 02 Jun 2021 21:32:37 GMT
+      Server:
+      - Werkzeug/1.0.1 Python/3.7.3
+    status:
+      code: 204
+      message: NO CONTENT
+version: 1
