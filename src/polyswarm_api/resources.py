@@ -167,7 +167,7 @@ class ArtifactInstance(core.BaseJsonResource, core.Hashable):
         self._benign_assertions = None
         self._valid_assertions = None
 
-    def upload_file(self, artifact: 'LocalArtifact', attempts=3, **kwargs):
+    def upload_file(self, artifact, attempts=3, **kwargs):
         if not self.upload_url:
             raise exceptions.InvalidValueException('upload_url must be set to upload a file')
         if not artifact:
