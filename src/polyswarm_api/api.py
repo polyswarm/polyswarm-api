@@ -161,10 +161,13 @@ class PolyswarmAPI(object):
         if artifact_type == resources.ArtifactType.URL:
             scan_config = scan_config or 'more-time'
         if isinstance(artifact, resources.LocalArtifact):
-            return resources.ArtifactInstance.submit(self, artifact,
-                                                     artifact.artifact_name,
-                                                     artifact.artifact_type.name,
-                                                     scan_config=scan_config).result()
+            instance = resources.ArtifactInstance.create(self,
+                                                         artifact_name=artifact.artifact_name,
+                                                         artifact_type=artifact.artifact_type.name,
+                                                         scan_config=scan_config,
+                                                         community=self.community).result()
+            instance.upload_file(artifact)
+            return resources.ArtifactInstance.update(self, id=instance.id).result()
         else:
             raise exceptions.InvalidValueException('Artifacts should be a path to a file or a LocalArtifact instance')
 

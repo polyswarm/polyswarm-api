@@ -3,6 +3,7 @@ import os
 import io
 import functools
 import warnings
+import requests
 from enum import Enum
 from hashlib import sha256 as _sha256, sha1 as _sha1, md5 as _md5
 
@@ -125,6 +126,8 @@ class Metadata(core.BaseJsonResource):
 
 
 class ArtifactInstance(core.BaseJsonResource, core.Hashable):
+    RESOURCE_ENDPOINT = '/instance'
+
     def __init__(self, content, api=None):
         super(ArtifactInstance, self).__init__(content=content, api=api,
                                                hash_value=content['sha256'], hash_type='sha256')
@@ -137,6 +140,7 @@ class ArtifactInstance(core.BaseJsonResource, core.Hashable):
         self.size = content['size']
         self.extended_type = content['extended_type']
         self.first_seen = core.parse_isoformat(content['first_seen'])
+        self.upload_url = content['upload_url']
         # Deprecated
         self.last_seen = core.parse_isoformat(content.get('last_seen'))
         self.last_scanned = core.parse_isoformat(content.get('last_scanned'))
@@ -162,6 +166,18 @@ class ArtifactInstance(core.BaseJsonResource, core.Hashable):
         self._malicious_assertions = None
         self._benign_assertions = None
         self._valid_assertions = None
+
+    def upload_file(self, artifact: 'LocalArtifact', attempts=3, **kwargs):
+        if not self.upload_url:
+            raise exceptions.InvalidValueException('upload_url must be set to upload a file')
+        if not artifact:
+            raise exceptions.InvalidValueException('A LocalArtifact must be provided in order to upload')
+        r = None
+        while attempts > 0 and not r:
+            attempts -= 1
+            artifact.seek(0)
+            r = requests.put(self.upload_url, data=artifact, **kwargs)
+        return r
 
     @classmethod
     def exists_hash(cls, api, hash_value, hash_type):
