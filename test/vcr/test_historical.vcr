@@ -1,0 +1,121 @@
+interactions:
+- request:
+    body: '{"yara": "rule eicar_av_test {\n    /*\n       Per standard, match only
+      if entire file is EICAR string plus optional trailing whitespace.\n       The
+      raw EICAR string to be matched is:\n       X5O!P%@AP[4\\PZX54(P^)7CC)7}$EICAR-STANDARD-ANTIVIRUS-TEST-FILE!$H+H*\n    */\n\n    meta:\n        description
+      = \"This is a standard AV test, intended to verify that BinaryAlert is working
+      correctly.\"\n        author = \"Austin Byers | Airbnb CSIRT\"\n        reference
+      = \"http://www.eicar.org/86-0-Intended-use.html\"\n\n    strings:\n        $eicar_regex
+      = /^X5O!P%@AP\\[4\\\\PZX54\\(P\\^\\)7CC\\)7\\}\\$EICAR-STANDARD-ANTIVIRUS-TEST-FILE!\\$H\\+H\\*\\s*$/\n\n    condition:\n        all
+      of them\n}\n\nrule eicar_substring_test {\n    /*\n       More generic - match
+      just the embedded EICAR string (e.g. in packed executables, PDFs, etc)\n    */\n\n    meta:\n        description
+      = \"Standard AV test, checking for an EICAR substring\"\n        author = \"Austin
+      Byers | Airbnb CSIRT\"\n\n    strings:\n        $eicar_substring = \"$EICAR-STANDARD-ANTIVIRUS-TEST-FILE!\"\n\n    condition:\n        all
+      of them\n}"}'
+    headers:
+      Accept:
+      - '*/*'
+      Accept-Encoding:
+      - gzip, deflate
+      Authorization:
+      - '11111111111111111111111111111111'
+      Connection:
+      - keep-alive
+      Content-Length:
+      - '1113'
+      Content-Type:
+      - application/json
+      User-Agent:
+      - polyswarm-api/2.9.0 (x86_64-Linux-CPython-3.6.5)
+    method: POST
+    uri: http://localhost:9696/v2/hunt/historical
+  response:
+    body:
+      string: '{"result":{"created":"2021-06-02T21:39:04.450432","id":"44679890090362616","ruleset_name":null,"status":"PENDING"},"status":"OK"}
+
+        '
+    headers:
+      Content-Length:
+      - '130'
+      Content-Type:
+      - application/json
+      Date:
+      - Wed, 02 Jun 2021 21:39:04 GMT
+      Server:
+      - Werkzeug/1.0.1 Python/3.7.3
+      X-Billing-ID:
+      - '1'
+    status:
+      code: 200
+      message: OK
+- request:
+    body: null
+    headers:
+      Accept:
+      - '*/*'
+      Accept-Encoding:
+      - gzip, deflate
+      Authorization:
+      - '11111111111111111111111111111111'
+      Connection:
+      - keep-alive
+      User-Agent:
+      - polyswarm-api/2.9.0 (x86_64-Linux-CPython-3.6.5)
+    method: GET
+    uri: http://localhost:9696/v2/hunt/historical?id=44679890090362616
+  response:
+    body:
+      string: '{"result":{"created":"2021-06-02T21:39:04.450432","id":"44679890090362616","ruleset_name":null,"status":"PENDING"},"status":"OK"}
+
+        '
+    headers:
+      Content-Length:
+      - '130'
+      Content-Type:
+      - application/json
+      Date:
+      - Wed, 02 Jun 2021 21:39:04 GMT
+      Server:
+      - Werkzeug/1.0.1 Python/3.7.3
+      X-Billing-ID:
+      - '1'
+    status:
+      code: 200
+      message: OK
+- request:
+    body: null
+    headers:
+      Accept:
+      - '*/*'
+      Accept-Encoding:
+      - gzip, deflate
+      Authorization:
+      - '11111111111111111111111111111111'
+      Connection:
+      - keep-alive
+      Content-Length:
+      - '0'
+      User-Agent:
+      - polyswarm-api/2.9.0 (x86_64-Linux-CPython-3.6.5)
+    method: DELETE
+    uri: http://localhost:9696/v2/hunt/historical?id=44679890090362616
+  response:
+    body:
+      string: '{"result":{"created":"2021-06-02T21:39:04.450432","id":"44679890090362616","ruleset_name":null,"status":"PENDING"},"status":"OK"}
+
+        '
+    headers:
+      Content-Length:
+      - '130'
+      Content-Type:
+      - application/json
+      Date:
+      - Wed, 02 Jun 2021 21:39:04 GMT
+      Server:
+      - Werkzeug/1.0.1 Python/3.7.3
+      X-Billing-ID:
+      - '1'
+    status:
+      code: 200
+      message: OK
+version: 1

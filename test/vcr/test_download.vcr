@@ -1,0 +1,91 @@
+interactions:
+- request:
+    body: null
+    headers:
+      Accept:
+      - '*/*'
+      Accept-Encoding:
+      - gzip, deflate
+      Authorization:
+      - '11111111111111111111111111111111'
+      Connection:
+      - keep-alive
+      User-Agent:
+      - polyswarm-api/2.9.0 (x86_64-Linux-CPython-3.6.5)
+    method: GET
+    uri: http://localhost:9696/v2/consumer/download/sha256/275a021bbfb6489e54d471899f7db9d1663fc695ec2fe2a2c4538aabf651fd0f
+  response:
+    body:
+      string: '<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 3.2 Final//EN">
+
+        <title>Redirecting...</title>
+
+        <h1>Redirecting...</h1>
+
+        <p>You should be redirected automatically to target URL: <a href="http://minio:9000/cache-disk/27/5a/02/275a021bbfb6489e54d471899f7db9d1663fc695ec2fe2a2c4538aabf651fd0f3395856ce81f2b7382dee72602f798b642f1414044d88612fea8a8f36de82e1278abb02f?response-content-disposition=attachment%3Bfilename%3D275a021bbfb6489e54d471899f7db9d1663fc695ec2fe2a2c4538aabf651fd0f&amp;response-content-type=application%2Foctet-stream&amp;X-Amz-Algorithm=AWS4-HMAC-SHA256&amp;X-Amz-Credential=AKIAIOSFODNN7EXAMPLE%2F20210602%2Fus-east-1%2Fs3%2Faws4_request&amp;X-Amz-Date=20210602T213233Z&amp;X-Amz-Expires=300&amp;X-Amz-SignedHeaders=host&amp;X-Amz-Signature=dceccc1e207f5ae9e2313c2593963103015158e4488a1ca14df24aa1849c770b">http://minio:9000/cache-disk/27/5a/02/275a021bbfb6489e54d471899f7db9d1663fc695ec2fe2a2c4538aabf651fd0f3395856ce81f2b7382dee72602f798b642f1414044d88612fea8a8f36de82e1278abb02f?response-content-disposition=attachment%3Bfilename%3D275a021bbfb6489e54d471899f7db9d1663fc695ec2fe2a2c4538aabf651fd0f&amp;response-content-type=application%2Foctet-stream&amp;X-Amz-Algorithm=AWS4-HMAC-SHA256&amp;X-Amz-Credential=AKIAIOSFODNN7EXAMPLE%2F20210602%2Fus-east-1%2Fs3%2Faws4_request&amp;X-Amz-Date=20210602T213233Z&amp;X-Amz-Expires=300&amp;X-Amz-SignedHeaders=host&amp;X-Amz-Signature=dceccc1e207f5ae9e2313c2593963103015158e4488a1ca14df24aa1849c770b</a>.  If
+        not click the link.'
+    headers:
+      Content-Length:
+      - '1477'
+      Content-Type:
+      - text/html; charset=utf-8
+      Date:
+      - Wed, 02 Jun 2021 21:32:33 GMT
+      Location:
+      - http://minio:9000/cache-disk/27/5a/02/275a021bbfb6489e54d471899f7db9d1663fc695ec2fe2a2c4538aabf651fd0f3395856ce81f2b7382dee72602f798b642f1414044d88612fea8a8f36de82e1278abb02f?response-content-disposition=attachment%3Bfilename%3D275a021bbfb6489e54d471899f7db9d1663fc695ec2fe2a2c4538aabf651fd0f&response-content-type=application%2Foctet-stream&X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Credential=AKIAIOSFODNN7EXAMPLE%2F20210602%2Fus-east-1%2Fs3%2Faws4_request&X-Amz-Date=20210602T213233Z&X-Amz-Expires=300&X-Amz-SignedHeaders=host&X-Amz-Signature=dceccc1e207f5ae9e2313c2593963103015158e4488a1ca14df24aa1849c770b
+      Server:
+      - Werkzeug/1.0.1 Python/3.7.3
+    status:
+      code: 302
+      message: FOUND
+- request:
+    body: null
+    headers:
+      Accept:
+      - '*/*'
+      Accept-Encoding:
+      - gzip, deflate
+      Connection:
+      - keep-alive
+      User-Agent:
+      - polyswarm-api/2.9.0 (x86_64-Linux-CPython-3.6.5)
+    method: GET
+    uri: http://minio:9000/cache-disk/27/5a/02/275a021bbfb6489e54d471899f7db9d1663fc695ec2fe2a2c4538aabf651fd0f3395856ce81f2b7382dee72602f798b642f1414044d88612fea8a8f36de82e1278abb02f?response-content-disposition=attachment%3Bfilename%3D275a021bbfb6489e54d471899f7db9d1663fc695ec2fe2a2c4538aabf651fd0f&response-content-type=application%2Foctet-stream&X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Credential=AKIAIOSFODNN7EXAMPLE%2F20210602%2Fus-east-1%2Fs3%2Faws4_request&X-Amz-Date=20210602T213233Z&X-Amz-Expires=300&X-Amz-SignedHeaders=host&X-Amz-Signature=dceccc1e207f5ae9e2313c2593963103015158e4488a1ca14df24aa1849c770b
+  response:
+    body:
+      string: !!binary |
+        H4sIAI73t2AC/4sw9VcMUHVwDIg2iQmIijA10QiI0zR3dtY0r1Vx9XR2DNINDnH0c3EMctF19Avx
+        DPMMCg3WDXENDtF18/RxVVTx0PbQAgA8z1FoRAAAAA==
+    headers:
+      Accept-Ranges:
+      - bytes
+      Content-Disposition:
+      - attachment;filename=275a021bbfb6489e54d471899f7db9d1663fc695ec2fe2a2c4538aabf651fd0f
+      Content-Encoding:
+      - gzip
+      Content-Length:
+      - '88'
+      Content-Security-Policy:
+      - block-all-mixed-content
+      Content-Type:
+      - application/octet-stream
+      Date:
+      - Wed, 02 Jun 2021 21:32:33 GMT
+      ETag:
+      - '"a54ef97961769f6b3099f2be56cb70a4"'
+      Last-Modified:
+      - Wed, 02 Jun 2021 21:26:38 GMT
+      Server:
+      - MinIO/RELEASE.2020-11-06T23-17-07Z
+      Vary:
+      - Origin
+      X-Amz-Request-Id:
+      - 1684E15C94A8E98B
+      X-Xss-Protection:
+      - 1; mode=block
+      x-amz-expiration:
+      - expiry-date="Fri, 04 Jun 2021 00:00:00 GMT", rule-id="_public_1"
+    status:
+      code: 200
+      message: OK
+version: 1
