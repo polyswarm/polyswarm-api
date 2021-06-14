@@ -161,10 +161,13 @@ class PolyswarmAPI(object):
         if artifact_type == resources.ArtifactType.URL:
             scan_config = scan_config or 'more-time'
         if isinstance(artifact, resources.LocalArtifact):
-            return resources.ArtifactInstance.submit(self, artifact,
-                                                     artifact.artifact_name,
-                                                     artifact.artifact_type.name,
-                                                     scan_config=scan_config).result()
+            instance = resources.ArtifactInstance.create(self,
+                                                         artifact_name=artifact.artifact_name,
+                                                         artifact_type=artifact.artifact_type.name,
+                                                         scan_config=scan_config,
+                                                         community=self.community).result()
+            instance.upload_file(artifact)
+            return resources.ArtifactInstance.update(self, id=instance.id).result()
         else:
             raise exceptions.InvalidValueException('Artifacts should be a path to a file or a LocalArtifact instance')
 
@@ -506,6 +509,28 @@ class PolyswarmAPI(object):
         """
         logger.info('Listing families')
         return resources.MalwareFamily.list(self).result()
+
+    def assertions_create(self, engine_id, date_start, date_end):
+        logger.info('Create assertions %s %s %s', engine_id, date_start, date_end)
+        return resources.AssertionsJob.create(self,
+                                              engine_id=engine_id,
+                                              date_start=date_start,
+                                              date_end=date_end).result()
+
+    def assertions_get(self, assertions_id):
+        logger.info('Get assertions %s', assertions_id)
+        return resources.AssertionsJob.get(self, id=assertions_id).result()
+
+    def votes_create(self, engine_id, date_start, date_end):
+        logger.info('Create votes %s %s %s', engine_id, date_start, date_end)
+        return resources.VotesJob.create(self,
+                                         engine_id=engine_id,
+                                         date_start=date_start,
+                                         date_end=date_end).result()
+
+    def votes_get(self, votes_id):
+        logger.info('Get votes %s', votes_id)
+        return resources.VotesJob.get(self, id=votes_id).result()
 
     def download(self, out_dir, hash_, hash_type=None):
         """

@@ -1,0 +1,125 @@
+interactions:
+- request:
+    body: '{"artifact_name": "malicious", "artifact_type": "FILE", "community": "gamma"}'
+    headers:
+      Accept:
+      - '*/*'
+      Accept-Encoding:
+      - gzip, deflate
+      Authorization:
+      - '11111111111111111111111111111111'
+      Connection:
+      - keep-alive
+      Content-Length:
+      - '77'
+      Content-Type:
+      - application/json
+      User-Agent:
+      - polyswarm-api/2.9.0 (x86_64-Linux-CPython-3.6.5)
+    method: POST
+    uri: http://localhost:9696/v2/instance
+  response:
+    body:
+      string: '{"result":{"artifact_id":"68741499233874885","assertions":[],"community":"gamma","country":"","created":"2021-06-02T21:32:38.369222","detections":{"benign":0,"malicious":0,"total":0},"extended_type":null,"failed":false,"filename":"malicious","first_seen":"2021-06-02T21:32:38.369222","id":"68741499233874885","last_scanned":null,"last_seen":null,"md5":null,"metadata":[],"mimetype":null,"polyscore":null,"result":null,"sha1":null,"sha256":null,"size":null,"type":"FILE","upload_url":"http://minio:9000/instances/30/73/fe/3073fe74-4f35-4c21-a205-3120cc022026?X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Credential=AKIAIOSFODNN7EXAMPLE%2F20210602%2Fus-east-1%2Fs3%2Faws4_request&X-Amz-Date=20210602T213238Z&X-Amz-Expires=300&X-Amz-SignedHeaders=host&X-Amz-Signature=2ea69d0e6679240b6b6194f9c5fd9b06fc1358c7505e4db853d449995a453fcc","votes":[],"window_closed":false},"status":"OK"}
+
+        '
+    headers:
+      Content-Length:
+      - '874'
+      Content-Type:
+      - application/json
+      Date:
+      - Wed, 02 Jun 2021 21:32:38 GMT
+      Server:
+      - Werkzeug/1.0.1 Python/3.7.3
+      X-Billing-ID:
+      - '1'
+    status:
+      code: 200
+      message: OK
+- request:
+    body: !!python/object/new:_io.BytesIO
+      state: !!python/tuple
+      - !!binary |
+        WDVPIVAlQEFQWzRcUFpYNTQoUF4pN0NDKTd9JEVJQ0FSLVNUQU5EQVJELUFOVElWSVJVUy1URVNU
+        LUZJTEUhJEgrSCo=
+      - 0
+      - null
+    headers:
+      Accept:
+      - '*/*'
+      Accept-Encoding:
+      - gzip, deflate
+      Connection:
+      - keep-alive
+      Content-Length:
+      - '68'
+      User-Agent:
+      - python-requests/2.22.0
+    method: PUT
+    uri: http://minio:9000/instances/30/73/fe/3073fe74-4f35-4c21-a205-3120cc022026?X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Credential=AKIAIOSFODNN7EXAMPLE%2F20210602%2Fus-east-1%2Fs3%2Faws4_request&X-Amz-Date=20210602T213238Z&X-Amz-Expires=300&X-Amz-SignedHeaders=host&X-Amz-Signature=2ea69d0e6679240b6b6194f9c5fd9b06fc1358c7505e4db853d449995a453fcc
+  response:
+    body:
+      string: ''
+    headers:
+      Accept-Ranges:
+      - bytes
+      Content-Length:
+      - '0'
+      Content-Security-Policy:
+      - block-all-mixed-content
+      Date:
+      - Wed, 02 Jun 2021 21:32:38 GMT
+      ETag:
+      - '"44d88612fea8a8f36de82e1278abb02f"'
+      Server:
+      - MinIO/RELEASE.2020-11-06T23-17-07Z
+      Vary:
+      - Origin
+      X-Amz-Request-Id:
+      - 1684E15DB82A2432
+      X-Xss-Protection:
+      - 1; mode=block
+      x-amz-expiration:
+      - expiry-date="Fri, 04 Jun 2021 00:00:00 GMT", rule-id="instances_0"
+    status:
+      code: 200
+      message: OK
+- request:
+    body: null
+    headers:
+      Accept:
+      - '*/*'
+      Accept-Encoding:
+      - gzip, deflate
+      Authorization:
+      - '11111111111111111111111111111111'
+      Connection:
+      - keep-alive
+      Content-Length:
+      - '0'
+      User-Agent:
+      - polyswarm-api/2.9.0 (x86_64-Linux-CPython-3.6.5)
+    method: PUT
+    uri: http://localhost:9696/v2/instance?id=68741499233874885
+  response:
+    body:
+      string: '{"result":{"artifact_id":"68741499233874885","assertions":[],"community":"gamma","country":"","created":"2021-06-02T21:32:38.369222","detections":{"benign":0,"malicious":0,"total":0},"extended_type":"EICAR
+        virus test files","failed":false,"filename":"malicious","first_seen":"2021-06-02T20:48:09.422105","id":"68741499233874885","last_scanned":null,"last_seen":null,"md5":"44d88612fea8a8f36de82e1278abb02f","metadata":[],"mimetype":"text/plain","polyscore":null,"result":null,"sha1":"3395856ce81f2b7382dee72602f798b642f14140","sha256":"275a021bbfb6489e54d471899f7db9d1663fc695ec2fe2a2c4538aabf651fd0f","size":68,"type":"FILE","upload_url":"http://minio:9000/instances/30/73/fe/3073fe74-4f35-4c21-a205-3120cc022026?X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Credential=AKIAIOSFODNN7EXAMPLE%2F20210602%2Fus-east-1%2Fs3%2Faws4_request&X-Amz-Date=20210602T213238Z&X-Amz-Expires=300&X-Amz-SignedHeaders=host&X-Amz-Signature=2ea69d0e6679240b6b6194f9c5fd9b06fc1358c7505e4db853d449995a453fcc","votes":[],"window_closed":false},"status":"OK"}
+
+        '
+    headers:
+      Content-Length:
+      - '1030'
+      Content-Type:
+      - application/json
+      Date:
+      - Wed, 02 Jun 2021 21:32:38 GMT
+      Server:
+      - Werkzeug/1.0.1 Python/3.7.3
+      X-Billing-ID:
+      - '1'
+    status:
+      code: 200
+      message: OK
+version: 1
