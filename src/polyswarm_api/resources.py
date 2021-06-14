@@ -398,6 +398,8 @@ class AssertionsJob(core.BaseJsonResource):
         self.id = content['id']
         self.engine_id = content['engine_id']
         self.created = core.parse_isoformat(content['created'])
+        self.date_start = core.parse_isoformat(content['date_start'])
+        self.date_end = core.parse_isoformat(content['date_end'])
         self.storage_path = content['storage_path']
         self.true_positive = content['true_positive']
         self.true_negative = content['true_negative']
@@ -416,6 +418,8 @@ class VotesJob(core.BaseJsonResource):
         self.id = content['id']
         self.engine_id = content['engine_id']
         self.created = core.parse_isoformat(content['created'])
+        self.date_start = core.parse_isoformat(content['date_start'])
+        self.date_end = core.parse_isoformat(content['date_end'])
         self.storage_path = content['storage_path']
         self.true_positive = content['true_positive']
         self.true_negative = content['true_negative']
