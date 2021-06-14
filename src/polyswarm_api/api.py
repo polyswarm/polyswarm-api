@@ -521,6 +521,10 @@ class PolyswarmAPI(object):
         logger.info('Get assertions %s', assertions_id)
         return resources.AssertionsJob.get(self, id=assertions_id).result()
 
+    def assertions_list(self, engine_id):
+        logger.info('Get all assertions bundles for the engine %s', engine_id)
+        return resources.AssertionsJob.list(self, engine_id=engine_id).result()
+
     def votes_create(self, engine_id, date_start, date_end):
         logger.info('Create votes %s %s %s', engine_id, date_start, date_end)
         return resources.VotesJob.create(self,
@@ -531,6 +535,10 @@ class PolyswarmAPI(object):
     def votes_get(self, votes_id):
         logger.info('Get votes %s', votes_id)
         return resources.VotesJob.get(self, id=votes_id).result()
+
+    def votes_list(self, engine_id):
+        logger.info('Get all votes bundles for the engine %s', engine_id)
+        return resources.VotesJob.list(self, engine_id=engine_id).result()
 
     def download(self, out_dir, hash_, hash_type=None):
         """
