@@ -1,3 +1,4 @@
+import datetime as dt
 import logging
 import os
 import io
@@ -25,10 +26,10 @@ from polyswarm_api import exceptions, core, settings
 
 logger = logging.getLogger(__name__)
 
-
 #####################################################################
 # Resources returned by the API
 #####################################################################
+
 
 class Engine(core.BaseJsonResource):
     RESOURCE_ENDPOINT = '/microengines'
@@ -43,13 +44,28 @@ class Engine(core.BaseJsonResource):
         except:
             self.address = None
 
-        self.engine_type = content.get('engineType')
-        self.verified = content.get('status') == 'verified'
+        if 'accountNumber' in content:
+            self.account_number = str(content['accountNumber'])
+        else:
+            self.account_number = None
+
+        self.engine_type = content.get('engineType', 'microengine')
+        self.status = content.get('status', 'disabled')
 
         # These fields can be `null`; don't replace w/ default value in `get()`
         self.artifact_types = content.get('artifactTypes') or []
         self.tags = content.get('tags') or []
         self.communities = content.get('communities') or []
+
+        def parse_rc_date(key):
+            try:
+                return dt.datetime.fromisoformat(content[k].rstrip('Z'))
+            except:
+                return None
+
+        self.created_at = parse_rfc_date('createdAt')
+        self.modified_at = parse_rfc_date('modifiedAt')
+        self.archived_at = parse_rfc_date('archivedAt')
 
     @classmethod
     def _list_headers(cls, api):
@@ -63,6 +79,10 @@ class Engine(core.BaseJsonResource):
 
     def is_arbiter(self):
         return self.engine_type == 'arbiter'
+
+    def is_disabled(self):
+        return self.status == 'disabled'
+
 
 class ToolMetadata(core.BaseJsonResource):
     RESOURCE_ENDPOINT = '/artifact/metadata'
