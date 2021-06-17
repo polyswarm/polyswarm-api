@@ -44,10 +44,8 @@ class Engine(core.BaseJsonResource):
         except:
             self.address = None
 
-        if 'accountNumber' in content:
-            self.account_number = str(content['accountNumber'])
-        else:
-            self.account_number = None
+        account_number = content.get('accountNumber')
+        self.account_number = str(account_number) if account_number else None
 
         self.engine_type = content.get('engineType', 'microengine')
         self.status = content.get('status', 'disabled')
@@ -57,15 +55,9 @@ class Engine(core.BaseJsonResource):
         self.tags = content.get('tags') or []
         self.communities = content.get('communities') or []
 
-        def parse_rc_date(key):
-            try:
-                return dt.datetime.fromisoformat(content[k].rstrip('Z'))
-            except:
-                return None
-
-        self.created_at = parse_rfc_date('createdAt')
-        self.modified_at = parse_rfc_date('modifiedAt')
-        self.archived_at = parse_rfc_date('archivedAt')
+        self.created_at = core.parse_isoformat(content.get('createdAt'))
+        self.modified_at = core.parse_isoformat(content.get('modifiedAt'))
+        self.archived_at = core.parse_isoformat(content.get('archivedAt'))
 
     @classmethod
     def _list_headers(cls, api):

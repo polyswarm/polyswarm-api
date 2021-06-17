@@ -9,6 +9,7 @@ except ImportError:
     JSONDecodeError = ValueError
 
 import requests
+import datetime as dt
 from dateutil import parser
 from future.utils import raise_from
 from requests.adapters import HTTPAdapter
@@ -524,8 +525,10 @@ class Hashable(object):
 
 
 def parse_isoformat(date_string):
-    """ Parses the current date format version """
-    if date_string:
+    """Parses the current date format version """
+    if isinstance(date_string, (dt.date, dt.datetime)):
+        return date_string
+    elif date_string:
         return parser.isoparse(date_string)
     else:
         return None
