@@ -48,12 +48,18 @@ class Engine(core.BaseJsonResource):
         self.account_number = str(account_number) if account_number else None
 
         self.engine_type = content.get('engineType', 'microengine')
+        self.is_microengine = self.engine_type == 'microengine'
+        self.is_arbiter = self.engine_type == 'arbiter'
+
         self.status = content.get('status', 'disabled')
+        self.is_verified = self.status == 'verified'
+        self.is_operational = self.status in {'verified', 'development'}
 
         # These fields can be `null`; don't replace w/ default value in `get()`
-        self.artifact_types = content.get('artifactTypes') or []
-        self.tags = content.get('tags') or []
-        self.communities = content.get('communities') or []
+        self.artifact_types = set(content.get('artifactTypes') or [])
+        self.tags = set(content.get('tags') or [])
+        self.communities = set(content.get('communities') or [])
+        self.mimetypes = set(content.get('mimeTypes') or [])
 
         self.created_at = core.parse_isoformat(content.get('createdAt'))
         self.modified_at = core.parse_isoformat(content.get('modifiedAt'))
@@ -69,11 +75,14 @@ class Engine(core.BaseJsonResource):
     def __eq__(self, other):
         return self.id == other.id if isinstance(other, Engine) else False
 
-    def is_arbiter(self):
-        return self.engine_type == 'arbiter'
-
-    def is_disabled(self):
-        return self.status == 'disabled'
+    def __repr__(self):
+        return '{}(name={}, address={}, status={}, engine_type={})'.format(
+            self.__class__.__name__,
+            self.name,
+            self.address,
+            self.status,
+            self.engine_type,
+        )
 
 
 class ToolMetadata(core.BaseJsonResource):
