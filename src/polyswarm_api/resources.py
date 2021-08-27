@@ -52,8 +52,7 @@ class Engine(core.BaseJsonResource):
         self.is_arbiter = self.engine_type == 'arbiter'
 
         self.status = content.get('status', 'disabled')
-        self.is_verified = self.status == 'verified'
-        self.is_operational = self.status in {'verified', 'development'}
+        self.verified = self.status == 'verified'
 
         # These fields can be `null`; don't replace w/ default value in `get()`
         self.artifact_types = set(content.get('artifactTypes') or [])
