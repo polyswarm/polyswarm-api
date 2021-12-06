@@ -18,18 +18,20 @@ logger = logging.getLogger(__name__)
 class PolyswarmAPI(object):
     """A synchronous interface to the public and private PolySwarm APIs."""
 
-    def __init__(self, key, uri=None, community=None, timeout=None):
+    def __init__(self, key, uri=None, community=None, timeout=None, verify=True, **kwargs):
         """
         :param key: PolySwarm API key
         :param uri: PolySwarm API URI
         :param community: Community to scan against.
         :param timeout: Maximum time to wait for an http response on every request.
+        :param verify: Boolean, whether or not to verify TLS connections.
+        :param **kwargs: Keyword args to pass to requests.Session
         """
         logger.info('Creating PolyswarmAPI instance: api_key: %s, api_uri: %s, community: %s', key, uri, community)
         self.uri = uri or settings.DEFAULT_GLOBAL_API
         self.community = community or settings.DEFAULT_COMMUNITY
         self.timeout = timeout or settings.DEFAULT_HTTP_TIMEOUT
-        self.session = polyswarm_api.core.PolyswarmSession(key, retries=settings.DEFAULT_RETRIES)
+        self.session = polyswarm_api.core.PolyswarmSession(key, retries=settings.DEFAULT_RETRIES, verify=verify, **kwargs)
         self._engines = None
 
     @property

@@ -13,6 +13,7 @@ import datetime as dt
 from dateutil import parser
 from future.utils import raise_from
 from requests.adapters import HTTPAdapter
+from urllib3.exceptions import InsecureRequestWarning
 
 from polyswarm_api import settings, exceptions
 
@@ -20,10 +21,16 @@ logger = logging.getLogger(__name__)
 
 
 class PolyswarmSession(requests.Session):
-    def __init__(self, key, retries, user_agent=settings.DEFAULT_USER_AGENT):
-        super(PolyswarmSession, self).__init__()
+    def __init__(self, key, retries, user_agent=settings.DEFAULT_USER_AGENT, verify=True, **kwargs):
+        super(PolyswarmSession, self).__init__(**kwargs)
         logger.debug('Creating PolyswarmHTTP instance')
         self.requests_retry_session(retries=retries)
+
+        if not verify:
+            logger.warn('Disabling TLS verification for this session.')
+            requests.packages.urllib3.disable_warnings(category=InsecureRequestWarning)
+
+        self.verify = verify
 
         if key:
             self.set_auth(key)
