@@ -30,7 +30,6 @@ class PolyswarmSession(requests.Session):
             requests.packages.urllib3.disable_warnings(category=InsecureRequestWarning)
 
         self.verify = verify
-        self.trust_env = verify
 
         if key:
             self.set_auth(key)
