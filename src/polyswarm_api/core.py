@@ -256,7 +256,7 @@ class BaseJsonResource(BaseResource):
     def _get(self, path, default=None, content=None):
         """
         Helper for rendering attributes of child objects in the json that might be None.
-        Returns the default value if some of the items in the path is not present.
+        Returns the default value if any item in the path is not present.
         """
         previous_attribute = 'resource_json'
         obj = content or self.json

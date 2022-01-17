@@ -175,8 +175,16 @@ class ArtifactInstance(core.BaseJsonResource, core.Hashable):
         r = None
         while attempts > 0 and not r:
             attempts -= 1
+            artifact.seek(0, io.SEEK_END)
+            length = artifact.tell()
             artifact.seek(0)
+            # https://github.com/psf/requests/issues/4215#issuecomment-319521235
+            # We have to manually handle the case when the file is empty
+            # in a way that requests won't set Transfer-Encoding: chunked
+            if not length:
+                artifact = ''
             r = requests.put(self.upload_url, data=artifact, **kwargs)
+            r.raise_for_status()
         return r
 
     @classmethod
@@ -363,6 +371,13 @@ class Hunt(core.BaseJsonResource):
 
 class LiveHunt(Hunt):
     RESOURCE_ENDPOINT = '/hunt/live'
+
+    @classmethod
+    def _build_request(cls, *args, **kwargs):
+        warnings.warn(exceptions.APIWarning(
+            'The v2 endpoints for live hunts are deprecated. '
+            'Please upgrade to the latest version as soon as possible.'))
+        return super(LiveHunt, cls)._build_request(*args, **kwargs)
 
 
 class HistoricalHunt(Hunt):
@@ -582,6 +597,12 @@ class LocalArtifact(core.BaseResource, core.Hashable):
             setattr(self, name, a)
         return a
 
+    # https://github.com/python/cpython/blob/29500737d45cbca9604d9ce845fb2acc3f531401/Lib/tempfile.py#L499
+    # iter() doesn't use __getattr__ to find the __iter__ method
+    def __iter__(self):
+        for line in self.handle:
+            yield line
+
     @classmethod
     def from_handle(cls, api, handle, artifact_type=None, analyze=False, artifact_name=None, **kwargs):
         # create the LocalHandle with the given handle and don't write anything to it
@@ -635,6 +656,13 @@ class LocalArtifact(core.BaseResource, core.Hashable):
 
 class YaraRuleset(core.BaseJsonResource):
     RESOURCE_ENDPOINT = '/hunt/rule'
+
+    @classmethod
+    def _build_request(cls, *args, **kwargs):
+        warnings.warn('The v2 endpoints for rulesets are deprecated. '
+                      'Please upgrade to the latest version as soon as possible.',
+                      DeprecationWarning)
+        return super(YaraRuleset, cls)._build_request(*args, **kwargs)
 
     def __init__(self, content, api=None):
         super(YaraRuleset, self).__init__(content, api=api)

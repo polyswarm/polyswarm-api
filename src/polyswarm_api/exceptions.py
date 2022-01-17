@@ -71,3 +71,11 @@ class InvalidYaraRulesException(TypeException):
 
 class NotImportedException(TypeException):
     pass
+
+
+#########################################
+# Warnings
+#########################################
+
+class APIWarning(Warning):
+    pass
