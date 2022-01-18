@@ -1,9 +1,7 @@
-import datetime as dt
 import logging
 import os
 import io
 import functools
-import warnings
 import requests
 from enum import Enum
 from hashlib import sha256 as _sha256, sha1 as _sha1, md5 as _md5
@@ -360,12 +358,6 @@ class ArtifactInstance(core.BaseJsonResource, core.Hashable):
             self._valid_assertions = [a for a in self.assertions if a.mask]
         return self._valid_assertions
 
-    @property
-    def filenames(self):
-        warnings.warn('This property is deprecated and will be removed in the next major version. '
-                      'Please use "Metadata().filenames" in the future.')
-        return []
-
 
 class ArtifactArchive(core.BaseJsonResource):
     RESOURCE_ENDPOINT = '/consumer/download/stream'
@@ -378,9 +370,30 @@ class ArtifactArchive(core.BaseJsonResource):
         self.uri = content['uri']
 
 
-class Hunt(core.BaseJsonResource):
+class LiveHuntResult(core.BaseJsonResource):
+    RESOURCE_ENDPOINT = '/hunt/live'
+
+    @classmethod
+    def _list_endpoint(cls, api, **kwargs):
+        return cls._endpoint(api, **kwargs) + '/feed'
+
     def __init__(self, content, api=None):
-        super(Hunt, self).__init__(content=content, api=api)
+        super(LiveHuntResult, self).__init__(content=content, api=api)
+        self.id = content['id']
+        self.livescan_id = content['livescan_id']
+        self.account_number = content['account_number']
+        self.created = core.parse_isoformat(content['created'])
+        self.sha256 = content['sha256']
+        self.rule_name = content['rule_name']
+        self.polyscore = content['polyscore']
+        self.malware_family = content['malware_family']
+
+
+class HistoricalHunt(core.BaseJsonResource):
+    RESOURCE_ENDPOINT = '/hunt/historical'
+
+    def __init__(self, content, api=None):
+        super(HistoricalHunt, self).__init__(content=content, api=api)
         # active only present for live hunts
         self.id = content['id']
         self.created = core.parse_isoformat(content['created'])
@@ -389,24 +402,11 @@ class Hunt(core.BaseJsonResource):
         self.ruleset_name = content.get('ruleset_name')
 
 
-class LiveHunt(Hunt):
-    RESOURCE_ENDPOINT = '/hunt/live'
+class HistoricalHuntResult(core.BaseJsonResource):
+    RESOURCE_ENDPOINT = '/hunt/historical/results'
 
-    @classmethod
-    def _build_request(cls, *args, **kwargs):
-        warnings.warn(exceptions.APIWarning(
-            'The v2 endpoints for live hunts are deprecated. '
-            'Please upgrade to the latest version as soon as possible.'))
-        return super(LiveHunt, cls)._build_request(*args, **kwargs)
-
-
-class HistoricalHunt(Hunt):
-    RESOURCE_ENDPOINT = '/hunt/historical'
-
-
-class HuntResult(core.BaseJsonResource):
     def __init__(self, content, api=None):
-        super(HuntResult, self).__init__(content=content, api=api)
+        super(HistoricalHuntResult, self).__init__(content=content, api=api)
         self.id = content['id']
         self.rule_name = content['rule_name']
         self.tags = content['tags']
@@ -415,14 +415,6 @@ class HuntResult(core.BaseJsonResource):
         self.historicalscan_id = content['historicalscan_id']
         self.livescan_id = content['livescan_id']
         self.artifact = ArtifactInstance(content['artifact'], api)
-
-
-class LiveHuntResult(HuntResult):
-    RESOURCE_ENDPOINT = '/hunt/live/results'
-
-
-class HistoricalHuntResult(HuntResult):
-    RESOURCE_ENDPOINT = '/hunt/historical/results'
 
 
 class AssertionsJob(core.BaseJsonResource):
@@ -676,13 +668,6 @@ class LocalArtifact(core.BaseResource, core.Hashable):
 
 class YaraRuleset(core.BaseJsonResource):
     RESOURCE_ENDPOINT = '/hunt/rule'
-
-    @classmethod
-    def _build_request(cls, *args, **kwargs):
-        warnings.warn('The v2 endpoints for rulesets are deprecated. '
-                      'Please upgrade to the latest version as soon as possible.',
-                      DeprecationWarning)
-        return super(YaraRuleset, cls)._build_request(*args, **kwargs)
 
     def __init__(self, content, api=None):
         super(YaraRuleset, self).__init__(content, api=api)

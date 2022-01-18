@@ -3,7 +3,7 @@ import platform
 import polyswarm_api
 
 # API constants
-DEFAULT_GLOBAL_API = 'https://api.polyswarm.network/v2'
+DEFAULT_GLOBAL_API = 'https://api.polyswarm.network/v3'
 DEFAULT_PERMALINK_BASE = os.getenv('POLYSWARM_PORTAL_URI', 'https://polyswarm.network/scan/results/file')
 DEFAULT_COMMUNITY = 'default'
 DEFAULT_SCAN_TIMEOUT = 60*15

@@ -288,6 +288,16 @@ class PolyswarmAPI(object):
         return resources.LiveHuntResult.get(self, id=hunt, since=since,
                                             tag=tag, rule_name=rule_name).result()
 
+    def live_feed(self, since=None, rule_name=None):
+        """
+        Get live hunts feed
+
+        :param since: Fetch results from the last "since" minutes
+        :param rule_name: Filter hunt results on the provided rule name (exact match).
+        :return: Generator of HuntResult resources
+        """
+        return resources.LiveHuntResult.list(self, since=since, rule_name=rule_name).result()
+
     def historical_create(self, rule=None, ruleset_name=None):
         """
         Run a new historical hunt.
