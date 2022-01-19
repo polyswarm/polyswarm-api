@@ -369,26 +369,6 @@ class ArtifactArchive(core.BaseJsonResource):
         self.created = core.parse_isoformat(content['created'])
         self.uri = content['uri']
 
-
-class LiveHuntResult(core.BaseJsonResource):
-    RESOURCE_ENDPOINT = '/hunt/live'
-
-    @classmethod
-    def _list_endpoint(cls, api, **kwargs):
-        return cls._endpoint(api, **kwargs) + '/feed'
-
-    def __init__(self, content, api=None):
-        super(LiveHuntResult, self).__init__(content=content, api=api)
-        self.id = content['id']
-        self.livescan_id = content['livescan_id']
-        self.account_number = content['account_number']
-        self.created = core.parse_isoformat(content['created'])
-        self.sha256 = content['sha256']
-        self.rule_name = content['rule_name']
-        self.polyscore = content['polyscore']
-        self.malware_family = content['malware_family']
-
-
 class HistoricalHunt(core.BaseJsonResource):
     RESOURCE_ENDPOINT = '/hunt/historical'
 
@@ -690,6 +670,29 @@ class YaraRuleset(core.BaseJsonResource):
         except yara.SyntaxError as e:
             raise exceptions.InvalidYaraRulesException('Malformed yara file: {}'.format(e.args[0]) + '\n')
         return True
+
+
+class LiveHunt(YaraRuleset):
+    RESOURCE_ENDPOINT = '/hunt/live'
+
+
+class LiveHuntResult(core.BaseJsonResource):
+    RESOURCE_ENDPOINT = '/hunt/live'
+
+    @classmethod
+    def _list_endpoint(cls, api, **kwargs):
+        return cls._endpoint(api, **kwargs) + '/feed'
+
+    def __init__(self, content, api=None):
+        super(LiveHuntResult, self).__init__(content=content, api=api)
+        self.id = content['id']
+        self.livescan_id = content['livescan_id']
+        self.account_number = content['account_number']
+        self.created = core.parse_isoformat(content['created'])
+        self.sha256 = content['sha256']
+        self.rule_name = content['rule_name']
+        self.polyscore = content['polyscore']
+        self.malware_family = content['malware_family']
 
 
 class TagLink(core.BaseJsonResource):
