@@ -369,33 +369,6 @@ class ArtifactArchive(core.BaseJsonResource):
         self.created = core.parse_isoformat(content['created'])
         self.uri = content['uri']
 
-class HistoricalHunt(core.BaseJsonResource):
-    RESOURCE_ENDPOINT = '/hunt/historical'
-
-    def __init__(self, content, api=None):
-        super(HistoricalHunt, self).__init__(content=content, api=api)
-        # active only present for live hunts
-        self.id = content['id']
-        self.created = core.parse_isoformat(content['created'])
-        self.status = content['status']
-        self.active = content.get('active')
-        self.ruleset_name = content.get('ruleset_name')
-
-
-class HistoricalHuntResult(core.BaseJsonResource):
-    RESOURCE_ENDPOINT = '/hunt/historical/results'
-
-    def __init__(self, content, api=None):
-        super(HistoricalHuntResult, self).__init__(content=content, api=api)
-        self.id = content['id']
-        self.rule_name = content['rule_name']
-        self.tags = content['tags']
-        self.created = core.parse_isoformat(content['created'])
-        self.sha256 = content['sha256']
-        self.historicalscan_id = content['historicalscan_id']
-        self.livescan_id = content['livescan_id']
-        self.artifact = ArtifactInstance(content['artifact'], api)
-
 
 class AssertionsJob(core.BaseJsonResource):
     RESOURCE_ENDPOINT = '/consumer/assertions-job'
@@ -651,25 +624,14 @@ class YaraRuleset(core.BaseJsonResource):
 
     def __init__(self, content, api=None):
         super(YaraRuleset, self).__init__(content, api=api)
-        self.yara = content['yara']
-        self.name = content.get('name')
         self.id = content.get('id')
+        self.livescan_id = content.get('livescan_id')
+        self.name = content.get('name')
         self.description = content.get('description')
         self.created = core.parse_isoformat(content.get('created'))
         self.modified = core.parse_isoformat(content.get('modified'))
         self.deleted = content.get('deleted')
-
-        if not self.yara:
-            raise exceptions.InvalidValueException("Must provide yara ruleset content")
-
-    def validate(self):
-        try:
-            yara.compile(source=self.yara)
-        except AttributeError:
-            raise exceptions.NotImportedException("Cannot validate rules locally without yara-python")
-        except yara.SyntaxError as e:
-            raise exceptions.InvalidYaraRulesException('Malformed yara file: {}'.format(e.args[0]) + '\n')
-        return True
+        self.yara = content.get('yara')
 
 
 class LiveHunt(YaraRuleset):
@@ -687,12 +649,41 @@ class LiveHuntResult(core.BaseJsonResource):
         super(LiveHuntResult, self).__init__(content=content, api=api)
         self.id = content['id']
         self.livescan_id = content['livescan_id']
-        self.account_number = content['account_number']
+        self.instance_id = content['instance_id']
         self.created = core.parse_isoformat(content['created'])
         self.sha256 = content['sha256']
         self.rule_name = content['rule_name']
+        self.tags = content['tags']
         self.polyscore = content['polyscore']
         self.malware_family = content['malware_family']
+
+
+class HistoricalHunt(core.BaseJsonResource):
+    RESOURCE_ENDPOINT = '/hunt/historical'
+
+    def __init__(self, content, api=None):
+        super(HistoricalHunt, self).__init__(content=content, api=api)
+        # active only present for live hunts
+        self.id = content['id']
+        self.created = core.parse_isoformat(content['created'])
+        self.status = content['status']
+        self.active = content.get('active')
+        self.ruleset_name = content.get('ruleset_name')
+
+
+class HistoricalHuntResult(core.BaseJsonResource):
+    RESOURCE_ENDPOINT = '/hunt/historical/results'
+
+    def __init__(self, content, api=None):
+        super(HistoricalHuntResult, self).__init__(content=content, api=api)
+        self.id = content['id']
+        self.rule_name = content['rule_name']
+        self.tags = content['tags']
+        self.created = core.parse_isoformat(content['created'])
+        self.sha256 = content['sha256']
+        self.historicalscan_id = content['historicalscan_id']
+        self.livescan_id = content['livescan_id']
+        self.artifact = ArtifactInstance(content['artifact'], api)
 
 
 class TagLink(core.BaseJsonResource):

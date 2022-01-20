@@ -210,10 +210,6 @@ class PolyswarmAPI(object):
     def _parse_rule(self, rule):
         if isinstance(rule, string_types):
             rule, rule_id = resources.YaraRuleset(dict(yara=rule), api=self), None
-            try:
-                rule.validate()
-            except exceptions.NotImportedException as e:
-                logger.debug('%s\nSkipping validation.', str(e))
         elif isinstance(rule, (resources.YaraRuleset, int)):
             rule, rule_id = None, rule
         else:
@@ -246,6 +242,15 @@ class PolyswarmAPI(object):
 
         :param since: Fetch results from the last "since" minutes
         :param rule_name: Filter hunt results on the provided rule name (exact match).
+        :return: Generator of HuntResult resources
+        """
+        return resources.LiveHuntResult.list(self, since=since, rule_name=rule_name).result()
+
+    def live_yara(self, result_id):
+        """
+        Get yara ruleset for the live result id.
+
+        :param result_id: Live result id
         :return: Generator of HuntResult resources
         """
         return resources.LiveHuntResult.list(self, since=since, rule_name=rule_name).result()
@@ -314,10 +319,6 @@ class PolyswarmAPI(object):
         """
         logger.info('Create ruleset %s: %s', name, rules)
         rules = resources.YaraRuleset(dict(name=name, description=description, yara=rules), api=self)
-        try:
-            rules.validate()
-        except exceptions.NotImportedException as e:
-            logger.debug('%s\nSkipping validation.', str(e))
         return resources.YaraRuleset.create(self, yara=rules.yara, name=rules.name, description=rules.description).result()
 
     def ruleset_get(self, ruleset_id=None):
