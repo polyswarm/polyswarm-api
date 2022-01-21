@@ -634,16 +634,12 @@ class YaraRuleset(core.BaseJsonResource):
         self.yara = content.get('yara')
 
 
-class LiveHunt(YaraRuleset):
-    RESOURCE_ENDPOINT = '/hunt/live'
+class LiveYaraRuleset(YaraRuleset):
+    RESOURCE_ENDPOINT = '/hunt/rule/live'
 
 
 class LiveHuntResult(core.BaseJsonResource):
     RESOURCE_ENDPOINT = '/hunt/live'
-
-    @classmethod
-    def _list_endpoint(cls, api, **kwargs):
-        return cls._endpoint(api, **kwargs) + '/feed'
 
     def __init__(self, content, api=None):
         super(LiveHuntResult, self).__init__(content=content, api=api)
@@ -656,6 +652,7 @@ class LiveHuntResult(core.BaseJsonResource):
         self.tags = content['tags']
         self.polyscore = content['polyscore']
         self.malware_family = content['malware_family']
+        self.yara = content.get('yara')
 
 
 class HistoricalHunt(core.BaseJsonResource):

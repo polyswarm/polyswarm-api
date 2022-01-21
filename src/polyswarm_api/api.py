@@ -246,14 +246,14 @@ class PolyswarmAPI(object):
         """
         return resources.LiveHuntResult.list(self, since=since, rule_name=rule_name).result()
 
-    def live_yara(self, result_id):
+    def live_result(self, result_id):
         """
-        Get yara ruleset for the live result id.
+        Get yara ruleset for the live hunt result
 
         :param result_id: Live result id
         :return: Generator of HuntResult resources
         """
-        return resources.LiveHuntResult.list(self, since=since, rule_name=rule_name).result()
+        return resources.LiveHuntResult.get(self, id=result_id).result()
 
     def historical_create(self, rule=None, ruleset_name=None):
         """
