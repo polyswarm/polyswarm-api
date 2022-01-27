@@ -309,6 +309,16 @@ class PolyswarmAPI(object):
         logger.info('List historical results for hunt: %s', hunt)
         return resources.HistoricalHuntResult.get(self, id=hunt, tag=tag, rule_name=rule_name).result()
 
+    def historical_delete_list(self, historical_ids):
+        """
+        Delete a historical hunts.
+
+        :param historical_ids: Historical Hunt IDs
+        :return: The deleted Hunt resource
+        """
+        logger.info('Delete historical hunts %s', historical_ids)
+        return resources.HistoricalHuntList.delete(self, historical_ids=historical_ids).result()
+
     def ruleset_create(self, name, rules, description=None):
         """
         Create a Yara Ruleset from the provided rules with the given name in the polyswarm platform.

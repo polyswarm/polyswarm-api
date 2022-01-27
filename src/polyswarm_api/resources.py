@@ -668,6 +668,10 @@ class HistoricalHunt(core.BaseJsonResource):
         self.ruleset_name = content.get('ruleset_name')
 
 
+class HistoricalHuntList(HistoricalHunt):
+    RESOURCE_ENDPOINT = '/hunt/historical/list'
+
+
 class HistoricalHuntResult(core.BaseJsonResource):
     RESOURCE_ENDPOINT = '/hunt/historical/results'
 

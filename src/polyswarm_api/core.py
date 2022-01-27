@@ -159,7 +159,7 @@ class PolyswarmRequest(object):
                 raise exceptions.NoResultsException(self, 'The request returned no results.')
             elif issubclass(self.result_parser, BaseJsonResource):
                 self._extract_json_body(result)
-                if 'has_more' in self.json:
+                if self.request_parameters['method'] == 'GET' and 'has_more' in self.json:
                     # has_more will always be present, being either False or True
                     self._paginated = True
                 self.total = self.json.get('total')
