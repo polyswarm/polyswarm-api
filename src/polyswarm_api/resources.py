@@ -652,6 +652,7 @@ class LiveHuntResult(core.BaseJsonResource):
         self.tags = content['tags']
         self.polyscore = content['polyscore']
         self.malware_family = content['malware_family']
+        self.detections = content['detections']
         self.yara = content.get('yara')
 
 
@@ -678,13 +679,15 @@ class HistoricalHuntResult(core.BaseJsonResource):
     def __init__(self, content, api=None):
         super(HistoricalHuntResult, self).__init__(content=content, api=api)
         self.id = content['id']
+        self.historicalscan_id = content['historicalscan_id']
+        self.instance_id = content['instance_id']
+        self.sha256 = content['sha256']
+        self.created = core.parse_isoformat(content['created'])
         self.rule_name = content['rule_name']
         self.tags = content['tags']
-        self.created = core.parse_isoformat(content['created'])
-        self.sha256 = content['sha256']
-        self.historicalscan_id = content['historicalscan_id']
-        self.livescan_id = content['livescan_id']
-        self.artifact = ArtifactInstance(content['artifact'], api)
+        self.polyscore = content['polyscore']
+        self.malware_family = content['malware_family']
+        self.detections = content['detections']
 
 
 class TagLink(core.BaseJsonResource):

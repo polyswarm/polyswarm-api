@@ -224,7 +224,7 @@ class PolyswarmAPI(object):
         :return: The ruleset with the associated live hunt
         """
         logger.info('Create live hunt for rule id %s', rule_id)
-        return resources.LiveHunt.create(self, rule_id=rule_id).result()
+        return resources.LiveYaraRuleset.create(self, rule_id=rule_id).result()
 
     def live_stop(self, rule_id):
         """
@@ -234,7 +234,7 @@ class PolyswarmAPI(object):
         :return: The ruleset without an associate live hunt
         """
         logger.info('Delete live hunt for rule id %s', rule_id)
-        return resources.LiveHunt.delete(self, rule_id=rule_id).result()
+        return resources.LiveYaraRuleset.delete(self, rule_id=rule_id).result()
 
     def live_feed(self, since=None, rule_name=None):
         """
