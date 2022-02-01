@@ -236,15 +236,31 @@ class PolyswarmAPI(object):
         logger.info('Delete live hunt for rule id %s', rule_id)
         return resources.LiveYaraRuleset.delete(self, rule_id=rule_id).result()
 
-    def live_feed(self, since=None, rule_name=None):
+    def live_feed(self, since=None, rule_name=None, family=None,
+                           polyscore_lower=None, polyscore_upper=None):
         """
         Get live hunts feed
 
         :param since: Fetch results from the last "since" minutes
         :param rule_name: Filter hunt results on the provided rule name (exact match).
+        :param family: Filter hunt results based on the family name (exact match).
+        :param polyscore_lower: Polyscore lower bound for the hunt results.
+        :param polyscore_upper: Polyscore upper bound for the hunt results.
         :return: Generator of HuntResult resources
         """
-        return resources.LiveHuntResult.list(self, since=since, rule_name=rule_name).result()
+        return resources.LiveHuntResult.list(
+            self, since=since, rule_name=rule_name, family=family,
+            polyscore_lower=polyscore_lower, polyscore_upper=polyscore_upper).result()
+
+    def live_feed_delete(self, result_ids):
+        """
+        Delete live feed results
+
+        :param result_ids: Live Feed Result IDs
+        :return: The deleted LiveHuntResult resources
+        """
+        logger.info('Delete live results: %s', result_ids)
+        return resources.LiveHuntResultList.delete(self, result_ids=result_ids).result()
 
     def live_result(self, result_id):
         """
@@ -297,17 +313,41 @@ class PolyswarmAPI(object):
         logger.info('List historical hunts since: %s', since)
         return resources.HistoricalHunt.list(self, since=since).result()
 
-    def historical_results(self, hunt=None, tag=None, rule_name=None):
+    def historical_result(self, result_id):
+        """
+        Get historical hunt result
+
+        :param result_id: Historical result id
+        :return: HistoricalHuntResult resource
+        """
+        return resources.HistoricalHuntResult.get(self, id=result_id).result()
+
+    def historical_results(self, hunt=None, rule_name=None, family=None,
+                           polyscore_lower=None, polyscore_upper=None):
         """
         Get results from a historical hunt
 
         :param hunt: ID of the hunt (None if latest hunt results are desired)
-        :param tag: Filter hunt results containing the provided tags (comma separated tags, exact match).
         :param rule_name: Filter hunt results on the provided rule name (exact match).
+        :param family: Filter hunt results based on the family name (exact match).
+        :param polyscore_lower: Polyscore lower bound for the hunt results.
+        :param polyscore_upper: Polyscore upper bound for the hunt results.
         :return: Generator of HuntResult resources
         """
         logger.info('List historical results for hunt: %s', hunt)
-        return resources.HistoricalHuntResult.get(self, id=hunt, tag=tag, rule_name=rule_name).result()
+        return resources.HistoricalHuntResultList.get(
+            self, id=hunt, rule_name=rule_name, family=family,
+            polyscore_lower=polyscore_lower, polyscore_upper=polyscore_upper).result()
+
+    def historical_results_delete(self, result_ids):
+        """
+        Delete historical scan results
+
+        :param result_ids: Historical Hunt Result IDs
+        :return: The deleted HuntResult resources
+        """
+        logger.info('Delete historical results: %s', result_ids)
+        return resources.HistoricalHuntResultList.delete(self, result_ids=result_ids).result()
 
     def historical_delete_list(self, historical_ids):
         """

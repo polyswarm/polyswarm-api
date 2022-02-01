@@ -626,6 +626,7 @@ class YaraRuleset(core.BaseJsonResource):
         super(YaraRuleset, self).__init__(content, api=api)
         self.id = content.get('id')
         self.livescan_id = content.get('livescan_id')
+        self.livescan_created = content.get('livescan_created')
         self.name = content.get('name')
         self.description = content.get('description')
         self.created = core.parse_isoformat(content.get('created'))
@@ -654,6 +655,11 @@ class LiveHuntResult(core.BaseJsonResource):
         self.malware_family = content['malware_family']
         self.detections = content['detections']
         self.yara = content.get('yara')
+        self.download_url = content.get('download_url')
+
+
+class LiveHuntResultList(LiveHuntResult):
+    RESOURCE_ENDPOINT = '/hunt/live/list'
 
 
 class HistoricalHunt(core.BaseJsonResource):
@@ -661,7 +667,7 @@ class HistoricalHunt(core.BaseJsonResource):
 
     def __init__(self, content, api=None):
         super(HistoricalHunt, self).__init__(content=content, api=api)
-        # active only present for live hunts
+        # active only present for live   hunts
         self.id = content['id']
         self.created = core.parse_isoformat(content['created'])
         self.status = content['status']
@@ -688,6 +694,11 @@ class HistoricalHuntResult(core.BaseJsonResource):
         self.polyscore = content['polyscore']
         self.malware_family = content['malware_family']
         self.detections = content['detections']
+        self.download_url = content.get('download_url')
+
+
+class HistoricalHuntResultList(HistoricalHuntResult):
+    RESOURCE_ENDPOINT = '/hunt/historical/results/list'
 
 
 class TagLink(core.BaseJsonResource):
