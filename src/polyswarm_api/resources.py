@@ -676,7 +676,7 @@ class HistoricalHunt(core.BaseJsonResource):
         self.yara = content.get('yara')
         self.summary = content.get('summary')
         self.progress = content['progress']
-        self.results_csv_uri = content['uri']
+        self.results_csv_uri = content['results_csv_uri']
 
 
 class HistoricalHuntList(HistoricalHunt):
