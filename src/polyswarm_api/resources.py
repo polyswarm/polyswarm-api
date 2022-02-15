@@ -516,7 +516,7 @@ class LocalArtifact(core.BaseResource, core.Hashable):
             api,
             {
                 'method': 'GET',
-                'url': '{}/download/{}/{}'.format(api.uri, hash_type, hash_value),
+                'url': '{}/consumer/download/{}/{}'.format(api.uri, hash_type, hash_value),
                 'stream': True,
             },
             result_parser=cls,
