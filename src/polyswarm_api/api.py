@@ -286,13 +286,22 @@ class PolyswarmAPI(object):
 
     def historical_get(self, hunt=None):
         """
-        Delete a live hunt.
+        Get a historical hunt.
 
         :param hunt: Hunt ID
         :return: The Hunt resource
         """
         logger.info('Get historical hunt %s', hunt)
         return resources.HistoricalHunt.get(self, id=hunt).result()
+
+    def historical_update(self, hunt):
+        """
+        Cancel a historical hunt
+        :param hunt: The historical hunt id
+        :return: The deleted HistoricalHunt resource
+        """
+        logger.info('Deleting historical hunt %s', hunt)
+        return resources.HistoricalHunt.update(self, id=hunt).result()
 
     def historical_delete(self, hunt):
         """
