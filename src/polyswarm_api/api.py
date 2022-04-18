@@ -124,7 +124,7 @@ class PolyswarmAPI(object):
         logger.info('Retrieving the metadata mapping')
         return resources.MetadataMapping.get(self).result()
 
-    def search_by_metadata(self, query, include=None, exclude=None):
+    def search_by_metadata(self, query, include=None, exclude=None, ips=None):
         """
         Search artifacts by metadata
 
@@ -134,7 +134,7 @@ class PolyswarmAPI(object):
         :return: Generator of ArtifactInstance resources
         """
         logger.info('Searching for metadata %s', query)
-        return resources.Metadata.get(self, query=query, include=include, exclude=exclude).result()
+        return resources.Metadata.get(self, query=query, include=include, exclude=exclude, ips=ips).result()
 
     def submit(self, artifact, artifact_type=resources.ArtifactType.FILE, artifact_name=None, scan_config=None):
         """

@@ -138,8 +138,10 @@ class Metadata(core.BaseJsonResource):
         params = []
         include = kwargs.pop('include', ()) or ()
         exclude = kwargs.pop('exclude', ()) or ()
+        ips = kwargs.pop('ips', ()) or ()
         params.extend(('include', v) for v in include)
         params.extend(('exclude', v) for v in exclude)
+        params.extend(('ips', v) for v in ips)
         super_params, json_params = super(Metadata, cls)._get_params(**kwargs)
         params.extend(super_params.items())
         return params, json_params
