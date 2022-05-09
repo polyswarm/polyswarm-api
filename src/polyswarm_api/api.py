@@ -18,18 +18,21 @@ logger = logging.getLogger(__name__)
 class PolyswarmAPI(object):
     """A synchronous interface to the public and private PolySwarm APIs."""
 
-    def __init__(self, key, uri=None, community=None, timeout=None):
+    def __init__(self, key, uri=None, community=None, timeout=None, verify=True, **kwargs):
         """
         :param key: PolySwarm API key
         :param uri: PolySwarm API URI
         :param community: Community to scan against.
         :param timeout: Maximum time to wait for an http response on every request.
+        :param verify: Boolean, whether or not to verify TLS connections.
+        :param **kwargs: Keyword args to pass to requests.Session
         """
-        logger.info('Creating PolyswarmAPI instance: api_key: %s, api_uri: %s, community: %s', key, uri, community)
+        key_masked = (key[0:4] if key and len(key) > 16 else '') + '******'
+        logger.info('Creating PolyswarmAPI instance: api_key: %s, api_uri: %s, community: %s', key_masked, uri, community)
         self.uri = uri or settings.DEFAULT_GLOBAL_API
         self.community = community or settings.DEFAULT_COMMUNITY
         self.timeout = timeout or settings.DEFAULT_HTTP_TIMEOUT
-        self.session = polyswarm_api.core.PolyswarmSession(key, retries=settings.DEFAULT_RETRIES)
+        self.session = polyswarm_api.core.PolyswarmSession(key, retries=settings.DEFAULT_RETRIES, verify=verify, **kwargs)
         self._engines = None
 
     @property
@@ -121,7 +124,7 @@ class PolyswarmAPI(object):
         logger.info('Retrieving the metadata mapping')
         return resources.MetadataMapping.get(self).result()
 
-    def search_by_metadata(self, query, include=None, exclude=None):
+    def search_by_metadata(self, query, include=None, exclude=None, ips=None, urls=None, domains=None):
         """
         Search artifacts by metadata
 
@@ -131,7 +134,7 @@ class PolyswarmAPI(object):
         :return: Generator of ArtifactInstance resources
         """
         logger.info('Searching for metadata %s', query)
-        return resources.Metadata.get(self, query=query, include=include, exclude=exclude).result()
+        return resources.Metadata.get(self, query=query, include=include, exclude=exclude, ips=ips, urls=urls, domains=domains).result()
 
     def submit(self, artifact, artifact_type=resources.ArtifactType.FILE, artifact_name=None, scan_config=None):
         """

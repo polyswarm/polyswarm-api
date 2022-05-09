@@ -9,9 +9,11 @@ except ImportError:
     JSONDecodeError = ValueError
 
 import requests
+import datetime as dt
 from dateutil import parser
 from future.utils import raise_from
 from requests.adapters import HTTPAdapter
+from urllib3.exceptions import InsecureRequestWarning
 
 from polyswarm_api import settings, exceptions
 
@@ -19,10 +21,16 @@ logger = logging.getLogger(__name__)
 
 
 class PolyswarmSession(requests.Session):
-    def __init__(self, key, retries, user_agent=settings.DEFAULT_USER_AGENT):
-        super(PolyswarmSession, self).__init__()
+    def __init__(self, key, retries, user_agent=settings.DEFAULT_USER_AGENT, verify=True, **kwargs):
+        super(PolyswarmSession, self).__init__(**kwargs)
         logger.debug('Creating PolyswarmHTTP instance')
         self.requests_retry_session(retries=retries)
+
+        if not verify:
+            logger.warn('Disabling TLS verification for this session.')
+            requests.packages.urllib3.disable_warnings(category=InsecureRequestWarning)
+
+        self.verify = verify
 
         if key:
             self.set_auth(key)
@@ -524,8 +532,10 @@ class Hashable(object):
 
 
 def parse_isoformat(date_string):
-    """ Parses the current date format version """
-    if date_string:
+    """Parses the current date format version """
+    if isinstance(date_string, (dt.date, dt.datetime)):
+        return date_string
+    elif date_string:
         return parser.isoparse(date_string)
     else:
         return None
