@@ -143,6 +143,88 @@ class Metadata(core.BaseJsonResource):
         return params, json_params
 
 
+class IOC(core.BaseJsonResource):
+    RESOURCE_ENDPOINT = '/ioc'
+
+    @classmethod
+    def iocs_by_hash(cls, api, hash_value, hash_type, hide_known_good=False):
+        return core.PolyswarmRequest(
+            api,
+            {
+                'method': 'GET',
+                'url': '{}/ioc/{}/{}'.format(api.uri, hash_type, hash_value),
+                'params': {
+                    'hide_known_good': hide_known_good,
+                },
+            }
+        ).execute()
+
+    @classmethod
+    def ioc_search(cls, api, ip=None, domain=None, ttp=None, imphash=None):
+        params = dict()
+        if ip is not None:
+            params['ip'] = ip
+        if domain is not None:
+            params['domain'] = domain
+        if ttp is not None:
+            params['ttp'] = ttp
+        if imphash is not None:
+            params['imphash'] = imphash
+        return core.PolyswarmRequest(
+            api,
+            {
+                'method': 'GET',
+                'url': '{}/search',
+                'params': params
+            }
+        ).execute()
+
+    @classmethod
+    def check_known_hosts(cls, api, ips, domains):
+        return core.PolyswarmRequest(
+            api,
+            {
+                'method': 'GET',
+                'url': '{}/known',
+                'params': {
+                    'ip': ips,
+                    'domain': domains
+                }
+            }
+        ).execute()
+
+    @classmethod
+    def create_known_good(cls, api, type, host, source):
+        return core.PolyswarmRequest(
+            api,
+            {
+                'method': 'POST',
+                'url': '{}/known',
+                'json': {
+                    'type': type,
+                    'host': host,
+                    'source': source
+                }
+            }
+        ).execute()
+
+    @classmethod
+    def update_known_good(cls, api, id, type, host, source):
+        return core.PolyswarmRequest(
+            api,
+            {
+                'method': 'PUT',
+                'url': '{}/known',
+                'json': {
+                    'id': id,
+                    'type': type,
+                    'host': host,
+                    'source': source
+                }
+            }
+        ).execute()
+
+
 class ArtifactInstance(core.BaseJsonResource, core.Hashable):
     RESOURCE_ENDPOINT = '/instance'
 
