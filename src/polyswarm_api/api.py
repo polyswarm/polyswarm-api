@@ -144,23 +144,23 @@ class PolyswarmAPI(object):
         :return: Generator of ArtifactInstance resources
         """
         logger.info('Getting IOCs by hash %s:%s', hash_type, hash_value)
-        return resources.IOC.iocs_by_hash(self, hash_value, hash_type, hide_known_good=hide_known_good)
+        return resources.IOC.iocs_by_hash(self, hash_value, hash_type, hide_known_good=hide_known_good).result()
 
     def search_by_ioc(self, ip=None, domain=None, ttp=None, imphash=None):
         logger.info('Searching by ioc %s', dict(ip=ip, domain=domain, ttp=ttp, imphash=imphash))
-        return resources.IOC.ioc_search(self, ip=ip, domain=domain, ttp=ttp, imphash=imphash)
+        return resources.IOC.ioc_search(self, ip=ip, domain=domain, ttp=ttp, imphash=imphash).result()
 
     def check_known_hosts(self, ips=[], domains=[]):
         logger.info('Checking known hosts ips: %s, domains: %s', ips, domains)
-        return resources.IOC.check_known_hosts(self, ips, domains)
+        return resources.IOC.check_known_hosts(self, ips, domains).result()
 
     def add_known_good_host(self, type, source, host):
         logger.info('Creating known good ioc %s %s %s', type, host, source)
-        return resources.IOC.create_known_good(self, type, host, source)
+        return resources.IOC.create_known_good(self, type, host, source).result()
 
-    def update_known_good_host(self, id, type, source, host):
+    def update_known_good_host(self, id, type, source, host, good):
         logger.info('Updating known good ioc %s %s %s %s', id, type, host, source)
-        return resources.IOC.update_known_good(self, id, type, host, source)
+        return resources.IOC.update_known_good(self, id, type, host, source, good).result()
 
     def submit(self, artifact, artifact_type=resources.ArtifactType.FILE, artifact_name=None, scan_config=None):
         """

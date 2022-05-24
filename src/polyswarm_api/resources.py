@@ -156,7 +156,8 @@ class IOC(core.BaseJsonResource):
                 'params': {
                     'hide_known_good': hide_known_good,
                 },
-            }
+            },
+            result_parser=cls,
         ).execute()
 
     @classmethod
@@ -174,9 +175,10 @@ class IOC(core.BaseJsonResource):
             api,
             {
                 'method': 'GET',
-                'url': '{}/search',
+                'url': '{}/ioc/search'.format(api.uri),
                 'params': params
-            }
+            },
+            result_parser=cls,
         ).execute()
 
     @classmethod
@@ -185,12 +187,13 @@ class IOC(core.BaseJsonResource):
             api,
             {
                 'method': 'GET',
-                'url': '{}/known',
+                'url': '{}/ioc/known'.format(api.uri),
                 'params': {
                     'ip': ips,
                     'domain': domains
                 }
-            }
+            },
+            result_parser=cls,
         ).execute()
 
     @classmethod
@@ -199,29 +202,33 @@ class IOC(core.BaseJsonResource):
             api,
             {
                 'method': 'POST',
-                'url': '{}/known',
+                'url': '{}/ioc/known'.format(api.uri),
                 'json': {
                     'type': type,
                     'host': host,
-                    'source': source
+                    'source': source,
+                    'good': True
                 }
-            }
+            },
+            result_parser=cls,
         ).execute()
 
     @classmethod
-    def update_known_good(cls, api, id, type, host, source):
+    def update_known_good(cls, api, id, type, host, source, good):
         return core.PolyswarmRequest(
             api,
             {
                 'method': 'PUT',
-                'url': '{}/known',
+                'url': '{}/ioc/known'.format(api.uri),
                 'json': {
                     'id': id,
                     'type': type,
                     'host': host,
-                    'source': source
+                    'source': source,
+                    'good': good
                 }
-            }
+            },
+            result_parser=cls,
         ).execute()
 
 
