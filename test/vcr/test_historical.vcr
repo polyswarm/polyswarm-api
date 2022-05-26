@@ -26,23 +26,90 @@ interactions:
       Content-Type:
       - application/json
       User-Agent:
-      - polyswarm-api/2.9.0 (x86_64-Linux-CPython-3.6.5)
+      - polyswarm-api/3.0.0 (x86_64-Linux-CPython-3.6.5)
     method: POST
-    uri: http://localhost:9696/v2/hunt/historical
+    uri: http://localhost:9696/v3/hunt/historical
   response:
     body:
-      string: '{"result":{"created":"2021-06-02T21:39:04.450432","id":"44679890090362616","ruleset_name":null,"status":"PENDING"},"status":"OK"}
+      string: '<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 3.2 Final//EN">
+
+        <title>Redirecting...</title>
+
+        <h1>Redirecting...</h1>
+
+        <p>You should be redirected automatically to target URL: <a href="http://localhost:9696/v3/hunt/historical/">http://localhost:9696/v3/hunt/historical/</a>.  If
+        not click the link.'
+    headers:
+      Content-Length:
+      - '289'
+      Content-Type:
+      - text/html; charset=utf-8
+      Date:
+      - Thu, 26 May 2022 17:38:34 GMT
+      Location:
+      - http://localhost:9696/v3/hunt/historical/
+      Server:
+      - Werkzeug/1.0.1 Python/3.9.6
+    status:
+      code: 308
+      message: PERMANENT REDIRECT
+- request:
+    body: '{"yara": "rule eicar_av_test {\n    /*\n       Per standard, match only
+      if entire file is EICAR string plus optional trailing whitespace.\n       The
+      raw EICAR string to be matched is:\n       X5O!P%@AP[4\\PZX54(P^)7CC)7}$EICAR-STANDARD-ANTIVIRUS-TEST-FILE!$H+H*\n    */\n\n    meta:\n        description
+      = \"This is a standard AV test, intended to verify that BinaryAlert is working
+      correctly.\"\n        author = \"Austin Byers | Airbnb CSIRT\"\n        reference
+      = \"http://www.eicar.org/86-0-Intended-use.html\"\n\n    strings:\n        $eicar_regex
+      = /^X5O!P%@AP\\[4\\\\PZX54\\(P\\^\\)7CC\\)7\\}\\$EICAR-STANDARD-ANTIVIRUS-TEST-FILE!\\$H\\+H\\*\\s*$/\n\n    condition:\n        all
+      of them\n}\n\nrule eicar_substring_test {\n    /*\n       More generic - match
+      just the embedded EICAR string (e.g. in packed executables, PDFs, etc)\n    */\n\n    meta:\n        description
+      = \"Standard AV test, checking for an EICAR substring\"\n        author = \"Austin
+      Byers | Airbnb CSIRT\"\n\n    strings:\n        $eicar_substring = \"$EICAR-STANDARD-ANTIVIRUS-TEST-FILE!\"\n\n    condition:\n        all
+      of them\n}"}'
+    headers:
+      Accept:
+      - '*/*'
+      Accept-Encoding:
+      - gzip, deflate
+      Authorization:
+      - '11111111111111111111111111111111'
+      Connection:
+      - keep-alive
+      Content-Length:
+      - '1113'
+      Content-Type:
+      - application/json
+      User-Agent:
+      - polyswarm-api/3.0.0 (x86_64-Linux-CPython-3.6.5)
+    method: POST
+    uri: http://localhost:9696/v3/hunt/historical/
+  response:
+    body:
+      string: '{"result":{"created":"2022-05-26T17:38:34.639812","id":"50600937401657127","progress":null,"results_csv_uri":null,"ruleset_name":null,"status":"PENDING","summary":null,"yara":"rule
+        eicar_av_test {\n    /*\n       Per standard, match only if entire file is
+        EICAR string plus optional trailing whitespace.\n       The raw EICAR string
+        to be matched is:\n       X5O!P%@AP[4\\PZX54(P^)7CC)7}$EICAR-STANDARD-ANTIVIRUS-TEST-FILE!$H+H*\n    */\n\n    meta:\n        description
+        = \"This is a standard AV test, intended to verify that BinaryAlert is working
+        correctly.\"\n        author = \"Austin Byers | Airbnb CSIRT\"\n        reference
+        = \"http://www.eicar.org/86-0-Intended-use.html\"\n\n    strings:\n        $eicar_regex
+        = /^X5O!P%@AP\\[4\\\\PZX54\\(P\\^\\)7CC\\)7\\}\\$EICAR-STANDARD-ANTIVIRUS-TEST-FILE!\\$H\\+H\\*\\s*$/\n\n    condition:\n        all
+        of them\n}\n\nrule eicar_substring_test {\n    /*\n       More generic - match
+        just the embedded EICAR string (e.g. in packed executables, PDFs, etc)\n    */\n\n    meta:\n        description
+        = \"Standard AV test, checking for an EICAR substring\"\n        author =
+        \"Austin Byers | Airbnb CSIRT\"\n\n    strings:\n        $eicar_substring
+        = \"$EICAR-STANDARD-ANTIVIRUS-TEST-FILE!\"\n\n    condition:\n        all
+        of them\n}"},"status":"OK"}
 
         '
     headers:
       Content-Length:
-      - '130'
+      - '1295'
       Content-Type:
       - application/json
       Date:
-      - Wed, 02 Jun 2021 21:39:04 GMT
+      - Thu, 26 May 2022 17:38:34 GMT
       Server:
-      - Werkzeug/1.0.1 Python/3.7.3
+      - Werkzeug/1.0.1 Python/3.9.6
       X-Billing-ID:
       - '1'
     status:
@@ -60,23 +127,75 @@ interactions:
       Connection:
       - keep-alive
       User-Agent:
-      - polyswarm-api/2.9.0 (x86_64-Linux-CPython-3.6.5)
+      - polyswarm-api/3.0.0 (x86_64-Linux-CPython-3.6.5)
     method: GET
-    uri: http://localhost:9696/v2/hunt/historical?id=44679890090362616
+    uri: http://localhost:9696/v3/hunt/historical?id=50600937401657127
   response:
     body:
-      string: '{"result":{"created":"2021-06-02T21:39:04.450432","id":"44679890090362616","ruleset_name":null,"status":"PENDING"},"status":"OK"}
+      string: '<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 3.2 Final//EN">
+
+        <title>Redirecting...</title>
+
+        <h1>Redirecting...</h1>
+
+        <p>You should be redirected automatically to target URL: <a href="http://localhost:9696/v3/hunt/historical/?id=50600937401657127">http://localhost:9696/v3/hunt/historical/?id=50600937401657127</a>.  If
+        not click the link.'
+    headers:
+      Content-Length:
+      - '331'
+      Content-Type:
+      - text/html; charset=utf-8
+      Date:
+      - Thu, 26 May 2022 17:38:34 GMT
+      Location:
+      - http://localhost:9696/v3/hunt/historical/?id=50600937401657127
+      Server:
+      - Werkzeug/1.0.1 Python/3.9.6
+    status:
+      code: 308
+      message: PERMANENT REDIRECT
+- request:
+    body: null
+    headers:
+      Accept:
+      - '*/*'
+      Accept-Encoding:
+      - gzip, deflate
+      Authorization:
+      - '11111111111111111111111111111111'
+      Connection:
+      - keep-alive
+      User-Agent:
+      - polyswarm-api/3.0.0 (x86_64-Linux-CPython-3.6.5)
+    method: GET
+    uri: http://localhost:9696/v3/hunt/historical/?id=50600937401657127
+  response:
+    body:
+      string: '{"result":{"created":"2022-05-26T17:38:34.639812","id":"50600937401657127","progress":null,"results_csv_uri":null,"ruleset_name":null,"status":"PENDING","summary":null,"yara":"rule
+        eicar_av_test {\n    /*\n       Per standard, match only if entire file is
+        EICAR string plus optional trailing whitespace.\n       The raw EICAR string
+        to be matched is:\n       X5O!P%@AP[4\\PZX54(P^)7CC)7}$EICAR-STANDARD-ANTIVIRUS-TEST-FILE!$H+H*\n    */\n\n    meta:\n        description
+        = \"This is a standard AV test, intended to verify that BinaryAlert is working
+        correctly.\"\n        author = \"Austin Byers | Airbnb CSIRT\"\n        reference
+        = \"http://www.eicar.org/86-0-Intended-use.html\"\n\n    strings:\n        $eicar_regex
+        = /^X5O!P%@AP\\[4\\\\PZX54\\(P\\^\\)7CC\\)7\\}\\$EICAR-STANDARD-ANTIVIRUS-TEST-FILE!\\$H\\+H\\*\\s*$/\n\n    condition:\n        all
+        of them\n}\n\nrule eicar_substring_test {\n    /*\n       More generic - match
+        just the embedded EICAR string (e.g. in packed executables, PDFs, etc)\n    */\n\n    meta:\n        description
+        = \"Standard AV test, checking for an EICAR substring\"\n        author =
+        \"Austin Byers | Airbnb CSIRT\"\n\n    strings:\n        $eicar_substring
+        = \"$EICAR-STANDARD-ANTIVIRUS-TEST-FILE!\"\n\n    condition:\n        all
+        of them\n}"},"status":"OK"}
 
         '
     headers:
       Content-Length:
-      - '130'
+      - '1295'
       Content-Type:
       - application/json
       Date:
-      - Wed, 02 Jun 2021 21:39:04 GMT
+      - Thu, 26 May 2022 17:38:34 GMT
       Server:
-      - Werkzeug/1.0.1 Python/3.7.3
+      - Werkzeug/1.0.1 Python/3.9.6
       X-Billing-ID:
       - '1'
     status:
@@ -96,23 +215,77 @@ interactions:
       Content-Length:
       - '0'
       User-Agent:
-      - polyswarm-api/2.9.0 (x86_64-Linux-CPython-3.6.5)
+      - polyswarm-api/3.0.0 (x86_64-Linux-CPython-3.6.5)
     method: DELETE
-    uri: http://localhost:9696/v2/hunt/historical?id=44679890090362616
+    uri: http://localhost:9696/v3/hunt/historical?id=50600937401657127
   response:
     body:
-      string: '{"result":{"created":"2021-06-02T21:39:04.450432","id":"44679890090362616","ruleset_name":null,"status":"PENDING"},"status":"OK"}
+      string: '<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 3.2 Final//EN">
+
+        <title>Redirecting...</title>
+
+        <h1>Redirecting...</h1>
+
+        <p>You should be redirected automatically to target URL: <a href="http://localhost:9696/v3/hunt/historical/?id=50600937401657127">http://localhost:9696/v3/hunt/historical/?id=50600937401657127</a>.  If
+        not click the link.'
+    headers:
+      Content-Length:
+      - '331'
+      Content-Type:
+      - text/html; charset=utf-8
+      Date:
+      - Thu, 26 May 2022 17:38:34 GMT
+      Location:
+      - http://localhost:9696/v3/hunt/historical/?id=50600937401657127
+      Server:
+      - Werkzeug/1.0.1 Python/3.9.6
+    status:
+      code: 308
+      message: PERMANENT REDIRECT
+- request:
+    body: null
+    headers:
+      Accept:
+      - '*/*'
+      Accept-Encoding:
+      - gzip, deflate
+      Authorization:
+      - '11111111111111111111111111111111'
+      Connection:
+      - keep-alive
+      Content-Length:
+      - '0'
+      User-Agent:
+      - polyswarm-api/3.0.0 (x86_64-Linux-CPython-3.6.5)
+    method: DELETE
+    uri: http://localhost:9696/v3/hunt/historical/?id=50600937401657127
+  response:
+    body:
+      string: '{"result":{"created":"2022-05-26T17:38:34.639812","id":"50600937401657127","progress":null,"results_csv_uri":null,"ruleset_name":null,"status":"DELETING","summary":null,"yara":"rule
+        eicar_av_test {\n    /*\n       Per standard, match only if entire file is
+        EICAR string plus optional trailing whitespace.\n       The raw EICAR string
+        to be matched is:\n       X5O!P%@AP[4\\PZX54(P^)7CC)7}$EICAR-STANDARD-ANTIVIRUS-TEST-FILE!$H+H*\n    */\n\n    meta:\n        description
+        = \"This is a standard AV test, intended to verify that BinaryAlert is working
+        correctly.\"\n        author = \"Austin Byers | Airbnb CSIRT\"\n        reference
+        = \"http://www.eicar.org/86-0-Intended-use.html\"\n\n    strings:\n        $eicar_regex
+        = /^X5O!P%@AP\\[4\\\\PZX54\\(P\\^\\)7CC\\)7\\}\\$EICAR-STANDARD-ANTIVIRUS-TEST-FILE!\\$H\\+H\\*\\s*$/\n\n    condition:\n        all
+        of them\n}\n\nrule eicar_substring_test {\n    /*\n       More generic - match
+        just the embedded EICAR string (e.g. in packed executables, PDFs, etc)\n    */\n\n    meta:\n        description
+        = \"Standard AV test, checking for an EICAR substring\"\n        author =
+        \"Austin Byers | Airbnb CSIRT\"\n\n    strings:\n        $eicar_substring
+        = \"$EICAR-STANDARD-ANTIVIRUS-TEST-FILE!\"\n\n    condition:\n        all
+        of them\n}"},"status":"OK"}
 
         '
     headers:
       Content-Length:
-      - '130'
+      - '1296'
       Content-Type:
       - application/json
       Date:
-      - Wed, 02 Jun 2021 21:39:04 GMT
+      - Thu, 26 May 2022 17:38:34 GMT
       Server:
-      - Werkzeug/1.0.1 Python/3.7.3
+      - Werkzeug/1.0.1 Python/3.9.6
       X-Billing-ID:
       - '1'
     status:

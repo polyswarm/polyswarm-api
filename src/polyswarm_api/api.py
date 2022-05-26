@@ -261,7 +261,10 @@ class PolyswarmAPI(object):
         :return: The deleted LiveHuntResult resources
         """
         logger.info('Delete live results: %s', result_ids)
-        return resources.LiveHuntResultList.delete(self, result_ids=result_ids).result()
+        try:
+            return resources.LiveHuntResultList.delete(self, result_ids=result_ids).result()
+        except exceptions.NoResultsException:
+            return None
 
     def live_result(self, result_id):
         """
