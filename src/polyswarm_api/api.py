@@ -27,7 +27,8 @@ class PolyswarmAPI(object):
         :param verify: Boolean, whether or not to verify TLS connections.
         :param **kwargs: Keyword args to pass to requests.Session
         """
-        logger.info('Creating PolyswarmAPI instance: api_key: %s, api_uri: %s, community: %s', key, uri, community)
+        key_masked = (key[0:4] if key and len(key) > 16 else '') + '******'
+        logger.info('Creating PolyswarmAPI instance: api_key: %s, api_uri: %s, community: %s', key_masked, uri, community)
         self.uri = uri or settings.DEFAULT_GLOBAL_API
         self.community = community or settings.DEFAULT_COMMUNITY
         self.timeout = timeout or settings.DEFAULT_HTTP_TIMEOUT
@@ -123,7 +124,7 @@ class PolyswarmAPI(object):
         logger.info('Retrieving the metadata mapping')
         return resources.MetadataMapping.get(self).result()
 
-    def search_by_metadata(self, query, include=None, exclude=None):
+    def search_by_metadata(self, query, include=None, exclude=None, ips=None, urls=None, domains=None):
         """
         Search artifacts by metadata
 
@@ -133,7 +134,7 @@ class PolyswarmAPI(object):
         :return: Generator of ArtifactInstance resources
         """
         logger.info('Searching for metadata %s', query)
-        return resources.Metadata.get(self, query=query, include=include, exclude=exclude).result()
+        return resources.Metadata.get(self, query=query, include=include, exclude=exclude, ips=ips, urls=urls, domains=domains).result()
 
     def iocs_by_hash(self, hash_type, hash_value, hide_known_good=False):
         """
@@ -319,7 +320,10 @@ class PolyswarmAPI(object):
         :return: The deleted LiveHuntResult resources
         """
         logger.info('Delete live results: %s', result_ids)
-        return resources.LiveHuntResultList.delete(self, result_ids=result_ids).result()
+        try:
+            return resources.LiveHuntResultList.delete(self, result_ids=result_ids).result()
+        except exceptions.NoResultsException:
+            return None
 
     def live_result(self, result_id):
         """

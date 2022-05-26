@@ -67,7 +67,7 @@ class ScanTestCaseV2(TestCase):
     def __init__(self, *args, **kwargs):
         super(ScanTestCaseV2, self).__init__(*args, **kwargs)
         self.test_api_key = '11111111111111111111111111111111'
-        self.api_version = 'v2'
+        self.api_version = 'v3'
 
     @vcr.use_cassette()
     def test_submission(self):
@@ -77,22 +77,18 @@ class ScanTestCaseV2(TestCase):
         assert result.result is None
 
     @vcr.use_cassette()
-    def test_rescan(self):
+    def test_rescans(self):
         api = PolyswarmAPI(self.test_api_key, uri='http://localhost:9696/{}'.format(self.api_version), community='gamma')
         result = api.rescan('275a021bbfb6489e54d471899f7db9d1663fc695ec2fe2a2c4538aabf651fd0f')
         assert result.failed is False
         assert result.result is None
-
-    @vcr.use_cassette()
-    def test_rescanid(self):
-        api = PolyswarmAPI(self.test_api_key, uri='http://localhost:9696/{}'.format(self.api_version), community='gamma')
-        result = api.rescan_id('84294676590305175')
+        result = api.rescan_id(result.id)
         assert result.failed is False
         assert result.result is None
 
     @vcr.use_cassette()
     def test_download(self):
-        api = PolyswarmAPI(self.test_api_key, uri='http://localhost:9696/{}/consumer'.format(self.api_version), community='gamma')
+        api = PolyswarmAPI(self.test_api_key, uri='http://localhost:9696/{}'.format(self.api_version), community='gamma')
         with temp_dir({}) as (path, _):
             api.download(path, '275a021bbfb6489e54d471899f7db9d1663fc695ec2fe2a2c4538aabf651fd0f')
             result = open(os.path.join(path, '275a021bbfb6489e54d471899f7db9d1663fc695ec2fe2a2c4538aabf651fd0f'), 'rb')
@@ -100,7 +96,7 @@ class ScanTestCaseV2(TestCase):
 
     @vcr.use_cassette()
     def test_download_to_handle(self):
-        api = PolyswarmAPI(self.test_api_key, uri='http://localhost:9696/{}/consumer'.format(self.api_version), community='gamma')
+        api = PolyswarmAPI(self.test_api_key, uri='http://localhost:9696/{}'.format(self.api_version), community='gamma')
         with temp_dir({}) as (path, _):
             with open(os.path.join(path, 'temp_file_handle'), 'wb') as f:
                 api.download_to_handle('275a021bbfb6489e54d471899f7db9d1663fc695ec2fe2a2c4538aabf651fd0f', f)
@@ -234,26 +230,22 @@ class ScanTestCaseV2(TestCase):
     def test_live(self):
         api = PolyswarmAPI(self.test_api_key, uri='http://localhost:9696/{}'.format(self.api_version), community='gamma')
         with open('test/eicar.yara') as yara:
-            live_hunt = api.live_create(yara.read())
-        assert live_hunt.active
-        assert live_hunt.status == 'SUCCESS'
-        api.live_update(False, hunt=live_hunt.id)
-        updated_live_hunt = api.live_get(live_hunt.id)
-        assert not updated_live_hunt.active
-        deleted_live_hunt = api.live_delete(live_hunt.id)
-        assert live_hunt.id == deleted_live_hunt.id
-
-    @vcr.use_cassette()
-    def test_live_results(self):
-        api = PolyswarmAPI(self.test_api_key, uri='http://localhost:9696/{}'.format(self.api_version), community='gamma')
-        result = list(api.live_results(hunt='1876773693834725'))
-        assert len(result) == 20
-
-    @vcr.use_cassette()
-    def test_list_live(self):
-        api = PolyswarmAPI(self.test_api_key, uri='http://localhost:9696/{}'.format(self.api_version), community='gamma')
-        result = list(api.live_list(all_=True))
-        assert len(result) >= 15
+            rule = api.ruleset_create('eicar', yara.read())
+        rule = api.live_start(rule_id=rule.id)
+        assert rule.livescan_id
+        api.submit('test/malicious')
+        # add a break point at the line below and
+        # wait for the bounty to finish when generating the vcr
+        feed = list(api.live_feed())
+        assert len(feed) > 1
+        result = feed[0]
+        result = api.live_result(result.id)
+        assert result.download_url
+        api.live_feed_delete([result.id])
+        with pytest.raises(exceptions.NotFoundException):
+            api.live_result(result.id)
+        rule = api.live_stop(rule_id=rule.id)
+        assert rule.livescan_id is None
 
     @vcr.use_cassette()
     def test_historical(self):
@@ -271,16 +263,19 @@ class ScanTestCaseV2(TestCase):
         api = PolyswarmAPI(self.test_api_key, uri='http://localhost:9696/{}'.format(self.api_version), community='gamma')
         with open('test/eicar.yara') as yara:
             yara_content = yara.read()
-        for _ in range(101):
-            api.historical_create(yara_content)
+        historical_ids = []
+        for _ in range(5):
+            historical = api.historical_create(yara_content)
+            historical_ids.append(historical.id)
         result = list(api.historical_list())
-        assert len(result) >= 100
+        assert len(result) >= 4
+        api.historical_delete_list(historical_ids)
 
     @vcr.use_cassette()
     def test_historical_results(self):
         api = PolyswarmAPI(self.test_api_key, uri='http://localhost:9696/{}'.format(self.api_version), community='gamma')
-        result = list(api.historical_results(hunt='37414793702930975'))
-        assert len(result) == 18
+        result = list(api.historical_results(hunt='48011760326110718'))
+        assert len(result) == 6
 
     @vcr.use_cassette()
     def test_rules(self):
