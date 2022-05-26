@@ -16,12 +16,12 @@ interactions:
       Content-Type:
       - application/json
       User-Agent:
-      - polyswarm-api/2.9.0 (x86_64-Linux-CPython-3.6.5)
+      - polyswarm-api/3.0.0 (x86_64-Linux-CPython-3.6.5)
     method: POST
-    uri: http://localhost:9696/v2/artifact/metadata
+    uri: http://localhost:9696/v3/artifact/metadata
   response:
     body:
-      string: '{"result":{"created":"2021-06-02T21:19:22.482709","tool":"test_tool_1","tool_metadata":{"key":"value"},"updated":"2021-06-02T21:19:22.482709"},"status":"OK"}
+      string: '{"result":{"created":"2022-05-26T17:38:57.831542","tool":"test_tool_1","tool_metadata":{"key":"value"},"updated":"2022-05-26T17:38:57.831542"},"status":"OK"}
 
         '
     headers:
@@ -30,9 +30,9 @@ interactions:
       Content-Type:
       - application/json
       Date:
-      - Wed, 02 Jun 2021 21:32:38 GMT
+      - Thu, 26 May 2022 17:38:57 GMT
       Server:
-      - Werkzeug/1.0.1 Python/3.7.3
+      - Werkzeug/1.0.1 Python/3.9.6
       X-Billing-ID:
       - '1'
     status:
@@ -55,12 +55,12 @@ interactions:
       Content-Type:
       - application/json
       User-Agent:
-      - polyswarm-api/2.9.0 (x86_64-Linux-CPython-3.6.5)
+      - polyswarm-api/3.0.0 (x86_64-Linux-CPython-3.6.5)
     method: POST
-    uri: http://localhost:9696/v2/artifact/metadata
+    uri: http://localhost:9696/v3/artifact/metadata
   response:
     body:
-      string: '{"result":{"created":"2021-06-02T21:19:22.616878","tool":"test_tool_2","tool_metadata":{"key2":"value2"},"updated":"2021-06-02T21:19:22.616878"},"status":"OK"}
+      string: '{"result":{"created":"2022-05-26T17:38:57.900531","tool":"test_tool_2","tool_metadata":{"key2":"value2"},"updated":"2022-05-26T17:38:57.900531"},"status":"OK"}
 
         '
     headers:
@@ -69,9 +69,9 @@ interactions:
       Content-Type:
       - application/json
       Date:
-      - Wed, 02 Jun 2021 21:32:38 GMT
+      - Thu, 26 May 2022 17:38:57 GMT
       Server:
-      - Werkzeug/1.0.1 Python/3.7.3
+      - Werkzeug/1.0.1 Python/3.9.6
       X-Billing-ID:
       - '1'
     status:
@@ -89,23 +89,91 @@ interactions:
       Connection:
       - keep-alive
       User-Agent:
-      - polyswarm-api/2.9.0 (x86_64-Linux-CPython-3.6.5)
+      - polyswarm-api/3.0.0 (x86_64-Linux-CPython-3.6.5)
     method: GET
-    uri: http://localhost:9696/v2/artifact/metadata/list?sha256=275a021bbfb6489e54d471899f7db9d1663fc695ec2fe2a2c4538aabf651fd0f
+    uri: http://localhost:9696/v3/artifact/metadata/list?sha256=275a021bbfb6489e54d471899f7db9d1663fc695ec2fe2a2c4538aabf651fd0f
   response:
     body:
-      string: '{"has_more":false,"limit":50,"offset":"gAAAAABgt_j3hn8HlEyEW2m7bHUXNotKzrOQoSwERb11OdyE8cJvm19lnHz6p4R-IvisEWsabacvXF9gG7R33eFJDFgX3IZBJA==","result":[{"created":"2021-06-02T21:19:22.616878","tool":"test_tool_2","tool_metadata":{"key2":"value2"},"updated":"2021-06-02T21:19:22.616878"},{"created":"2021-06-02T21:19:22.482709","tool":"test_tool_1","tool_metadata":{"key":"value"},"updated":"2021-06-02T21:19:22.482709"},{"created":"2021-06-02T20:48:10.544329","tool":"strings","tool_metadata":{"domains":[],"ipv4":[],"ipv6":[],"urls":[]},"updated":"2021-06-02T21:32:37.612300"},{"created":"2021-06-02T20:48:10.369795","tool":"hash","tool_metadata":{"md5":"44d88612fea8a8f36de82e1278abb02f","sha1":"3395856ce81f2b7382dee72602f798b642f14140","sha256":"275a021bbfb6489e54d471899f7db9d1663fc695ec2fe2a2c4538aabf651fd0f","sha3_256":"8b4c4e204a8a039198e292d2291f4c451d80e4c38bf0cc04ad3841fea8755bd8","sha3_512":"a20290c6ebf01dc5182bb57718250f61ab11b418466714632a7d1474a02849641f7b78e4093e19ad12fdbedbe02f3bec4ca3ec3235557e82ab5ac02d061e7007","sha512":"cc805d5fab1fd71a4ab352a9c533e65fb2d5b885518f4e565e68847223b8e6b85cb48f3afad842726d99239c9e36505c64b0dc9a061d9e507d833277ada336ab","ssdeep":"3:a+JraNvsgzsVqSwHq9:tJuOgzsko","tlsh":"41a022003b0eee2ba20b00200032e8b00808020e2ce00a3820a020b8c83308803ec228"},"updated":"2021-06-02T21:32:39.054408"}],"status":"OK"}
+      string: '{"has_more":true,"limit":2,"offset":"gAAAAABij7sxEmDd2Fs0HAzSsgV8knlZ0fQxJnNzIJEi2v6V5A_YGpY8v5sUuuMtXetXvHOCmWM4mjfFZYAsfV1vV8Rk48GoZQ==","result":[{"created":"2022-05-26T17:38:57.900531","tool":"test_tool_2","tool_metadata":{"key2":"value2"},"updated":"2022-05-26T17:38:57.900531"},{"created":"2022-05-26T17:38:57.831542","tool":"test_tool_1","tool_metadata":{"key":"value"},"updated":"2022-05-26T17:38:57.831542"}],"status":"OK"}
 
         '
     headers:
       Content-Length:
-      - '1354'
+      - '433'
       Content-Type:
       - application/json
       Date:
-      - Wed, 02 Jun 2021 21:32:39 GMT
+      - Thu, 26 May 2022 17:38:57 GMT
       Server:
-      - Werkzeug/1.0.1 Python/3.7.3
+      - Werkzeug/1.0.1 Python/3.9.6
+      X-Billing-ID:
+      - '1'
+    status:
+      code: 200
+      message: OK
+- request:
+    body: null
+    headers:
+      Accept:
+      - '*/*'
+      Accept-Encoding:
+      - gzip, deflate
+      Authorization:
+      - '11111111111111111111111111111111'
+      Connection:
+      - keep-alive
+      User-Agent:
+      - polyswarm-api/3.0.0 (x86_64-Linux-CPython-3.6.5)
+    method: GET
+    uri: http://localhost:9696/v3/artifact/metadata/list?sha256=275a021bbfb6489e54d471899f7db9d1663fc695ec2fe2a2c4538aabf651fd0f&offset=gAAAAABij7sxEmDd2Fs0HAzSsgV8knlZ0fQxJnNzIJEi2v6V5A_YGpY8v5sUuuMtXetXvHOCmWM4mjfFZYAsfV1vV8Rk48GoZQ%3D%3D&limit=2
+  response:
+    body:
+      string: '{"has_more":true,"limit":2,"offset":"gAAAAABij7sygwL_0J6NLHa39vmuljNkLoEIGI468HyeqLQrY1b91GJnqZ6aQ5k11IhlPQJCvdipQSPR7F1-qIynAkANmLMVfw==","result":[{"created":"2022-05-26T16:26:02.695665","tool":"polyunite","tool_metadata":{"labels":[],"malware_family":null,"operating_system":[]},"updated":"2022-05-26T16:26:02.695665"},{"created":"2022-05-26T16:25:35.181822","tool":"strings","tool_metadata":{"domains":[],"ipv4":[],"ipv6":[],"urls":[]},"updated":"2022-05-26T16:25:35.181822"}],"status":"OK"}
+
+        '
+    headers:
+      Content-Length:
+      - '496'
+      Content-Type:
+      - application/json
+      Date:
+      - Thu, 26 May 2022 17:38:58 GMT
+      Server:
+      - Werkzeug/1.0.1 Python/3.9.6
+      X-Billing-ID:
+      - '1'
+    status:
+      code: 200
+      message: OK
+- request:
+    body: null
+    headers:
+      Accept:
+      - '*/*'
+      Accept-Encoding:
+      - gzip, deflate
+      Authorization:
+      - '11111111111111111111111111111111'
+      Connection:
+      - keep-alive
+      User-Agent:
+      - polyswarm-api/3.0.0 (x86_64-Linux-CPython-3.6.5)
+    method: GET
+    uri: http://localhost:9696/v3/artifact/metadata/list?sha256=275a021bbfb6489e54d471899f7db9d1663fc695ec2fe2a2c4538aabf651fd0f&offset=gAAAAABij7sygwL_0J6NLHa39vmuljNkLoEIGI468HyeqLQrY1b91GJnqZ6aQ5k11IhlPQJCvdipQSPR7F1-qIynAkANmLMVfw%3D%3D&limit=2
+  response:
+    body:
+      string: '{"has_more":false,"limit":2,"result":[{"created":"2022-05-26T16:25:33.326291","tool":"hash","tool_metadata":{"md5":"44d88612fea8a8f36de82e1278abb02f","sha1":"3395856ce81f2b7382dee72602f798b642f14140","sha256":"275a021bbfb6489e54d471899f7db9d1663fc695ec2fe2a2c4538aabf651fd0f","sha3_256":"8b4c4e204a8a039198e292d2291f4c451d80e4c38bf0cc04ad3841fea8755bd8","sha3_512":"a20290c6ebf01dc5182bb57718250f61ab11b418466714632a7d1474a02849641f7b78e4093e19ad12fdbedbe02f3bec4ca3ec3235557e82ab5ac02d061e7007","sha512":"cc805d5fab1fd71a4ab352a9c533e65fb2d5b885518f4e565e68847223b8e6b85cb48f3afad842726d99239c9e36505c64b0dc9a061d9e507d833277ada336ab","ssdeep":"3:a+JraNvsgzsVqSwHq9:tJuOgzsko","tlsh":"41a022003b0eee2ba20b00200032e8b00808020e2ce00a3820a020b8c83308803ec228"},"updated":"2022-05-26T17:38:56.833533"}],"status":"OK"}
+
+        '
+    headers:
+      Content-Length:
+      - '815'
+      Content-Type:
+      - application/json
+      Date:
+      - Thu, 26 May 2022 17:38:58 GMT
+      Server:
+      - Werkzeug/1.0.1 Python/3.9.6
       X-Billing-ID:
       - '1'
     status:

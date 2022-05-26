@@ -15,23 +15,23 @@ interactions:
       Content-Type:
       - application/json
       User-Agent:
-      - polyswarm-api/2.9.0 (x86_64-Linux-CPython-3.6.5)
+      - polyswarm-api/3.0.0 (x86_64-Linux-CPython-3.6.5)
     method: POST
-    uri: http://localhost:9696/v2/instance
+    uri: http://localhost:9696/v3/instance
   response:
     body:
-      string: '{"result":{"artifact_id":"68741499233874885","assertions":[],"community":"gamma","country":"","created":"2021-06-02T21:32:38.369222","detections":{"benign":0,"malicious":0,"total":0},"extended_type":null,"failed":false,"filename":"malicious","first_seen":"2021-06-02T21:32:38.369222","id":"68741499233874885","last_scanned":null,"last_seen":null,"md5":null,"metadata":[],"mimetype":null,"polyscore":null,"result":null,"sha1":null,"sha256":null,"size":null,"type":"FILE","upload_url":"http://minio:9000/instances/30/73/fe/3073fe74-4f35-4c21-a205-3120cc022026?X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Credential=AKIAIOSFODNN7EXAMPLE%2F20210602%2Fus-east-1%2Fs3%2Faws4_request&X-Amz-Date=20210602T213238Z&X-Amz-Expires=300&X-Amz-SignedHeaders=host&X-Amz-Signature=2ea69d0e6679240b6b6194f9c5fd9b06fc1358c7505e4db853d449995a453fcc","votes":[],"window_closed":false},"status":"OK"}
+      string: '{"result":{"artifact_id":"47941923120161337","assertions":[],"community":"gamma","country":"","created":"2022-05-26T17:38:57.660315","detections":null,"extended_type":null,"failed":false,"filename":"malicious","first_seen":"2022-05-26T17:38:57.660315","id":"47941923120161337","last_scanned":null,"last_seen":null,"md5":null,"metadata":[],"mimetype":null,"polyscore":null,"result":null,"sha1":null,"sha256":null,"size":null,"type":"FILE","upload_url":"http://minio:9000/instances/fa/93/f2/fa93f25a-efe7-42b5-8d30-d0046ea545ae?X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Credential=AKIAIOSFODNN7EXAMPLE%2F20220526%2Fus-east-1%2Fs3%2Faws4_request&X-Amz-Date=20220526T173857Z&X-Amz-Expires=300&X-Amz-SignedHeaders=host&X-Amz-Signature=f12ace847f568add436fca023f91eadad5587929500369ab9c2aecf3d9b93bed","votes":[],"window_closed":false},"status":"OK"}
 
         '
     headers:
       Content-Length:
-      - '874'
+      - '842'
       Content-Type:
       - application/json
       Date:
-      - Wed, 02 Jun 2021 21:32:38 GMT
+      - Thu, 26 May 2022 17:38:57 GMT
       Server:
-      - Werkzeug/1.0.1 Python/3.7.3
+      - Werkzeug/1.0.1 Python/3.9.6
       X-Billing-ID:
       - '1'
     status:
@@ -57,7 +57,7 @@ interactions:
       User-Agent:
       - python-requests/2.22.0
     method: PUT
-    uri: http://minio:9000/instances/30/73/fe/3073fe74-4f35-4c21-a205-3120cc022026?X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Credential=AKIAIOSFODNN7EXAMPLE%2F20210602%2Fus-east-1%2Fs3%2Faws4_request&X-Amz-Date=20210602T213238Z&X-Amz-Expires=300&X-Amz-SignedHeaders=host&X-Amz-Signature=2ea69d0e6679240b6b6194f9c5fd9b06fc1358c7505e4db853d449995a453fcc
+    uri: http://minio:9000/instances/fa/93/f2/fa93f25a-efe7-42b5-8d30-d0046ea545ae?X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Credential=AKIAIOSFODNN7EXAMPLE%2F20220526%2Fus-east-1%2Fs3%2Faws4_request&X-Amz-Date=20220526T173857Z&X-Amz-Expires=300&X-Amz-SignedHeaders=host&X-Amz-Signature=f12ace847f568add436fca023f91eadad5587929500369ab9c2aecf3d9b93bed
   response:
     body:
       string: ''
@@ -69,19 +69,24 @@ interactions:
       Content-Security-Policy:
       - block-all-mixed-content
       Date:
-      - Wed, 02 Jun 2021 21:32:38 GMT
+      - Thu, 26 May 2022 17:38:57 GMT
       ETag:
       - '"44d88612fea8a8f36de82e1278abb02f"'
       Server:
-      - MinIO/RELEASE.2020-11-06T23-17-07Z
+      - MinIO
+      Strict-Transport-Security:
+      - max-age=31536000; includeSubDomains
       Vary:
       - Origin
+      - Accept-Encoding
       X-Amz-Request-Id:
-      - 1684E15DB82A2432
+      - 16F2B86079A0ED96
+      X-Content-Type-Options:
+      - nosniff
       X-Xss-Protection:
       - 1; mode=block
       x-amz-expiration:
-      - expiry-date="Fri, 04 Jun 2021 00:00:00 GMT", rule-id="instances_0"
+      - expiry-date="Sat, 28 May 2022 00:00:00 GMT", rule-id="instances_0"
     status:
       code: 200
       message: OK
@@ -99,24 +104,23 @@ interactions:
       Content-Length:
       - '0'
       User-Agent:
-      - polyswarm-api/2.9.0 (x86_64-Linux-CPython-3.6.5)
+      - polyswarm-api/3.0.0 (x86_64-Linux-CPython-3.6.5)
     method: PUT
-    uri: http://localhost:9696/v2/instance?id=68741499233874885
+    uri: http://localhost:9696/v3/instance?id=47941923120161337
   response:
     body:
-      string: '{"result":{"artifact_id":"68741499233874885","assertions":[],"community":"gamma","country":"","created":"2021-06-02T21:32:38.369222","detections":{"benign":0,"malicious":0,"total":0},"extended_type":"EICAR
-        virus test files","failed":false,"filename":"malicious","first_seen":"2021-06-02T20:48:09.422105","id":"68741499233874885","last_scanned":null,"last_seen":null,"md5":"44d88612fea8a8f36de82e1278abb02f","metadata":[],"mimetype":"text/plain","polyscore":null,"result":null,"sha1":"3395856ce81f2b7382dee72602f798b642f14140","sha256":"275a021bbfb6489e54d471899f7db9d1663fc695ec2fe2a2c4538aabf651fd0f","size":68,"type":"FILE","upload_url":"http://minio:9000/instances/30/73/fe/3073fe74-4f35-4c21-a205-3120cc022026?X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Credential=AKIAIOSFODNN7EXAMPLE%2F20210602%2Fus-east-1%2Fs3%2Faws4_request&X-Amz-Date=20210602T213238Z&X-Amz-Expires=300&X-Amz-SignedHeaders=host&X-Amz-Signature=2ea69d0e6679240b6b6194f9c5fd9b06fc1358c7505e4db853d449995a453fcc","votes":[],"window_closed":false},"status":"OK"}
+      string: '{"result":{"artifact_id":"47941923120161337","assertions":[],"community":"gamma","country":"","created":"2022-05-26T17:38:57.660315","detections":null,"extended_type":null,"failed":false,"filename":"malicious","first_seen":"2022-05-26T17:38:57.660315","id":"47941923120161337","last_scanned":null,"last_seen":null,"md5":null,"metadata":[],"mimetype":null,"polyscore":null,"result":null,"sha1":null,"sha256":null,"size":null,"type":"FILE","upload_url":"http://minio:9000/instances/fa/93/f2/fa93f25a-efe7-42b5-8d30-d0046ea545ae?X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Credential=AKIAIOSFODNN7EXAMPLE%2F20220526%2Fus-east-1%2Fs3%2Faws4_request&X-Amz-Date=20220526T173857Z&X-Amz-Expires=300&X-Amz-SignedHeaders=host&X-Amz-Signature=f12ace847f568add436fca023f91eadad5587929500369ab9c2aecf3d9b93bed","votes":[],"window_closed":false},"status":"OK"}
 
         '
     headers:
       Content-Length:
-      - '1030'
+      - '842'
       Content-Type:
       - application/json
       Date:
-      - Wed, 02 Jun 2021 21:32:38 GMT
+      - Thu, 26 May 2022 17:38:57 GMT
       Server:
-      - Werkzeug/1.0.1 Python/3.7.3
+      - Werkzeug/1.0.1 Python/3.9.6
       X-Billing-ID:
       - '1'
     status:

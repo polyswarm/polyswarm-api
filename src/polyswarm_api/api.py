@@ -211,83 +211,69 @@ class PolyswarmAPI(object):
     def _parse_rule(self, rule):
         if isinstance(rule, string_types):
             rule, rule_id = resources.YaraRuleset(dict(yara=rule), api=self), None
-            try:
-                rule.validate()
-            except exceptions.NotImportedException as e:
-                logger.debug('%s\nSkipping validation.', str(e))
         elif isinstance(rule, (resources.YaraRuleset, int)):
             rule, rule_id = None, rule
         else:
             raise exceptions.InvalidValueException('Either yara or rule_id must be provided.')
         return rule, rule_id
 
-    def live_create(self, rule, active=True, ruleset_name=None):
+    def live_start(self, rule_id):
         """
         Create a new live hunt_id, and replace the currently running YARA rules.
 
-        :param rule: YaraRuleset object or string containing YARA rules to install
-        :param active: Set the live hunt to active upon creation if True.
-        :param ruleset_name: Name of the ruleset.
-        :return: The created Hunt resource
+        :param rule_id: Yara ruleset id
+        :return: The ruleset with the associated live hunt
         """
-        logger.info('Create live hunt %s', rule)
-        rule, rule_id = self._parse_rule(rule)
-        return resources.LiveHunt.create(self, yara=rule.yara if rule else None, rule_id=rule_id,
-                                         active=active, ruleset_name=ruleset_name).result()
+        logger.info('Create live hunt for rule id %s', rule_id)
+        return resources.LiveYaraRuleset.create(self, rule_id=rule_id).result()
 
-    def live_get(self, hunt=None):
+    def live_stop(self, rule_id):
         """
-        Delete a live hunt.
+        Stop a live hunt.
 
-        :param hunt: Hunt ID
-        :return: The Hunt resource
+        :param rule_id: Yara ruleset id
+        :return: The ruleset without an associate live hunt
         """
-        logger.info('Get live hunt %s', hunt)
-        return resources.LiveHunt.get(self, id=hunt).result()
+        logger.info('Delete live hunt for rule id %s', rule_id)
+        return resources.LiveYaraRuleset.delete(self, rule_id=rule_id).result()
 
-    def live_update(self, active, hunt=None):
+    def live_feed(self, since=None, rule_name=None, family=None,
+                           polyscore_lower=None, polyscore_upper=None):
         """
-        Update a live hunt.
+        Get live hunts feed
 
-        :param hunt: Hunt ID
-        :param active: True to start the live hunt and False to stop it
-        :return: The updated Hunt resource
-        """
-        logger.info('Update live hunt %s', hunt)
-        return resources.LiveHunt.update(self, id=hunt, active=active).result()
-
-    def live_delete(self, hunt=None):
-        """
-        Delete a live hunt.
-
-        :param hunt: Hunt ID
-        :return: The deleted Hunt resource
-        """
-        logger.info('Delete live hunt %s', hunt)
-        return resources.LiveHunt.delete(self, id=hunt).result()
-
-    def live_list(self, since=None, all_=None):
-        """
-        List all the live hunts
-
-        :return: Generator of Hunt resources
-        """
-        logger.info('List live hunts since: %s all: %s', since, all_)
-        return resources.LiveHunt.list(self, since=since, all=all_).result()
-
-    def live_results(self, hunt=None, since=None, tag=None, rule_name=None):
-        """
-        Get results from a live hunt
-
-        :param hunt: ID of the hunt (None if results for tha latest active hunt are desired)
         :param since: Fetch results from the last "since" minutes
-        :param tag: Filter hunt results containing the provided tags (comma separated tags, exact match).
         :param rule_name: Filter hunt results on the provided rule name (exact match).
+        :param family: Filter hunt results based on the family name (exact match).
+        :param polyscore_lower: Polyscore lower bound for the hunt results.
+        :param polyscore_upper: Polyscore upper bound for the hunt results.
         :return: Generator of HuntResult resources
         """
-        logger.info('List live hunt results %s', hunt)
-        return resources.LiveHuntResult.get(self, id=hunt, since=since,
-                                            tag=tag, rule_name=rule_name).result()
+        return resources.LiveHuntResult.list(
+            self, since=since, rule_name=rule_name, family=family,
+            polyscore_lower=polyscore_lower, polyscore_upper=polyscore_upper).result()
+
+    def live_feed_delete(self, result_ids):
+        """
+        Delete live feed results
+
+        :param result_ids: Live Feed Result IDs
+        :return: The deleted LiveHuntResult resources
+        """
+        logger.info('Delete live results: %s', result_ids)
+        try:
+            return resources.LiveHuntResultList.delete(self, result_ids=result_ids).result()
+        except exceptions.NoResultsException:
+            return None
+
+    def live_result(self, result_id):
+        """
+        Get yara ruleset for the live hunt result
+
+        :param result_id: Live result id
+        :return: Generator of HuntResult resources
+        """
+        return resources.LiveHuntResult.get(self, id=result_id).result()
 
     def historical_create(self, rule=None, ruleset_name=None):
         """
@@ -304,13 +290,22 @@ class PolyswarmAPI(object):
 
     def historical_get(self, hunt=None):
         """
-        Delete a live hunt.
+        Get a historical hunt.
 
         :param hunt: Hunt ID
         :return: The Hunt resource
         """
         logger.info('Get historical hunt %s', hunt)
         return resources.HistoricalHunt.get(self, id=hunt).result()
+
+    def historical_update(self, hunt):
+        """
+        Cancel a historical hunt
+        :param hunt: The historical hunt id
+        :return: The deleted HistoricalHunt resource
+        """
+        logger.info('Deleting historical hunt %s', hunt)
+        return resources.HistoricalHunt.update(self, id=hunt).result()
 
     def historical_delete(self, hunt):
         """
@@ -331,17 +326,51 @@ class PolyswarmAPI(object):
         logger.info('List historical hunts since: %s', since)
         return resources.HistoricalHunt.list(self, since=since).result()
 
-    def historical_results(self, hunt=None, tag=None, rule_name=None):
+    def historical_result(self, result_id):
+        """
+        Get historical hunt result
+
+        :param result_id: Historical result id
+        :return: HistoricalHuntResult resource
+        """
+        return resources.HistoricalHuntResult.get(self, id=result_id).result()
+
+    def historical_results(self, hunt=None, rule_name=None, family=None,
+                           polyscore_lower=None, polyscore_upper=None):
         """
         Get results from a historical hunt
 
         :param hunt: ID of the hunt (None if latest hunt results are desired)
-        :param tag: Filter hunt results containing the provided tags (comma separated tags, exact match).
         :param rule_name: Filter hunt results on the provided rule name (exact match).
+        :param family: Filter hunt results based on the family name (exact match).
+        :param polyscore_lower: Polyscore lower bound for the hunt results.
+        :param polyscore_upper: Polyscore upper bound for the hunt results.
         :return: Generator of HuntResult resources
         """
         logger.info('List historical results for hunt: %s', hunt)
-        return resources.HistoricalHuntResult.get(self, id=hunt, tag=tag, rule_name=rule_name).result()
+        return resources.HistoricalHuntResultList.get(
+            self, id=hunt, rule_name=rule_name, family=family,
+            polyscore_lower=polyscore_lower, polyscore_upper=polyscore_upper).result()
+
+    def historical_results_delete(self, result_ids):
+        """
+        Delete historical scan results
+
+        :param result_ids: Historical Hunt Result IDs
+        :return: The deleted HuntResult resources
+        """
+        logger.info('Delete historical results: %s', result_ids)
+        return resources.HistoricalHuntResultList.delete(self, result_ids=result_ids).result()
+
+    def historical_delete_list(self, historical_ids):
+        """
+        Delete a historical hunts.
+
+        :param historical_ids: Historical Hunt IDs
+        :return: The deleted Hunt resource
+        """
+        logger.info('Delete historical hunts %s', historical_ids)
+        return resources.HistoricalHuntList.delete(self, historical_ids=historical_ids).result()
 
     def ruleset_create(self, name, rules, description=None):
         """
@@ -353,10 +382,6 @@ class PolyswarmAPI(object):
         """
         logger.info('Create ruleset %s: %s', name, rules)
         rules = resources.YaraRuleset(dict(name=name, description=description, yara=rules), api=self)
-        try:
-            rules.validate()
-        except exceptions.NotImportedException as e:
-            logger.debug('%s\nSkipping validation.', str(e))
         return resources.YaraRuleset.create(self, yara=rules.yara, name=rules.name, description=rules.description).result()
 
     def ruleset_get(self, ruleset_id=None):
