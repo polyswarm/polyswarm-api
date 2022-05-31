@@ -358,6 +358,13 @@ class ScanTestCaseV2(TestCase):
         assert known.json['host'] == "1.2.3.4"
 
     @vcr.use_cassette()
+    def test_delete_known_good_host(self):
+        v3api = PolyswarmAPI(self.test_api_key, uri='http://localhost:9696/v3', community='gamma')
+        known = v3api.delete_known_good_host(1)
+        assert known.json['type'] == "domain"
+        assert known.json['host'] == "polyswarm.network"
+
+    @vcr.use_cassette()
     def test_check_known_host(self):
         v3api = PolyswarmAPI(self.test_api_key, uri='http://localhost:9696/v3', community='gamma')
         known = v3api.check_known_hosts(ips=["1.2.3.4"])

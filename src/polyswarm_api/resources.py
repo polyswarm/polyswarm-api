@@ -237,7 +237,20 @@ class IOC(core.BaseJsonResource):
             result_parser=cls,
         ).execute()
 
-
+    @classmethod
+    def delete_known_good(cls, api, id):
+        return core.PolyswarmRequest(
+            api,
+            {
+                'method': 'DELETE',
+                'url': '{}/ioc/known'.format(api.uri),
+                'params': {
+                    'id': id
+                }
+            },
+            result_parser=cls,
+        ).execute()
+        
 class ArtifactInstance(core.BaseJsonResource, core.Hashable):
     RESOURCE_ENDPOINT = '/instance'
 

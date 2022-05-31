@@ -195,6 +195,10 @@ class PolyswarmAPI(object):
         logger.info('Updating known good ioc %s %s %s %s', id, type, host, source)
         return resources.IOC.update_known_good(self, id, type, host, source, good).result()
 
+    def delete_known_good_host(self, id):
+        logger.info('Deleting known good ioc %s', id)
+        return resources.IOC.delete_known_good(self, id).result()
+
     def submit(self, artifact, artifact_type=resources.ArtifactType.FILE, artifact_name=None, scan_config=None):
         """
         Submit artifacts to polyswarm and return UUIDs
