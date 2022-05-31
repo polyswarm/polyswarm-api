@@ -1,0 +1,73 @@
+interactions:
+- request:
+    body: '{"sha256": "275a021bbfb6489e54d471899f7db9d1663fc695ec2fe2a2c4538aabf651fd0f",
+      "tool": "cape_sandbox_v2", "tool_metadata": {"cape_sandbox_v2": {"extracted_c2_ips":
+      ["1.2.3.4"], "extracted_c2_urls": ["www.virus.com"], "ttp": ["T1081", "T1060",
+      "T1069"]}}}'
+    headers:
+      Accept:
+      - '*/*'
+      Accept-Encoding:
+      - gzip, deflate
+      Authorization:
+      - '11111111111111111111111111111111'
+      Connection:
+      - keep-alive
+      Content-Length:
+      - '254'
+      Content-Type:
+      - application/json
+      User-Agent:
+      - polyswarm-api/3.0.0 (x86_64-Linux-CPython-3.9.10)
+    method: POST
+    uri: http://localhost:9696/v3/artifact/metadata
+  response:
+    body:
+      string: '{"result":{"created":"2022-05-25T21:58:42.376314","tool":"cape_sandbox_v2","tool_metadata":{"cape_sandbox_v2":{"extracted_c2_ips":["1.2.3.4"],"extracted_c2_urls":["www.virus.com"],"ttp":["T1081","T1060","T1069"]}},"updated":"2022-05-25T21:58:42.376314"},"status":"OK"}
+
+        '
+    headers:
+      Connection:
+      - Keep-Alive
+      Content-Length:
+      - '269'
+      Content-Type:
+      - application/json
+      X-Billing-ID:
+      - '1'
+    status:
+      code: 200
+      message: OK
+- request:
+    body: null
+    headers:
+      Accept:
+      - '*/*'
+      Accept-Encoding:
+      - gzip, deflate
+      Authorization:
+      - '11111111111111111111111111111111'
+      Connection:
+      - keep-alive
+      User-Agent:
+      - polyswarm-api/3.0.0 (x86_64-Linux-CPython-3.9.10)
+    method: GET
+    uri: http://localhost:9696/v3/ioc/search?ip=1.2.3.4
+  response:
+    body:
+      string: '{"has_more":false,"limit":50,"result":["275a021bbfb6489e54d471899f7db9d1663fc695ec2fe2a2c4538aabf651fd0f"],"status":"OK"}
+
+        '
+    headers:
+      Connection:
+      - Keep-Alive
+      Content-Length:
+      - '122'
+      Content-Type:
+      - application/json
+      X-Billing-ID:
+      - '1'
+    status:
+      code: 200
+      message: OK
+version: 1

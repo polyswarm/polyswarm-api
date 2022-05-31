@@ -159,7 +159,7 @@ class PolyswarmRequest(object):
                 raise exceptions.NoResultsException(self, 'The request returned no results.')
             elif issubclass(self.result_parser, BaseJsonResource):
                 self._extract_json_body(result)
-                if 'has_more' in self.json:
+                if self.request_parameters['method'] == 'GET' and 'has_more' in self.json:
                     # has_more will always be present, being either False or True
                     self._paginated = True
                 self.total = self.json.get('total')
@@ -264,7 +264,7 @@ class BaseJsonResource(BaseResource):
     def _get(self, path, default=None, content=None):
         """
         Helper for rendering attributes of child objects in the json that might be None.
-        Returns the default value if some of the items in the path is not present.
+        Returns the default value if any item in the path is not present.
         """
         previous_attribute = 'resource_json'
         obj = content or self.json

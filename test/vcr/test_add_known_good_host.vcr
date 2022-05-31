@@ -1,0 +1,39 @@
+interactions:
+- request:
+    body: '{"type": "domain", "host": "polyswarm.network", "source": "test", "good":
+      true}'
+    headers:
+      Accept:
+      - '*/*'
+      Accept-Encoding:
+      - gzip, deflate
+      Authorization:
+      - '11111111111111111111111111111111'
+      Connection:
+      - keep-alive
+      Content-Length:
+      - '79'
+      Content-Type:
+      - application/json
+      User-Agent:
+      - polyswarm-api/3.0.0 (x86_64-Linux-CPython-3.9.10)
+    method: POST
+    uri: http://localhost:9696/v3/ioc/known
+  response:
+    body:
+      string: '{"result":{"good":true,"host":"polyswarm.network","id":3,"source":"test","type":"domain"},"status":"OK"}
+
+        '
+    headers:
+      Connection:
+      - Keep-Alive
+      Content-Length:
+      - '105'
+      Content-Type:
+      - application/json
+      X-Billing-ID:
+      - '1'
+    status:
+      code: 200
+      message: OK
+version: 1

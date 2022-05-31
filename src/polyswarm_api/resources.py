@@ -1,9 +1,7 @@
-import datetime as dt
 import logging
 import os
 import io
 import functools
-import warnings
 import requests
 from enum import Enum
 from hashlib import sha256 as _sha256, sha1 as _sha1, md5 as _md5
@@ -151,6 +149,108 @@ class Metadata(core.BaseJsonResource):
         return params, json_params
 
 
+class IOC(core.BaseJsonResource):
+    RESOURCE_ENDPOINT = '/ioc'
+
+    @classmethod
+    def iocs_by_hash(cls, api, hash_value, hash_type, hide_known_good=False):
+        return core.PolyswarmRequest(
+            api,
+            {
+                'method': 'GET',
+                'url': '{}/ioc/{}/{}'.format(api.uri, hash_type, hash_value),
+                'params': {
+                    'hide_known_good': hide_known_good,
+                },
+            },
+            result_parser=cls,
+        ).execute()
+
+    @classmethod
+    def ioc_search(cls, api, ip=None, domain=None, ttp=None, imphash=None):
+        params = dict()
+        if ip is not None:
+            params['ip'] = ip
+        if domain is not None:
+            params['domain'] = domain
+        if ttp is not None:
+            params['ttp'] = ttp
+        if imphash is not None:
+            params['imphash'] = imphash
+        return core.PolyswarmRequest(
+            api,
+            {
+                'method': 'GET',
+                'url': '{}/ioc/search'.format(api.uri),
+                'params': params
+            },
+            result_parser=cls,
+        ).execute()
+
+    @classmethod
+    def check_known_hosts(cls, api, ips, domains):
+        return core.PolyswarmRequest(
+            api,
+            {
+                'method': 'GET',
+                'url': '{}/ioc/known'.format(api.uri),
+                'params': {
+                    'ip': ips,
+                    'domain': domains
+                }
+            },
+            result_parser=cls,
+        ).execute()
+
+    @classmethod
+    def create_known_good(cls, api, type, host, source):
+        return core.PolyswarmRequest(
+            api,
+            {
+                'method': 'POST',
+                'url': '{}/ioc/known'.format(api.uri),
+                'json': {
+                    'type': type,
+                    'host': host,
+                    'source': source,
+                    'good': True
+                }
+            },
+            result_parser=cls,
+        ).execute()
+
+    @classmethod
+    def update_known_good(cls, api, id, type, host, source, good):
+        return core.PolyswarmRequest(
+            api,
+            {
+                'method': 'PUT',
+                'url': '{}/ioc/known'.format(api.uri),
+                'json': {
+                    'id': id,
+                    'type': type,
+                    'host': host,
+                    'source': source,
+                    'good': good
+                }
+            },
+            result_parser=cls,
+        ).execute()
+
+    @classmethod
+    def delete_known_good(cls, api, id):
+        return core.PolyswarmRequest(
+            api,
+            {
+                'method': 'DELETE',
+                'url': '{}/ioc/known'.format(api.uri),
+                'params': {
+                    'id': id
+                }
+            },
+            result_parser=cls,
+        ).execute()
+        
 class ArtifactInstance(core.BaseJsonResource, core.Hashable):
     RESOURCE_ENDPOINT = '/instance'
 
@@ -201,8 +301,16 @@ class ArtifactInstance(core.BaseJsonResource, core.Hashable):
         r = None
         while attempts > 0 and not r:
             attempts -= 1
+            artifact.seek(0, io.SEEK_END)
+            length = artifact.tell()
             artifact.seek(0)
+            # https://github.com/psf/requests/issues/4215#issuecomment-319521235
+            # We have to manually handle the case when the file is empty
+            # in a way that requests won't set Transfer-Encoding: chunked
+            if not length:
+                artifact = ''
             r = requests.put(self.upload_url, data=artifact, **kwargs)
+            r.raise_for_status()
         return r
 
     @classmethod
@@ -358,12 +466,6 @@ class ArtifactInstance(core.BaseJsonResource, core.Hashable):
             self._valid_assertions = [a for a in self.assertions if a.mask]
         return self._valid_assertions
 
-    @property
-    def filenames(self):
-        warnings.warn('This property is deprecated and will be removed in the next major version. '
-                      'Please use "Metadata().filenames" in the future.')
-        return []
-
 
 class ArtifactArchive(core.BaseJsonResource):
     RESOURCE_ENDPOINT = '/consumer/download/stream'
@@ -374,46 +476,6 @@ class ArtifactArchive(core.BaseJsonResource):
         self.community = content['community']
         self.created = core.parse_isoformat(content['created'])
         self.uri = content['uri']
-
-
-class Hunt(core.BaseJsonResource):
-    def __init__(self, content, api=None):
-        super(Hunt, self).__init__(content=content, api=api)
-        # active only present for live hunts
-        self.id = content['id']
-        self.created = core.parse_isoformat(content['created'])
-        self.status = content['status']
-        self.active = content.get('active')
-        self.ruleset_name = content.get('ruleset_name')
-
-
-class LiveHunt(Hunt):
-    RESOURCE_ENDPOINT = '/hunt/live'
-
-
-class HistoricalHunt(Hunt):
-    RESOURCE_ENDPOINT = '/hunt/historical'
-
-
-class HuntResult(core.BaseJsonResource):
-    def __init__(self, content, api=None):
-        super(HuntResult, self).__init__(content=content, api=api)
-        self.id = content['id']
-        self.rule_name = content['rule_name']
-        self.tags = content['tags']
-        self.created = core.parse_isoformat(content['created'])
-        self.sha256 = content['sha256']
-        self.historicalscan_id = content['historicalscan_id']
-        self.livescan_id = content['livescan_id']
-        self.artifact = ArtifactInstance(content['artifact'], api)
-
-
-class LiveHuntResult(HuntResult):
-    RESOURCE_ENDPOINT = '/hunt/live/results'
-
-
-class HistoricalHuntResult(HuntResult):
-    RESOURCE_ENDPOINT = '/hunt/historical/results'
 
 
 class AssertionsJob(core.BaseJsonResource):
@@ -562,7 +624,7 @@ class LocalArtifact(core.BaseResource, core.Hashable):
             api,
             {
                 'method': 'GET',
-                'url': '{}/download/{}/{}'.format(api.uri, hash_type, hash_value),
+                'url': '{}/consumer/download/{}/{}'.format(api.uri, hash_type, hash_value),
                 'stream': True,
             },
             result_parser=cls,
@@ -607,6 +669,12 @@ class LocalArtifact(core.BaseResource, core.Hashable):
         if not isinstance(a, int):
             setattr(self, name, a)
         return a
+
+    # https://github.com/python/cpython/blob/29500737d45cbca9604d9ce845fb2acc3f531401/Lib/tempfile.py#L499
+    # iter() doesn't use __getattr__ to find the __iter__ method
+    def __iter__(self):
+        for line in self.handle:
+            yield line
 
     @classmethod
     def from_handle(cls, api, handle, artifact_type=None, analyze=False, artifact_name=None, **kwargs):
@@ -664,25 +732,85 @@ class YaraRuleset(core.BaseJsonResource):
 
     def __init__(self, content, api=None):
         super(YaraRuleset, self).__init__(content, api=api)
-        self.yara = content['yara']
-        self.name = content.get('name')
         self.id = content.get('id')
+        self.livescan_id = content.get('livescan_id')
+        self.livescan_created = content.get('livescan_created')
+        self.name = content.get('name')
         self.description = content.get('description')
         self.created = core.parse_isoformat(content.get('created'))
         self.modified = core.parse_isoformat(content.get('modified'))
         self.deleted = content.get('deleted')
+        self.yara = content.get('yara')
 
-        if not self.yara:
-            raise exceptions.InvalidValueException("Must provide yara ruleset content")
 
-    def validate(self):
-        try:
-            yara.compile(source=self.yara)
-        except AttributeError:
-            raise exceptions.NotImportedException("Cannot validate rules locally without yara-python")
-        except yara.SyntaxError as e:
-            raise exceptions.InvalidYaraRulesException('Malformed yara file: {}'.format(e.args[0]) + '\n')
-        return True
+class LiveYaraRuleset(YaraRuleset):
+    RESOURCE_ENDPOINT = '/hunt/rule/live'
+
+
+class LiveHuntResult(core.BaseJsonResource):
+    RESOURCE_ENDPOINT = '/hunt/live'
+
+    def __init__(self, content, api=None):
+        super(LiveHuntResult, self).__init__(content=content, api=api)
+        self.id = content['id']
+        self.livescan_id = content['livescan_id']
+        self.instance_id = content['instance_id']
+        self.created = core.parse_isoformat(content['created'])
+        self.sha256 = content['sha256']
+        self.rule_name = content['rule_name']
+        self.tags = content['tags']
+        self.polyscore = content['polyscore']
+        self.malware_family = content['malware_family']
+        self.detections = content['detections']
+        self.yara = content.get('yara')
+        self.download_url = content.get('download_url')
+
+
+class LiveHuntResultList(LiveHuntResult):
+    RESOURCE_ENDPOINT = '/hunt/live/list'
+
+
+class HistoricalHunt(core.BaseJsonResource):
+    RESOURCE_ENDPOINT = '/hunt/historical'
+
+    def __init__(self, content, api=None):
+        super(HistoricalHunt, self).__init__(content=content, api=api)
+        # active only present for live   hunts
+        self.id = content['id']
+        self.created = core.parse_isoformat(content['created'])
+        self.status = content['status']
+        self.active = content.get('active')
+        self.ruleset_name = content.get('ruleset_name')
+        self.yara = content.get('yara')
+        self.summary = content.get('summary')
+        self.progress = content['progress']
+        self.results_csv_uri = content['results_csv_uri']
+
+
+class HistoricalHuntList(HistoricalHunt):
+    RESOURCE_ENDPOINT = '/hunt/historical/list'
+
+
+class HistoricalHuntResult(core.BaseJsonResource):
+    RESOURCE_ENDPOINT = '/hunt/historical/results'
+
+    def __init__(self, content, api=None):
+        super(HistoricalHuntResult, self).__init__(content=content, api=api)
+        self.id = content['id']
+        self.historicalscan_id = content['historicalscan_id']
+        self.instance_id = content['instance_id']
+        self.sha256 = content['sha256']
+        self.created = core.parse_isoformat(content['created'])
+        self.rule_name = content['rule_name']
+        self.tags = content['tags']
+        self.polyscore = content['polyscore']
+        self.malware_family = content['malware_family']
+        self.detections = content['detections']
+        self.download_url = content.get('download_url')
+
+
+class HistoricalHuntResultList(HistoricalHuntResult):
+    RESOURCE_ENDPOINT = '/hunt/historical/results/list'
 
 
 class TagLink(core.BaseJsonResource):
