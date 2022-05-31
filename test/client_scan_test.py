@@ -313,3 +313,60 @@ class ScanTestCaseV2(TestCase):
         assert metadata[0].json['tool_metadata'] == {'key2': 'value2'}
         assert metadata[1].json['tool'] == 'test_tool_1'
         assert metadata[1].json['tool_metadata'] == {'key': 'value'}
+
+    @vcr.use_cassette()
+    def test_iocs_by_hash(self):
+        api = PolyswarmAPI(self.test_api_key, uri='http://localhost:9696/{}'.format(self.api_version), community='gamma')
+        api.tool_metadata_create(
+            '275a021bbfb6489e54d471899f7db9d1663fc695ec2fe2a2c4538aabf651fd0f', 'cape_sandbox_v2', {'cape_sandbox_v2': {
+                'extracted_c2_ips': ['1.2.3.4'],
+                'extracted_c2_urls': ['www.virus.com'],
+                'ttp': ['T1081', 'T1060', 'T1069']
+             }})
+
+        v3api = PolyswarmAPI(self.test_api_key, uri='http://localhost:9696/v3', community='gamma')
+        iocs = list(v3api.iocs_by_hash('sha256', '275a021bbfb6489e54d471899f7db9d1663fc695ec2fe2a2c4538aabf651fd0f'))
+        assert iocs[0].json['ips'] == ['1.2.3.4']
+        assert iocs[0].json['ttps'] == ['T1081', 'T1060', 'T1069']
+
+    @vcr.use_cassette()
+    def test_search_by_ioc(self):
+        api = PolyswarmAPI(self.test_api_key, uri='http://localhost:9696/{}'.format(self.api_version), community='gamma')
+        api.tool_metadata_create(
+            '275a021bbfb6489e54d471899f7db9d1663fc695ec2fe2a2c4538aabf651fd0f', 'cape_sandbox_v2', {'cape_sandbox_v2': {
+                'extracted_c2_ips': ['1.2.3.4'],
+                'extracted_c2_urls': ['www.virus.com'],
+                'ttp': ['T1081', 'T1060', 'T1069']
+             }})
+
+        v3api = PolyswarmAPI(self.test_api_key, uri='http://localhost:9696/v3', community='gamma')
+        iocs = list(v3api.search_by_ioc(ip="1.2.3.4"))
+        assert iocs[0].json == '275a021bbfb6489e54d471899f7db9d1663fc695ec2fe2a2c4538aabf651fd0f'
+
+    @vcr.use_cassette()
+    def test_add_known_good_host(self):
+        v3api = PolyswarmAPI(self.test_api_key, uri='http://localhost:9696/v3', community='gamma')
+        known = v3api.add_known_good_host("domain", "test", "polyswarm.network")
+        assert known.json['type'] == "domain"
+        assert known.json['host'] == "polyswarm.network"
+
+    @vcr.use_cassette()
+    def test_update_known_good_host(self):
+        v3api = PolyswarmAPI(self.test_api_key, uri='http://localhost:9696/v3', community='gamma')
+        known = v3api.update_known_good_host(1, "ip", "test", "1.2.3.4", True)
+        assert known.json['type'] == "ip"
+        assert known.json['host'] == "1.2.3.4"
+
+    @vcr.use_cassette()
+    def test_delete_known_good_host(self):
+        v3api = PolyswarmAPI(self.test_api_key, uri='http://localhost:9696/v3', community='gamma')
+        known = v3api.delete_known_good_host(1)
+        assert known.json['type'] == "domain"
+        assert known.json['host'] == "polyswarm.network"
+
+    @vcr.use_cassette()
+    def test_check_known_host(self):
+        v3api = PolyswarmAPI(self.test_api_key, uri='http://localhost:9696/v3', community='gamma')
+        known = v3api.check_known_hosts(ips=["1.2.3.4"])
+        assert known[0].json['host'] == "1.2.3.4"
+        assert known[0].json['type'] == "ip"

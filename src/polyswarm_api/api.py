@@ -136,6 +136,69 @@ class PolyswarmAPI(object):
         logger.info('Searching for metadata %s', query)
         return resources.Metadata.get(self, query=query, include=include, exclude=exclude, ips=ips, urls=urls, domains=domains).result()
 
+    def iocs_by_hash(self, hash_type, hash_value, hide_known_good=False):
+        """
+        Retrieve IOCs by artifact hash
+
+        :param hash_type: Hash type of the provided hash_
+        :param hash_value: A list of fields to be included in the result (.* wildcards are accepted)
+        :return: Generator of IOC resources
+        """
+        logger.info('Getting IOCs by hash %s:%s', hash_type, hash_value)
+        return resources.IOC.iocs_by_hash(self, hash_value, hash_type, hide_known_good=hide_known_good).result()
+
+    def search_by_ioc(self, ip=None, domain=None, ttp=None, imphash=None):
+        """
+        Search artifacts by IOC (ip, domain, ttp, or imphash)
+        
+        :param ip: ip address to search by
+        :param domain: domain address to search by
+        :param ttp: ttp to search by
+        :param imphash: ImpHash to search by
+        :return: Generator of ArtifactInstance resources
+        """
+        logger.info('Searching by ioc %s', dict(ip=ip, domain=domain, ttp=ttp, imphash=imphash))
+        return resources.IOC.ioc_search(self, ip=ip, domain=domain, ttp=ttp, imphash=imphash).result()
+
+    def check_known_hosts(self, ips=[], domains=[]):
+        """
+        Check if ip addresses or domains are known.
+
+        :param ips
+        :param domains
+        :return: Generator of IOC resources
+        """
+        logger.info('Checking known hosts ips: %s, domains: %s', ips, domains)
+        return resources.IOC.check_known_hosts(self, ips, domains).result()
+
+    def add_known_good_host(self, type, source, host):
+        """
+        Add a known good ip or domain.
+
+        :param type
+        :param source
+        :param host
+        :return: IOC resource
+        """
+        logger.info('Creating known good ioc %s %s %s', type, host, source)
+        return resources.IOC.create_known_good(self, type, host, source).result()
+
+    def update_known_good_host(self, id, type, source, host, good):
+        """
+        Update a known ip or domain.
+
+        :param type
+        :param source
+        :param host
+        :return: IOC resource
+        """
+        logger.info('Updating known good ioc %s %s %s %s', id, type, host, source)
+        return resources.IOC.update_known_good(self, id, type, host, source, good).result()
+
+    def delete_known_good_host(self, id):
+        logger.info('Deleting known good ioc %s', id)
+        return resources.IOC.delete_known_good(self, id).result()
+
     def submit(self, artifact, artifact_type=resources.ArtifactType.FILE, artifact_name=None, scan_config=None):
         """
         Submit artifacts to polyswarm and return UUIDs

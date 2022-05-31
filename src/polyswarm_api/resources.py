@@ -149,6 +149,108 @@ class Metadata(core.BaseJsonResource):
         return params, json_params
 
 
+class IOC(core.BaseJsonResource):
+    RESOURCE_ENDPOINT = '/ioc'
+
+    @classmethod
+    def iocs_by_hash(cls, api, hash_value, hash_type, hide_known_good=False):
+        return core.PolyswarmRequest(
+            api,
+            {
+                'method': 'GET',
+                'url': '{}/ioc/{}/{}'.format(api.uri, hash_type, hash_value),
+                'params': {
+                    'hide_known_good': hide_known_good,
+                },
+            },
+            result_parser=cls,
+        ).execute()
+
+    @classmethod
+    def ioc_search(cls, api, ip=None, domain=None, ttp=None, imphash=None):
+        params = dict()
+        if ip is not None:
+            params['ip'] = ip
+        if domain is not None:
+            params['domain'] = domain
+        if ttp is not None:
+            params['ttp'] = ttp
+        if imphash is not None:
+            params['imphash'] = imphash
+        return core.PolyswarmRequest(
+            api,
+            {
+                'method': 'GET',
+                'url': '{}/ioc/search'.format(api.uri),
+                'params': params
+            },
+            result_parser=cls,
+        ).execute()
+
+    @classmethod
+    def check_known_hosts(cls, api, ips, domains):
+        return core.PolyswarmRequest(
+            api,
+            {
+                'method': 'GET',
+                'url': '{}/ioc/known'.format(api.uri),
+                'params': {
+                    'ip': ips,
+                    'domain': domains
+                }
+            },
+            result_parser=cls,
+        ).execute()
+
+    @classmethod
+    def create_known_good(cls, api, type, host, source):
+        return core.PolyswarmRequest(
+            api,
+            {
+                'method': 'POST',
+                'url': '{}/ioc/known'.format(api.uri),
+                'json': {
+                    'type': type,
+                    'host': host,
+                    'source': source,
+                    'good': True
+                }
+            },
+            result_parser=cls,
+        ).execute()
+
+    @classmethod
+    def update_known_good(cls, api, id, type, host, source, good):
+        return core.PolyswarmRequest(
+            api,
+            {
+                'method': 'PUT',
+                'url': '{}/ioc/known'.format(api.uri),
+                'json': {
+                    'id': id,
+                    'type': type,
+                    'host': host,
+                    'source': source,
+                    'good': good
+                }
+            },
+            result_parser=cls,
+        ).execute()
+
+    @classmethod
+    def delete_known_good(cls, api, id):
+        return core.PolyswarmRequest(
+            api,
+            {
+                'method': 'DELETE',
+                'url': '{}/ioc/known'.format(api.uri),
+                'params': {
+                    'id': id
+                }
+            },
+            result_parser=cls,
+        ).execute()
+        
 class ArtifactInstance(core.BaseJsonResource, core.Hashable):
     RESOURCE_ENDPOINT = '/instance'
 
