@@ -655,6 +655,15 @@ class PolyswarmAPI(object):
 
         return artifact
 
+    def sandbox(self, sha256_hash, force=False):
+        """
+        Send a scanned artifact by hash to the sandboxing system.
+        :param sha256_hash:
+        :param force: 
+        """
+        logger.info('Sandboxing %s force=%s', sha256_hash, force)
+        return resources.SandboxResult.sandbox(self, sha256_hash, force=force)
+
     def download_archive(self, out_dir, s3_path):
         """
         Grab the data in the s3 path provided in the stream() method, and write the contents
