@@ -967,6 +967,7 @@ class Hash(core.Hashable):
 
 
 class SandboxResult(core.BaseJsonResource):
+
     def __init__(self, content, api=None):
         super(SandboxResult, self).__init__(content, api=api)
 
@@ -975,14 +976,13 @@ class SandboxResult(core.BaseJsonResource):
         return core.PolyswarmRequest(
             api,
             {
-                'method': 'POST',
-                'url': '{}/consumer/submission/{}/sandbox/{}'.format(api.uri, api.community, sha256),
+                'method':
+                'POST',
+                'url':
+                '{}/consumer/submission/{}/sandbox/{}'.format(api.uri, api.community, sha256),
                 'params': {
                     'force': force,
                 },
             },
             result_parser=cls,
         ).execute()
-
-    def __str__(self):
-        return "Sandbox Result-%s" % (self.content)
