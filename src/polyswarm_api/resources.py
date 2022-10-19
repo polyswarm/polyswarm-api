@@ -972,17 +972,14 @@ class SandboxResult(core.BaseJsonResource):
         super(SandboxResult, self).__init__(content, api=api)
 
     @classmethod
-    def sandbox(cls, api, sha256, force=False):
+    def sandbox(cls, api, sha256):
         return core.PolyswarmRequest(
             api,
             {
                 'method':
                 'POST',
                 'url':
-                '{}/consumer/submission/{}/sandbox/{}'.format(api.uri, api.community, sha256),
-                'params': {
-                    'force': force,
-                },
+                '{}/consumer/submission/{}/sandbox/{}'.format(api.uri, api.community, sha256)
             },
             result_parser=cls,
         ).execute()
