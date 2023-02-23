@@ -161,6 +161,7 @@ class IOC(core.BaseJsonResource):
                 'url': '{}/ioc/{}/{}'.format(api.uri, hash_type, hash_value),
                 'params': {
                     'hide_known_good': hide_known_good,
+                    'community': api.community,
                 },
             },
             result_parser=cls,
@@ -168,7 +169,7 @@ class IOC(core.BaseJsonResource):
 
     @classmethod
     def ioc_search(cls, api, ip=None, domain=None, ttp=None, imphash=None):
-        params = dict()
+        params = dict(community=api.community)
         if ip is not None:
             params['ip'] = ip
         if domain is not None:
@@ -322,6 +323,7 @@ class ArtifactInstance(core.BaseJsonResource, core.Hashable):
                 'url': '{}/search/hash/{}'.format(api.uri, hash_type),
                 'params': {
                     'hash': hash_value,
+                    'community': api.community,
                 },
             },
         ).execute()
@@ -335,6 +337,7 @@ class ArtifactInstance(core.BaseJsonResource, core.Hashable):
                 'url': '{}/search/hash/{}'.format(api.uri, hash_type),
                 'params': {
                     'hash': hash_value,
+                    'community': api.community,
                 },
             },
             result_parser=cls,
@@ -349,6 +352,7 @@ class ArtifactInstance(core.BaseJsonResource, core.Hashable):
                 'url': '{}/search/url'.format(api.uri),
                 'params': {
                     'url': url,
+                    'community': api.community,
                 },
             },
             result_parser=cls,
@@ -363,6 +367,7 @@ class ArtifactInstance(core.BaseJsonResource, core.Hashable):
                 'url': '{}/search/instances'.format(api.uri),
                 'params': {
                     'hash': hash_value,
+                    'community': api.community,
                 },
             },
             result_parser=cls,
@@ -620,12 +625,14 @@ class LocalArtifact(core.BaseResource, core.Hashable):
 
     @classmethod
     def download(cls, api, hash_value, hash_type, handle=None, folder=None, artifact_name=None):
+        logger.debug('===========download')
         return core.PolyswarmRequest(
             api,
             {
                 'method': 'GET',
                 'url': '{}/consumer/download/{}/{}'.format(api.uri, hash_type, hash_value),
                 'stream': True,
+                'community': api.community,
             },
             result_parser=cls,
             handle=handle,
@@ -636,12 +643,14 @@ class LocalArtifact(core.BaseResource, core.Hashable):
     @classmethod
     def download_archive(cls, api, u, handle=None, folder=None, artifact_name=None):
         """ This method is special, in that it is simply for downloading from S3 """
+        logger.debug('===========download_archive')
         return core.PolyswarmRequest(
             api,
             {
                 'method': 'GET',
                 'url': u,
                 'stream': True,
+                'community': api.community,
                 'headers': {'Authorization': None}
             },
             result_parser=cls,
