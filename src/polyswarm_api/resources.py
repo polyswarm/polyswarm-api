@@ -625,14 +625,13 @@ class LocalArtifact(core.BaseResource, core.Hashable):
 
     @classmethod
     def download(cls, api, hash_value, hash_type, handle=None, folder=None, artifact_name=None):
-        logger.debug('===========download')
         return core.PolyswarmRequest(
             api,
             {
                 'method': 'GET',
                 'url': '{}/consumer/download/{}/{}'.format(api.uri, hash_type, hash_value),
                 'stream': True,
-                'community': api.community,
+                'params': { 'community': api.community },
             },
             result_parser=cls,
             handle=handle,
@@ -643,14 +642,13 @@ class LocalArtifact(core.BaseResource, core.Hashable):
     @classmethod
     def download_archive(cls, api, u, handle=None, folder=None, artifact_name=None):
         """ This method is special, in that it is simply for downloading from S3 """
-        logger.debug('===========download_archive')
         return core.PolyswarmRequest(
             api,
             {
                 'method': 'GET',
                 'url': u,
                 'stream': True,
-                'community': api.community,
+                'params': {'community': api.community },
                 'headers': {'Authorization': None}
             },
             result_parser=cls,
