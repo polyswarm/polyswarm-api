@@ -13,7 +13,7 @@ interactions:
       User-Agent:
       - polyswarm-api/3.0.0 (x86_64-Linux-CPython-3.6.5)
     method: GET
-    uri: http://localhost:9696/v3/search/hash/sha256?hash=275a021bbfb6489e54d471899f7db9d1663fc695ec2fe2a2c4538aabf651fd0f
+    uri: http://localhost:9696/v3/search/hash/sha256?hash=275a021bbfb6489e54d471899f7db9d1663fc695ec2fe2a2c4538aabf651fd0f&community=gamma
   response:
     body:
       string: '{"has_more":false,"limit":2,"result":[{"artifact_id":"78691987955427124","assertions":[{"author":"93822790783196","author_name":"engine-eicar","bid":"1000000000000000000","engine":{"description":"Webhook-Engine","name":"engine-eicar"},"mask":true,"metadata":{"malware_family":"EICAR","product":"eicar"},"verdict":true}],"community":"gamma","country":"","created":"2022-05-26T16:25:31.875900","detections":{"benign":0,"malicious":1,"total":1},"extended_type":"EICAR
