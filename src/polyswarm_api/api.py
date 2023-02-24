@@ -134,7 +134,7 @@ class PolyswarmAPI(object):
         :return: Generator of ArtifactInstance resources
         """
         logger.info('Searching for metadata %s', query)
-        return resources.Metadata.get(self, query=query, include=include, exclude=exclude, ips=ips, urls=urls, domains=domains).result()
+        return resources.Metadata.get(self, query=query, community=self.community, include=include, exclude=exclude, ips=ips, urls=urls, domains=domains).result()
 
     def iocs_by_hash(self, hash_type, hash_value, hide_known_good=False):
         """
