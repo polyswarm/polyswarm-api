@@ -399,9 +399,10 @@ class ArtifactInstance(core.BaseJsonResource, core.Hashable):
         parameters = {
             'method': 'POST',
             'url': '{}/consumer/submission/{}/rescan/{}/{}'.format(api.uri, api.community, hash_type, hash_value),
+            'data': { 'community': api.community }
         }
         if scan_config:
-            parameters.setdefault('data', {})['scan-config'] = scan_config
+            parameters['data']['scan-config'] = scan_config
         return core.PolyswarmRequest(
             api,
             parameters,
