@@ -991,12 +991,5 @@ class SandboxResult(core.BaseJsonResource):
         ).execute()
 
     @classmethod
-    def sandbox_list(cls, api):
-        return core.PolyswarmRequest(
-            api,
-            {
-                'method': 'GET',
-                'url': '{}/consumer/submission/{}/sandbox'.format(api.uri, api.community)
-            },
-            result_parser=cls,
-        ).execute()
+    def _endpoint(cls, api, **kwargs):
+        return '{api.uri}{endpoint}'.format(api=api, endpoint=f"/consumer/submission/{api.community}/sandbox", **kwargs)
