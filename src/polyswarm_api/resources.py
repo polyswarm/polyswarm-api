@@ -975,6 +975,7 @@ class Hash(core.Hashable):
 
 
 class SandboxResult(core.BaseJsonResource):
+    RESOURCE_ENDPOINT = "/consumer/submission/{}/sandbox"
 
     def __init__(self, content, api=None):
         super(SandboxResult, self).__init__(content, api=api)
@@ -992,4 +993,5 @@ class SandboxResult(core.BaseJsonResource):
 
     @classmethod
     def _endpoint(cls, api, **kwargs):
-        return '{api.uri}{endpoint}'.format(api=api, endpoint=f"/consumer/submission/{api.community}/sandbox", **kwargs)
+        endpoint = cls.RESOURCE_ENDPOINT.format(api.community)
+        return '{api.uri}{endpoint}'.format(api=api, endpoint=endpoint, **kwargs)
