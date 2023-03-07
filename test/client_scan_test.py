@@ -370,3 +370,10 @@ class ScanTestCaseV2(TestCase):
         known = v3api.check_known_hosts(ips=["1.2.3.4"])
         assert known[0].json['host'] == "1.2.3.4"
         assert known[0].json['type'] == "ip"
+
+    @vcr.use_cassette()
+    def test_sandbox_list(self):
+        v3api = PolyswarmAPI(self.test_api_key, uri='http://localhost:9696/v3', community='gamma')
+        response = v3api.sandbox_list()
+        assert response.json['result'][0] == "cape"
+        assert response.json['result'][1] == "triage"
