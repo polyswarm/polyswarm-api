@@ -671,7 +671,7 @@ class PolyswarmAPI(object):
         :param force: 
         """
         logger.info('Listing sandbox names')
-        return resources.SandboxResult.get(self)
+        return resources.SandboxResult.list(self)
 
     def download_archive(self, out_dir, s3_path):
         """
