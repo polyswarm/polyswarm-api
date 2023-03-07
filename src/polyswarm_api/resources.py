@@ -984,10 +984,19 @@ class SandboxResult(core.BaseJsonResource):
         return core.PolyswarmRequest(
             api,
             {
-                'method':
-                'POST',
-                'url':
-                '{}/consumer/submission/{}/sandbox/{}'.format(api.uri, api.community, sha256)
+                'method': 'POST',
+                'url': '{}/consumer/submission/{}/sandbox/{}'.format(api.uri, api.community, sha256)
+            },
+            result_parser=cls,
+        ).execute()
+
+    @classmethod
+    def sandbox_list(cls, api):
+        return core.PolyswarmRequest(
+            api,
+            {
+                'method': 'GET',
+                'url': '{}/consumer/submission/{}/sandbox'.format(api.uri, api.community)
             },
             result_parser=cls,
         ).execute()
