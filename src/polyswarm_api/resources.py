@@ -976,6 +976,7 @@ class Hash(core.Hashable):
 
 class SandboxResult(core.BaseJsonResource):
     RESOURCE_ENDPOINT = "/sandbox"
+    QUERY_PARAM_SCOPES = ['community']
 
     def __init__(self, content, api=None):
         super(SandboxResult, self).__init__(content, api=api)

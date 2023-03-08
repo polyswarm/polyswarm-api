@@ -666,12 +666,10 @@ class PolyswarmAPI(object):
 
     def sandbox_list(self):
         """
-        Send a scanned artifact by hash to the sandboxing system.
-        :param sha256_hash:
-        :param force: 
+        List sandboxes available in polyswarm.
         """
         logger.info('Listing sandbox names')
-        return resources.SandboxResult.list(self)
+        return resources.SandboxResult.list(self, community=self.community)
 
     def download_archive(self, out_dir, s3_path):
         """
