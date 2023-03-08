@@ -250,6 +250,7 @@ class BaseResource(object):
 class BaseJsonResource(BaseResource):
     RESOURCE_ENDPOINT = None
     RESOURCE_ID_KEY = 'id'
+    QUERY_PARAM_SCOPE = None
 
     def __init__(self, content, *args, **kwargs):
         super(BaseJsonResource, self).__init__(content, *args, **kwargs)
@@ -328,6 +329,8 @@ class BaseJsonResource(BaseResource):
     @classmethod
     def _params(cls, method, *param_keys, **kwargs):
         params = {}
+        if cls.QUERY_PARAM_SCOPE:
+            params = {scope: kwargs.get(scope) for scope in cls.QUERY_PARAM_SCOPE}
         json_params = {}
         for k, v in kwargs.items():
             if v is not None:
