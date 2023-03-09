@@ -975,9 +975,6 @@ class Hash(core.Hashable):
 
 
 class SandboxResult(core.BaseJsonResource):
-    RESOURCE_ENDPOINT = "/sandbox"
-    RESOURCE_ID_KEYS = ['id', 'community']
-
     def __init__(self, content, api=None):
         super(SandboxResult, self).__init__(content, api=api)
 
@@ -991,3 +988,11 @@ class SandboxResult(core.BaseJsonResource):
             },
             result_parser=cls,
         ).execute()
+
+class SandboxName(core.BaseJsonResource):
+    RESOURCE_ENDPOINT = "/sandbox"
+    RESOURCE_ID_KEYS = ['community']
+
+    def __init__(self, content, api=None):
+        super(SandboxName, self).__init__(content, api=api)
+        self.name = content

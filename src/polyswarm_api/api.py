@@ -669,7 +669,7 @@ class PolyswarmAPI(object):
         List sandboxes available in polyswarm.
         """
         logger.info('Listing sandbox names')
-        return resources.SandboxResult.list(self, community=self.community)
+        return resources.SandboxName.list(self, community=self.community)
 
     def download_archive(self, out_dir, s3_path):
         """
