@@ -250,7 +250,6 @@ class BaseResource(object):
 class BaseJsonResource(BaseResource):
     RESOURCE_ENDPOINT = None
     RESOURCE_ID_KEYS = ['id']
-    QUERY_PARAM_SCOPE = None
 
     def __init__(self, content, *args, **kwargs):
         super(BaseJsonResource, self).__init__(content, *args, **kwargs)
