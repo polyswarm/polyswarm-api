@@ -249,7 +249,7 @@ class BaseResource(object):
 
 class BaseJsonResource(BaseResource):
     RESOURCE_ENDPOINT = None
-    RESOURCE_ID_KEY = 'id'
+    RESOURCE_ID_KEYS = ['id']
     QUERY_PARAM_SCOPE = None
 
     def __init__(self, content, *args, **kwargs):
@@ -329,8 +329,6 @@ class BaseJsonResource(BaseResource):
     @classmethod
     def _params(cls, method, *param_keys, **kwargs):
         params = {}
-        if cls.QUERY_PARAM_SCOPE:
-            params = {scope: kwargs.get(scope) for scope in cls.QUERY_PARAM_SCOPE}
         json_params = {}
         for k, v in kwargs.items():
             if v is not None:
@@ -358,27 +356,27 @@ class BaseJsonResource(BaseResource):
 
     @classmethod
     def _list_params(cls, **kwargs):
-        return cls._params('GET', cls.RESOURCE_ID_KEY, **kwargs)
+        return cls._params('GET', *cls.RESOURCE_ID_KEYS, **kwargs)
 
     @classmethod
     def _create_params(cls, **kwargs):
-        return cls._params('POST', cls.RESOURCE_ID_KEY, **kwargs)
+        return cls._params('POST', *cls.RESOURCE_ID_KEYS, **kwargs)
 
     @classmethod
     def _get_params(cls, **kwargs):
-        return cls._params('GET', cls.RESOURCE_ID_KEY, **kwargs)
+        return cls._params('GET', *cls.RESOURCE_ID_KEYS, **kwargs)
 
     @classmethod
     def _head_params(cls, **kwargs):
-        return cls._params('HEAD', cls.RESOURCE_ID_KEY, **kwargs)
+        return cls._params('HEAD', *cls.RESOURCE_ID_KEYS, **kwargs)
 
     @classmethod
     def _update_params(cls, **kwargs):
-        return cls._params('PUT', cls.RESOURCE_ID_KEY, **kwargs)
+        return cls._params('PUT', *cls.RESOURCE_ID_KEYS, **kwargs)
 
     @classmethod
     def _delete_params(cls, **kwargs):
-        return cls._params('DELETE', cls.RESOURCE_ID_KEY, **kwargs)
+        return cls._params('DELETE', *cls.RESOURCE_ID_KEYS, **kwargs)
 
     @classmethod
     def _list_headers(cls, api):
