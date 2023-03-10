@@ -332,7 +332,7 @@ class BaseJsonResource(BaseResource):
         for k, v in kwargs.items():
             if v is not None:
                 # try to parse "*_id" stuff as integer
-                if k.endswith('_id'):
+                if k == 'id' or k.endswith('_id'):
                     try:
                         parsed_value = str(int(v))
                     except Exception:

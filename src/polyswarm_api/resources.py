@@ -251,7 +251,8 @@ class IOC(core.BaseJsonResource):
             },
             result_parser=cls,
         ).execute()
-        
+
+
 class ArtifactInstance(core.BaseJsonResource, core.Hashable):
     RESOURCE_ENDPOINT = '/instance'
 
@@ -974,24 +975,13 @@ class Hash(core.Hashable):
         return "{}={}".format(self.hash_type, self.hash)
 
 
-class SandboxResult(core.BaseJsonResource):
-    def __init__(self, content, api=None):
-        super(SandboxResult, self).__init__(content, api=api)
+class SandboxResult(ArtifactInstance):
+    RESOURCE_ENDPOINT = "/sandbox"
+    RESOURCE_ID_KEYS = ['artifact_id']
 
-    @classmethod
-    def sandbox(cls, api, sha256):
-        return core.PolyswarmRequest(
-            api,
-            {
-                'method': 'POST',
-                'url': '{}/consumer/submission/{}/sandbox/{}'.format(api.uri, api.community, sha256)
-            },
-            result_parser=cls,
-        ).execute()
 
 class SandboxName(core.BaseJsonResource):
-    RESOURCE_ENDPOINT = "/sandbox"
-    RESOURCE_ID_KEYS = ['community']
+    RESOURCE_ENDPOINT = "/sandbox/name"
 
     def __init__(self, content, api=None):
         super(SandboxName, self).__init__(content, api=api)

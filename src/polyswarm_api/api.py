@@ -655,21 +655,16 @@ class PolyswarmAPI(object):
 
         return artifact
 
-    def sandbox(self, sha256_hash):
-        """
-        Send a scanned artifact by hash to the sandboxing system.
-        :param sha256_hash:
-        :param force: 
-        """
-        logger.info('Sandboxing %s', sha256_hash)
-        return resources.SandboxResult.sandbox(self, sha256_hash)
+    def sandbox(self, instance_id):
+        logger.info('Sandboxing %s', instance_id)
+        return resources.SandboxResult.create(self, artifact_id=instance_id).result()
 
     def sandbox_list(self):
         """
         List sandboxes available in polyswarm.
         """
         logger.info('Listing sandbox names')
-        return resources.SandboxName.list(self, community=self.community)
+        return resources.SandboxName.list(self)
 
     def download_archive(self, out_dir, s3_path):
         """
