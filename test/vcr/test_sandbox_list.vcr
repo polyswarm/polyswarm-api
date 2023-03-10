@@ -11,9 +11,9 @@ interactions:
       Connection:
       - keep-alive
       User-Agent:
-      - polyswarm-api/3.1.3 (x86_64-Linux-CPython-3.9.10)
+      - polyswarm-api/3.1.3 (x86_64-Linux-CPython-3.10.7)
     method: GET
-    uri: http://localhost:9696/v3/sandbox/list?community=gamma
+    uri: http://localhost:9696/v3/sandbox/name/list
   response:
     body:
       string: '{"result":["cape","triage"],"status":"OK"}
@@ -21,11 +21,15 @@ interactions:
         '
     headers:
       Connection:
-      - Keep-Alive
+      - close
       Content-Length:
       - '43'
       Content-Type:
       - application/json
+      Date:
+      - Fri, 10 Mar 2023 20:56:15 GMT
+      Server:
+      - Werkzeug/2.2.2 Python/3.10.7
       X-Billing-ID:
       - '1'
     status:
