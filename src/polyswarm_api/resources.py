@@ -251,7 +251,8 @@ class IOC(core.BaseJsonResource):
             },
             result_parser=cls,
         ).execute()
-        
+
+
 class ArtifactInstance(core.BaseJsonResource, core.Hashable):
     RESOURCE_ENDPOINT = '/instance'
 
@@ -823,7 +824,7 @@ class HistoricalHuntResultList(HistoricalHuntResult):
 
 class TagLink(core.BaseJsonResource):
     RESOURCE_ENDPOINT = '/tags/link'
-    RESOURCE_ID_KEY = 'hash'
+    RESOURCE_ID_KEYS = ['hash']
 
     def __init__(self, content, api=None):
         super(TagLink, self).__init__(content, api=api)
@@ -850,7 +851,7 @@ class TagLink(core.BaseJsonResource):
 
 class MalwareFamily(core.BaseJsonResource):
     RESOURCE_ENDPOINT = '/tags/family'
-    RESOURCE_ID_KEY = 'name'
+    RESOURCE_ID_KEYS = ['name']
 
     def __init__(self, content, api=None):
         super(MalwareFamily, self).__init__(content, api=api)
@@ -863,7 +864,7 @@ class MalwareFamily(core.BaseJsonResource):
 
 class Tag(core.BaseJsonResource):
     RESOURCE_ENDPOINT = '/tags/tag'
-    RESOURCE_ID_KEY = 'name'
+    RESOURCE_ID_KEYS = ['name']
 
     def __init__(self, content, api=None):
         super(Tag, self).__init__(content, api=api)
@@ -974,20 +975,14 @@ class Hash(core.Hashable):
         return "{}={}".format(self.hash_type, self.hash)
 
 
-class SandboxResult(core.BaseJsonResource):
+class SandboxResult(ArtifactInstance):
+    RESOURCE_ENDPOINT = "/sandbox"
+    RESOURCE_ID_KEYS = ['artifact_id']
+
+
+class SandboxName(core.BaseJsonResource):
+    RESOURCE_ENDPOINT = "/sandbox/name"
 
     def __init__(self, content, api=None):
-        super(SandboxResult, self).__init__(content, api=api)
-
-    @classmethod
-    def sandbox(cls, api, sha256):
-        return core.PolyswarmRequest(
-            api,
-            {
-                'method':
-                'POST',
-                'url':
-                '{}/consumer/submission/{}/sandbox/{}'.format(api.uri, api.community, sha256)
-            },
-            result_parser=cls,
-        ).execute()
+        super(SandboxName, self).__init__(content, api=api)
+        self.name = content
