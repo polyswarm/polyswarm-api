@@ -161,6 +161,7 @@ class IOC(core.BaseJsonResource):
                 'url': '{}/ioc/{}/{}'.format(api.uri, hash_type, hash_value),
                 'params': {
                     'hide_known_good': hide_known_good,
+                    'community': api.community,
                 },
             },
             result_parser=cls,
@@ -168,7 +169,7 @@ class IOC(core.BaseJsonResource):
 
     @classmethod
     def ioc_search(cls, api, ip=None, domain=None, ttp=None, imphash=None):
-        params = dict()
+        params = dict(community=api.community)
         if ip is not None:
             params['ip'] = ip
         if domain is not None:
@@ -322,6 +323,7 @@ class ArtifactInstance(core.BaseJsonResource, core.Hashable):
                 'url': '{}/search/hash/{}'.format(api.uri, hash_type),
                 'params': {
                     'hash': hash_value,
+                    'community': api.community,
                 },
             },
         ).execute()
@@ -335,6 +337,7 @@ class ArtifactInstance(core.BaseJsonResource, core.Hashable):
                 'url': '{}/search/hash/{}'.format(api.uri, hash_type),
                 'params': {
                     'hash': hash_value,
+                    'community': api.community,
                 },
             },
             result_parser=cls,
@@ -349,6 +352,7 @@ class ArtifactInstance(core.BaseJsonResource, core.Hashable):
                 'url': '{}/search/url'.format(api.uri),
                 'params': {
                     'url': url,
+                    'community': api.community,
                 },
             },
             result_parser=cls,
@@ -363,6 +367,7 @@ class ArtifactInstance(core.BaseJsonResource, core.Hashable):
                 'url': '{}/search/instances'.format(api.uri),
                 'params': {
                     'hash': hash_value,
+                    'community': api.community,
                 },
             },
             result_parser=cls,
@@ -394,9 +399,10 @@ class ArtifactInstance(core.BaseJsonResource, core.Hashable):
         parameters = {
             'method': 'POST',
             'url': '{}/consumer/submission/{}/rescan/{}/{}'.format(api.uri, api.community, hash_type, hash_value),
+            'data': { 'community': api.community }
         }
         if scan_config:
-            parameters.setdefault('data', {})['scan-config'] = scan_config
+            parameters['data']['scan-config'] = scan_config
         return core.PolyswarmRequest(
             api,
             parameters,
@@ -626,6 +632,7 @@ class LocalArtifact(core.BaseResource, core.Hashable):
                 'method': 'GET',
                 'url': '{}/consumer/download/{}/{}'.format(api.uri, hash_type, hash_value),
                 'stream': True,
+                'params': { 'community': api.community },
             },
             result_parser=cls,
             handle=handle,
@@ -642,6 +649,7 @@ class LocalArtifact(core.BaseResource, core.Hashable):
                 'method': 'GET',
                 'url': u,
                 'stream': True,
+                'params': {'community': api.community },
                 'headers': {'Authorization': None}
             },
             result_parser=cls,

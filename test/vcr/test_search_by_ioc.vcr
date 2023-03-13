@@ -52,7 +52,7 @@ interactions:
       User-Agent:
       - polyswarm-api/3.0.0 (x86_64-Linux-CPython-3.9.10)
     method: GET
-    uri: http://localhost:9696/v3/ioc/search?ip=1.2.3.4
+    uri: http://localhost:9696/v3/ioc/search?ip=1.2.3.4&community=gamma
   response:
     body:
       string: '{"has_more":false,"limit":50,"result":["275a021bbfb6489e54d471899f7db9d1663fc695ec2fe2a2c4538aabf651fd0f"],"status":"OK"}
