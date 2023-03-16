@@ -655,14 +655,16 @@ class PolyswarmAPI(object):
 
         return artifact
 
-    def sandbox(self, sha256_hash):
+    def sandbox(self, instance_id):
+        logger.info('Sandboxing %s', instance_id)
+        return resources.SandboxResult.create(self, artifact_id=instance_id).result()
+
+    def sandbox_list(self):
         """
-        Send a scanned artifact by hash to the sandboxing system.
-        :param sha256_hash:
-        :param force: 
+        List sandboxes available in polyswarm.
         """
-        logger.info('Sandboxing %s', sha256_hash)
-        return resources.SandboxResult.sandbox(self, sha256_hash)
+        logger.info('Listing sandbox names')
+        return resources.SandboxName.list(self)
 
     def download_archive(self, out_dir, s3_path):
         """
@@ -704,13 +706,14 @@ class PolyswarmAPI(object):
         logger.info('Rerunning metadata for hashes %s', hashes)
         return resources.ArtifactInstance.metadata_rerun(self, hashes, analyses=analyses, skip_es=skip_es).result()
 
-    def tool_metadata_create(self, sha256, tool, tool_metadata):
-        logger.info('Create tool metadata %s %s %s', sha256, tool, tool_metadata)
-        return resources.ToolMetadata.create(self, sha256=sha256, tool=tool, tool_metadata=tool_metadata).result()
+    def tool_metadata_create(self, instance_id, tool, tool_metadata):
+        logger.info('Create tool metadata %s %s %s', instance_id, tool, tool_metadata)
+        return resources.ToolMetadata.create(
+            self, instance_id=instance_id, tool=tool, tool_metadata=tool_metadata).result()
 
-    def tool_metadata_list(self, sha256):
+    def tool_metadata_list(self, instance_id):
         logger.info('List tool metadata')
-        return resources.ToolMetadata.list(self, sha256=sha256).result()
+        return resources.ToolMetadata.list(self, instance_id=instance_id).result()
 
     def __repr__(self):
         clsname = '{0.__module__}.{0.__name__}'.format(self.__class__)
