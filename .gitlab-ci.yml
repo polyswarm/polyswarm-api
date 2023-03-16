@@ -36,7 +36,7 @@ dev-pypi:
 # Test Stage
 ###############################################################
 
-test-run35:
+test-run37:
   tags:
     - kube-small-new
   image: python:3.7
@@ -48,7 +48,7 @@ test-run35:
     - pip install .
     - pytest -s -v
 
-test-run36:
+test-run38:
   tags:
     - kube-small-new
   image: python:3.8
