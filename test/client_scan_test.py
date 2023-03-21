@@ -304,11 +304,9 @@ class ScanTestCaseV2(TestCase):
     @vcr.use_cassette()
     def test_tool_metadata(self):
         api = PolyswarmAPI(self.test_api_key, uri='http://localhost:9696/{}'.format(self.api_version), community='gamma')
-        api.tool_metadata_create(
-            '275a021bbfb6489e54d471899f7db9d1663fc695ec2fe2a2c4538aabf651fd0f', 'test_tool_1', {'key': 'value'})
-        api.tool_metadata_create(
-            '275a021bbfb6489e54d471899f7db9d1663fc695ec2fe2a2c4538aabf651fd0f', 'test_tool_2', {'key2': 'value2'})
-        metadata = list(api.tool_metadata_list('275a021bbfb6489e54d471899f7db9d1663fc695ec2fe2a2c4538aabf651fd0f'))
+        api.tool_metadata_create(41782351738405672, 'test_tool_1', {'key': 'value'})
+        api.tool_metadata_create(41782351738405672, 'test_tool_2', {'key2': 'value2'})
+        metadata = list(api.tool_metadata_list(41782351738405672))
         assert metadata[0].json['tool'] == 'test_tool_2'
         assert metadata[0].json['tool_metadata'] == {'key2': 'value2'}
         assert metadata[1].json['tool'] == 'test_tool_1'
@@ -370,3 +368,10 @@ class ScanTestCaseV2(TestCase):
         known = v3api.check_known_hosts(ips=["1.2.3.4"])
         assert known[0].json['host'] == "1.2.3.4"
         assert known[0].json['type'] == "ip"
+
+    @vcr.use_cassette()
+    def test_sandbox_list(self):
+        v3api = PolyswarmAPI(self.test_api_key, uri='http://localhost:9696/v3', community='gamma')
+        response = v3api.sandbox_list()
+        assert response.json['result'][0] == "cape"
+        assert response.json['result'][1] == "triage"
