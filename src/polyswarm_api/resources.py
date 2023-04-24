@@ -983,7 +983,7 @@ class SandboxTask(core.BaseJsonResource):
     RESOURCE_ENDPOINT = "/sandboxtask"
 
     def __init__(self, content, api=None):
-        super(SandboxName, self).__init__(content, api=api)
+        super(SandboxTask, self).__init__(content, api=api)
         self.id = content['id']
         self.community = content['community']
         self.sandbox = content['sandbox']
@@ -1006,7 +1006,7 @@ class SandboxTaskLatest(SandboxTask):
 class SandboxArtifact(core.BaseJsonResource):
 
     def __init__(self, content, api=None):
-        super(SandboxName, self).__init__(content, api=api)
+        super(SandboxArtifact, self).__init__(content, api=api)
         self.created = content['created']
         self.id = content['id']
         self.instance_id = content['instance_id']
