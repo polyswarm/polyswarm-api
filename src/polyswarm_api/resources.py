@@ -998,7 +998,7 @@ class SandboxTask(core.BaseJsonResource):
         self.sandbox_artifacts = [SandboxArtifact(a, api=api) for a in content.get('sandbox_artifacts', [])]
 
 class SandboxTaskList(SandboxTask):
-    RESOURCE_ENDPOINT = "/sandboxtask/hash/list"
+    RESOURCE_ENDPOINT = "/sandboxtask/hash"
 
 class SandboxTaskLatest(SandboxTask):
     RESOURCE_ENDPOINT = "/sandboxtask/hash/latest"

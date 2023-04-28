@@ -673,19 +673,19 @@ class PolyswarmAPI(object):
         logger.info('Checking the status of sandbox task %s', sandbox_task_id)
         return resources.SandboxTask.get(self, sandbox_task_id=sandbox_task_id).result()
     
-    def sandbox_task_latest(self, sha256):
+    def sandbox_task_latest(self, sha256, sandbox):
         """
         Check the latest status of a sandbox task.
         """
         logger.info('Checking the sandbox task for %s', sha256)
-        return resources.SandboxTask.get(self, sha256=sha256).result()
+        return resources.SandboxTaskLatest.get(self, sha256=sha256, sandbox=sandbox).result()
 
-    def sandbox_task_list(self, sha256):
+    def sandbox_task_list(self, sha256, sandbox):
         """
         Check the list of a sandbox tasks.
         """
         logger.info('Checking the sandbox tasks for %s', sha256)
-        return resources.SandboxTaskList.get(self, sha256=sha256).result()
+        return resources.SandboxTaskList.list(self, sha256=sha256, sandbox=sandbox).result()
 
     def download_archive(self, out_dir, s3_path):
         """
