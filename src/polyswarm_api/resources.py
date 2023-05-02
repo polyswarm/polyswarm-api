@@ -975,10 +975,6 @@ class Hash(core.Hashable):
         return "{}={}".format(self.hash_type, self.hash)
 
 
-class SandboxResult(ArtifactInstance):
-    RESOURCE_ENDPOINT = "/sandbox"
-    RESOURCE_ID_KEYS = ['artifact_id']
-
 class SandboxTask(core.BaseJsonResource):
     RESOURCE_ENDPOINT = "/sandboxtask"
 
@@ -996,6 +992,9 @@ class SandboxTask(core.BaseJsonResource):
         self.artifact_metadata_id = content['artifact_metadata_id']
         self.sha256 = content['sha256']
         self.sandbox_artifacts = [SandboxArtifact(a, api=api) for a in content.get('sandbox_artifacts', [])]
+
+class SandboxResult(SandboxTask):
+    RESOURCE_ENDPOINT = "/sandbox"
 
 class SandboxTaskList(SandboxTask):
     RESOURCE_ENDPOINT = "/sandboxtask/hash"
