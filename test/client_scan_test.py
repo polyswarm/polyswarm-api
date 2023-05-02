@@ -375,3 +375,50 @@ class ScanTestCaseV2(TestCase):
         response = v3api.sandbox_list()
         assert response.json['result'][0] == "cape"
         assert response.json['result'][1] == "triage"
+
+    @vcr.use_cassette()
+    def test_sandboxtask_get(self):
+        v3api = PolyswarmAPI(self.test_api_key, uri='http://localhost:9696/v3', community='gamma')
+        tasks = v3api.sandbox("81610279097048460")
+        assert len(tasks) == 2
+
+        for task in tasks:
+            status = v3api.sandbox_task_status(task.id)
+            assert status.status == task.status
+            assert status.id == task.id
+            assert status.created == task.created
+        
+    @vcr.use_cassette()
+    def test_sandboxtask_latest(self):
+        v3api = PolyswarmAPI(self.test_api_key, uri='http://localhost:9696/v3', community='gamma')
+
+        # create some tasks, and then some "latest" tasks
+        v3api.sandbox("81610279097048460")
+        new_tasks = v3api.sandbox("81610279097048460")
+
+        latest_cape = v3api.sandbox_task_latest(new_tasks[0].sha256, 'cape_sandbox_v2')
+        latest_triage = v3api.sandbox_task_latest(new_tasks[0].sha256, 'triage_sandbox_v0')
+
+        for task in new_tasks:
+            if task.sandbox == 'cape_sandbox_v2':
+                assert task.id == latest_cape.id
+            elif task.sandbox == 'triage_sandbox_v0':
+                assert task.id == latest_triage.id
+            else:
+                assert False, f'unexpected sandbox: {task.sandbox}'
+
+    @vcr.use_cassette()
+    def test_sandboxtask_list(self):
+        v3api = PolyswarmAPI(self.test_api_key, uri='http://localhost:9696/v3', community='gamma')
+
+        tasks = v3api.sandbox("81610279097048460")
+        v3api = PolyswarmAPI(self.test_api_key, uri='http://localhost:9696/v3', community='gamma')
+        cape_tasks = list(v3api.sandbox_task_list(tasks[0].sha256, 'cape_sandbox_v2'))
+        v3api = PolyswarmAPI(self.test_api_key, uri='http://localhost:9696/v3', community='gamma')
+        triage_tasks = list(v3api.sandbox_task_list(tasks[0].sha256, 'triage_sandbox_v0'))
+        v3api = PolyswarmAPI(self.test_api_key, uri='http://localhost:9696/v3', community='gamma')
+
+        assert len(cape_tasks) == 1
+        assert cape_tasks[0].sandbox == 'cape_sandbox_v2'
+        assert len(triage_tasks) == 1
+        assert triage_tasks[0].sandbox == 'triage_sandbox_v0'
