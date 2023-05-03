@@ -412,11 +412,8 @@ class ScanTestCaseV2(TestCase):
         v3api = PolyswarmAPI(self.test_api_key, uri='http://localhost:9696/v3', community='gamma')
 
         tasks = v3api.sandbox("81610279097048460")
-        v3api = PolyswarmAPI(self.test_api_key, uri='http://localhost:9696/v3', community='gamma')
         cape_tasks = list(v3api.sandbox_task_list(tasks[0].sha256, 'cape_sandbox_v2'))
-        v3api = PolyswarmAPI(self.test_api_key, uri='http://localhost:9696/v3', community='gamma')
         triage_tasks = list(v3api.sandbox_task_list(tasks[0].sha256, 'triage_sandbox_v0'))
-        v3api = PolyswarmAPI(self.test_api_key, uri='http://localhost:9696/v3', community='gamma')
 
         assert len(cape_tasks) == 1
         assert cape_tasks[0].sandbox == 'cape_sandbox_v2'
