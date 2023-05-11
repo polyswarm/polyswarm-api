@@ -993,26 +993,33 @@ class SandboxTask(core.BaseJsonResource):
         self.sha256 = content['sha256']
         self.sandbox_artifacts = [SandboxArtifact(a, api=api) for a in content.get('sandbox_artifacts', [])]
 
+
 class SandboxResult(SandboxTask):
     RESOURCE_ENDPOINT = "/sandbox"
+
 
 class SandboxTaskList(SandboxTask):
     RESOURCE_ENDPOINT = "/sandboxtask/hash"
 
+
 class SandboxTaskLatest(SandboxTask):
     RESOURCE_ENDPOINT = "/sandboxtask/hash/latest"
 
+
 class SandboxArtifact(core.BaseJsonResource):
+    RESOURCE_ENDPOINT = "/sandboxtask/artifact"
 
     def __init__(self, content, api=None):
         super(SandboxArtifact, self).__init__(content, api=api)
         self.created = content['created']
         self.id = content['id']
+        self.sandbox_task_id = content['sandbox_task_id']
         self.instance_id = content['instance_id']
         self.description = content['description']
         self.mimetype = content['mimetype']
         self.extended_type = content['extended_type']
-        self.type = content['type']
+        self.type = content['artifact_type']
+
 
 class SandboxName(core.BaseJsonResource):
     RESOURCE_ENDPOINT = "/sandbox/name"
