@@ -199,7 +199,7 @@ class PolyswarmRequest(object):
         # We simply return upon termination condition
         request = self
         while True:
-            # consume items items from list if iterable
+            # consume items from list if iterable
             # of yield the single result if not
             try:
                 for result in request._result:

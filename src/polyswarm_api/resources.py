@@ -993,8 +993,12 @@ class SandboxTask(core.BaseJsonResource):
         self.sandbox_artifacts = [SandboxArtifact(a, api=api) for a in content.get('sandbox_artifacts', [])]
 
     @classmethod
+    def get(cls, api, **kwargs):
+        return super().get(api, community=api.community, **kwargs)
+
+    @classmethod
     def latest(cls, api, **kwargs):
-        params, _ = cls._get_params(**kwargs)
+        params, _ = cls._get_params(community=api.community, **kwargs)
         url = cls._endpoint(api) + '/latest'
         parameters = {'method': 'GET', 'url': url, 'params': params}
         return core.PolyswarmRequest(api, parameters, result_parser=cls).execute()
