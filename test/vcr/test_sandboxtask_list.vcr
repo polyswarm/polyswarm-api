@@ -52,7 +52,7 @@ interactions:
       User-Agent:
       - polyswarm-api/3.2.0 (x86_64-Linux-CPython-3.9.10)
     method: GET
-    uri: http://localhost:9696/v3/sandboxtask/hash/list?sha256=18e5b8fe65e8f73c3a4a637c258c02aeec8a6ab702b15b7ee73f5631a9879e40&sandbox=cape_sandbox_v2
+    uri: http://localhost:9696/v3/sandbox/hash/list?sha256=18e5b8fe65e8f73c3a4a637c258c02aeec8a6ab702b15b7ee73f5631a9879e40&sandbox=cape_sandbox_v2
   response:
     body:
       string: '{"has_more":false,"limit":50,"result":[{"account_number":1,"artifact_metadata_id":72699024074810860,"community":"gamma","created":"Tue,
@@ -85,7 +85,7 @@ interactions:
       User-Agent:
       - polyswarm-api/3.2.0 (x86_64-Linux-CPython-3.9.10)
     method: GET
-    uri: http://localhost:9696/v3/sandboxtask/hash/list?sha256=18e5b8fe65e8f73c3a4a637c258c02aeec8a6ab702b15b7ee73f5631a9879e40&sandbox=triage_sandbox_v0
+    uri: http://localhost:9696/v3/sandbox/hash/list?sha256=18e5b8fe65e8f73c3a4a637c258c02aeec8a6ab702b15b7ee73f5631a9879e40&sandbox=triage_sandbox_v0
   response:
     body:
       string: '{"has_more":false,"limit":50,"result":[{"account_number":1,"artifact_metadata_id":40741756589327462,"community":"gamma","created":"Tue,

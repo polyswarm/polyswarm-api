@@ -373,21 +373,26 @@ class ScanTestCaseV2(TestCase):
     def test_sandbox_list(self):
         v3api = PolyswarmAPI(self.test_api_key, uri='http://localhost:9696/v3', community='gamma')
         response = v3api.sandbox_list()
-        assert response.json['result'][0] == "cape"
-        assert response.json['result'][1] == "triage"
+        assert response.json['result'][0] == 'cape'
+        assert response.json['result'][1] == 'triage'
 
     @vcr.use_cassette()
-    def test_sandboxtask_get(self):
+    def test_sandboxtask_submit(self):
         v3api = PolyswarmAPI(self.test_api_key, uri='http://localhost:9696/v3', community='gamma')
-        tasks = v3api.sandbox("81610279097048460")
+        tasks = v3api.sandbox('86147028965243383')
         assert len(tasks) == 2
+        assert set(t.sandbox for t in tasks) == {'cape', 'triage'}
 
-        for task in tasks:
-            status = v3api.sandbox_task_status(task.id)
-            assert status.status == task.status
-            assert status.id == task.id
-            assert status.created == task.created
-        
+    @vcr.use_cassette()
+    def ytest_sandboxtask_get(self):
+        v3api = PolyswarmAPI(self.test_api_key, uri='http://localhost:9696/v3', community='gamma')
+        task_id = 37385694435473303
+        status = v3api.sandbox_task_status(task_id)
+        assert status.id == task_id
+        assert status.sandbox == 'triage'
+        assert status.sha256 == 'a709f37b3a50608f2e9830f92ea25da04bfa4f34d2efecfd061de9f29af02427'
+        assert status.created == 'gamma'
+
     @vcr.use_cassette()
     def test_sandboxtask_latest(self):
         v3api = PolyswarmAPI(self.test_api_key, uri='http://localhost:9696/v3', community='gamma')

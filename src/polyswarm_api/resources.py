@@ -994,11 +994,11 @@ class SandboxTask(core.BaseJsonResource):
 
 
 class SandboxTaskList(SandboxTask):
-    RESOURCE_ENDPOINT = "/sandboxtask/hash"
+    RESOURCE_ENDPOINT = "/sandbox/hash"
 
 
 class SandboxTaskLatest(SandboxTask):
-    RESOURCE_ENDPOINT = "/sandboxtask/hash/latest"
+    RESOURCE_ENDPOINT = "/sandbox/hash/latest"
 
 
 class SandboxArtifact(core.BaseJsonResource):
