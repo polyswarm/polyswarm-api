@@ -976,7 +976,7 @@ class Hash(core.Hashable):
 
 
 class SandboxTask(core.BaseJsonResource):
-    RESOURCE_ENDPOINT = "/sandbox"
+    RESOURCE_ENDPOINT = '/sandbox/sandboxtask'
 
     def __init__(self, content, api=None):
         super(SandboxTask, self).__init__(content, api=api)
@@ -992,17 +992,15 @@ class SandboxTask(core.BaseJsonResource):
         self.sha256 = content['sha256']
         self.sandbox_artifacts = [SandboxArtifact(a, api=api) for a in content.get('sandbox_artifacts', [])]
 
-
-class SandboxTaskList(SandboxTask):
-    RESOURCE_ENDPOINT = "/sandbox/hash"
-
-
-class SandboxTaskLatest(SandboxTask):
-    RESOURCE_ENDPOINT = "/sandbox/hash/latest"
+    @classmethod
+    def latest(cls, api, **kwargs):
+        params, _ = cls._get_params(**kwargs)
+        url = cls._endpoint(api) + '/latest'
+        parameters = {'method': 'GET', 'url': url, 'params': params}
+        return core.PolyswarmRequest(api, parameters, result_parser=cls).execute()
 
 
 class SandboxArtifact(core.BaseJsonResource):
-
     def __init__(self, content, api=None):
         super(SandboxArtifact, self).__init__(content, api=api)
         self.created = content['created']

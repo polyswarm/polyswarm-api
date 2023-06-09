@@ -17,7 +17,7 @@ interactions:
       User-Agent:
       - polyswarm-api/3.2.1 (x86_64-Linux-CPython-3.10.7)
     method: POST
-    uri: http://localhost:9696/v3/sandbox
+    uri: http://localhost:9696/v3/sandbox/sandboxtask
   response:
     body:
       string: '{"result":[{"account_number":1,"community":"gamma","created":"Fri,

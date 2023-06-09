@@ -397,20 +397,14 @@ class ScanTestCaseV2(TestCase):
     def test_sandboxtask_latest(self):
         v3api = PolyswarmAPI(self.test_api_key, uri='http://localhost:9696/v3', community='gamma')
 
-        # create some tasks, and then some "latest" tasks
-        v3api.sandbox("81610279097048460")
-        new_tasks = v3api.sandbox("81610279097048460")
+        sha256 = '18e5b8fe65e8f73c3a4a637c258c02aeec8a6ab702b15b7ee73f5631a9879e40'
+        latest_cape = v3api.sandbox_task_latest(sha256, 'cape_sandbox_v2')
+        latest_triage = v3api.sandbox_task_latest(sha256, 'triage_sandbox_v0')
 
-        latest_cape = v3api.sandbox_task_latest(new_tasks[0].sha256, 'cape_sandbox_v2')
-        latest_triage = v3api.sandbox_task_latest(new_tasks[0].sha256, 'triage_sandbox_v0')
-
-        for task in new_tasks:
-            if task.sandbox == 'cape_sandbox_v2':
-                assert task.id == latest_cape.id
-            elif task.sandbox == 'triage_sandbox_v0':
-                assert task.id == latest_triage.id
-            else:
-                assert False, f'unexpected sandbox: {task.sandbox}'
+        assert latest_cape.sha256 == sha256
+        assert latest_cape.sandbox == 'cape_sandbox_v2'
+        assert latest_triage.sha256 == sha256
+        assert latest_triage.sandbox == 'triage_sandbox_v0'
 
     @vcr.use_cassette()
     def test_sandboxtask_list(self):

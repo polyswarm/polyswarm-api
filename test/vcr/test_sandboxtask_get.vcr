@@ -13,7 +13,7 @@ interactions:
       User-Agent:
       - polyswarm-api/3.2.1 (x86_64-Linux-CPython-3.10.7)
     method: GET
-    uri: http://localhost:9696/v3/sandbox?sandbox_task_id=37385694435473303
+    uri: http://localhost:9696/v3/sandbox/sandboxtask?sandbox_task_id=37385694435473303
   response:
     body:
       string: '{"result":{"account_number":1,"community":"gamma","created":"Wed, 07
