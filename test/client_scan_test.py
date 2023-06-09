@@ -370,11 +370,11 @@ class ScanTestCaseV2(TestCase):
         assert known[0].json['type'] == "ip"
 
     @vcr.use_cassette()
-    def test_sandbox_list(self):
+    def test_sandbox_providers(self):
         v3api = PolyswarmAPI(self.test_api_key, uri='http://localhost:9696/v3', community='gamma')
-        response = v3api.sandbox_list()
-        assert response.json['result'][0] == 'cape'
-        assert response.json['result'][1] == 'triage'
+        response = v3api.sandbox_providers()
+        assert response.json['result'][0]['name'] == 'cape'
+        assert response.json['result'][1]['name'] == 'triage'
 
     @vcr.use_cassette()
     def test_sandboxtask_submit(self):

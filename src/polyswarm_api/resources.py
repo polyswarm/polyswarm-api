@@ -1012,9 +1012,5 @@ class SandboxArtifact(core.BaseJsonResource):
         self.type = content['type']
 
 
-class SandboxName(core.BaseJsonResource):
-    RESOURCE_ENDPOINT = "/sandbox/name"
-
-    def __init__(self, content, api=None):
-        super(SandboxName, self).__init__(content, api=api)
-        self.name = content
+class SandboxProvider(core.BaseJsonResource):
+    RESOURCE_ENDPOINT = "/sandbox/provider"

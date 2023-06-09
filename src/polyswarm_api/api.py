@@ -659,12 +659,12 @@ class PolyswarmAPI(object):
         logger.info('Sandboxing %s', instance_id)
         return resources.SandboxTask.create(self, artifact_id=instance_id).result()
 
-    def sandbox_list(self):
+    def sandbox_providers(self):
         """
         List sandboxes available in polyswarm.
         """
         logger.info('Listing sandbox names')
-        return resources.SandboxName.list(self)
+        return resources.SandboxProvider.list(self)
     
     def sandbox_task_status(self, sandbox_task_id):
         """
