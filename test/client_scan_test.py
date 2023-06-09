@@ -397,14 +397,14 @@ class ScanTestCaseV2(TestCase):
     def test_sandboxtask_latest(self):
         v3api = PolyswarmAPI(self.test_api_key, uri='http://localhost:9696/v3', community='gamma')
 
-        sha256 = '18e5b8fe65e8f73c3a4a637c258c02aeec8a6ab702b15b7ee73f5631a9879e40'
-        latest_cape = v3api.sandbox_task_latest(sha256, 'cape_sandbox_v2')
-        latest_triage = v3api.sandbox_task_latest(sha256, 'triage_sandbox_v0')
+        sha256 = 'a709f37b3a50608f2e9830f92ea25da04bfa4f34d2efecfd061de9f29af02427'
+        latest_cape = v3api.sandbox_task_latest(sha256, 'cape')
+        latest_triage = v3api.sandbox_task_latest(sha256, 'triage')
 
         assert latest_cape.sha256 == sha256
-        assert latest_cape.sandbox == 'cape_sandbox_v2'
+        assert latest_cape.sandbox == 'cape'
         assert latest_triage.sha256 == sha256
-        assert latest_triage.sandbox == 'triage_sandbox_v0'
+        assert latest_triage.sandbox == 'triage'
 
     @vcr.use_cassette()
     def test_sandboxtask_list(self):
