@@ -976,7 +976,7 @@ class Hash(core.Hashable):
 
 
 class SandboxTask(core.BaseJsonResource):
-    RESOURCE_ENDPOINT = "/sandboxtask"
+    RESOURCE_ENDPOINT = "/sandbox"
 
     def __init__(self, content, api=None):
         super(SandboxTask, self).__init__(content, api=api)
@@ -989,18 +989,17 @@ class SandboxTask(core.BaseJsonResource):
         self.account_number = content['account_number']
         self.team_account_number = content['team_account_number']
         self.instance_id = content['instance_id']
-        self.artifact_metadata_id = content['artifact_metadata_id']
         self.sha256 = content['sha256']
         self.sandbox_artifacts = [SandboxArtifact(a, api=api) for a in content.get('sandbox_artifacts', [])]
 
-class SandboxResult(SandboxTask):
-    RESOURCE_ENDPOINT = "/sandbox"
 
 class SandboxTaskList(SandboxTask):
     RESOURCE_ENDPOINT = "/sandboxtask/hash"
 
+
 class SandboxTaskLatest(SandboxTask):
     RESOURCE_ENDPOINT = "/sandboxtask/hash/latest"
+
 
 class SandboxArtifact(core.BaseJsonResource):
 
@@ -1013,6 +1012,7 @@ class SandboxArtifact(core.BaseJsonResource):
         self.mimetype = content['mimetype']
         self.extended_type = content['extended_type']
         self.type = content['type']
+
 
 class SandboxName(core.BaseJsonResource):
     RESOURCE_ENDPOINT = "/sandbox/name"
