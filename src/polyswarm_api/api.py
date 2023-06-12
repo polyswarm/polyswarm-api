@@ -680,12 +680,12 @@ class PolyswarmAPI(object):
         logger.info('Checking the sandbox task for %s', sha256)
         return resources.SandboxTask.latest(self, sha256=sha256, sandbox=sandbox).result()
 
-    def sandbox_my_task_list(self, **kwargs):
+    def sandbox_my_tasks_list(self, **kwargs):
         """
         Check the latest status of a sandbox task.
         """
-        logger.info('Checking the latets tasks created by my account')
-        return resources.SandboxTask.mine(self, **kwargs).result()
+        logger.info('Checking the latest tasks created by my account')
+        return resources.SandboxTask.my_tasks(self, **kwargs).result()
 
     def sandbox_task_list(self, sha256, sandbox):
         """

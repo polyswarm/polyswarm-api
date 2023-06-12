@@ -1004,9 +1004,9 @@ class SandboxTask(core.BaseJsonResource):
         return core.PolyswarmRequest(api, parameters, result_parser=cls).execute()
 
     @classmethod
-    def mine(cls, api, **kwargs):
+    def my_tasks(cls, api, **kwargs):
         params, _ = cls._get_params(community=api.community, **kwargs)
-        url = cls._endpoint(api) + '/my'
+        url = cls._endpoint(api) + '/my-tasks'
         parameters = {'method': 'GET', 'url': url, 'params': params}
         return core.PolyswarmRequest(api, parameters, result_parser=cls).execute()
 
