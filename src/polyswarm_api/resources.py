@@ -990,6 +990,7 @@ class SandboxTask(core.BaseJsonResource):
         self.team_account_number = content['team_account_number']
         self.instance_id = content['instance_id']
         self.sha256 = content['sha256']
+        self.report = content['report']
         self.sandbox_artifacts = [SandboxArtifact(a, api=api) for a in content.get('sandbox_artifacts', [])]
 
     @classmethod
@@ -1017,7 +1018,7 @@ class SandboxArtifact(core.BaseJsonResource):
         self.created = content['created']
         self.id = content['id']
         self.instance_id = content['instance_id']
-        self.description = content['description']
+        self.name = content['name']
         self.mimetype = content['mimetype']
         self.extended_type = content['extended_type']
         self.type = content['type']
