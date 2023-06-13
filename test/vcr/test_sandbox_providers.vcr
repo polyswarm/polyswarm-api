@@ -1,0 +1,44 @@
+interactions:
+- request:
+    body: null
+    headers:
+      Accept:
+      - '*/*'
+      Accept-Encoding:
+      - gzip, deflate
+      Authorization:
+      - '11111111111111111111111111111111'
+      Connection:
+      - keep-alive
+      User-Agent:
+      - polyswarm-api/3.2.1 (x86_64-Linux-CPython-3.10.7)
+    method: GET
+    uri: http://localhost:9696/v3/sandbox/provider/list
+  response:
+    body:
+      string: '{"result":[{"id":1,"name":"cape","vms":[{"architecture":"x64","id":100,"language":"English
+        (United States)","name":"Microsoft Windows 10 Pro Build 19041","os_name":"Microsoft
+        Windows 10 Pro","os_version":"10.0.19041 Build 19041"}]},{"id":2,"name":"triage","vms":[{"Architecture":"x64","id":200,"language":"English
+        (United States)","name":"win10-20230328-en","os_name":"Windows 10 1703 x64","os_version":"10.0.15063
+        Build 15063"},{"api_level":30,"architecture":"x64","id":201,"language":"English
+        (United States)","name":"android11-x64-arm64-20230419-en","os_name":"Android
+        11 x64"}]}],"status":"OK"}
+
+        '
+    headers:
+      Connection:
+      - close
+      Content-Length:
+      - '599'
+      Content-Type:
+      - application/json
+      Date:
+      - Fri, 09 Jun 2023 19:58:22 GMT
+      Server:
+      - Werkzeug/2.3.3 Python/3.10.7
+      X-Billing-ID:
+      - '1'
+    status:
+      code: 200
+      message: OK
+version: 1

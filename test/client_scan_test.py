@@ -370,42 +370,41 @@ class ScanTestCaseV2(TestCase):
         assert known[0].json['type'] == "ip"
 
     @vcr.use_cassette()
-    def test_sandbox_list(self):
+    def test_sandbox_providers(self):
         v3api = PolyswarmAPI(self.test_api_key, uri='http://localhost:9696/v3', community='gamma')
-        response = v3api.sandbox_list()
-        assert response.json['result'][0] == "cape"
-        assert response.json['result'][1] == "triage"
+        response = v3api.sandbox_providers()
+        assert response.json['result'][0]['name'] == 'cape'
+        assert response.json['result'][1]['name'] == 'triage'
 
     @vcr.use_cassette()
-    def test_sandboxtask_get(self):
+    def test_sandboxtask_submit(self):
         v3api = PolyswarmAPI(self.test_api_key, uri='http://localhost:9696/v3', community='gamma')
-        tasks = v3api.sandbox("81610279097048460")
+        tasks = v3api.sandbox('86147028965243383')
         assert len(tasks) == 2
+        assert set(t.sandbox for t in tasks) == {'cape', 'triage'}
 
-        for task in tasks:
-            status = v3api.sandbox_task_status(task.id)
-            assert status.status == task.status
-            assert status.id == task.id
-            assert status.created == task.created
-        
+    @vcr.use_cassette()
+    def ytest_sandboxtask_get(self):
+        v3api = PolyswarmAPI(self.test_api_key, uri='http://localhost:9696/v3', community='gamma')
+        task_id = 37385694435473303
+        status = v3api.sandbox_task_status(task_id)
+        assert status.id == task_id
+        assert status.sandbox == 'triage'
+        assert status.sha256 == 'a709f37b3a50608f2e9830f92ea25da04bfa4f34d2efecfd061de9f29af02427'
+        assert status.created == 'gamma'
+
     @vcr.use_cassette()
     def test_sandboxtask_latest(self):
         v3api = PolyswarmAPI(self.test_api_key, uri='http://localhost:9696/v3', community='gamma')
 
-        # create some tasks, and then some "latest" tasks
-        v3api.sandbox("81610279097048460")
-        new_tasks = v3api.sandbox("81610279097048460")
+        sha256 = 'a709f37b3a50608f2e9830f92ea25da04bfa4f34d2efecfd061de9f29af02427'
+        latest_cape = v3api.sandbox_task_latest(sha256, 'cape')
+        latest_triage = v3api.sandbox_task_latest(sha256, 'triage')
 
-        latest_cape = v3api.sandbox_task_latest(new_tasks[0].sha256, 'cape_sandbox_v2')
-        latest_triage = v3api.sandbox_task_latest(new_tasks[0].sha256, 'triage_sandbox_v0')
-
-        for task in new_tasks:
-            if task.sandbox == 'cape_sandbox_v2':
-                assert task.id == latest_cape.id
-            elif task.sandbox == 'triage_sandbox_v0':
-                assert task.id == latest_triage.id
-            else:
-                assert False, f'unexpected sandbox: {task.sandbox}'
+        assert latest_cape.sha256 == sha256
+        assert latest_cape.sandbox == 'cape'
+        assert latest_triage.sha256 == sha256
+        assert latest_triage.sandbox == 'triage'
 
     @vcr.use_cassette()
     def test_sandboxtask_list(self):
