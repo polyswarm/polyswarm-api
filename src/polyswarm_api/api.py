@@ -708,13 +708,6 @@ class PolyswarmAPI(object):
         logger.info('Checking the sandbox tasks for %s', sha256)
         return resources.SandboxTask.list(self, sha256=sha256, sandbox=sandbox, **kwargs).result()
 
-    def sandbox_task_list(self, sha256, sandbox):
-        """
-        Check the list of a sandbox tasks.
-        """
-        logger.info('Checking the sandbox tasks for %s', sha256)
-        return resources.SandboxTaskList.list(self, sha256=sha256, sandbox=sandbox).result()
-
     def download_archive(self, out_dir, s3_path):
         """
         Grab the data in the s3 path provided in the stream() method, and write the contents
