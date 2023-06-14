@@ -655,6 +655,20 @@ class PolyswarmAPI(object):
 
         return artifact
 
+    def download_id(self, out_dir, instance_id):
+        """
+        Grab the data of artifact identified by hash, and write the data to a file in the provided directory
+        under a file named after the hash_.
+        :param out_dir: Destination directory to download the file.
+        :param instance_id: The instance id we should use to lookup the artifact to download.
+        :return: A LocalArtifact resource
+        """
+        logger.info('Downloading %s into %s', instance_id, out_dir)
+        artifact = resources.LocalArtifact.download_id(self, instance_id, folder=out_dir).result()
+        artifact.handle.close()
+
+        return artifact
+
     def sandbox(self, instance_id):
         logger.info('Sandboxing %s', instance_id)
         return resources.SandboxResult.create(self, artifact_id=instance_id).result()
