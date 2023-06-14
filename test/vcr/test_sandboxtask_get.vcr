@@ -1,6 +1,6 @@
 interactions:
 - request:
-    body: '{"artifact_id": "81610279097048460"}'
+    body: null
     headers:
       Accept:
       - '*/*'
@@ -10,92 +10,29 @@ interactions:
       - '11111111111111111111111111111111'
       Connection:
       - keep-alive
-      Content-Length:
-      - '36'
-      Content-Type:
-      - application/json
       User-Agent:
-      - polyswarm-api/3.2.0 (x86_64-Linux-CPython-3.9.10)
-    method: POST
-    uri: http://localhost:9696/v3/sandbox
+      - polyswarm-api/3.2.1 (x86_64-Linux-CPython-3.10.7)
+    method: GET
+    uri: http://localhost:9696/v3/sandbox/sandboxtask?sandbox_task_id=37385694435473303
   response:
     body:
-      string: '{"result":[{"account_number":1,"artifact_metadata_id":72699024074810860,"community":"gamma","created":"Tue,
-        02 May 2023 22:25:59 GMT","expiration":"Tue, 02 May 2023 22:25:59 GMT","id":19,"instance_id":1,"meta_community":"_public","sandbox":"cape_sandbox_v2","sandbox_artifacts":[],"sha256":"18e5b8fe65e8f73c3a4a637c258c02aeec8a6ab702b15b7ee73f5631a9879e40","status":0,"team_account_number":1},{"account_number":1,"artifact_metadata_id":40741756589327462,"community":"gamma","created":"Tue,
-        02 May 2023 22:25:59 GMT","expiration":"Tue, 02 May 2023 22:25:59 GMT","id":20,"instance_id":1,"meta_community":"_public","sandbox":"triage_sandbox_v0","sandbox_artifacts":[],"sha256":"18e5b8fe65e8f73c3a4a637c258c02aeec8a6ab702b15b7ee73f5631a9879e40","status":0,"team_account_number":1}],"status":"OK"}
+      string: '{"result":{"account_number":1,"community":"gamma","created":"Wed, 07
+        Jun 2023 19:07:39 GMT","expiration":"Wed, 07 Jun 2023 19:37:39 GMT","id":37385694435473303,"instance_id":86147028965243383,"meta_community":"_public","report":{"analysis":{"score":1},"extracted":null,"extracted_c2_ip_port":[],"extracted_c2_ips":[],"malware_family":[],"sample_id":"230609-tapvhsghad","targets":[{"md5":"ecbcbde87b9837f89600f8f14f6a4914","score":1,"sha1":"c2aa803de3ab0b05ce91b75ebb417a8036baf845","sha256":"a709f37b3a50608f2e9830f92ea25da04bfa4f34d2efecfd061de9f29af02427","sha512":"acd689f74db9b9fded23052d67005c804f4512cc2df1d5211363ab563ec3ca223afed18bddbd04349e1f832327a65bd25053d0cf5ab92534e96b1c88dad7467f","signatures":[],"size":29696,"ssdeep":"384:mRrObUH/O49wvPabV2CIbbMhXSEH8fYqmpli8GsXZHM6KHhowhjllWAwsuEJgc94:+SbUfOLabiQhClQqmpH7Xshowlagg3","target":"a709f37b3a50608f2e9830f92ea25da04bfa4f34d2efecfd061de9f29af02427","tasks":["behavioral1"]}],"ttp":[],"version":"0.2.3"},"sandbox":"triage","sandbox_artifacts":[{"created":"2023-06-07T19:09:43.421877","name":"","extended_type":null,"id":92549935562300926,"instance_id":3,"mimetype":null,"sandbox_task_id":2,"type":"raw_report"},{"created":"2023-06-07T19:09:43.555243","name":"","extended_type":null,"id":84919449055806305,"instance_id":4,"mimetype":null,"sandbox_task_id":2,"type":"report"},{"created":"2023-06-07T19:09:43.672912","name":"","extended_type":null,"id":90333644439215243,"instance_id":5,"mimetype":null,"sandbox_task_id":2,"type":"dropped_file"},{"created":"2023-06-07T19:09:43.791403","name":"","extended_type":null,"id":96642599789770037,"instance_id":6,"mimetype":null,"sandbox_task_id":2,"type":"dropped_file"}],"sha256":"a709f37b3a50608f2e9830f92ea25da04bfa4f34d2efecfd061de9f29af02427","status":"2","team_account_number":1, report: {}},"status":"OK"}
 
         '
     headers:
       Connection:
-      - Keep-Alive
+      - close
       Content-Length:
-      - '793'
+      - '1834'
       Content-Type:
       - application/json
+      Date:
+      - Fri, 09 Jun 2023 16:15:35 GMT
+      Server:
+      - Werkzeug/2.3.3 Python/3.10.7
       X-Billing-ID:
       - '1'
-    status:
-      code: 200
-      message: OK
-- request:
-    body: null
-    headers:
-      Accept:
-      - '*/*'
-      Accept-Encoding:
-      - gzip, deflate
-      Authorization:
-      - '11111111111111111111111111111111'
-      Connection:
-      - keep-alive
-      User-Agent:
-      - polyswarm-api/3.2.0 (x86_64-Linux-CPython-3.9.10)
-    method: GET
-    uri: http://localhost:9696/v3/sandboxtask?sandbox_task_id=19
-  response:
-    body:
-      string: '{"result":{"account_number":1,"artifact_metadata_id":72699024074810860,"community":"gamma","created":"Tue,
-        02 May 2023 22:25:59 GMT","expiration":"Tue, 02 May 2023 22:25:59 GMT","id":19,"instance_id":1,"meta_community":"_public","sandbox":"cape_sandbox_v2","sandbox_artifacts":[],"sha256":"18e5b8fe65e8f73c3a4a637c258c02aeec8a6ab702b15b7ee73f5631a9879e40","status":0,"team_account_number":1},"status":"OK"}
-
-        '
-    headers:
-      Connection:
-      - Keep-Alive
-      Content-Length:
-      - '407'
-      Content-Type:
-      - application/json
-    status:
-      code: 200
-      message: OK
-- request:
-    body: null
-    headers:
-      Accept:
-      - '*/*'
-      Accept-Encoding:
-      - gzip, deflate
-      Authorization:
-      - '11111111111111111111111111111111'
-      Connection:
-      - keep-alive
-      User-Agent:
-      - polyswarm-api/3.2.0 (x86_64-Linux-CPython-3.9.10)
-    method: GET
-    uri: http://localhost:9696/v3/sandboxtask?sandbox_task_id=20
-  response:
-    body:
-      string: '{"result":{"account_number":1,"artifact_metadata_id":72699024074810860,"community":"gamma","created":"Tue,
-        02 May 2023 22:25:59 GMT","expiration":"Tue, 02 May 2023 22:25:59 GMT","id":20,"instance_id":1,"meta_community":"_public","sandbox":"triage_sandbox_v0","sandbox_artifacts":[],"sha256":"18e5b8fe65e8f73c3a4a637c258c02aeec8a6ab702b15b7ee73f5631a9879e40","status":0,"team_account_number":1},"status":"OK"}
-
-        '
-    headers:
-      Connection:
-      - Keep-Alive
-      Content-Length:
-      - '407'
-      Content-Type:
-      - application/json
     status:
       code: 200
       message: OK

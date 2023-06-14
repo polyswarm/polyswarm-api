@@ -992,7 +992,7 @@ class Hash(core.Hashable):
 
 
 class SandboxTask(core.BaseJsonResource):
-    RESOURCE_ENDPOINT = "/sandboxtask"
+    RESOURCE_ENDPOINT = '/sandbox/sandboxtask'
 
     def __init__(self, content, api=None):
         super(SandboxTask, self).__init__(content, api=api)
@@ -1005,34 +1005,40 @@ class SandboxTask(core.BaseJsonResource):
         self.account_number = content['account_number']
         self.team_account_number = content['team_account_number']
         self.instance_id = content['instance_id']
-        self.artifact_metadata_id = content['artifact_metadata_id']
         self.sha256 = content['sha256']
+        self.report = content['report']
         self.sandbox_artifacts = [SandboxArtifact(a, api=api) for a in content.get('sandbox_artifacts', [])]
 
-class SandboxResult(SandboxTask):
-    RESOURCE_ENDPOINT = "/sandbox"
+    @classmethod
+    def get(cls, api, **kwargs):
+        return super().get(api, community=api.community, **kwargs)
 
-class SandboxTaskList(SandboxTask):
-    RESOURCE_ENDPOINT = "/sandboxtask/hash"
+    @classmethod
+    def latest(cls, api, **kwargs):
+        params, _ = cls._get_params(community=api.community, **kwargs)
+        url = cls._endpoint(api) + '/latest'
+        parameters = {'method': 'GET', 'url': url, 'params': params}
+        return core.PolyswarmRequest(api, parameters, result_parser=cls).execute()
 
-class SandboxTaskLatest(SandboxTask):
-    RESOURCE_ENDPOINT = "/sandboxtask/hash/latest"
+    @classmethod
+    def my_tasks(cls, api, **kwargs):
+        params, _ = cls._get_params(community=api.community, **kwargs)
+        url = cls._endpoint(api) + '/my-tasks'
+        parameters = {'method': 'GET', 'url': url, 'params': params}
+        return core.PolyswarmRequest(api, parameters, result_parser=cls).execute()
+
 
 class SandboxArtifact(core.BaseJsonResource):
-
     def __init__(self, content, api=None):
         super(SandboxArtifact, self).__init__(content, api=api)
         self.created = content['created']
         self.id = content['id']
         self.instance_id = content['instance_id']
-        self.description = content['description']
+        self.name = content['name']
         self.mimetype = content['mimetype']
         self.extended_type = content['extended_type']
         self.type = content['type']
 
-class SandboxName(core.BaseJsonResource):
-    RESOURCE_ENDPOINT = "/sandbox/name"
 
-    def __init__(self, content, api=None):
-        super(SandboxName, self).__init__(content, api=api)
-        self.name = content
+class SandboxProvider(core.BaseJsonResource):
+    RESOURCE_ENDPOINT = "/sandbox/provider"

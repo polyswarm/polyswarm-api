@@ -671,28 +671,42 @@ class PolyswarmAPI(object):
 
     def sandbox(self, instance_id):
         logger.info('Sandboxing %s', instance_id)
-        return resources.SandboxResult.create(self, artifact_id=instance_id).result()
+        return resources.SandboxTask.create(self, artifact_id=instance_id).result()
 
-    def sandbox_list(self):
+    def sandbox_providers(self):
         """
         List sandboxes available in polyswarm.
         """
         logger.info('Listing sandbox names')
-        return resources.SandboxName.list(self)
-    
+        return resources.SandboxProvider.list(self)
+
     def sandbox_task_status(self, sandbox_task_id):
         """
         Check the status of a sandbox task.
         """
         logger.info('Checking the status of sandbox task %s', sandbox_task_id)
         return resources.SandboxTask.get(self, sandbox_task_id=sandbox_task_id).result()
-    
+
     def sandbox_task_latest(self, sha256, sandbox):
         """
         Check the latest status of a sandbox task.
         """
         logger.info('Checking the sandbox task for %s', sha256)
-        return resources.SandboxTaskLatest.get(self, sha256=sha256, sandbox=sandbox).result()
+        return resources.SandboxTask.latest(self, sha256=sha256, sandbox=sandbox).result()
+
+    def sandbox_my_tasks_list(self, **kwargs):
+        """
+        Check the latest status of a sandbox task.
+        """
+        logger.info('Checking the latest tasks created by my account')
+        return resources.SandboxTask.my_tasks(self, **kwargs).result()
+
+    def sandbox_task_list(self, sha256, sandbox, **kwargs):
+        """
+        Check the list of a sandbox tasks.
+        """
+        logger.info('Checking the sandbox tasks for %s', sha256)
+        return resources.SandboxTask.list(self, sha256=sha256, sandbox=sandbox, **kwargs).result()
 
     def sandbox_task_list(self, sha256, sandbox):
         """
