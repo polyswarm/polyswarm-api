@@ -655,6 +655,20 @@ class PolyswarmAPI(object):
 
         return artifact
 
+    def download_id(self, out_dir, instance_id):
+        """
+        Grab the data of artifact identified by hash, and write the data to a file in the provided directory
+        under a file named after the hash_.
+        :param out_dir: Destination directory to download the file.
+        :param instance_id: The instance id we should use to lookup the artifact to download.
+        :return: A LocalArtifact resource
+        """
+        logger.info('Downloading %s into %s', instance_id, out_dir)
+        artifact = resources.LocalArtifact.download_id(self, instance_id, folder=out_dir).result()
+        artifact.handle.close()
+
+        return artifact
+
     def sandbox(self, instance_id):
         logger.info('Sandboxing %s', instance_id)
         return resources.SandboxTask.create(self, artifact_id=instance_id).result()
@@ -665,14 +679,14 @@ class PolyswarmAPI(object):
         """
         logger.info('Listing sandbox names')
         return resources.SandboxProvider.list(self)
-    
+
     def sandbox_task_status(self, sandbox_task_id):
         """
         Check the status of a sandbox task.
         """
         logger.info('Checking the status of sandbox task %s', sandbox_task_id)
         return resources.SandboxTask.get(self, sandbox_task_id=sandbox_task_id).result()
-    
+
     def sandbox_task_latest(self, sha256, sandbox):
         """
         Check the latest status of a sandbox task.
