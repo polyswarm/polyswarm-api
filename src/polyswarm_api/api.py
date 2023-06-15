@@ -669,9 +669,9 @@ class PolyswarmAPI(object):
 
         return artifact
 
-    def sandbox(self, instance_id):
-        logger.info('Sandboxing %s', instance_id)
-        return resources.SandboxTask.create(self, artifact_id=instance_id).result()
+    def sandbox(self, instance_id, sandbox):
+        logger.info('Sandboxing %s in %s', instance_id, sandbox)
+        return resources.SandboxTask.create(self, artifact_id=instance_id, sandbox=sandbox).result()
 
     def sandbox_providers(self):
         """
