@@ -730,12 +730,12 @@ class PolyswarmAPI(object):
         logger.info('Checking the latest tasks created by my account')
         return resources.SandboxTask.my_tasks(self, **kwargs).result()
 
-    def sandbox_task_list(self, sha256, sandbox, **kwargs):
+    def sandbox_task_list(self, sha256, **kwargs):
         """
         Check the list of a sandbox tasks.
         """
         logger.info('Checking the sandbox tasks for %s', sha256)
-        return resources.SandboxTask.list(self, sha256=sha256, sandbox=sandbox, **kwargs).result()
+        return resources.SandboxTask.list(self, sha256=sha256, **kwargs).result()
 
     def download_archive(self, out_dir, s3_path):
         """
