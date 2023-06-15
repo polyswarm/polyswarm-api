@@ -1,0 +1,74 @@
+interactions:
+- request:
+    body: null
+    headers:
+      Accept:
+      - '*/*'
+      Accept-Encoding:
+      - gzip, deflate
+      Authorization:
+      - '11111111111111111111111111111111'
+      Connection:
+      - keep-alive
+      User-Agent:
+      - polyswarm-api/3.3.2 (x86_64-Linux-CPython-3.10.7)
+    method: GET
+    uri: http://localhost:9696/v3/sandbox/sandboxtask/latest?community=gamma&sha256=a709f37b3a50608f2e9830f92ea25da04bfa4f34d2efecfd061de9f29af02427&sandbox=cape
+  response:
+    body:
+      string: '{"result":{"account_number":null,"community":"gamma","created":"2023-06-15T21:45:32.184762","expiration":"2023-06-15T22:15:32.186270","id":85108672518483213,"instance_id":97100845313623104,"report":{},"sandbox":"cape","sandbox_artifacts":[],"sha256":"a709f37b3a50608f2e9830f92ea25da04bfa4f34d2efecfd061de9f29af02427","status":"PENDING","team_account_number":null,"upload_url":null},"status":"OK"}
+
+        '
+    headers:
+      Connection:
+      - close
+      Content-Length:
+      - '397'
+      Content-Type:
+      - application/json
+      Date:
+      - Thu, 15 Jun 2023 21:48:10 GMT
+      Server:
+      - Werkzeug/2.3.3 Python/3.10.7
+      X-Billing-ID:
+      - '1'
+    status:
+      code: 200
+      message: OK
+- request:
+    body: null
+    headers:
+      Accept:
+      - '*/*'
+      Accept-Encoding:
+      - gzip, deflate
+      Authorization:
+      - '11111111111111111111111111111111'
+      Connection:
+      - keep-alive
+      User-Agent:
+      - polyswarm-api/3.3.2 (x86_64-Linux-CPython-3.10.7)
+    method: GET
+    uri: http://localhost:9696/v3/sandbox/sandboxtask/latest?community=gamma&sha256=a709f37b3a50608f2e9830f92ea25da04bfa4f34d2efecfd061de9f29af02427&sandbox=triage
+  response:
+    body:
+      string: '{"result":{"account_number":null,"community":"gamma","created":"2023-06-15T21:45:28.101404","expiration":"2023-06-15T22:15:28.103952","id":79194629748428026,"instance_id":29206071649051056,"report":{"analysis":{"score":1},"extracted":null,"extracted_c2_ip_port":[],"extracted_c2_ips":[],"malware_family":[],"sample_id":"230615-1l936aghce","targets":[{"md5":"ecbcbde87b9837f89600f8f14f6a4914","score":1,"sha1":"c2aa803de3ab0b05ce91b75ebb417a8036baf845","sha256":"a709f37b3a50608f2e9830f92ea25da04bfa4f34d2efecfd061de9f29af02427","sha512":"acd689f74db9b9fded23052d67005c804f4512cc2df1d5211363ab563ec3ca223afed18bddbd04349e1f832327a65bd25053d0cf5ab92534e96b1c88dad7467f","signatures":[],"size":29696,"ssdeep":"384:mRrObUH/O49wvPabV2CIbbMhXSEH8fYqmpli8GsXZHM6KHhowhjllWAwsuEJgc94:+SbUfOLabiQhClQqmpH7Xshowlagg3","target":"a709f37b3a50608f2e9830f92ea25da04bfa4f34d2efecfd061de9f29af02427","tasks":["behavioral1"]}],"ttp":[],"version":"0.2.3"},"sandbox":"triage","sandbox_artifacts":[{"created":"2023-06-15T21:47:32.002352","extended_type":"","id":21755372058606205,"instance_id":31497826053491540,"mimetype":"","name":"","sandbox_task_id":79194629748428026,"type":"raw_report"},{"created":"2023-06-15T21:47:32.122171","extended_type":"","id":12449312837755461,"instance_id":35484512444472164,"mimetype":"","name":"","sandbox_task_id":79194629748428026,"type":"report"},{"created":"2023-06-15T21:47:32.235794","extended_type":"","id":19341855132421787,"instance_id":7453203384960244,"mimetype":"","name":"","sandbox_task_id":79194629748428026,"type":"dropped_file"},{"created":"2023-06-15T21:47:32.342544","extended_type":"","id":44791142811316959,"instance_id":76628996374670532,"mimetype":"","name":"","sandbox_task_id":79194629748428026,"type":"dropped_file"}],"sha256":"a709f37b3a50608f2e9830f92ea25da04bfa4f34d2efecfd061de9f29af02427","status":"SUCCEEDED","team_account_number":null,"upload_url":null},"status":"OK"}
+
+        '
+    headers:
+      Connection:
+      - close
+      Content-Length:
+      - '1916'
+      Content-Type:
+      - application/json
+      Date:
+      - Thu, 15 Jun 2023 21:48:10 GMT
+      Server:
+      - Werkzeug/2.3.3 Python/3.10.7
+      X-Billing-ID:
+      - '1'
+    status:
+      code: 200
+      message: OK
+version: 1
