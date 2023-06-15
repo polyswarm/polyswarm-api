@@ -1007,6 +1007,7 @@ class SandboxTask(core.BaseJsonResource):
         self.instance_id = content['instance_id']
         self.sha256 = content['sha256']
         self.report = content['report']
+        self.upload_url = content['upload_url']
         self.sandbox_artifacts = [SandboxArtifact(a, api=api) for a in content.get('sandbox_artifacts', [])]
 
     @classmethod
