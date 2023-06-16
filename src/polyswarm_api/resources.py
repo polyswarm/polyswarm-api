@@ -1007,7 +1007,28 @@ class SandboxTask(core.BaseJsonResource):
         self.instance_id = content['instance_id']
         self.sha256 = content['sha256']
         self.report = content['report']
+        self.upload_url = content['upload_url']
         self.sandbox_artifacts = [SandboxArtifact(a, api=api) for a in content.get('sandbox_artifacts', [])]
+
+    def upload_file(self, artifact, attempts=3, **kwargs):
+        if not self.upload_url:
+            raise exceptions.InvalidValueException('upload_url must be set to upload a file')
+        if not artifact:
+            raise exceptions.InvalidValueException('A LocalArtifact must be provided in order to upload')
+        r = None
+        while attempts > 0 and not r:
+            attempts -= 1
+            artifact.seek(0, io.SEEK_END)
+            length = artifact.tell()
+            artifact.seek(0)
+            # https://github.com/psf/requests/issues/4215#issuecomment-319521235
+            # We have to manually handle the case when the file is empty
+            # in a way that requests won't set Transfer-Encoding: chunked
+            if not length:
+                artifact = ''
+            r = requests.put(self.upload_url, data=artifact, **kwargs)
+            r.raise_for_status()
+        return r
 
     @classmethod
     def get(cls, api, **kwargs):
@@ -1026,6 +1047,16 @@ class SandboxTask(core.BaseJsonResource):
         url = cls._endpoint(api) + '/my-tasks'
         parameters = {'method': 'GET', 'url': url, 'params': params}
         return core.PolyswarmRequest(api, parameters, result_parser=cls).execute()
+
+    @classmethod
+    def create_file(cls, api, **kwargs):
+        return cls._build_request(api, 'POST', cls._create_endpoint(api, **kwargs) + '/instance',
+                                  cls._create_headers(api), *cls._create_params(**kwargs)).execute()
+
+    @classmethod
+    def update_file(cls, api, **kwargs):
+        return cls._build_request(api, 'PUT', cls._update_endpoint(api, **kwargs) + '/instance',
+                                  cls._update_headers(api), *cls._update_params(**kwargs)).execute()
 
 
 class SandboxArtifact(core.BaseJsonResource):

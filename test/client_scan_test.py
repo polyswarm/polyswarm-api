@@ -379,9 +379,10 @@ class ScanTestCaseV2(TestCase):
     @vcr.use_cassette()
     def test_sandboxtask_submit(self):
         v3api = PolyswarmAPI(self.test_api_key, uri='http://localhost:9696/v3', community='gamma')
-        tasks = v3api.sandbox('86147028965243383')
-        assert len(tasks) == 2
-        assert set(t.sandbox for t in tasks) == {'cape', 'triage'}
+        task = v3api.sandbox('86147028965243383', 'cape')
+        assert task.sandbox == 'cape'
+        task = v3api.sandbox('86147028965243383', 'triage')
+        assert task.sandbox == 'triage'
 
     @vcr.use_cassette()
     def ytest_sandboxtask_get(self):
@@ -410,11 +411,17 @@ class ScanTestCaseV2(TestCase):
     def test_sandboxtask_list(self):
         v3api = PolyswarmAPI(self.test_api_key, uri='http://localhost:9696/v3', community='gamma')
 
-        tasks = v3api.sandbox("81610279097048460")
-        cape_tasks = list(v3api.sandbox_task_list(tasks[0].sha256, 'cape_sandbox_v2'))
-        triage_tasks = list(v3api.sandbox_task_list(tasks[0].sha256, 'triage_sandbox_v0'))
+        cape_tasks = list(v3api.sandbox_task_list('a709f37b3a50608f2e9830f92ea25da04bfa4f34d2efecfd061de9f29af02427',
+                                                  sandbox='cape'))
+        triage_tasks = list(v3api.sandbox_task_list('a709f37b3a50608f2e9830f92ea25da04bfa4f34d2efecfd061de9f29af02427',
+                                                    sandbox='triage'))
 
         assert len(cape_tasks) == 1
-        assert cape_tasks[0].sandbox == 'cape_sandbox_v2'
+        assert cape_tasks[0].sandbox == 'cape'
         assert len(triage_tasks) == 1
-        assert triage_tasks[0].sandbox == 'triage_sandbox_v0'
+        assert triage_tasks[0].sandbox == 'triage'
+
+        tasks = list(v3api.sandbox_task_list('a709f37b3a50608f2e9830f92ea25da04bfa4f34d2efecfd061de9f29af02427'))
+
+        assert len(tasks) == 2
+        assert set(t.sandbox for t in tasks) == {'cape', 'triage'}

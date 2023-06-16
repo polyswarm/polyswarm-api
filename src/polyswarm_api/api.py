@@ -669,9 +669,38 @@ class PolyswarmAPI(object):
 
         return artifact
 
-    def sandbox(self, instance_id):
-        logger.info('Sandboxing %s', instance_id)
-        return resources.SandboxTask.create(self, artifact_id=instance_id).result()
+    def sandbox(self, instance_id, sandbox):
+        logger.info('Sandboxing %s in %s', instance_id, sandbox)
+        return resources.SandboxTask.create(self, artifact_id=instance_id, sandbox=sandbox).result()
+
+    def sandbox_file(self, artifact, sandbox, artifact_type=resources.ArtifactType.FILE, artifact_name=None):
+        logger.info('Sandboxing file in %s', sandbox)
+        artifact_type = resources.ArtifactType.parse(artifact_type)
+        # TODO This is a python 2.7 check if artifact is a file-like instance, consider changing
+        #  to isinstance(artifact, io.IOBase) when deprecating 2.7 and implementing making LocalHandle
+        #  inherit io.IOBase, although this will change the method delegation logic in the resource
+        if hasattr(artifact, 'read') and hasattr(artifact.read, '__call__'):
+            artifact = resources.LocalArtifact.from_handle(self, artifact, artifact_name=artifact_name or '',
+                                                           artifact_type=artifact_type)
+        elif isinstance(artifact, string_types):
+            if artifact_type == resources.ArtifactType.FILE:
+                artifact = resources.LocalArtifact.from_path(self, artifact, artifact_type=artifact_type,
+                                                             artifact_name=artifact_name)
+            elif artifact_type == resources.ArtifactType.URL:
+                artifact = resources.LocalArtifact.from_content(self, artifact,
+                                                                artifact_name=artifact_name or artifact,
+                                                                artifact_type=artifact_type)
+        if isinstance(artifact, resources.LocalArtifact):
+            task = resources.SandboxTask.create_file(self,
+                                                     artifact_name=artifact.artifact_name,
+                                                     artifact_type=artifact.artifact_type.name,
+                                                     community=self.community,
+                                                     sandbox=sandbox).result()
+            task.upload_file(artifact)
+            return resources.SandboxTask.update_file(self, id=task.id).result()
+        else:
+            raise exceptions.InvalidValueException(
+                'Artifacts should be a path to a file or a LocalArtifact instance')
 
     def sandbox_providers(self):
         """
@@ -701,12 +730,12 @@ class PolyswarmAPI(object):
         logger.info('Checking the latest tasks created by my account')
         return resources.SandboxTask.my_tasks(self, **kwargs).result()
 
-    def sandbox_task_list(self, sha256, sandbox, **kwargs):
+    def sandbox_task_list(self, sha256, **kwargs):
         """
         Check the list of a sandbox tasks.
         """
         logger.info('Checking the sandbox tasks for %s', sha256)
-        return resources.SandboxTask.list(self, sha256=sha256, sandbox=sandbox, **kwargs).result()
+        return resources.SandboxTask.list(self, sha256=sha256, **kwargs).result()
 
     def download_archive(self, out_dir, s3_path):
         """
