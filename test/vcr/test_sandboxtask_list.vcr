@@ -1,7 +1,6 @@
 interactions:
 - request:
-    body: !!binary |
-      eyJhcnRpZmFjdF9pZCI6ICI4MTYxMDI3OTA5NzA0ODQ2MCJ9
+    body: null
     headers:
       Accept:
       - '*/*'
@@ -11,28 +10,26 @@ interactions:
       - '11111111111111111111111111111111'
       Connection:
       - keep-alive
-      Content-Length:
-      - '36'
-      Content-Type:
-      - application/json
       User-Agent:
-      - polyswarm-api/3.2.0 (x86_64-Linux-CPython-3.9.10)
-    method: POST
-    uri: http://localhost:9696/v3/sandbox
+      - polyswarm-api/3.3.2 (x86_64-Linux-CPython-3.10.7)
+    method: GET
+    uri: http://localhost:9696/v3/sandbox/sandboxtask/list?sha256=a709f37b3a50608f2e9830f92ea25da04bfa4f34d2efecfd061de9f29af02427&sandbox=cape
   response:
     body:
-      string: '{"result":[{"account_number":1,"artifact_metadata_id":72699024074810860,"community":"gamma","created":"Tue,
-        02 May 2023 23:10:40 GMT","expiration":"Tue, 02 May 2023 23:10:40 GMT","id":97,"instance_id":1,"meta_community":"_public","sandbox":"cape_sandbox_v2","sandbox_artifacts":[],"sha256":"18e5b8fe65e8f73c3a4a637c258c02aeec8a6ab702b15b7ee73f5631a9879e40","status":0,"team_account_number":1},{"account_number":1,"artifact_metadata_id":40741756589327462,"community":"gamma","created":"Tue,
-        02 May 2023 23:10:40 GMT","expiration":"Tue, 02 May 2023 23:10:40 GMT","id":98,"instance_id":1,"meta_community":"_public","sandbox":"triage_sandbox_v0","sandbox_artifacts":[],"sha256":"18e5b8fe65e8f73c3a4a637c258c02aeec8a6ab702b15b7ee73f5631a9879e40","status":0,"team_account_number":1}],"status":"OK"}
+      string: '{"has_more":false,"limit":2,"result":[{"account_number":null,"community":"gamma","created":"2023-06-15T21:48:10.888312","expiration":"2023-06-15T22:18:10.912402","id":18386687899234139,"instance_id":86147028965243383,"report":{},"sandbox":"cape","sandbox_artifacts":[],"sha256":"a709f37b3a50608f2e9830f92ea25da04bfa4f34d2efecfd061de9f29af02427","status":"PENDING","team_account_number":null,"upload_url":null}],"status":"OK"}
 
         '
     headers:
       Connection:
-      - Keep-Alive
+      - close
       Content-Length:
-      - '793'
+      - '426'
       Content-Type:
       - application/json
+      Date:
+      - Thu, 15 Jun 2023 21:55:36 GMT
+      Server:
+      - Werkzeug/2.3.3 Python/3.10.7
       X-Billing-ID:
       - '1'
     status:
@@ -50,22 +47,25 @@ interactions:
       Connection:
       - keep-alive
       User-Agent:
-      - polyswarm-api/3.2.0 (x86_64-Linux-CPython-3.9.10)
+      - polyswarm-api/3.3.2 (x86_64-Linux-CPython-3.10.7)
     method: GET
-    uri: http://localhost:9696/v3/sandboxtask/hash/list?sha256=18e5b8fe65e8f73c3a4a637c258c02aeec8a6ab702b15b7ee73f5631a9879e40&sandbox=cape_sandbox_v2
+    uri: http://localhost:9696/v3/sandbox/sandboxtask/list?sha256=a709f37b3a50608f2e9830f92ea25da04bfa4f34d2efecfd061de9f29af02427&sandbox=triage
   response:
     body:
-      string: '{"has_more":false,"limit":50,"result":[{"account_number":1,"artifact_metadata_id":72699024074810860,"community":"gamma","created":"Tue,
-        02 May 2023 23:10:40 GMT","expiration":"Tue, 02 May 2023 23:10:40 GMT","id":97,"instance_id":1,"meta_community":"_public","sandbox":"cape_sandbox_v2","sandbox_artifacts":[],"sha256":"18e5b8fe65e8f73c3a4a637c258c02aeec8a6ab702b15b7ee73f5631a9879e40","status":0,"team_account_number":1}],"status":"OK"}
+      string: '{"has_more":false,"limit":2,"result":[{"account_number":null,"community":"gamma","created":"2023-06-15T21:48:11.039633","expiration":"2023-06-15T22:18:11.058878","id":24074805227357027,"instance_id":86147028965243383,"report":{},"sandbox":"triage","sandbox_artifacts":[],"sha256":"a709f37b3a50608f2e9830f92ea25da04bfa4f34d2efecfd061de9f29af02427","status":"SUCCEEDED","team_account_number":null,"upload_url":null}],"status":"OK"}
 
         '
     headers:
       Connection:
-      - Keep-Alive
+      - close
       Content-Length:
-      - '437'
+      - '430'
       Content-Type:
       - application/json
+      Date:
+      - Thu, 15 Jun 2023 21:55:36 GMT
+      Server:
+      - Werkzeug/2.3.3 Python/3.10.7
       X-Billing-ID:
       - '1'
     status:
@@ -83,22 +83,25 @@ interactions:
       Connection:
       - keep-alive
       User-Agent:
-      - polyswarm-api/3.2.0 (x86_64-Linux-CPython-3.9.10)
+      - polyswarm-api/3.3.2 (x86_64-Linux-CPython-3.10.7)
     method: GET
-    uri: http://localhost:9696/v3/sandboxtask/hash/list?sha256=18e5b8fe65e8f73c3a4a637c258c02aeec8a6ab702b15b7ee73f5631a9879e40&sandbox=triage_sandbox_v0
+    uri: http://localhost:9696/v3/sandbox/sandboxtask/list?sha256=a709f37b3a50608f2e9830f92ea25da04bfa4f34d2efecfd061de9f29af02427
   response:
     body:
-      string: '{"has_more":false,"limit":50,"result":[{"account_number":1,"artifact_metadata_id":40741756589327462,"community":"gamma","created":"Tue,
-        02 May 2023 23:10:40 GMT","expiration":"Tue, 02 May 2023 23:10:40 GMT","id":98,"instance_id":1,"meta_community":"_public","sandbox":"triage_sandbox_v0","sandbox_artifacts":[],"sha256":"18e5b8fe65e8f73c3a4a637c258c02aeec8a6ab702b15b7ee73f5631a9879e40","status":0,"team_account_number":1}],"status":"OK"}
+      string: '{"has_more":false,"limit":2,"result":[{"account_number":null,"community":"gamma","created":"2023-06-15T21:48:11.039633","expiration":"2023-06-15T22:18:11.058878","id":24074805227357027,"instance_id":86147028965243383,"report":{},"sandbox":"triage","sandbox_artifacts":[],"sha256":"a709f37b3a50608f2e9830f92ea25da04bfa4f34d2efecfd061de9f29af02427","status":"SUCCEEDED","team_account_number":null,"upload_url":null},{"account_number":null,"community":"gamma","created":"2023-06-15T21:48:10.888312","expiration":"2023-06-15T22:18:10.912402","id":18386687899234139,"instance_id":86147028965243383,"report":{},"sandbox":"cape","sandbox_artifacts":[],"sha256":"a709f37b3a50608f2e9830f92ea25da04bfa4f34d2efecfd061de9f29af02427","status":"PENDING","team_account_number":null,"upload_url":null}],"status":"OK"}
 
         '
     headers:
       Connection:
-      - Keep-Alive
+      - close
       Content-Length:
-      - '439'
+      - '802'
       Content-Type:
       - application/json
+      Date:
+      - Thu, 15 Jun 2023 21:55:36 GMT
+      Server:
+      - Werkzeug/2.3.3 Python/3.10.7
       X-Billing-ID:
       - '1'
     status:

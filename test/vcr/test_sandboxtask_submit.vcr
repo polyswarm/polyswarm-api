@@ -1,0 +1,82 @@
+interactions:
+- request:
+    body: '{"artifact_id": "86147028965243383", "sandbox": "cape"}'
+    headers:
+      Accept:
+      - '*/*'
+      Accept-Encoding:
+      - gzip, deflate
+      Authorization:
+      - '11111111111111111111111111111111'
+      Connection:
+      - keep-alive
+      Content-Length:
+      - '55'
+      Content-Type:
+      - application/json
+      User-Agent:
+      - polyswarm-api/3.3.2 (x86_64-Linux-CPython-3.10.7)
+    method: POST
+    uri: http://localhost:9696/v3/sandbox/sandboxtask
+  response:
+    body:
+      string: '{"result":{"account_number":null,"community":"gamma","created":"2023-06-15T21:48:10.888312","expiration":"2023-06-15T22:18:10.912402","id":18386687899234139,"instance_id":86147028965243383,"report":{},"sandbox":"cape","sandbox_artifacts":[],"sha256":"a709f37b3a50608f2e9830f92ea25da04bfa4f34d2efecfd061de9f29af02427","status":"PENDING","team_account_number":null,"upload_url":null},"status":"OK"}
+
+        '
+    headers:
+      Connection:
+      - close
+      Content-Length:
+      - '397'
+      Content-Type:
+      - application/json
+      Date:
+      - Thu, 15 Jun 2023 21:48:11 GMT
+      Server:
+      - Werkzeug/2.3.3 Python/3.10.7
+      X-Billing-ID:
+      - '1'
+    status:
+      code: 200
+      message: OK
+- request:
+    body: '{"artifact_id": "86147028965243383", "sandbox": "triage"}'
+    headers:
+      Accept:
+      - '*/*'
+      Accept-Encoding:
+      - gzip, deflate
+      Authorization:
+      - '11111111111111111111111111111111'
+      Connection:
+      - keep-alive
+      Content-Length:
+      - '57'
+      Content-Type:
+      - application/json
+      User-Agent:
+      - polyswarm-api/3.3.2 (x86_64-Linux-CPython-3.10.7)
+    method: POST
+    uri: http://localhost:9696/v3/sandbox/sandboxtask
+  response:
+    body:
+      string: '{"result":{"account_number":null,"community":"gamma","created":"2023-06-15T21:48:11.039633","expiration":"2023-06-15T22:18:11.058878","id":24074805227357027,"instance_id":86147028965243383,"report":{},"sandbox":"triage","sandbox_artifacts":[],"sha256":"a709f37b3a50608f2e9830f92ea25da04bfa4f34d2efecfd061de9f29af02427","status":"PENDING","team_account_number":null,"upload_url":null},"status":"OK"}
+
+        '
+    headers:
+      Connection:
+      - close
+      Content-Length:
+      - '399'
+      Content-Type:
+      - application/json
+      Date:
+      - Thu, 15 Jun 2023 21:48:11 GMT
+      Server:
+      - Werkzeug/2.3.3 Python/3.10.7
+      X-Billing-ID:
+      - '1'
+    status:
+      code: 200
+      message: OK
+version: 1
