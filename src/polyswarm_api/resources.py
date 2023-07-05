@@ -1073,3 +1073,15 @@ class SandboxArtifact(core.BaseJsonResource):
 
 class SandboxProvider(core.BaseJsonResource):
     RESOURCE_ENDPOINT = "/sandbox/provider"
+
+    def __init__(self, content, api=None):
+        super(SandboxProvider, self).__init__(content, api=api)
+        self.slug = content['slug']
+        self.name = content['name']
+        self.tool = content['tool']
+        self.vms = content['vms']
+
+    @classmethod
+    def parse_result(cls, api, content, **kwargs):
+        logger.debug('Parsing resource %s', cls.__name__)
+        return [super(SandboxProvider, cls).parse_result(api, content[slug], **kwargs) for slug in content.keys()]
