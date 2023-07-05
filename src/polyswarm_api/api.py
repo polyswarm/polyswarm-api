@@ -674,7 +674,7 @@ class PolyswarmAPI(object):
         return resources.SandboxTask.create(self, artifact_id=instance_id, provider_slug=provider_slug, vm_slug=vm_slug).result()
 
     def sandbox_file(self, artifact, provider_slug, vm_slug, artifact_type=resources.ArtifactType.FILE, artifact_name=None):
-        logger.info('Sandboxing fil in provider %s vm %s', provider_slug, vm_slug)
+        logger.info('Sandboxing file in provider %s vm %s', provider_slug, vm_slug)
         artifact_type = resources.ArtifactType.parse(artifact_type)
         # TODO This is a python 2.7 check if artifact is a file-like instance, consider changing
         #  to isinstance(artifact, io.IOBase) when deprecating 2.7 and implementing making LocalHandle
