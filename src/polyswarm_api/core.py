@@ -80,7 +80,7 @@ class PolyswarmRequest(object):
         self.api_instance = api_instance
         # we should not access the api_instance session directly, but provide as a
         # parameter in the constructor, but this will do for the moment
-        self.session = self.api_instance.session or PolyswarmSession(key, retries=settings.DEFAULT_RETRIES)
+        # self.session = self.api_instance.session or PolyswarmSession(key, retries=settings.DEFAULT_RETRIES)
         self.timeout = self.api_instance.timeout or settings.DEFAULT_HTTP_TIMEOUT
         self.request_parameters = request_parameters
         self.result_parser = result_parser
@@ -111,7 +111,8 @@ class PolyswarmRequest(object):
         self.request_parameters.setdefault('timeout', self.timeout)
         if self.result_parser and not issubclass(self.result_parser, BaseJsonResource):
             self.request_parameters.setdefault('stream', True)
-        self.raw_result = self.session.request(**self.request_parameters)
+        with self.api_instance.get_session() as session:
+            self.raw_result = session.request(**self.request_parameters)
         logger.debug('Request returned code %s', self.raw_result.status_code)
         self.parse_result(self.raw_result)
         return self

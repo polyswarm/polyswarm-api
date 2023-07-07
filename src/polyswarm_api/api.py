@@ -32,8 +32,13 @@ class PolyswarmAPI(object):
         self.uri = uri or settings.DEFAULT_GLOBAL_API
         self.community = community or settings.DEFAULT_COMMUNITY
         self.timeout = timeout or settings.DEFAULT_HTTP_TIMEOUT
-        self.session = polyswarm_api.core.PolyswarmSession(key, retries=settings.DEFAULT_RETRIES, verify=verify, **kwargs)
+        self.session = polyswarm_api.core.PolyswarmSession
         self._engines = None
+        self.key = key
+        self.verify = verify
+
+    def get_session(self):
+        return polyswarm_api.core.PolyswarmSession(self.key, retries=settings.DEFAULT_RETRIES, verify=self.verify)
 
     @property
     def engines(self):
