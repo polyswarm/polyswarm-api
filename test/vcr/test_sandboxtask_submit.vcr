@@ -1,6 +1,7 @@
 interactions:
 - request:
-    body: '{"artifact_id": "86147028965243383", "sandbox": "cape"}'
+    body: '{"artifact_id": "59710030898207379", "provider_slug": "cape", "vm_slug":
+      "win-10-build-19041"}'
     headers:
       Accept:
       - '*/*'
@@ -11,36 +12,35 @@ interactions:
       Connection:
       - keep-alive
       Content-Length:
-      - '55'
+      - '94'
       Content-Type:
       - application/json
       User-Agent:
-      - polyswarm-api/3.3.2 (x86_64-Linux-CPython-3.10.7)
+      - polyswarm-api/3.4.0 (x86_64-Linux-CPython-3.9.10)
     method: POST
     uri: http://localhost:9696/v3/sandbox/sandboxtask
   response:
     body:
-      string: '{"result":{"account_number":null,"community":"gamma","created":"2023-06-15T21:48:10.888312","expiration":"2023-06-15T22:18:10.912402","id":18386687899234139,"instance_id":86147028965243383,"report":{},"sandbox":"cape","sandbox_artifacts":[],"sha256":"a709f37b3a50608f2e9830f92ea25da04bfa4f34d2efecfd061de9f29af02427","status":"PENDING","team_account_number":null,"upload_url":null},"status":"OK"}
+      string: '{"result":{"account_number":null,"community":"gamma","config":{"provider":{"id":"1","name":"cape","slug":"cape","tool":"cape_sandbox_v2"},"vm":{"architecture":"x64","id":"100","language":"English
+        (United States)","name":"Microsoft Windows 10 Pro Build 19041","os_name":"Microsoft
+        Windows 10 Pro","os_version":"10.0.19041 Build 19041","slug":"win-10-build-19041"}},"created":"2023-07-05T22:22:38.173016","expiration":"2023-07-05T22:52:38.187979","id":"83802549696402524","instance_id":"59710030898207379","report":{},"sandbox":"cape","sandbox_artifacts":[],"sha256":"18e5b8fe65e8f73c3a4a637c258c02aeec8a6ab702b15b7ee73f5631a9879e40","status":"PENDING","team_account_number":null,"upload_url":null},"status":"OK"}
 
         '
     headers:
       Connection:
-      - close
+      - Keep-Alive
       Content-Length:
-      - '397'
+      - '712'
       Content-Type:
       - application/json
-      Date:
-      - Thu, 15 Jun 2023 21:48:11 GMT
-      Server:
-      - Werkzeug/2.3.3 Python/3.10.7
       X-Billing-ID:
       - '1'
     status:
       code: 200
       message: OK
 - request:
-    body: '{"artifact_id": "86147028965243383", "sandbox": "triage"}'
+    body: '{"artifact_id": "59710030898207379", "provider_slug": "triage", "vm_slug":
+      "win-10-build-19041"}'
     headers:
       Accept:
       - '*/*'
@@ -51,29 +51,27 @@ interactions:
       Connection:
       - keep-alive
       Content-Length:
-      - '57'
+      - '94'
       Content-Type:
       - application/json
       User-Agent:
-      - polyswarm-api/3.3.2 (x86_64-Linux-CPython-3.10.7)
+      - polyswarm-api/3.4.0 (x86_64-Linux-CPython-3.9.10)
     method: POST
     uri: http://localhost:9696/v3/sandbox/sandboxtask
   response:
     body:
-      string: '{"result":{"account_number":null,"community":"gamma","created":"2023-06-15T21:48:11.039633","expiration":"2023-06-15T22:18:11.058878","id":24074805227357027,"instance_id":86147028965243383,"report":{},"sandbox":"triage","sandbox_artifacts":[],"sha256":"a709f37b3a50608f2e9830f92ea25da04bfa4f34d2efecfd061de9f29af02427","status":"PENDING","team_account_number":null,"upload_url":null},"status":"OK"}
+      string: '{"result":{"account_number":null,"community":"gamma","config":{"provider":{"id":"1","name":"triage","slug":"triage","tool":"triage_sandbox_v2"},"vm":{"architecture":"x64","id":"100","language":"English
+        (United States)","name":"Microsoft Windows 10 Pro Build 19041","os_name":"Microsoft
+        Windows 10 Pro","os_version":"10.0.19041 Build 19041","slug":"win-10-build-19041"}},"created":"2023-07-05T22:22:38.173016","expiration":"2023-07-05T22:52:38.187979","id":"83802549696402524","instance_id":"59710030898207379","report":{},"sandbox":"triage","sandbox_artifacts":[],"sha256":"18e5b8fe65e8f73c3a4a637c258c02aeec8a6ab702b15b7ee73f5631a9879e40","status":"PENDING","team_account_number":null,"upload_url":null},"status":"OK"}
 
         '
     headers:
       Connection:
-      - close
+      - Keep-Alive
       Content-Length:
-      - '399'
+      - '712'
       Content-Type:
       - application/json
-      Date:
-      - Thu, 15 Jun 2023 21:48:11 GMT
-      Server:
-      - Werkzeug/2.3.3 Python/3.10.7
       X-Billing-ID:
       - '1'
     status:

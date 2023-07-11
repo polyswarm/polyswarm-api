@@ -373,15 +373,15 @@ class ScanTestCaseV2(TestCase):
     def test_sandbox_providers(self):
         v3api = PolyswarmAPI(self.test_api_key, uri='http://localhost:9696/v3', community='gamma')
         response = v3api.sandbox_providers()
-        assert response.json['result'][0]['name'] == 'cape'
-        assert response.json['result'][1]['name'] == 'triage'
+        assert response.json['result']['cape']['slug'] == 'cape'
+        assert response.json['result']['triage']['slug'] == 'triage'
 
     @vcr.use_cassette()
     def test_sandboxtask_submit(self):
         v3api = PolyswarmAPI(self.test_api_key, uri='http://localhost:9696/v3', community='gamma')
-        task = v3api.sandbox('86147028965243383', 'cape')
+        task = v3api.sandbox('59710030898207379', 'cape', 'win-10-build-19041')
         assert task.sandbox == 'cape'
-        task = v3api.sandbox('86147028965243383', 'triage')
+        task = v3api.sandbox('59710030898207379', 'triage', 'win10-build-15063')
         assert task.sandbox == 'triage'
 
     @vcr.use_cassette()
