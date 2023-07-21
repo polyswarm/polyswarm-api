@@ -129,7 +129,7 @@ interactions:
       User-Agent:
       - polyswarm-api/3.0.0 (x86_64-Linux-CPython-3.6.5)
     method: GET
-    uri: http://localhost:9696/v3/hunt/rule/list
+    uri: http://localhost:9696/v3/hunt/rule/list&community=gamma
   response:
     body:
       string: '{"has_more":false,"limit":2,"result":[{"created":"2022-05-26T17:47:41.088384","deleted":false,"description":null,"id":"43550704121666472","livescan_created":null,"livescan_id":null,"modified":"2022-05-26T17:47:41.088384","name":"test","yara":null}],"status":"OK"}
@@ -163,7 +163,7 @@ interactions:
       User-Agent:
       - polyswarm-api/3.0.0 (x86_64-Linux-CPython-3.6.5)
     method: GET
-    uri: http://localhost:9696/v3/hunt/rule?id=43550704121666472
+    uri: http://localhost:9696/v3/hunt/rule?id=43550704121666472&community=gamma
   response:
     body:
       string: '<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 3.2 Final//EN">
@@ -433,7 +433,41 @@ interactions:
       User-Agent:
       - polyswarm-api/3.0.0 (x86_64-Linux-CPython-3.6.5)
     method: GET
-    uri: http://localhost:9696/v3/hunt/rule/list
+    uri: http://localhost:9696/v3/hunt/rule/list?community=gamma
+  response:
+    body:
+      string: '{"has_more":false,"limit":2,"result":[{"created":"2022-05-26T17:47:41.088384","deleted":false,"description":null,"id":"43550704121666472","livescan_created":null,"livescan_id":null,"modified":"2022-05-26T17:47:41.088384","name":"test","yara":null}],"status":"OK"}
+
+        '
+    headers:
+      Content-Length:
+      - '264'
+      Content-Type:
+      - application/json
+      Date:
+      - Thu, 26 May 2022 17:47:41 GMT
+      Server:
+      - Werkzeug/1.0.1 Python/3.9.6
+      X-Billing-ID:
+      - '1'
+    status:
+      code: 200
+      message: OK
+- request:
+    body: null
+    headers:
+      Accept:
+      - '*/*'
+      Accept-Encoding:
+      - gzip, deflate
+      Authorization:
+      - '11111111111111111111111111111111'
+      Connection:
+      - keep-alive
+      User-Agent:
+      - polyswarm-api/3.0.0 (x86_64-Linux-CPython-3.6.5)
+    method: GET
+    uri: http://localhost:9696/v3/hunt/rule/list?community=gamma
   response:
     body:
       string: ''
@@ -447,4 +481,3 @@ interactions:
     status:
       code: 204
       message: NO CONTENT
-version: 1

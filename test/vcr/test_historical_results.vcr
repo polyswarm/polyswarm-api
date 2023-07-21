@@ -13,7 +13,7 @@ interactions:
       User-Agent:
       - polyswarm-api/3.0.0 (x86_64-Linux-CPython-3.6.5)
     method: GET
-    uri: http://localhost:9696/v3/hunt/historical/results/list?id=48011760326110718
+    uri: http://localhost:9696/v3/hunt/historical/results/list?id=48011760326110718&community=gamma
   response:
     body:
       string: '{"has_more":true,"limit":2,"offset":"gAAAAABij8HwlCFmtao0yyxyUpxsGLv2nSA8XQKKVAxRHD86_otP1bKbg3Y533rsSqHOvElBszoQoxx_I-nnML1qzi4VX2TPen8GhZuCHMOsqS8kvZGC8ijJHFj6VWu7ij3akZE8E93x","result":[{"created":"2022-05-26T17:54:56.489448","detections":{"benign":0,"malicious":1,"total":1},"download_url":null,"historicalscan_id":"48011760326110718","id":"34417123788028549","instance_id":"72401552809848506","malware_family":null,"polyscore":0.23213458159978606,"rule_name":"eicar_substring_test","sha256":"275a021bbfb6489e54d471899f7db9d1663fc695ec2fe2a2c4538aabf651fd0f","tags":"{}","yara":null},{"created":"2022-05-26T17:54:56.489448","detections":{"benign":0,"malicious":1,"total":1},"download_url":null,"historicalscan_id":"48011760326110718","id":"89734617019442134","instance_id":"72401552809848506","malware_family":null,"polyscore":0.23213458159978606,"rule_name":"eicar_av_test","sha256":"275a021bbfb6489e54d471899f7db9d1663fc695ec2fe2a2c4538aabf651fd0f","tags":"{}","yara":null}],"status":"OK"}
@@ -47,7 +47,7 @@ interactions:
       User-Agent:
       - polyswarm-api/3.0.0 (x86_64-Linux-CPython-3.6.5)
     method: GET
-    uri: http://localhost:9696/v3/hunt/historical/results/list?id=48011760326110718&offset=gAAAAABij8HwlCFmtao0yyxyUpxsGLv2nSA8XQKKVAxRHD86_otP1bKbg3Y533rsSqHOvElBszoQoxx_I-nnML1qzi4VX2TPen8GhZuCHMOsqS8kvZGC8ijJHFj6VWu7ij3akZE8E93x&limit=2
+    uri: http://localhost:9696/v3/hunt/historical/results/list?id=48011760326110718&offset=gAAAAABij8HwlCFmtao0yyxyUpxsGLv2nSA8XQKKVAxRHD86_otP1bKbg3Y533rsSqHOvElBszoQoxx_I-nnML1qzi4VX2TPen8GhZuCHMOsqS8kvZGC8ijJHFj6VWu7ij3akZE8E93x&limit=2&community=gamma
   response:
     body:
       string: '{"has_more":true,"limit":2,"offset":"gAAAAABij8H19hi9hK51M32I9_zvnUV7COL9EBCYuG0E0qkJOePErxpSCwhbgiABYKY8ELdmycVtXbJ56Ku-Fo8u7yMHC6eU9yZeWpOgrdF_VStAwFaFM5yt69imoUoG7Ob24ExhE5tu","result":[{"created":"2022-05-26T17:54:56.489448","detections":{"benign":0,"malicious":1,"total":1},"download_url":null,"historicalscan_id":"48011760326110718","id":"55984849350345511","instance_id":"72401552809848506","malware_family":null,"polyscore":0.23213458159978606,"rule_name":"eicar_substring_test","sha256":"275a021bbfb6489e54d471899f7db9d1663fc695ec2fe2a2c4538aabf651fd0f","tags":"{}","yara":null},{"created":"2022-05-26T17:54:56.489448","detections":{"benign":0,"malicious":1,"total":1},"download_url":null,"historicalscan_id":"48011760326110718","id":"48289556221557960","instance_id":"72401552809848506","malware_family":null,"polyscore":0.23213458159978606,"rule_name":"eicar_av_test","sha256":"275a021bbfb6489e54d471899f7db9d1663fc695ec2fe2a2c4538aabf651fd0f","tags":"{}","yara":null}],"status":"OK"}
@@ -81,7 +81,7 @@ interactions:
       User-Agent:
       - polyswarm-api/3.0.0 (x86_64-Linux-CPython-3.6.5)
     method: GET
-    uri: http://localhost:9696/v3/hunt/historical/results/list?id=48011760326110718&offset=gAAAAABij8H19hi9hK51M32I9_zvnUV7COL9EBCYuG0E0qkJOePErxpSCwhbgiABYKY8ELdmycVtXbJ56Ku-Fo8u7yMHC6eU9yZeWpOgrdF_VStAwFaFM5yt69imoUoG7Ob24ExhE5tu&limit=2
+    uri: http://localhost:9696/v3/hunt/historical/results/list?id=48011760326110718&offset=gAAAAABij8H19hi9hK51M32I9_zvnUV7COL9EBCYuG0E0qkJOePErxpSCwhbgiABYKY8ELdmycVtXbJ56Ku-Fo8u7yMHC6eU9yZeWpOgrdF_VStAwFaFM5yt69imoUoG7Ob24ExhE5tu&limit=2&community=gamma
   response:
     body:
       string: '{"has_more":false,"limit":2,"result":[{"created":"2022-05-26T17:54:56.489448","detections":{"benign":0,"malicious":1,"total":1},"download_url":null,"historicalscan_id":"48011760326110718","id":"38181717435439823","instance_id":"72401552809848506","malware_family":null,"polyscore":0.23213458159978606,"rule_name":"eicar_substring_test","sha256":"275a021bbfb6489e54d471899f7db9d1663fc695ec2fe2a2c4538aabf651fd0f","tags":"{}","yara":null},{"created":"2022-05-26T17:54:56.489448","detections":{"benign":0,"malicious":1,"total":1},"download_url":null,"historicalscan_id":"48011760326110718","id":"87340359563768145","instance_id":"72401552809848506","malware_family":null,"polyscore":0.23213458159978606,"rule_name":"eicar_av_test","sha256":"275a021bbfb6489e54d471899f7db9d1663fc695ec2fe2a2c4538aabf651fd0f","tags":"{}","yara":null}],"status":"OK"}

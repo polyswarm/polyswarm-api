@@ -593,7 +593,7 @@ interactions:
       User-Agent:
       - polyswarm-api/3.0.0 (x86_64-Linux-CPython-3.6.5)
     method: GET
-    uri: http://localhost:9696/v3/hunt/historical/list
+    uri: http://localhost:9696/v3/hunt/historical/list?community=gamma
   response:
     body:
       string: '{"has_more":true,"limit":2,"offset":"gAAAAABij8XvQ-0RXwV5Q8XrUDxDY2Ivly6Bw55OcK0oyZeGw-_1O1DT45P6Xce844Gw45m3CfFgGpw7CT3DyPkU_1v14aQDeA==","result":[{"created":"2022-05-26T18:24:47.201942","id":"84872857188332712","progress":null,"results_csv_uri":null,"ruleset_name":null,"status":"PENDING","summary":null,"yara":null},{"created":"2022-05-26T18:24:47.017168","id":"829170512168629","progress":null,"results_csv_uri":null,"ruleset_name":null,"status":"PENDING","summary":null,"yara":null}],"status":"OK"}
@@ -627,7 +627,7 @@ interactions:
       User-Agent:
       - polyswarm-api/3.0.0 (x86_64-Linux-CPython-3.6.5)
     method: GET
-    uri: http://localhost:9696/v3/hunt/historical/list?offset=gAAAAABij8XvQ-0RXwV5Q8XrUDxDY2Ivly6Bw55OcK0oyZeGw-_1O1DT45P6Xce844Gw45m3CfFgGpw7CT3DyPkU_1v14aQDeA%3D%3D&limit=2
+    uri: http://localhost:9696/v3/hunt/historical/list?community=gamma&offset=gAAAAABij8XvQ-0RXwV5Q8XrUDxDY2Ivly6Bw55OcK0oyZeGw-_1O1DT45P6Xce844Gw45m3CfFgGpw7CT3DyPkU_1v14aQDeA%3D%3D&limit=2
   response:
     body:
       string: '{"has_more":true,"limit":2,"offset":"gAAAAABij8XvOM-uSQvm8Wv0QtXVmufWPRXLse7DHSg1-y_ti1BK1-SLwO_opVpYDIB_qHnxWJ4PaVNLAS40JwUBbw2VlDKTkw==","result":[{"created":"2022-05-26T18:24:46.810638","id":"62007156520281189","progress":null,"results_csv_uri":null,"ruleset_name":null,"status":"PENDING","summary":null,"yara":null},{"created":"2022-05-26T18:24:46.588467","id":"4948504317968209","progress":null,"results_csv_uri":null,"ruleset_name":null,"status":"PENDING","summary":null,"yara":null}],"status":"OK"}
@@ -661,7 +661,7 @@ interactions:
       User-Agent:
       - polyswarm-api/3.0.0 (x86_64-Linux-CPython-3.6.5)
     method: GET
-    uri: http://localhost:9696/v3/hunt/historical/list?offset=gAAAAABij8XvOM-uSQvm8Wv0QtXVmufWPRXLse7DHSg1-y_ti1BK1-SLwO_opVpYDIB_qHnxWJ4PaVNLAS40JwUBbw2VlDKTkw%3D%3D&limit=2
+    uri: http://localhost:9696/v3/hunt/historical/list?offset=gAAAAABij8XvOM-uSQvm8Wv0QtXVmufWPRXLse7DHSg1-y_ti1BK1-SLwO_opVpYDIB_qHnxWJ4PaVNLAS40JwUBbw2VlDKTkw%3D%3D&limit=2&community=gamma
   response:
     body:
       string: '{"has_more":false,"limit":2,"result":[{"created":"2022-05-26T18:24:46.426523","id":"10012947066850125","progress":null,"results_csv_uri":null,"ruleset_name":null,"status":"PENDING","summary":null,"yara":null},{"created":"2022-05-26T17:53:07.832218","id":"48011760326110718","progress":100.0,"results_csv_uri":null,"ruleset_name":"eicar.yara","status":"STOPPED","summary":null,"yara":null}],"status":"OK"}
