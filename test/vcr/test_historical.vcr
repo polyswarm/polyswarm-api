@@ -11,7 +11,7 @@ interactions:
       just the embedded EICAR string (e.g. in packed executables, PDFs, etc)\n    */\n\n    meta:\n        description
       = \"Standard AV test, checking for an EICAR substring\"\n        author = \"Austin
       Byers | Airbnb CSIRT\"\n\n    strings:\n        $eicar_substring = \"$EICAR-STANDARD-ANTIVIRUS-TEST-FILE!\"\n\n    condition:\n        all
-      of them\n}"}'
+      of them\n}", "community": "gamma"}'
     headers:
       Accept:
       - '*/*'
@@ -22,34 +22,40 @@ interactions:
       Connection:
       - keep-alive
       Content-Length:
-      - '1113'
+      - '1135'
       Content-Type:
       - application/json
       User-Agent:
-      - polyswarm-api/3.0.0 (x86_64-Linux-CPython-3.6.5)
+      - polyswarm-api/3.4.1 (x86_64-Linux-CPython-3.9.10)
     method: POST
     uri: http://localhost:9696/v3/hunt/historical
   response:
     body:
-      string: '<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 3.2 Final//EN">
+      string: '<!doctype html>
+
+        <html lang=en>
 
         <title>Redirecting...</title>
 
         <h1>Redirecting...</h1>
 
-        <p>You should be redirected automatically to target URL: <a href="http://localhost:9696/v3/hunt/historical/">http://localhost:9696/v3/hunt/historical/</a>.  If
-        not click the link.'
+        <p>You should be redirected automatically to the target URL: <a href="http://localhost:9696/v3/hunt/historical/">http://localhost:9696/v3/hunt/historical/</a>.
+        If not, click the link.
+
+        '
     headers:
+      Connection:
+      - keep-alive
       Content-Length:
-      - '289'
+      - '269'
       Content-Type:
       - text/html; charset=utf-8
       Date:
-      - Thu, 26 May 2022 17:38:34 GMT
+      - Fri, 21 Jul 2023 21:19:26 GMT
       Location:
       - http://localhost:9696/v3/hunt/historical/
       Server:
-      - Werkzeug/1.0.1 Python/3.9.6
+      - gunicorn
     status:
       code: 308
       message: PERMANENT REDIRECT
@@ -65,7 +71,7 @@ interactions:
       just the embedded EICAR string (e.g. in packed executables, PDFs, etc)\n    */\n\n    meta:\n        description
       = \"Standard AV test, checking for an EICAR substring\"\n        author = \"Austin
       Byers | Airbnb CSIRT\"\n\n    strings:\n        $eicar_substring = \"$EICAR-STANDARD-ANTIVIRUS-TEST-FILE!\"\n\n    condition:\n        all
-      of them\n}"}'
+      of them\n}", "community": "gamma"}'
     headers:
       Accept:
       - '*/*'
@@ -76,16 +82,16 @@ interactions:
       Connection:
       - keep-alive
       Content-Length:
-      - '1113'
+      - '1135'
       Content-Type:
       - application/json
       User-Agent:
-      - polyswarm-api/3.0.0 (x86_64-Linux-CPython-3.6.5)
+      - polyswarm-api/3.4.1 (x86_64-Linux-CPython-3.9.10)
     method: POST
     uri: http://localhost:9696/v3/hunt/historical/
   response:
     body:
-      string: '{"result":{"created":"2022-05-26T17:38:34.639812","id":"50600937401657127","progress":null,"results_csv_uri":null,"ruleset_name":null,"status":"PENDING","summary":null,"yara":"rule
+      string: '{"result":{"created":"2023-07-21T21:19:27.038265","id":"56580622108977120","progress":null,"results_csv_uri":null,"ruleset_name":null,"status":"PENDING","summary":null,"yara":"rule
         eicar_av_test {\n    /*\n       Per standard, match only if entire file is
         EICAR string plus optional trailing whitespace.\n       The raw EICAR string
         to be matched is:\n       X5O!P%@AP[4\\PZX54(P^)7CC)7}$EICAR-STANDARD-ANTIVIRUS-TEST-FILE!$H+H*\n    */\n\n    meta:\n        description
@@ -102,14 +108,16 @@ interactions:
 
         '
     headers:
+      Connection:
+      - keep-alive
       Content-Length:
       - '1295'
       Content-Type:
       - application/json
       Date:
-      - Thu, 26 May 2022 17:38:34 GMT
+      - Fri, 21 Jul 2023 21:19:27 GMT
       Server:
-      - Werkzeug/1.0.1 Python/3.9.6
+      - gunicorn
       X-Billing-ID:
       - '1'
     status:
@@ -127,30 +135,36 @@ interactions:
       Connection:
       - keep-alive
       User-Agent:
-      - polyswarm-api/3.0.0 (x86_64-Linux-CPython-3.6.5)
+      - polyswarm-api/3.4.1 (x86_64-Linux-CPython-3.9.10)
     method: GET
-    uri: http://localhost:9696/v3/hunt/historical?id=50600937401657127
+    uri: http://localhost:9696/v3/hunt/historical?id=56580622108977120&community=gamma
   response:
     body:
-      string: '<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 3.2 Final//EN">
+      string: '<!doctype html>
+
+        <html lang=en>
 
         <title>Redirecting...</title>
 
         <h1>Redirecting...</h1>
 
-        <p>You should be redirected automatically to target URL: <a href="http://localhost:9696/v3/hunt/historical/?id=50600937401657127">http://localhost:9696/v3/hunt/historical/?id=50600937401657127</a>.  If
-        not click the link.'
+        <p>You should be redirected automatically to the target URL: <a href="http://localhost:9696/v3/hunt/historical/?id=56580622108977120&amp;community=gamma">http://localhost:9696/v3/hunt/historical/?id=56580622108977120&amp;community=gamma</a>.
+        If not, click the link.
+
+        '
     headers:
+      Connection:
+      - keep-alive
       Content-Length:
-      - '331'
+      - '351'
       Content-Type:
       - text/html; charset=utf-8
       Date:
-      - Thu, 26 May 2022 17:38:34 GMT
+      - Fri, 21 Jul 2023 21:19:27 GMT
       Location:
-      - http://localhost:9696/v3/hunt/historical/?id=50600937401657127
+      - http://localhost:9696/v3/hunt/historical/?id=56580622108977120&community=gamma
       Server:
-      - Werkzeug/1.0.1 Python/3.9.6
+      - gunicorn
     status:
       code: 308
       message: PERMANENT REDIRECT
@@ -166,12 +180,12 @@ interactions:
       Connection:
       - keep-alive
       User-Agent:
-      - polyswarm-api/3.0.0 (x86_64-Linux-CPython-3.6.5)
+      - polyswarm-api/3.4.1 (x86_64-Linux-CPython-3.9.10)
     method: GET
-    uri: http://localhost:9696/v3/hunt/historical/?id=50600937401657127
+    uri: http://localhost:9696/v3/hunt/historical/?id=56580622108977120&community=gamma
   response:
     body:
-      string: '{"result":{"created":"2022-05-26T17:38:34.639812","id":"50600937401657127","progress":null,"results_csv_uri":null,"ruleset_name":null,"status":"PENDING","summary":null,"yara":"rule
+      string: '{"result":{"created":"2023-07-21T21:19:27.038265","id":"56580622108977120","progress":null,"results_csv_uri":null,"ruleset_name":null,"status":"PENDING","summary":null,"yara":"rule
         eicar_av_test {\n    /*\n       Per standard, match only if entire file is
         EICAR string plus optional trailing whitespace.\n       The raw EICAR string
         to be matched is:\n       X5O!P%@AP[4\\PZX54(P^)7CC)7}$EICAR-STANDARD-ANTIVIRUS-TEST-FILE!$H+H*\n    */\n\n    meta:\n        description
@@ -188,21 +202,23 @@ interactions:
 
         '
     headers:
+      Connection:
+      - keep-alive
       Content-Length:
       - '1295'
       Content-Type:
       - application/json
       Date:
-      - Thu, 26 May 2022 17:38:34 GMT
+      - Fri, 21 Jul 2023 21:19:27 GMT
       Server:
-      - Werkzeug/1.0.1 Python/3.9.6
+      - gunicorn
       X-Billing-ID:
       - '1'
     status:
       code: 200
       message: OK
 - request:
-    body: null
+    body: '{"community": "gamma"}'
     headers:
       Accept:
       - '*/*'
@@ -213,37 +229,45 @@ interactions:
       Connection:
       - keep-alive
       Content-Length:
-      - '0'
+      - '22'
+      Content-Type:
+      - application/json
       User-Agent:
-      - polyswarm-api/3.0.0 (x86_64-Linux-CPython-3.6.5)
+      - polyswarm-api/3.4.1 (x86_64-Linux-CPython-3.9.10)
     method: DELETE
-    uri: http://localhost:9696/v3/hunt/historical?id=50600937401657127
+    uri: http://localhost:9696/v3/hunt/historical?id=56580622108977120
   response:
     body:
-      string: '<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 3.2 Final//EN">
+      string: '<!doctype html>
+
+        <html lang=en>
 
         <title>Redirecting...</title>
 
         <h1>Redirecting...</h1>
 
-        <p>You should be redirected automatically to target URL: <a href="http://localhost:9696/v3/hunt/historical/?id=50600937401657127">http://localhost:9696/v3/hunt/historical/?id=50600937401657127</a>.  If
-        not click the link.'
+        <p>You should be redirected automatically to the target URL: <a href="http://localhost:9696/v3/hunt/historical/?id=56580622108977120">http://localhost:9696/v3/hunt/historical/?id=56580622108977120</a>.
+        If not, click the link.
+
+        '
     headers:
+      Connection:
+      - keep-alive
       Content-Length:
-      - '331'
+      - '311'
       Content-Type:
       - text/html; charset=utf-8
       Date:
-      - Thu, 26 May 2022 17:38:34 GMT
+      - Fri, 21 Jul 2023 21:19:27 GMT
       Location:
-      - http://localhost:9696/v3/hunt/historical/?id=50600937401657127
+      - http://localhost:9696/v3/hunt/historical/?id=56580622108977120
       Server:
-      - Werkzeug/1.0.1 Python/3.9.6
+      - gunicorn
     status:
       code: 308
       message: PERMANENT REDIRECT
 - request:
-    body: null
+    body: '{"community": "gamma"}'
     headers:
       Accept:
       - '*/*'
@@ -254,14 +278,16 @@ interactions:
       Connection:
       - keep-alive
       Content-Length:
-      - '0'
+      - '22'
+      Content-Type:
+      - application/json
       User-Agent:
-      - polyswarm-api/3.0.0 (x86_64-Linux-CPython-3.6.5)
+      - polyswarm-api/3.4.1 (x86_64-Linux-CPython-3.9.10)
     method: DELETE
-    uri: http://localhost:9696/v3/hunt/historical/?id=50600937401657127
+    uri: http://localhost:9696/v3/hunt/historical/?id=56580622108977120
   response:
     body:
-      string: '{"result":{"created":"2022-05-26T17:38:34.639812","id":"50600937401657127","progress":null,"results_csv_uri":null,"ruleset_name":null,"status":"DELETING","summary":null,"yara":"rule
+      string: '{"result":{"created":"2023-07-21T21:19:27.038265","id":"56580622108977120","progress":null,"results_csv_uri":null,"ruleset_name":null,"status":"DELETING","summary":null,"yara":"rule
         eicar_av_test {\n    /*\n       Per standard, match only if entire file is
         EICAR string plus optional trailing whitespace.\n       The raw EICAR string
         to be matched is:\n       X5O!P%@AP[4\\PZX54(P^)7CC)7}$EICAR-STANDARD-ANTIVIRUS-TEST-FILE!$H+H*\n    */\n\n    meta:\n        description
@@ -278,14 +304,16 @@ interactions:
 
         '
     headers:
+      Connection:
+      - keep-alive
       Content-Length:
       - '1296'
       Content-Type:
       - application/json
       Date:
-      - Thu, 26 May 2022 17:38:34 GMT
+      - Fri, 21 Jul 2023 21:19:27 GMT
       Server:
-      - Werkzeug/1.0.1 Python/3.9.6
+      - gunicorn
       X-Billing-ID:
       - '1'
     status:
