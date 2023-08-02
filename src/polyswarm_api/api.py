@@ -349,7 +349,7 @@ class PolyswarmAPI(object):
         logger.info('Create historical hunt %s', rule)
         rule, rule_id = self._parse_rule(rule)
         return resources.HistoricalHunt.create(self, yara=rule.yara if rule else None, rule_id=rule_id,
-                                               ruleset_name=ruleset_name).result()
+                                               ruleset_name=ruleset_name, community=self.community).result()
 
     def historical_get(self, hunt=None):
         """
@@ -359,7 +359,7 @@ class PolyswarmAPI(object):
         :return: The Hunt resource
         """
         logger.info('Get historical hunt %s', hunt)
-        return resources.HistoricalHunt.get(self, id=hunt).result()
+        return resources.HistoricalHunt.get(self, id=hunt, community=self.community).result()
 
     def historical_update(self, hunt):
         """
@@ -368,7 +368,7 @@ class PolyswarmAPI(object):
         :return: The deleted HistoricalHunt resource
         """
         logger.info('Deleting historical hunt %s', hunt)
-        return resources.HistoricalHunt.update(self, id=hunt).result()
+        return resources.HistoricalHunt.update(self, id=hunt, community=self.community).result()
 
     def historical_delete(self, hunt):
         """
@@ -378,7 +378,7 @@ class PolyswarmAPI(object):
         :return: The deleted Hunt resource
         """
         logger.info('Delete historical hunt %s', hunt)
-        return resources.HistoricalHunt.delete(self, id=hunt).result()
+        return resources.HistoricalHunt.delete(self, id=hunt, community=self.community).result()
 
     def historical_list(self, since=None):
         """
@@ -387,7 +387,7 @@ class PolyswarmAPI(object):
         :return: Generator of Hunt resources
         """
         logger.info('List historical hunts since: %s', since)
-        return resources.HistoricalHunt.list(self, since=since).result()
+        return resources.HistoricalHunt.list(self, since=since, community=self.community).result()
 
     def historical_result(self, result_id):
         """
@@ -396,7 +396,7 @@ class PolyswarmAPI(object):
         :param result_id: Historical result id
         :return: HistoricalHuntResult resource
         """
-        return resources.HistoricalHuntResult.get(self, id=result_id).result()
+        return resources.HistoricalHuntResult.get(self, id=result_id, community=self.community).result()
 
     def historical_results(self, hunt=None, rule_name=None, family=None,
                            polyscore_lower=None, polyscore_upper=None):
@@ -412,7 +412,7 @@ class PolyswarmAPI(object):
         """
         logger.info('List historical results for hunt: %s', hunt)
         return resources.HistoricalHuntResultList.get(
-            self, id=hunt, rule_name=rule_name, family=family,
+            self, id=hunt, rule_name=rule_name, family=family, community=self.community,
             polyscore_lower=polyscore_lower, polyscore_upper=polyscore_upper).result()
 
     def historical_results_delete(self, result_ids):
@@ -423,7 +423,7 @@ class PolyswarmAPI(object):
         :return: The deleted HuntResult resources
         """
         logger.info('Delete historical results: %s', result_ids)
-        return resources.HistoricalHuntResultList.delete(self, result_ids=result_ids).result()
+        return resources.HistoricalHuntResultList.delete(self, result_ids=result_ids, community=self.community).result()
 
     def historical_delete_list(self, historical_ids):
         """
@@ -433,7 +433,7 @@ class PolyswarmAPI(object):
         :return: The deleted Hunt resource
         """
         logger.info('Delete historical hunts %s', historical_ids)
-        return resources.HistoricalHuntList.delete(self, historical_ids=historical_ids).result()
+        return resources.HistoricalHuntList.delete(self, historical_ids=historical_ids, community=self.community).result()
 
     def ruleset_create(self, name, rules, description=None):
         """
@@ -444,7 +444,7 @@ class PolyswarmAPI(object):
         :return: A YaraRuleset resource
         """
         logger.info('Create ruleset %s: %s', name, rules)
-        rules = resources.YaraRuleset(dict(name=name, description=description, yara=rules), api=self)
+        rules = resources.YaraRuleset(dict(name=name, description=description, yara=rules, community=self.community), api=self)
         return resources.YaraRuleset.create(self, yara=rules.yara, name=rules.name, description=rules.description).result()
 
     def ruleset_get(self, ruleset_id=None):
@@ -454,7 +454,7 @@ class PolyswarmAPI(object):
         :return: A YaraRuleset resource
         """
         logger.info('Get ruleset %s', ruleset_id)
-        return resources.YaraRuleset.get(self, id=ruleset_id).result()
+        return resources.YaraRuleset.get(self, id=ruleset_id, community=self.community).result()
 
     def ruleset_update(self, ruleset_id, name=None, rules=None, description=None):
         """
@@ -466,7 +466,7 @@ class PolyswarmAPI(object):
         :return: The updated YaraRuleset resource
         """
         logger.info('Update ruleset %s', ruleset_id)
-        return resources.YaraRuleset.update(self, id=ruleset_id, name=name, yara=rules, description=description).result()
+        return resources.YaraRuleset.update(self, id=ruleset_id, name=name, yara=rules, description=description, community=self.community).result()
 
     def ruleset_delete(self, ruleset_id):
         """
@@ -475,7 +475,7 @@ class PolyswarmAPI(object):
         :return: A YaraRuleset resource
         """
         logger.info('Delete ruleset %s', ruleset_id)
-        return resources.YaraRuleset.delete(self, id=ruleset_id).result()
+        return resources.YaraRuleset.delete(self, id=ruleset_id, community=self.community).result()
 
     def ruleset_list(self):
         """
@@ -483,7 +483,7 @@ class PolyswarmAPI(object):
         :return: A generator of YaraRuleset resources
         """
         logger.info('List rulesets')
-        return resources.YaraRuleset.list(self).result()
+        return resources.YaraRuleset.list(self, community=self.community).result()
 
     def tag_link_get(self, sha256):
         """
