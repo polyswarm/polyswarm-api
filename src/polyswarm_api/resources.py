@@ -666,7 +666,6 @@ class LocalArtifact(core.BaseResource, core.Hashable):
                 'method': 'GET',
                 'url': u,
                 'stream': True,
-                'params': {'community': api.community },
                 'headers': {'Authorization': None}
             },
             result_parser=cls,
