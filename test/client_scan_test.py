@@ -91,8 +91,9 @@ class ScanTestCaseV2(TestCase):
         api = PolyswarmAPI(self.test_api_key, uri='http://localhost:9696/{}'.format(self.api_version), community='gamma')
         with temp_dir({}) as (path, _):
             api.download(path, '275a021bbfb6489e54d471899f7db9d1663fc695ec2fe2a2c4538aabf651fd0f')
-            result = open(os.path.join(path, '275a021bbfb6489e54d471899f7db9d1663fc695ec2fe2a2c4538aabf651fd0f'), 'rb')
-            assert result.read() == b'X5O!P%@AP[4\\PZX54(P^)7CC)7}$EICAR-STANDARD-ANTIVIRUS-TEST-FILE!$H+H*'
+            with open(os.path.join(path, '275a021bbfb6489e54d471899f7db9d1663fc695ec2fe2a2c4538aabf651fd0f'), 'rb') as result:
+                content = result.read()
+                assert content == b'X5O!P%@AP[4\\PZX54(P^)7CC)7}$EICAR-STANDARD-ANTIVIRUS-TEST-FILE!$H+H*'
 
     @vcr.use_cassette()
     def test_download_to_handle(self):
