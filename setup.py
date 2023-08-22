@@ -9,7 +9,7 @@ with open('README.md', 'r') as readme:
 
 setup(
     name='polyswarm-api',
-    version='3.4.1',
+    version='3.4.2',
     description='Client library to simplify interacting with the PolySwarm consumer API',
     long_description=long_description,
     long_description_content_type='text/markdown',
