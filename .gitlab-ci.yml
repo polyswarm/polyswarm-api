@@ -60,6 +60,18 @@ test-run38:
     - pip install .
     - pytest -s -v
 
+test-run310:
+  tags:
+    - kube-small-new
+  image: python:3.10
+  stage: test
+  before_script:
+    - pip install --upgrade pip
+  script:
+    - pip install -r requirements.txt
+    - pip install .
+    - pytest -s -v
+
 ###############################################################
 # Release Stage
 ###############################################################
