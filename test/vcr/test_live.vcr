@@ -307,7 +307,7 @@ interactions:
       User-Agent:
       - polyswarm-api/3.0.0 (x86_64-Linux-CPython-3.6.5)
     method: GET
-    uri: http://localhost:9696/v3/hunt/live/list
+    uri: http://localhost:9696/v3/hunt/live/list?community=gamma
   response:
     body:
       string: '{"has_more":false,"limit":2,"result":[{"created":"2022-05-26T18:49:08.759671","detections":{"benign":0,"malicious":1,"total":1},"download_url":null,"id":"81802828710018478","instance_id":"80845414726025917","livescan_id":"57028981462665681","malware_family":null,"polyscore":0.23213458159978606,"rule_name":"eicar_substring_test","sha256":"275a021bbfb6489e54d471899f7db9d1663fc695ec2fe2a2c4538aabf651fd0f","tags":"{}","yara":null},{"created":"2022-05-26T18:49:08.750640","detections":{"benign":0,"malicious":1,"total":1},"download_url":null,"id":"30070311633556152","instance_id":"80845414726025917","livescan_id":"57028981462665681","malware_family":null,"polyscore":0.23213458159978606,"rule_name":"eicar_av_test","sha256":"275a021bbfb6489e54d471899f7db9d1663fc695ec2fe2a2c4538aabf651fd0f","tags":"{}","yara":null}],"status":"OK"}

@@ -788,6 +788,7 @@ class LiveHuntResult(core.BaseJsonResource):
         self.detections = content['detections']
         self.yara = content.get('yara')
         self.download_url = content.get('download_url')
+        self.community = content.get('community')
 
 
 class LiveHuntResultList(LiveHuntResult):
@@ -809,6 +810,7 @@ class HistoricalHunt(core.BaseJsonResource):
         self.summary = content.get('summary')
         self.progress = content['progress']
         self.results_csv_uri = content['results_csv_uri']
+        self.communities = content.get('communities')
 
 
 class HistoricalHuntList(HistoricalHunt):
@@ -831,7 +833,7 @@ class HistoricalHuntResult(core.BaseJsonResource):
         self.malware_family = content['malware_family']
         self.detections = content['detections']
         self.download_url = content.get('download_url')
-
+        self.community = content.get('community')
 
 class HistoricalHuntResultList(HistoricalHuntResult):
     RESOURCE_ENDPOINT = '/hunt/historical/results/list'
