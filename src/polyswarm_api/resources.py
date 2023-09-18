@@ -289,7 +289,7 @@ class ArtifactInstance(core.BaseJsonResource, core.Hashable):
         self.votes = [Vote(v, api=api, scanfile=self) for v in content.get('votes', [])]
         self.window_closed = content.get('window_closed')
         self.polyscore = float(content['polyscore']) if content.get('polyscore') is not None else None
-        self.permalink = settings.DEFAULT_PERMALINK_BASE + '/' + str(self.hash)
+        self.permalink = settings.DEFAULT_PERMALINK_BASE + '/' + str(self.hash) + '/' + str(self.id)
 
         self._malicious_assertions = None
         self._benign_assertions = None
