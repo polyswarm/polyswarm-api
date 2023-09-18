@@ -313,10 +313,10 @@ class PolyswarmAPI(object):
         :param community: Community to retrieve live results from, or public/private.
         :return: Generator of HuntResult resources
         """
-        return (resources.LiveHuntResult.list(
+        return resources.LiveHuntResult.list(
             self, since=since, rule_name=rule_name, family=family,
-            polyscore_lower=polyscore_lower, polyscore_upper=polyscore_upper, community=community or self.community)
-                .result())
+            polyscore_lower=polyscore_lower, polyscore_upper=polyscore_upper,
+            community=community or self.community).result()
 
     def live_feed_delete(self, result_ids):
         """
