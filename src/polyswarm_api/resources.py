@@ -289,7 +289,7 @@ class ArtifactInstance(core.BaseJsonResource, core.Hashable):
         self.votes = [Vote(v, api=api, scanfile=self) for v in content.get('votes', [])]
         self.window_closed = content.get('window_closed')
         self.polyscore = float(content['polyscore']) if content.get('polyscore') is not None else None
-        self.permalink = settings.DEFAULT_PERMALINK_BASE + '/' + str(self.hash)
+        self.permalink = settings.DEFAULT_PERMALINK_BASE + '/' + str(self.hash) + '/' + str(self.id)
 
         self._malicious_assertions = None
         self._benign_assertions = None
@@ -666,7 +666,6 @@ class LocalArtifact(core.BaseResource, core.Hashable):
                 'method': 'GET',
                 'url': u,
                 'stream': True,
-                'params': {'community': api.community },
                 'headers': {'Authorization': None}
             },
             result_parser=cls,
@@ -789,6 +788,7 @@ class LiveHuntResult(core.BaseJsonResource):
         self.detections = content['detections']
         self.yara = content.get('yara')
         self.download_url = content.get('download_url')
+        self.community = content.get('community')
 
 
 class LiveHuntResultList(LiveHuntResult):
@@ -810,6 +810,7 @@ class HistoricalHunt(core.BaseJsonResource):
         self.summary = content.get('summary')
         self.progress = content['progress']
         self.results_csv_uri = content['results_csv_uri']
+        self.communities = content.get('communities')
 
 
 class HistoricalHuntList(HistoricalHunt):
@@ -832,7 +833,7 @@ class HistoricalHuntResult(core.BaseJsonResource):
         self.malware_family = content['malware_family']
         self.detections = content['detections']
         self.download_url = content.get('download_url')
-
+        self.community = content.get('community')
 
 class HistoricalHuntResultList(HistoricalHuntResult):
     RESOURCE_ENDPOINT = '/hunt/historical/results/list'

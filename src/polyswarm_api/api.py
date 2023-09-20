@@ -301,7 +301,7 @@ class PolyswarmAPI(object):
         return resources.LiveYaraRuleset.delete(self, rule_id=rule_id).result()
 
     def live_feed(self, since=None, rule_name=None, family=None,
-                           polyscore_lower=None, polyscore_upper=None):
+                           polyscore_lower=None, polyscore_upper=None, community=None):
         """
         Get live hunts feed
 
@@ -310,11 +310,13 @@ class PolyswarmAPI(object):
         :param family: Filter hunt results based on the family name (exact match).
         :param polyscore_lower: Polyscore lower bound for the hunt results.
         :param polyscore_upper: Polyscore upper bound for the hunt results.
+        :param community: Community to retrieve live results from, or public/private.
         :return: Generator of HuntResult resources
         """
         return resources.LiveHuntResult.list(
             self, since=since, rule_name=rule_name, family=family,
-            polyscore_lower=polyscore_lower, polyscore_upper=polyscore_upper).result()
+            polyscore_lower=polyscore_lower, polyscore_upper=polyscore_upper,
+            community=community or self.community).result()
 
     def live_feed_delete(self, result_ids):
         """
@@ -399,7 +401,7 @@ class PolyswarmAPI(object):
         return resources.HistoricalHuntResult.get(self, id=result_id, community=self.community).result()
 
     def historical_results(self, hunt=None, rule_name=None, family=None,
-                           polyscore_lower=None, polyscore_upper=None):
+                           polyscore_lower=None, polyscore_upper=None, community=None):
         """
         Get results from a historical hunt
 
@@ -408,11 +410,12 @@ class PolyswarmAPI(object):
         :param family: Filter hunt results based on the family name (exact match).
         :param polyscore_lower: Polyscore lower bound for the hunt results.
         :param polyscore_upper: Polyscore upper bound for the hunt results.
+        :param community: Community to retrieve live results from, or public/private.
         :return: Generator of HuntResult resources
         """
         logger.info('List historical results for hunt: %s', hunt)
         return resources.HistoricalHuntResultList.get(
-            self, id=hunt, rule_name=rule_name, family=family, community=self.community,
+            self, id=hunt, rule_name=rule_name, family=family, community=community or self.community,
             polyscore_lower=polyscore_lower, polyscore_upper=polyscore_upper).result()
 
     def historical_results_delete(self, result_ids):

@@ -36,29 +36,15 @@ dev-pypi:
 # Test Stage
 ###############################################################
 
-test-run37:
+test-run310:
   tags:
     - kube-small-new
-  image: python:3.7
+  image: python:3.10
   stage: test
   before_script:
     - pip install --upgrade pip
   script:
     - pip install -r requirements.txt
-    - pip install -r requirements-test.txt
-    - pip install .
-    - pytest -s -v
-
-test-run38:
-  tags:
-    - kube-small-new
-  image: python:3.8
-  stage: test
-  before_script:
-    - pip install --upgrade pip
-  script:
-    - pip install -r requirements.txt
-    - pip install -r requirements-test.txt
     - pip install .
     - pytest -s -v
 
