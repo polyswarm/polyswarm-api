@@ -790,6 +790,10 @@ class PolyswarmAPI(object):
         logger.info('List tool metadata')
         return resources.ToolMetadata.list(self, instance_id=instance_id).result()
 
+    def event_list(self, **kwargs):
+        logger.info('List events')
+        return resources.Events.list(self, **kwargs).result()
+
     def __repr__(self):
         clsname = '{0.__module__}.{0.__name__}'.format(self.__class__)
         attrs = 'uri={0.uri!r}, community={0.community!r}, timeout={0.timeout!r}'.format(self)
