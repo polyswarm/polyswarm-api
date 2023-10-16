@@ -1089,7 +1089,7 @@ class SandboxProvider(core.BaseJsonResource):
 
 
 class Events(core.BaseJsonResource):
-    RESOURCE_ENDPOINT = "/events"
+    RESOURCE_ENDPOINT = "/activity"
 
     def __init__(self, content, api=None):
         super(Events, self).__init__(content, api=api)
