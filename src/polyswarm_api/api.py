@@ -672,11 +672,13 @@ class PolyswarmAPI(object):
 
         return artifact
 
-    def sandbox(self, instance_id, provider_slug, vm_slug):
-        logger.info('Sandboxing %s in provider %s vm %s', instance_id, provider_slug, vm_slug)
-        return resources.SandboxTask.create(self, artifact_id=instance_id, provider_slug=provider_slug, vm_slug=vm_slug).result()
+    def sandbox(self, instance_id, provider_slug, vm_slug, network_enabled):
+        logger.info(
+            'Sandboxing %s in provider %s vm %s internet %s', instance_id, provider_slug, vm_slug, network_enabled)
+        return resources.SandboxTask.create(self, artifact_id=instance_id, provider_slug=provider_slug, vm_slug=vm_slug,
+                                            network_enabled=network_enabled).result()
 
-    def sandbox_file(self, artifact, provider_slug, vm_slug, artifact_type=resources.ArtifactType.FILE, artifact_name=None):
+    def sandbox_file(self, artifact, provider_slug, vm_slug, artifact_type=resources.ArtifactType.FILE, artifact_name=None, network_enabled=True):
         logger.info('Sandboxing file in provider %s vm %s', provider_slug, vm_slug)
         artifact_type = resources.ArtifactType.parse(artifact_type)
         # TODO This is a python 2.7 check if artifact is a file-like instance, consider changing
@@ -699,7 +701,8 @@ class PolyswarmAPI(object):
                                                      artifact_type=artifact.artifact_type.name,
                                                      community=self.community,
                                                      provider_slug=provider_slug,
-                                                     vm_slug=vm_slug).result()
+                                                     vm_slug=vm_slug,
+                                                     network_enabled=network_enabled).result()
             task.upload_file(artifact)
             return resources.SandboxTask.update_file(self, id=task.id).result()
         else:
@@ -789,6 +792,10 @@ class PolyswarmAPI(object):
     def tool_metadata_list(self, instance_id):
         logger.info('List tool metadata')
         return resources.ToolMetadata.list(self, instance_id=instance_id).result()
+
+    def event_list(self, **kwargs):
+        logger.info('List events')
+        return resources.Events.list(self, **kwargs).result()
 
     def __repr__(self):
         clsname = '{0.__module__}.{0.__name__}'.format(self.__class__)

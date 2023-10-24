@@ -1086,3 +1086,15 @@ class SandboxProvider(core.BaseJsonResource):
     def parse_result(cls, api, content, **kwargs):
         logger.debug('Parsing resource %s', cls.__name__)
         return [super(SandboxProvider, cls).parse_result(api, content[slug], **kwargs) for slug in content.keys()]
+
+
+class Events(core.BaseJsonResource):
+    RESOURCE_ENDPOINT = "/activity"
+
+    def __init__(self, content, api=None):
+        super(Events, self).__init__(content, api=api)
+        self.event_timestamp = content['event_timestamp']
+        self.event_type = content['event_type']
+        self.source = content['source']
+        self.team_account_id = content['team_account_id']
+        self.user_account_id = content['user_account_id']

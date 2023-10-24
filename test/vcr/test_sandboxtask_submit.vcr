@@ -1,7 +1,7 @@
 interactions:
 - request:
-    body: '{"artifact_id": "59710030898207379", "provider_slug": "cape", "vm_slug":
-      "win-10-build-19041"}'
+    body: '{"artifact_id": "24135952517649903", "provider_slug": "cape", "vm_slug":
+      "win-10-build-19041", "network_enabled": 1}'
     headers:
       Accept:
       - '*/*'
@@ -12,35 +12,39 @@ interactions:
       Connection:
       - keep-alive
       Content-Length:
-      - '94'
+      - '116'
       Content-Type:
       - application/json
       User-Agent:
-      - polyswarm-api/3.4.0 (x86_64-Linux-CPython-3.9.10)
+      - polyswarm-api/3.4.3 (x86_64-Linux-CPython-3.9.10)
     method: POST
     uri: http://localhost:9696/v3/sandbox/sandboxtask
   response:
     body:
-      string: '{"result":{"account_number":null,"community":"gamma","config":{"provider":{"id":"1","name":"cape","slug":"cape","tool":"cape_sandbox_v2"},"vm":{"architecture":"x64","id":"100","language":"English
+      string: '{"result":{"account_number":null,"community":"gamma","config":{"network_enabled":true,"provider":{"id":"1","name":"cape","slug":"cape","tool":"cape_sandbox_v2"},"vm":{"architecture":"x64","id":"100","language":"English
         (United States)","name":"Microsoft Windows 10 Pro Build 19041","os_name":"Microsoft
-        Windows 10 Pro","os_version":"10.0.19041 Build 19041","slug":"win-10-build-19041"}},"created":"2023-07-05T22:22:38.173016","expiration":"2023-07-05T22:52:38.187979","id":"83802549696402524","instance_id":"59710030898207379","report":{},"sandbox":"cape","sandbox_artifacts":[],"sha256":"18e5b8fe65e8f73c3a4a637c258c02aeec8a6ab702b15b7ee73f5631a9879e40","status":"PENDING","team_account_number":null,"upload_url":null},"status":"OK"}
+        Windows 10 Pro","os_version":"10.0.19041 Build 19041","slug":"win-10-build-19041"}},"created":"2023-10-19T23:01:58.636765","expiration":"2023-10-19T23:31:58.658396","id":"73438041632484796","instance_id":"24135952517649903","report":{},"sandbox":"cape","sandbox_artifacts":[],"sha256":"275a021bbfb6489e54d471899f7db9d1663fc695ec2fe2a2c4538aabf651fd0f","status":"PENDING","team_account_number":null,"upload_url":null},"status":"OK"}
 
         '
     headers:
       Connection:
-      - Keep-Alive
+      - keep-alive
       Content-Length:
-      - '712'
+      - '735'
       Content-Type:
       - application/json
+      Date:
+      - Thu, 19 Oct 2023 23:01:58 GMT
+      Server:
+      - gunicorn
       X-Billing-ID:
       - '1'
     status:
       code: 200
       message: OK
 - request:
-    body: '{"artifact_id": "59710030898207379", "provider_slug": "triage", "vm_slug":
-      "win-10-build-19041"}'
+    body: '{"artifact_id": "24135952517649903", "provider_slug": "triage", "vm_slug":
+      "win10-build-15063", "network_enabled": 0}'
     headers:
       Accept:
       - '*/*'
@@ -51,27 +55,31 @@ interactions:
       Connection:
       - keep-alive
       Content-Length:
-      - '94'
+      - '117'
       Content-Type:
       - application/json
       User-Agent:
-      - polyswarm-api/3.4.0 (x86_64-Linux-CPython-3.9.10)
+      - polyswarm-api/3.4.3 (x86_64-Linux-CPython-3.9.10)
     method: POST
     uri: http://localhost:9696/v3/sandbox/sandboxtask
   response:
     body:
-      string: '{"result":{"account_number":null,"community":"gamma","config":{"provider":{"id":"1","name":"triage","slug":"triage","tool":"triage_sandbox_v2"},"vm":{"architecture":"x64","id":"100","language":"English
-        (United States)","name":"Microsoft Windows 10 Pro Build 19041","os_name":"Microsoft
-        Windows 10 Pro","os_version":"10.0.19041 Build 19041","slug":"win-10-build-19041"}},"created":"2023-07-05T22:22:38.173016","expiration":"2023-07-05T22:52:38.187979","id":"83802549696402524","instance_id":"59710030898207379","report":{},"sandbox":"triage","sandbox_artifacts":[],"sha256":"18e5b8fe65e8f73c3a4a637c258c02aeec8a6ab702b15b7ee73f5631a9879e40","status":"PENDING","team_account_number":null,"upload_url":null},"status":"OK"}
+      string: '{"result":{"account_number":null,"community":"gamma","config":{"network_enabled":false,"provider":{"id":"2","name":"triage","slug":"triage","tool":"triage_sandbox_v0"},"vm":{"Architecture":"x64","id":"200","language":"English
+        (United States)","name":"windows10-1703-x64","os_name":"Windows 10 1703 x64","os_version":"10.0.15063
+        Build 15063","profile":"poly","slug":"win10-build-15063"}},"created":"2023-10-19T23:01:58.738858","expiration":"2023-10-19T23:31:58.753992","id":"68144286666617241","instance_id":"24135952517649903","report":{},"sandbox":"triage","sandbox_artifacts":[],"sha256":"275a021bbfb6489e54d471899f7db9d1663fc695ec2fe2a2c4538aabf651fd0f","status":"PENDING","team_account_number":null,"upload_url":null},"status":"OK"}
 
         '
     headers:
       Connection:
-      - Keep-Alive
+      - keep-alive
       Content-Length:
-      - '712'
+      - '737'
       Content-Type:
       - application/json
+      Date:
+      - Thu, 19 Oct 2023 23:01:58 GMT
+      Server:
+      - gunicorn
       X-Billing-ID:
       - '1'
     status:

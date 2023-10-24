@@ -380,10 +380,11 @@ class ScanTestCaseV2(TestCase):
     @vcr.use_cassette()
     def test_sandboxtask_submit(self):
         v3api = PolyswarmAPI(self.test_api_key, uri='http://localhost:9696/v3', community='gamma')
-        task = v3api.sandbox('59710030898207379', 'cape', 'win-10-build-19041')
-        assert task.sandbox == 'cape'
-        task = v3api.sandbox('59710030898207379', 'triage', 'win10-build-15063')
+        task = v3api.sandbox('24135952517649903', 'cape', 'win-10-build-19041', True)
+        assert task.json['config']['network_enabled'] is True
+        task = v3api.sandbox('24135952517649903', 'triage', 'win10-build-15063', False)
         assert task.sandbox == 'triage'
+        assert task.json['config']['network_enabled'] is False
 
     @vcr.use_cassette()
     def ytest_sandboxtask_get(self):
