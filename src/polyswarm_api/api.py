@@ -183,6 +183,18 @@ class PolyswarmAPI(object):
         logger.info('Creating known good ioc %s %s %s', type, host, source)
         return resources.IOC.create_known_good(self, type, host, source).result()
 
+    def add_known_bad_host(self, type, source, host):
+        """
+        Add a known bad ip or domain.
+
+        :param type
+        :param source
+        :param host
+        :return: IOC resource
+        """
+        logger.info('Creating known bad ioc %s %s %s', type, host, source)
+        return resources.IOC.create_known_bad(self, type, host, source).result()
+
     def update_known_good_host(self, id, type, source, host, good):
         """
         Update a known ip or domain.
