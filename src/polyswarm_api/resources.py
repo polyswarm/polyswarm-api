@@ -153,12 +153,13 @@ class IOC(core.BaseJsonResource):
     RESOURCE_ENDPOINT = '/ioc'
 
     @classmethod
-    def iocs_by_hash(cls, api, hash_value, hash_type, hide_known_good=False):
+    def iocs_by_hash(cls, api, hash_value, hash_type, hide_known_good=False, beta=False):
+        path = 'ioc-beta' if beta else 'ioc'
         return core.PolyswarmRequest(
             api,
             {
                 'method': 'GET',
-                'url': '{}/ioc/{}/{}'.format(api.uri, hash_type, hash_value),
+                'url': '{}/{}/{}/{}'.format(api.uri, path, hash_type, hash_value),
                 'params': {
                     'hide_known_good': hide_known_good,
                     'community': api.community,
@@ -215,6 +216,23 @@ class IOC(core.BaseJsonResource):
                     'host': host,
                     'source': source,
                     'good': True
+                }
+            },
+            result_parser=cls,
+        ).execute()
+
+    @classmethod
+    def create_known_bad(cls, api, type, host, source):
+        return core.PolyswarmRequest(
+            api,
+            {
+                'method': 'POST',
+                'url': '{}/ioc/known'.format(api.uri),
+                'json': {
+                    'type': type,
+                    'host': host,
+                    'source': source,
+                    'good': False
                 }
             },
             result_parser=cls,
