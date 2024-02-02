@@ -721,6 +721,20 @@ class PolyswarmAPI(object):
             raise exceptions.InvalidValueException(
                 'Artifacts should be a path to a file or a LocalArtifact instance')
 
+    def sandbox_url(self, url, provider_slug, vm_slug, browser=None):
+        logger.info('Sandboxing url in provider %s vm %s', provider_slug, vm_slug)
+        artifact = resources.LocalArtifact.from_content(self, url, artifact_name=url, artifact_type='URL')
+        task = resources.SandboxTask.create_file(self,
+                                                 artifact_name=url,
+                                                 artifact_type="URL",
+                                                 community=self.community,
+                                                 provider_slug=provider_slug,
+                                                 vm_slug=vm_slug,
+                                                 browser=browser,
+                                                 network_enabled=True).result()
+        task.upload_file(artifact)
+        return resources.SandboxTask.update_file(self, id=task.id).result()
+
     def sandbox_providers(self):
         """
         List sandboxes available in polyswarm.
