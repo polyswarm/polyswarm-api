@@ -1,5 +1,5 @@
 # https://www.python.org/dev/peps/pep-0008/#module-level-dunder-names
-__version__ = '3.6.0'
+__version__ = '3.5.2'
 __release_url__ = 'https://api.github.com/repos/polyswarm/polyswarm-api/releases/latest'
 
 from . import api
