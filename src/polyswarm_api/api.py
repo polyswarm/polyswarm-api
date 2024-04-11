@@ -136,7 +136,7 @@ class PolyswarmAPI(object):
         logger.info('Searching for metadata %s', query)
         return resources.Metadata.get(self, query=query, community=self.community, include=include, exclude=exclude, ips=ips, urls=urls, domains=domains).result()
 
-    def iocs_by_hash(self, hash_type, hash_value, hide_known_good=False, beta=False):
+    def iocs_by_hash(self, hash_type, hash_value, hide_known_good=False, beta=False, triggered_by=None):
         """
         Retrieve IOCs by artifact hash
 
@@ -145,9 +145,9 @@ class PolyswarmAPI(object):
         :return: Generator of IOC resources
         """
         logger.info('Getting IOCs by hash %s:%s', hash_type, hash_value)
-        return resources.IOC.iocs_by_hash(self, hash_value, hash_type, hide_known_good=hide_known_good, beta=beta).result()
+        return resources.IOC.iocs_by_hash(self, hash_value, hash_type, hide_known_good=hide_known_good, beta=beta, triggered_by=triggered_by).result()
 
-    def search_by_ioc(self, ip=None, domain=None, ttp=None, imphash=None):
+    def search_by_ioc(self, ip=None, domain=None, ttp=None, imphash=None, triggered_by=None):
         """
         Search artifacts by IOC (ip, domain, ttp, or imphash)
         
@@ -158,7 +158,7 @@ class PolyswarmAPI(object):
         :return: Generator of ArtifactInstance resources
         """
         logger.info('Searching by ioc %s', dict(ip=ip, domain=domain, ttp=ttp, imphash=imphash))
-        return resources.IOC.ioc_search(self, ip=ip, domain=domain, ttp=ttp, imphash=imphash).result()
+        return resources.IOC.ioc_search(self, ip=ip, domain=domain, ttp=ttp, imphash=imphash, triggered_by=triggered_by).result()
 
     def check_known_hosts(self, ips=[], domains=[]):
         """
