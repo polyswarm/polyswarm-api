@@ -245,7 +245,7 @@ class PolyswarmAPI(object):
                                                          scan_config=scan_config,
                                                          community=self.community).result()
             instance.upload_file(artifact)
-            return resources.ArtifactInstance.update(self, id=instance.id).result()
+            return resources.ArtifactInstance.update(self, id=instance.id, community=self.community).result()
         else:
             raise exceptions.InvalidValueException('Artifacts should be a path to a file or a LocalArtifact instance')
 
@@ -716,7 +716,7 @@ class PolyswarmAPI(object):
                                                      vm_slug=vm_slug,
                                                      network_enabled=network_enabled).result()
             task.upload_file(artifact)
-            return resources.SandboxTask.update_file(self, id=task.id).result()
+            return resources.SandboxTask.update_file(self, id=task.id, community=self.community).result()
         else:
             raise exceptions.InvalidValueException(
                 'Artifacts should be a path to a file or a LocalArtifact instance')
@@ -733,7 +733,7 @@ class PolyswarmAPI(object):
                                                  browser=browser,
                                                  network_enabled=True).result()
         task.upload_file(artifact)
-        return resources.SandboxTask.update_file(self, id=task.id).result()
+        return resources.SandboxTask.update_file(self, id=task.id, community=self.community).result()
 
     def sandbox_providers(self):
         """
