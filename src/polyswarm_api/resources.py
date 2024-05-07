@@ -1119,3 +1119,11 @@ class Events(core.BaseJsonResource):
         self.source = content['source']
         self.team_account_id = content['team_account_id']
         self.user_account_id = content['user_account_id']
+
+
+class ReportTask(core.BaseJsonResource):
+    RESOURCE_ENDPOINT = "/reports"
+
+
+class ReportTemplate(core.BaseJsonResource):
+    RESOURCE_ENDPOINT = "/reports/templates"

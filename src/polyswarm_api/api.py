@@ -35,6 +35,11 @@ class PolyswarmAPI(object):
         self.session = polyswarm_api.core.PolyswarmSession(key, retries=settings.DEFAULT_RETRIES, verify=verify, **kwargs)
         self._engines = None
 
+    def __repr__(self):
+        clsname = '{0.__module__}.{0.__name__}'.format(self.__class__)
+        attrs = 'uri={0.uri!r}, community={0.community!r}, timeout={0.timeout!r}'.format(self)
+        return '<{}({}) at 0x{:x}>'.format(clsname, attrs, id(self))
+
     @property
     def engines(self):
         if not self._engines:
@@ -823,7 +828,8 @@ class PolyswarmAPI(object):
         logger.info('List events')
         return resources.Events.list(self, **kwargs).result()
 
-    def __repr__(self):
-        clsname = '{0.__module__}.{0.__name__}'.format(self.__class__)
-        attrs = 'uri={0.uri!r}, community={0.community!r}, timeout={0.timeout!r}'.format(self)
-        return '<{}({}) at 0x{:x}>'.format(clsname, attrs, id(self))
+    def report_create(self, **kwargs):
+        return resources.ReportTask.create(self, **kwargs).result()
+
+    def report_get(self, **kwargs):
+        return resources.ReportTask.get(self, **kwargs).result()
