@@ -1124,6 +1124,24 @@ class Events(core.BaseJsonResource):
 class ReportTask(core.BaseJsonResource):
     RESOURCE_ENDPOINT = "/reports"
 
+    def __init__(self, content, api=None):
+        super(ReportTask, self).__init__(content, api=api)
+        self.url = content['url']
+
+    def download_report(self, folder=None):
+        """ This method is special, in that it is simply for downloading from S3 """
+        return core.PolyswarmRequest(
+            self.api,
+            {
+                'method': 'GET',
+                'url': self.url,
+                'stream': True,
+                'headers': {'Authorization': None}
+            },
+            result_parser=LocalArtifact,
+            folder=folder,
+        ).execute()
+
 
 class ReportTemplate(core.BaseJsonResource):
     RESOURCE_ENDPOINT = "/reports/templates"

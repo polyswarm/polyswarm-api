@@ -833,3 +833,9 @@ class PolyswarmAPI(object):
 
     def report_get(self, **kwargs):
         return resources.ReportTask.get(self, **kwargs).result()
+
+    def report_download(self, report_id, folder):
+        report = resources.ReportTask.get(self, id=report_id).result()
+        result = report.download_report(folder=folder).result()
+        result.handle.close()
+        return result
