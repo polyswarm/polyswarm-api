@@ -1125,7 +1125,17 @@ class ReportTask(core.BaseJsonResource):
     RESOURCE_ENDPOINT = "/reports"
 
     def __init__(self, content, api=None):
-        super(ReportTask, self).__init__(content, api=api)
+        super().__init__(content, api=api)
+        self.id = content['id']
+        self.type = content['type']
+        self.format = content['format']
+        self.state = content['state']
+        self.community = content['community']
+        self.created = content['created']
+        self.template_id = content.get('template_id')
+        self.template_metadata = content.get('template_metadata', {})
+        self.sandbox_task_id = content.get('sandbox_task_id')
+        self.instance_id = content.get('instance_id')
         self.url = content['url']
 
     def download_report(self, folder=None):
