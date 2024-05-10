@@ -1158,11 +1158,13 @@ class ReportTemplate(core.BaseJsonResource):
 
     def __init__(self, content, api=None):
         super().__init__(content, api=api)
-        self.id = content['id']
-        self.template_name = content['template_name']
-        self.includes = content.get('includes')
-        self.excludes = content.get('excludes')
-        self.primary_color = content.get('primary_color')
-        self.footer_text = content.get('footer_text')
-        self.last_page_text = content.get('last_page_text')
-        self.is_default = content.get('is_default', False)
+        if content:
+            self.id = content['id']
+            self.created = content['created']
+            self.template_name = content['template_name']
+            self.includes = content.get('includes')
+            self.excludes = content.get('excludes')
+            self.primary_color = content.get('primary_color')
+            self.footer_text = content.get('footer_text')
+            self.last_page_text = content.get('last_page_text')
+            self.is_default = content.get('is_default', False)

@@ -839,3 +839,15 @@ class PolyswarmAPI(object):
         result = report.download_report(folder=folder).result()
         result.handle.close()
         return result
+
+    def report_template_create(self, **kwargs):
+        return resources.ReportTemplate.create(self, **kwargs).result()
+
+    def report_template_get(self, **kwargs):
+        return resources.ReportTemplate.get(self, **kwargs).result()
+
+    def report_template_delete(self, **kwargs):
+        return resources.ReportTemplate.delete(self, **kwargs).result()
+
+    def report_template_list(self, **kwargs):
+        return resources.ReportTemplate.list(self, **kwargs).result()
