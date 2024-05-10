@@ -852,5 +852,8 @@ class PolyswarmAPI(object):
     def report_template_default(self, template_id):
         return resources.ReportTemplate.update(self, id=template_id, is_default=True).result()
 
-    def report_template_list(self, **kwargs):
-        return resources.ReportTemplate.list(self, **kwargs).result()
+    def report_template_list(self, is_default=None):
+        params = {}
+        if is_default is not None:
+            params['is_default'] = is_default
+        return resources.ReportTemplate.list(self, **params).result()
