@@ -23,7 +23,6 @@ setup(
         'future~=0.18',
         'python-dateutil~=2.8',
     ],
-    extras_require={':python_version < "3.0"': ['enum34==1.1.6']},
     include_package_data=True,
     packages=find_packages('src'),
     package_dir={'': 'src'},
