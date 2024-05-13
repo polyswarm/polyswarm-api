@@ -840,6 +840,22 @@ class PolyswarmAPI(object):
         result.handle.close()
         return result
 
+    def report_template_logo_download(self, template_id, folder):
+        report = resources.ReportTemplate.get(self, id=template_id).result()
+        result = report.download_logo(folder).result()
+        result.handle.close()
+        return result
+
+    def report_template_logo_delete(self, template_id):
+        report = resources.ReportTemplate.get(self, id=template_id).result()
+        result = report.delete_logo().result()
+        return result
+
+    def report_template_logo_upload(self, template_id, logo_file, content_tpe):
+        report = resources.ReportTemplate.get(self, id=template_id).result()
+        result = report.upload_logo(logo_file, content_tpe).result()
+        return result
+
     def report_template_create(self, **kwargs):
         return resources.ReportTemplate.create(self, **kwargs).result()
 

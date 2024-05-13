@@ -539,3 +539,36 @@ def parse_isoformat(date_string):
         return parser.isoparse(date_string)
     else:
         return None
+
+
+def concatenate_api_uri(api, uri):
+    """
+    This function concatenates a base API URL and a URI, removing any
+    overlapping parts at the end of the URL and start of the URI, except
+    when the uri is a full URL.
+
+    >>> concatenate_api_uri("http://host.com/api/v3", None) is None
+    True
+    >>> concatenate_api_uri("http://host.com/api/v3", "http://example.com/v3/resource/123")
+    'http://example.com/v3/resource/123'
+    >>> concatenate_api_uri("http://host.com/api/v3", "/v3/resource/123")
+    'http://host.com/api/v3/resource/123'
+    >>> concatenate_api_uri("http://host.com/api/v3", "/resource/123")
+    'http://host.com/api/v3/resource/123'
+    """
+    if not uri:
+        return None
+    if uri.startswith('http'):
+        # uri is a full URL
+        return uri
+    # Remove the starting '/' from uri if it exists
+    uri = uri[1:] if uri.startswith('/') else uri
+    # Get the last part of the api
+    last_part_api = api.split('/')[-1]
+    # Check if uri starts with the last part of api
+    if uri.startswith(last_part_api):
+        # Remove the overlapping part from the start of uri
+        uri = uri[len(last_part_api):]
+    # Join the api and uri
+    result = api.rstrip('/') + '/' + uri.lstrip('/')
+    return result

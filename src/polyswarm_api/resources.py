@@ -1168,3 +1168,50 @@ class ReportTemplate(core.BaseJsonResource):
             self.footer_text = content.get('footer_text')
             self.last_page_text = content.get('last_page_text')
             self.is_default = content.get('is_default', False)
+            self.logo_content_length = content.get('logo_content_length')
+            self.logo_url = core.concatenate_api_uri(self.api.uri, content.get('logo_url'))
+            self.logo_content_type = content.get('logo_content_type')
+            self.logo_height = content.get('logo_height')
+            self.logo_width = content.get('logo_width')
+
+    def download_logo(self, folder):
+        return core.PolyswarmRequest(
+            self.api,
+            {
+                'method': 'GET',
+                'url': self.logo_url,
+            },
+            result_parser=LocalArtifact,
+            folder=folder,
+        ).execute()
+
+    def delete_logo(self):
+        return core.PolyswarmRequest(
+            self.api,
+            {
+                'method': 'DELETE',
+                'url': self.logo_url,
+            },
+        ).execute()
+
+    def upload_logo(self, logo_file, content_tpe):
+        if not logo_file:
+            raise exceptions.InvalidValueException('A local file must be provided in order to upload')
+        logo_file.seek(0, io.SEEK_END)
+        length = logo_file.tell()
+        logo_file.seek(0)
+        if not length:
+            raise exceptions.InvalidValueException('Empty file')
+        # r = requests.put(self.upload_url, data=logo_file, **kwargs)
+        # r.raise_for_status()
+        # return r
+        return core.PolyswarmRequest(
+            self.api,
+            {
+                'method': 'PUT',
+                'url': '{}/reports/templates/logo?id={}'.format(self.api.uri, self.id),
+                'data': logo_file,
+                'headers': {'Content-Type': content_tpe}
+            },
+            result_parser=self.__class__
+        ).execute()
