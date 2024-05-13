@@ -859,6 +859,9 @@ class PolyswarmAPI(object):
     def report_template_create(self, **kwargs):
         return resources.ReportTemplate.create(self, **kwargs).result()
 
+    def report_template_update(self, template_id, **kwargs):
+        return resources.ReportTemplate.update(self, id=template_id, **kwargs).result()
+
     def report_template_get(self, template_id):
         return resources.ReportTemplate.get(self, id=template_id).result()
 
