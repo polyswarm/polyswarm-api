@@ -35,6 +35,11 @@ class PolyswarmAPI(object):
         self.session = polyswarm_api.core.PolyswarmSession(key, retries=settings.DEFAULT_RETRIES, verify=verify, **kwargs)
         self._engines = None
 
+    def __repr__(self):
+        clsname = '{0.__module__}.{0.__name__}'.format(self.__class__)
+        attrs = 'uri={0.uri!r}, community={0.community!r}, timeout={0.timeout!r}'.format(self)
+        return '<{}({}) at 0x{:x}>'.format(clsname, attrs, id(self))
+
     @property
     def engines(self):
         if not self._engines:
@@ -823,7 +828,48 @@ class PolyswarmAPI(object):
         logger.info('List events')
         return resources.Events.list(self, **kwargs).result()
 
-    def __repr__(self):
-        clsname = '{0.__module__}.{0.__name__}'.format(self.__class__)
-        attrs = 'uri={0.uri!r}, community={0.community!r}, timeout={0.timeout!r}'.format(self)
-        return '<{}({}) at 0x{:x}>'.format(clsname, attrs, id(self))
+    def report_create(self, **kwargs):
+        return resources.ReportTask.create(self, **kwargs).result()
+
+    def report_get(self, **kwargs):
+        return resources.ReportTask.get(self, **kwargs).result()
+
+    def report_download(self, report_id, folder):
+        report = resources.ReportTask.get(self, id=report_id).result()
+        result = report.download_report(folder=folder).result()
+        result.handle.close()
+        return result
+
+    def report_template_logo_download(self, template_id, folder):
+        report = resources.ReportTemplate.get(self, id=template_id).result()
+        result = report.download_logo(folder).result()
+        result.handle.close()
+        return result
+
+    def report_template_logo_delete(self, template_id):
+        report = resources.ReportTemplate.get(self, id=template_id).result()
+        result = report.delete_logo().result()
+        return result
+
+    def report_template_logo_upload(self, template_id, logo_file, content_tpe):
+        report = resources.ReportTemplate.get(self, id=template_id).result()
+        result = report.upload_logo(logo_file, content_tpe).result()
+        return result
+
+    def report_template_create(self, **kwargs):
+        return resources.ReportTemplate.create(self, **kwargs).result()
+
+    def report_template_update(self, template_id, **kwargs):
+        return resources.ReportTemplate.update(self, id=template_id, **kwargs).result()
+
+    def report_template_get(self, template_id):
+        return resources.ReportTemplate.get(self, id=template_id).result()
+
+    def report_template_delete(self, template_id):
+        return resources.ReportTemplate.delete(self, id=template_id).result()
+
+    def report_template_list(self, is_default=None):
+        params = {}
+        if is_default is not None:
+            params['is_default'] = is_default
+        return resources.ReportTemplate.list(self, **params).result()

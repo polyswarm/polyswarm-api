@@ -3,7 +3,7 @@
 An interface to the PolySwarm Customer APIs.
 For an easy-to-use CLI tool, or as an example of how to use these APIs, please see [polyswarm-cli](https://github.com/polyswarm/polyswarm-cli)
 
-Supports Python 2.7 and greater.
+Supports Python 3.7 and greater.
 
 ## Installation
 

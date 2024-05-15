@@ -1119,3 +1119,99 @@ class Events(core.BaseJsonResource):
         self.source = content['source']
         self.team_account_id = content['team_account_id']
         self.user_account_id = content['user_account_id']
+
+
+class ReportTask(core.BaseJsonResource):
+    RESOURCE_ENDPOINT = "/reports"
+
+    def __init__(self, content, api=None):
+        super().__init__(content, api=api)
+        self.id = content['id']
+        self.type = content['type']
+        self.format = content['format']
+        self.state = content['state']
+        self.community = content['community']
+        self.created = content['created']
+        self.template_id = content.get('template_id')
+        self.template_metadata = content.get('template_metadata', {})
+        self.sandbox_task_id = content.get('sandbox_task_id')
+        self.instance_id = content.get('instance_id')
+        self.url = content['url']
+
+    def download_report(self, folder=None):
+        """ This method is special, in that it is simply for downloading from S3 """
+        return core.PolyswarmRequest(
+            self.api,
+            {
+                'method': 'GET',
+                'url': self.url,
+                'stream': True,
+                'headers': {'Authorization': None}
+            },
+            result_parser=LocalArtifact,
+            folder=folder,
+        ).execute()
+
+
+class ReportTemplate(core.BaseJsonResource):
+    RESOURCE_ENDPOINT = "/reports/templates"
+
+    def __init__(self, content, api=None):
+        super().__init__(content, api=api)
+        if content:
+            self.id = content['id']
+            self.created = content['created']
+            self.template_name = content['template_name']
+            self.includes = content.get('includes')
+            self.excludes = content.get('excludes')
+            self.primary_color = content.get('primary_color')
+            self.footer_text = content.get('footer_text')
+            self.last_page_text = content.get('last_page_text')
+            self.is_default = content.get('is_default', False)
+            self.logo_content_length = content.get('logo_content_length')
+            self.logo_url = "{}/reports/templates/logo?id={}".format(self.api.uri, self.id)
+            self.logo_content_type = content.get('logo_content_type')
+            self.logo_height = content.get('logo_height')
+            self.logo_width = content.get('logo_width')
+
+    def download_logo(self, folder):
+        return core.PolyswarmRequest(
+            self.api,
+            {
+                'method': 'GET',
+                'url': self.logo_url,
+            },
+            result_parser=LocalArtifact,
+            folder=folder,
+        ).execute()
+
+    def delete_logo(self):
+        return core.PolyswarmRequest(
+            self.api,
+            {
+                'method': 'DELETE',
+                'url': self.logo_url,
+            },
+        ).execute()
+
+    def upload_logo(self, logo_file, content_tpe):
+        if not logo_file:
+            raise exceptions.InvalidValueException('A local file must be provided in order to upload')
+        logo_file.seek(0, io.SEEK_END)
+        length = logo_file.tell()
+        logo_file.seek(0)
+        if not length:
+            raise exceptions.InvalidValueException('Empty file')
+        # r = requests.put(self.upload_url, data=logo_file, **kwargs)
+        # r.raise_for_status()
+        # return r
+        return core.PolyswarmRequest(
+            self.api,
+            {
+                'method': 'PUT',
+                'url': '{}/reports/templates/logo?id={}'.format(self.api.uri, self.id),
+                'data': logo_file,
+                'headers': {'Content-Type': content_tpe}
+            },
+            result_parser=self.__class__
+        ).execute()
