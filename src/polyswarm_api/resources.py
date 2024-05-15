@@ -1169,7 +1169,7 @@ class ReportTemplate(core.BaseJsonResource):
             self.last_page_text = content.get('last_page_text')
             self.is_default = content.get('is_default', False)
             self.logo_content_length = content.get('logo_content_length')
-            self.logo_url = core.concatenate_api_uri(self.api.uri, content.get('logo_url'))
+            self.logo_url = "{}/reports/templates/logo?id={}".format(self.api.uri, self.id)
             self.logo_content_type = content.get('logo_content_type')
             self.logo_height = content.get('logo_height')
             self.logo_width = content.get('logo_width')
