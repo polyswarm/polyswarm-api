@@ -868,9 +868,6 @@ class PolyswarmAPI(object):
     def report_template_delete(self, template_id):
         return resources.ReportTemplate.delete(self, id=template_id).result()
 
-    def report_template_default(self, template_id):
-        return resources.ReportTemplate.update(self, id=template_id, is_default=True).result()
-
     def report_template_list(self, is_default=None):
         params = {}
         if is_default is not None:
