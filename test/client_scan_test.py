@@ -7,7 +7,6 @@ import tarfile
 from contextlib import contextmanager
 
 import vcr as vcr_
-from future.utils import string_types
 
 from polyswarm_api.api import PolyswarmAPI
 from polyswarm_api import core
@@ -35,7 +34,7 @@ def temp_dir(files_dict):
     with TemporaryDirectory() as tmp_dir:
         files = []
         for file_name, file_content in files_dict.items():
-            mode = 'w' if isinstance(file_content, string_types) else 'wb'
+            mode = 'w' if isinstance(file_content, str) else 'wb'
             file_path = os.path.join(tmp_dir, file_name)
             open(file_path, mode=mode).write(file_content)
             files.append(file_path)

@@ -7,8 +7,6 @@ from enum import Enum
 from hashlib import sha256 as _sha256, sha1 as _sha1, md5 as _md5
 from urllib.parse import urlparse
 
-from future.utils import raise_from, string_types
-
 # Windows might raise an OSError instead of an ImportError like this
 # OSError: [WinError 193] %1 is not a valid Win32 application
 try:
@@ -725,7 +723,7 @@ class LocalArtifact(core.BaseResource, core.Hashable):
 
     @classmethod
     def from_path(cls, api, path, artifact_type=None, analyze=False, artifact_name=None, **kwargs):
-        if not isinstance(path, string_types):
+        if not isinstance(path, str):
             raise exceptions.InvalidValueException('Path should be a string')
         artifact_name = artifact_name or os.path.basename(path)
         handle = open(path, mode='rb', **kwargs)
@@ -735,7 +733,7 @@ class LocalArtifact(core.BaseResource, core.Hashable):
 
     @classmethod
     def from_content(cls, api, content, artifact_name=None, artifact_type=None, analyze=False):
-        if isinstance(content, string_types):
+        if isinstance(content, str):
             content = content.encode("utf8")
         handle = io.BytesIO(content)
         # create the LocalHandle with the given handle and don't write anything to it
