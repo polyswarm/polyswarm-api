@@ -3,11 +3,7 @@ import time
 
 import polyswarm_api.core
 
-try:
-    from urllib.parse import urlparse
-except ImportError:
-    from urlparse import urlparse
-
+from urllib.parse import urlparse
 from future.utils import string_types
 
 from polyswarm_api import exceptions, resources, settings
