@@ -19,8 +19,8 @@ setup(
     license='MIT',
     python_requires='>=3.7,<4',
     install_requires=[
-        'requests~=2.22',
-        'python-dateutil~=2.8',
+        'requests~=2.31',
+        'python-dateutil~=2.9',
     ],
     include_package_data=True,
     packages=find_packages('src'),
