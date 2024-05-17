@@ -153,7 +153,7 @@ class IOC(core.BaseJsonResource):
             api,
             {
                 'method': 'GET',
-                'url': '{}/{}/{}/{}'.format(api.uri, path, hash_type, hash_value),
+                'url': f'{api.uri}/{path}/{hash_type}/{hash_value}',
                 'params': {
                     'hide_known_good': hide_known_good,
                     'community': api.community,
@@ -177,7 +177,7 @@ class IOC(core.BaseJsonResource):
             api,
             {
                 'method': 'GET',
-                'url': '{}/ioc/search'.format(api.uri),
+                'url': f'{api.uri}/ioc/search',
                 'params': params
             },
             result_parser=cls,
@@ -189,7 +189,7 @@ class IOC(core.BaseJsonResource):
             api,
             {
                 'method': 'GET',
-                'url': '{}/ioc/known'.format(api.uri),
+                'url': f'{api.uri}/ioc/known',
                 'params': {
                     'ip': ips,
                     'domain': domains
@@ -204,7 +204,7 @@ class IOC(core.BaseJsonResource):
             api,
             {
                 'method': 'POST',
-                'url': '{}/ioc/known'.format(api.uri),
+                'url': f'{api.uri}/ioc/known',
                 'json': {
                     'type': type,
                     'host': host,
@@ -221,7 +221,7 @@ class IOC(core.BaseJsonResource):
             api,
             {
                 'method': 'POST',
-                'url': '{}/ioc/known'.format(api.uri),
+                'url': f'{api.uri}/ioc/known',
                 'json': {
                     'type': type,
                     'host': host,
@@ -238,7 +238,7 @@ class IOC(core.BaseJsonResource):
             api,
             {
                 'method': 'PUT',
-                'url': '{}/ioc/known'.format(api.uri),
+                'url': f'{api.uri}/ioc/known',
                 'json': {
                     'id': id,
                     'type': type,
@@ -256,7 +256,7 @@ class IOC(core.BaseJsonResource):
             api,
             {
                 'method': 'DELETE',
-                'url': '{}/ioc/known'.format(api.uri),
+                'url': f'{api.uri}/ioc/known',
                 'params': {
                     'id': id
                 }
@@ -336,7 +336,7 @@ class ArtifactInstance(core.BaseJsonResource, core.Hashable):
             api,
             {
                 'method': 'HEAD',
-                'url': '{}/search/hash/{}'.format(api.uri, hash_type),
+                'url': f'{api.uri}/search/hash/{hash_type}',
                 'params': {
                     'hash': hash_value,
                     'community': api.community,
@@ -350,7 +350,7 @@ class ArtifactInstance(core.BaseJsonResource, core.Hashable):
             api,
             {
                 'method': 'GET',
-                'url': '{}/search/hash/{}'.format(api.uri, hash_type),
+                'url': f'{api.uri}/search/hash/{hash_type}',
                 'params': {
                     'hash': hash_value,
                     'community': api.community,
@@ -365,7 +365,7 @@ class ArtifactInstance(core.BaseJsonResource, core.Hashable):
             api,
             {
                 'method': 'GET',
-                'url': '{}/search/url'.format(api.uri),
+                'url': f'{api.uri}/search/url',
                 'params': {
                     'url': url,
                     'community': api.community,
@@ -380,7 +380,7 @@ class ArtifactInstance(core.BaseJsonResource, core.Hashable):
             api,
             {
                 'method': 'GET',
-                'url': '{}/search/instances'.format(api.uri),
+                'url': f'{api.uri}/search/instances',
                 'params': {
                     'hash': hash_value,
                     'community': api.community,
@@ -393,7 +393,7 @@ class ArtifactInstance(core.BaseJsonResource, core.Hashable):
     def submit(cls, api, artifact, artifact_name, artifact_type, scan_config=None):
         parameters = {
             'method': 'POST',
-            'url': '{}/consumer/submission/{}'.format(api.uri, api.community),
+            'url': f'{api.uri}/consumer/submission/{api.community}',
             'files': {
                 'file': (artifact_name, artifact),
             },
@@ -414,8 +414,8 @@ class ArtifactInstance(core.BaseJsonResource, core.Hashable):
     def rescan(cls, api, hash_value, hash_type, scan_config=None):
         parameters = {
             'method': 'POST',
-            'url': '{}/consumer/submission/{}/rescan/{}/{}'.format(api.uri, api.community, hash_type, hash_value),
-            'data': { 'community': api.community }
+            'url': f'{api.uri}/consumer/submission/{api.community}/rescan/{hash_type}/{hash_value}',
+            'data': {'community': api.community}
         }
         if scan_config:
             parameters['data']['scan-config'] = scan_config
@@ -429,7 +429,7 @@ class ArtifactInstance(core.BaseJsonResource, core.Hashable):
     def rescan_id(cls, api, submission_id, scan_config=None):
         parameters = {
             'method': 'POST',
-            'url': '{}/consumer/submission/{}/rescan/{}'.format(api.uri, api.community, int(submission_id)),
+            'url': f'{api.uri}/consumer/submission/{api.community}/rescan/{int(submission_id)}',
         }
         if scan_config:
             parameters.setdefault('data', {})['scan-config'] = scan_config
@@ -445,7 +445,7 @@ class ArtifactInstance(core.BaseJsonResource, core.Hashable):
             api,
             {
                 'method': 'GET',
-                'url': '{}/consumer/submission/{}/{}'.format(api.uri, api.community, int(submission_id)),
+                'url': f'{api.uri}/consumer/submission/{api.community}/{int(submission_id)}',
             },
             result_parser=cls,
         ).execute()
@@ -454,7 +454,7 @@ class ArtifactInstance(core.BaseJsonResource, core.Hashable):
     def metadata_rerun(cls, api, hashes, analyses=None, skip_es=None):
         parameters = {
             'method': 'POST',
-            'url': '{}/consumer/metadata'.format(api.uri),
+            'url': f'{api.uri}/consumer/metadata',
             'json': {'hashes': hashes},
         }
         if analyses:
@@ -646,7 +646,7 @@ class LocalArtifact(core.BaseResource, core.Hashable):
             api,
             {
                 'method': 'GET',
-                'url': '{}/consumer/download/{}/{}'.format(api.uri, hash_type, hash_value),
+                'url': f'{api.uri}/consumer/download/{hash_type}/{hash_value}',
                 'stream': True,
                 'params': { 'community': api.community },
             },
@@ -662,7 +662,7 @@ class LocalArtifact(core.BaseResource, core.Hashable):
             api,
             {
                 'method': 'GET',
-                'url': '{}/instance/download'.format(api.uri),
+                'url': f'{api.uri}/instance/download',
                 'stream': True,
                 'params': {'instance_id': instance_id},
             },
@@ -992,8 +992,8 @@ class Hash(core.Hashable):
         """
         if issubclass(type(hash_), core.Hashable):
             if hash_type and hash_.hash_type != hash_type:
-                raise exceptions.InvalidValueException('Detected hash type {}, got {} for hashable {}'
-                                                       .format(hash_.hash_type, hash_type, hash_.hash))
+                raise exceptions.InvalidValueException(
+                    f'Detected hash type {hash_.hash_type}, got {hash_type} for hashable {hash_.hash}')
             return Hash(hash_.hash, hash_type=hash_type)
         return Hash(hash_, hash_type=hash_type)
 
@@ -1004,7 +1004,7 @@ class Hash(core.Hashable):
         return self.hash
 
     def __repr__(self):
-        return "{}={}".format(self.hash_type, self.hash)
+        return f"{self.hash_type}={self.hash}"
 
 
 class SandboxTask(core.BaseJsonResource):
@@ -1163,7 +1163,7 @@ class ReportTemplate(core.BaseJsonResource):
             self.last_page_text = content.get('last_page_text')
             self.is_default = content.get('is_default', False)
             self.logo_content_length = content.get('logo_content_length')
-            self.logo_url = "{}/reports/templates/logo?id={}".format(self.api.uri, self.id)
+            self.logo_url = f"{self.api.uri}/reports/templates/logo?id={self.id}"
             self.logo_content_type = content.get('logo_content_type')
             self.logo_height = content.get('logo_height')
             self.logo_width = content.get('logo_width')
@@ -1203,7 +1203,7 @@ class ReportTemplate(core.BaseJsonResource):
             self.api,
             {
                 'method': 'PUT',
-                'url': '{}/reports/templates/logo?id={}'.format(self.api.uri, self.id),
+                'url': f'{self.api.uri}/reports/templates/logo?id={self.id}',
                 'data': logo_file,
                 'headers': {'Content-Type': content_tpe}
             },

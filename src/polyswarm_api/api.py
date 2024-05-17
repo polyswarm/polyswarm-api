@@ -66,8 +66,8 @@ class PolyswarmAPI:
             if scan_result.failed or scan_result.window_closed:
                 return scan_result
             elif -1 < timeout < time.time() - start:
-                raise exceptions.TimeoutException('Timed out waiting for scan {} to finish. Please try again.'
-                                                  .format(scan))
+                raise exceptions.TimeoutException(
+                    f'Timed out waiting for scan {scan} to finish. Please try again.')
             else:
                 time.sleep(settings.POLL_FREQUENCY)
 

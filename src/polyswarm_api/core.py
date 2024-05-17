@@ -114,13 +114,12 @@ class PolyswarmRequest(object):
 
     def _bad_status_message(self):
         request_parameters = json.dumps(self.request_parameters, indent=4, sort_keys=True, cls=RequestParamsEncoder)
-        message = "Error when running the request:\n{}\n" \
-                  "Return code: {}\n" \
-                  "Message: {}".format(request_parameters,
-                                       self.status_code,
-                                       self._result)
+        message = f"Error when running the request:\n{request_parameters}\n" \
+                  f"Return code: {self.status_code}\n" \
+                  f"Message: {self._result}"
         if self.errors:
-            message = '{}\nErrors:\n{}'.format(message, '\n'.join(str(error) for error in self.errors))
+            errors = '\n'.join(str(error) for error in self.errors)
+            message = f'{message}\nErrors:\n{errors}'
         return message
 
     def _extract_json_body(self, result):
@@ -142,10 +141,10 @@ class PolyswarmRequest(object):
             if self.status_code // 100 != 2:
                 self._extract_json_body(result)
                 if self.status_code == 429:
-                    message = '{} This may mean you need to purchase a ' \
+                    message = f'{self._result} This may mean you need to purchase a ' \
                               'larger package, or that you have exceeded ' \
                               'rate limits. If you continue to have issues, ' \
-                              'please contact us at info@polyswarm.io.'.format(self._result)
+                              'please contact us at info@polyswarm.io.'
                     raise exceptions.UsageLimitsExceededException(self, message)
                 elif self.status_code == 404:
                     raise exceptions.NotFoundException(self, self._result)
@@ -183,7 +182,7 @@ class PolyswarmRequest(object):
             if self.status_code == 404:
                 raise exceptions.NotFoundException(self, 'The requested endpoint does not exist.') from e
             else:
-                err_msg = 'Server returned non-JSON response [{}]: {}'.format(self.status_code, result)
+                err_msg = f'Server returned non-JSON response [{self.status_code}]: {result}'
                 raise exceptions.RequestException(self, err_msg) from e
 
     def __iter__(self):
@@ -254,7 +253,7 @@ class BaseJsonResource(BaseResource):
     def __int__(self):
         id_ = getattr(self, 'id', None)
         if id_ is None:
-            raise TypeError('Resource {} does not have an id and can not be cast to int'.format(type(self).__name__))
+            raise TypeError(f'Resource {type(self).__name__} does not have an id and can not be cast to int')
         return int(id_)
 
     def _get(self, path, default=None, content=None):
@@ -267,16 +266,16 @@ class BaseJsonResource(BaseResource):
         try:
             for attribute in path.split('.'):
                 if obj is None:
-                    raise KeyError('{} is None, can not resolve full path'.format(previous_attribute))
+                    raise KeyError(f'{previous_attribute} is None, can not resolve full path')
                 if attribute.endswith(']'):
                     # handling the list case, e.g.: "root.list_attr[2]"
                     attribute, _, index = attribute.rpartition('[')
                     index = int(index.rstrip(']'))
                     obj = obj[attribute]
                     if obj is None:
-                        raise KeyError('{} is None, but is it supposed to be a list'.format(attribute))
+                        raise KeyError(f'{attribute} is None, but is it supposed to be a list')
                     elif not isinstance(obj, list):
-                        raise ValueError('Can not access index for {}, it is not a list.'.format(attribute))
+                        raise ValueError(f'Can not access index for {attribute}, it is not a list.')
                     else:
                         obj = obj[index]
                 else:
@@ -490,7 +489,7 @@ class Hashable:
             self._hash_type = self.resolve_hash_type()
 
         if self._hash_type is None:
-            raise exceptions.InvalidValueException('Invalid hash provided: {}'.format(self._hash))
+            raise exceptions.InvalidValueException(f'Invalid hash provided: {self._hash}')
 
         if validate_hash:
             self.validate()
@@ -510,8 +509,8 @@ class Hashable:
     def validate(self):
         hash_type = self.resolve_hash_type()
         if self.hash_type != hash_type:
-            raise exceptions.InvalidValueException('Detected hash type {}, got type {} for hash {}'
-                                                   .format(hash_type, self.hash_type, self.hash))
+            raise exceptions.InvalidValueException(
+                f'Detected hash type {hash_type}, got type {self.hash_type} for hash {self.hash}')
 
     def resolve_hash_type(self):
         for hash_type, validator in self.SUPPORTED_HASH_TYPES.items():
