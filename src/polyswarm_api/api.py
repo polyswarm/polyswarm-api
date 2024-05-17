@@ -11,7 +11,7 @@ from polyswarm_api import exceptions, resources, settings
 logger = logging.getLogger(__name__)
 
 
-class PolyswarmAPI(object):
+class PolyswarmAPI:
     """A synchronous interface to the public and private PolySwarm APIs."""
 
     def __init__(self, key, uri=None, community=None, timeout=None, verify=True, **kwargs):
