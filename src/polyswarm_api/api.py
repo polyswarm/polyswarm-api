@@ -4,7 +4,6 @@ import time
 import polyswarm_api.core
 
 from urllib.parse import urlparse
-from future.utils import string_types
 
 from polyswarm_api import exceptions, resources, settings
 
@@ -32,9 +31,9 @@ class PolyswarmAPI:
         self._engines = None
 
     def __repr__(self):
-        clsname = '{0.__module__}.{0.__name__}'.format(self.__class__)
-        attrs = 'uri={0.uri!r}, community={0.community!r}, timeout={0.timeout!r}'.format(self)
-        return '<{}({}) at 0x{:x}>'.format(clsname, attrs, id(self))
+        clsname = f'{self.__class__.__module__}.{self.__class__.__name__}'
+        attrs = f'uri={self.uri!r}, community={self.community!r}, timeout={self.timeout!r}'
+        return f'<{clsname}({attrs}) at 0x{id(self):x}>'
 
     @property
     def engines(self):
@@ -230,7 +229,7 @@ class PolyswarmAPI:
         if hasattr(artifact, 'read') and hasattr(artifact.read, '__call__'):
             artifact = resources.LocalArtifact.from_handle(self, artifact, artifact_name=artifact_name or '',
                                                            artifact_type=artifact_type)
-        elif isinstance(artifact, string_types):
+        elif isinstance(artifact, str):
             if artifact_type == resources.ArtifactType.FILE:
                 artifact = resources.LocalArtifact.from_path(self, artifact, artifact_type=artifact_type,
                                                              artifact_name=artifact_name)
@@ -285,7 +284,7 @@ class PolyswarmAPI:
         return resources.ArtifactInstance.rescan_id(self, scan, scan_config=scan_config).result()
 
     def _parse_rule(self, rule):
-        if isinstance(rule, string_types):
+        if isinstance(rule, str):
             rule, rule_id = resources.YaraRuleset(dict(yara=rule), api=self), None
         elif isinstance(rule, (resources.YaraRuleset, int)):
             rule, rule_id = None, rule
@@ -700,7 +699,7 @@ class PolyswarmAPI:
         if hasattr(artifact, 'read') and hasattr(artifact.read, '__call__'):
             artifact = resources.LocalArtifact.from_handle(self, artifact, artifact_name=artifact_name or '',
                                                            artifact_type=artifact_type)
-        elif isinstance(artifact, string_types):
+        elif isinstance(artifact, str):
             if artifact_type == resources.ArtifactType.FILE:
                 artifact = resources.LocalArtifact.from_path(self, artifact, artifact_type=artifact_type,
                                                              artifact_name=artifact_name)
