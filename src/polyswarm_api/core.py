@@ -3,10 +3,7 @@ import logging
 from copy import deepcopy
 from urllib3 import Retry
 from binascii import unhexlify
-try:
-    from json.decoder import JSONDecodeError
-except ImportError:
-    JSONDecodeError = ValueError
+from json.decoder import JSONDecodeError
 
 import requests
 import datetime as dt

@@ -13,10 +13,7 @@ from polyswarm_api.api import PolyswarmAPI
 from polyswarm_api import core
 from polyswarm_api import exceptions
 
-try:
-    from unittest import TestCase, mock
-except ImportError:
-    import mock
+from unittest import TestCase, mock
 
 
 vcr = vcr_.VCR(cassette_library_dir='test/vcr',
