@@ -956,9 +956,8 @@ class ArtifactType(Enum):
         try:
             return ArtifactType[value.upper()]
         except Exception as e:
-            raise raise_from(
-                exceptions.InvalidValueException(
-                    'Unable to get the artifact type from the provided value {}'.format(value)), e)
+            raise exceptions.InvalidValueException(
+                    f'Unable to get the artifact type from the provided value {value}') from e
 
     @staticmethod
     def to_string(artifact_type):
@@ -1101,7 +1100,7 @@ class SandboxProvider(core.BaseJsonResource):
     @classmethod
     def parse_result(cls, api, content, **kwargs):
         logger.debug('Parsing resource %s', cls.__name__)
-        return [super().parse_result(api, content[slug], **kwargs) for slug in content.keys()]
+        return [super(SandboxProvider, cls).parse_result(api, content[slug], **kwargs) for slug in content.keys()]
 
 
 class Events(core.BaseJsonResource):
