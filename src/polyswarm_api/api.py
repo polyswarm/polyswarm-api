@@ -44,11 +44,11 @@ class PolyswarmAPI:
 
     def refresh_engine_cache(self):
         """
-        Rrefresh the cached engine listing
+        Refresh the cached engine listing
         """
         engines = list(resources.Engine.list(self).result())
         if not engines:
-            raise exceptions.InvalidValueException("Recieved empty engines listing")
+            raise exceptions.InvalidValueException("Received empty engines listing")
         self._engines = engines
 
     def wait_for(self, scan, timeout=settings.DEFAULT_SCAN_TIMEOUT):

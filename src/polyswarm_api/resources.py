@@ -13,7 +13,7 @@ except ImportError:
 
 from future.utils import raise_from, string_types
 
-# Windows might rase an OSError instead of an ImportError like this
+# Windows might raise an OSError instead of an ImportError like this
 # OSError: [WinError 193] %1 is not a valid Win32 application
 try:
     import yara
