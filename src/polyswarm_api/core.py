@@ -8,7 +8,6 @@ from json.decoder import JSONDecodeError
 import requests
 import datetime as dt
 from dateutil import parser
-from future.utils import raise_from
 from requests.adapters import HTTPAdapter
 from urllib3.exceptions import InsecureRequestWarning
 
@@ -182,10 +181,10 @@ class PolyswarmRequest(object):
                 self._result = self.result_parser.parse_result(self.api_instance, result, **self.parser_kwargs)
         except JSONDecodeError as e:
             if self.status_code == 404:
-                raise raise_from(exceptions.NotFoundException(self, 'The requested endpoint does not exist.'), e)
+                raise exceptions.NotFoundException(self, 'The requested endpoint does not exist.') from e
             else:
                 err_msg = 'Server returned non-JSON response [{}]: {}'.format(self.status_code, result)
-                raise raise_from(exceptions.RequestException(self, err_msg), e)
+                raise exceptions.RequestException(self, err_msg) from e
 
     def __iter__(self):
         return self.consume_results()

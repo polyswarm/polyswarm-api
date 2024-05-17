@@ -20,7 +20,6 @@ setup(
     python_requires='>=3.7,<4',
     install_requires=[
         'requests~=2.22',
-        'future~=0.18',
         'python-dateutil~=2.8',
     ],
     include_package_data=True,
@@ -32,6 +31,9 @@ setup(
         'Operating System :: OS Independent',
         'Programming Language :: Python :: 3.7',
         'Programming Language :: Python :: 3.8',
+        'Programming Language :: Python :: 3.9',
+        'Programming Language :: Python :: 3.10',
+        'Programming Language :: Python :: 3.11',
         'Programming Language :: Python :: Implementation :: PyPy',
     ]
 )
