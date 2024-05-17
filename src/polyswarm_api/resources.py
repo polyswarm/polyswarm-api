@@ -27,7 +27,7 @@ class Engine(core.BaseJsonResource):
     RESOURCE_ENDPOINT = '/microengines'
 
     def __init__(self, content, api=None):
-        super(Engine, self).__init__(content=content, api=api)
+        super().__init__(content=content, api=api)
         self.id = str(content['id'])
         self.name = content['name']
 
@@ -89,7 +89,7 @@ class Metadata(core.BaseJsonResource):
     KNOWN_KEYS = {'artifact', 'exiftool', 'hash', 'lief', 'pefile', 'scan', 'strings'}
 
     def __init__(self, content, api=None):
-        super(Metadata, self).__init__(content=content, api=api)
+        super().__init__(content=content, api=api)
         self.created = core.parse_isoformat(self.artifact.get('created'))
 
         self.id = self._get('artifact.id')
@@ -138,7 +138,7 @@ class Metadata(core.BaseJsonResource):
         params.extend(('ips', v) for v in ips)
         params.extend(('urls', v) for v in urls)
         params.extend(('domains', v) for v in domains)
-        super_params, json_params = super(Metadata, cls)._get_params(**kwargs)
+        super_params, json_params = super()._get_params(**kwargs)
         params.extend(super_params.items())
         return params, json_params
 
@@ -269,8 +269,8 @@ class ArtifactInstance(core.BaseJsonResource, core.Hashable):
     RESOURCE_ENDPOINT = '/instance'
 
     def __init__(self, content, api=None):
-        super(ArtifactInstance, self).__init__(content=content, api=api,
-                                               hash_value=content['sha256'], hash_type='sha256')
+        super().__init__(content=content, api=api,
+                         hash_value=content['sha256'], hash_type='sha256')
         # Artifact fields
         self.sha256 = content['sha256']
         self.artifact_id = content.get('artifact_id')
@@ -493,7 +493,7 @@ class ArtifactArchive(core.BaseJsonResource):
     RESOURCE_ENDPOINT = '/consumer/download/stream'
 
     def __init__(self, content, api=None):
-        super(ArtifactArchive, self).__init__(content=content, api=api)
+        super().__init__(content=content, api=api)
         self.id = content['id']
         self.community = content['community']
         self.created = core.parse_isoformat(content['created'])
@@ -504,7 +504,7 @@ class AssertionsJob(core.BaseJsonResource):
     RESOURCE_ENDPOINT = '/consumer/assertions-job'
 
     def __init__(self, content, api=None):
-        super(AssertionsJob, self).__init__(content=content, api=api)
+        super().__init__(content=content, api=api)
         self.id = content['id']
         self.engine_id = content['engine_id']
         self.created = core.parse_isoformat(content['created'])
@@ -524,7 +524,7 @@ class VotesJob(core.BaseJsonResource):
     RESOURCE_ENDPOINT = '/consumer/votes-job'
 
     def __init__(self, content, api=None):
-        super(VotesJob, self).__init__(content=content, api=api)
+        super().__init__(content=content, api=api)
         self.id = content['id']
         self.engine_id = content['engine_id']
         self.created = core.parse_isoformat(content['created'])
@@ -575,7 +575,7 @@ class LocalArtifact(core.BaseResource, core.Hashable):
             raise exceptions.InvalidValueException('At least one of path or handle must be defined.')
 
         # initialize super classes and default values
-        super(LocalArtifact, self).__init__(response, api=api, hash_type='sha256')
+        super().__init__(response, api=api, hash_type='sha256')
         self.sha256 = None
         self.sha1 = None
         self.md5 = None
@@ -743,7 +743,7 @@ class LocalArtifact(core.BaseResource, core.Hashable):
     @property
     def hash(self):
         self.analyze_artifact()
-        return super(LocalArtifact, self).hash
+        return super().hash
 
     def analyze_artifact(self, force=False):
         if not self.analyzed or force:
@@ -770,7 +770,7 @@ class YaraRuleset(core.BaseJsonResource):
     RESOURCE_ENDPOINT = '/hunt/rule'
 
     def __init__(self, content, api=None):
-        super(YaraRuleset, self).__init__(content, api=api)
+        super().__init__(content, api=api)
         self.id = content.get('id')
         self.livescan_id = content.get('livescan_id')
         self.livescan_created = content.get('livescan_created')
@@ -790,7 +790,7 @@ class LiveHuntResult(core.BaseJsonResource):
     RESOURCE_ENDPOINT = '/hunt/live'
 
     def __init__(self, content, api=None):
-        super(LiveHuntResult, self).__init__(content=content, api=api)
+        super().__init__(content=content, api=api)
         self.id = content['id']
         self.livescan_id = content['livescan_id']
         self.instance_id = content['instance_id']
@@ -814,7 +814,7 @@ class HistoricalHunt(core.BaseJsonResource):
     RESOURCE_ENDPOINT = '/hunt/historical'
 
     def __init__(self, content, api=None):
-        super(HistoricalHunt, self).__init__(content=content, api=api)
+        super().__init__(content=content, api=api)
         # active only present for live   hunts
         self.id = content['id']
         self.created = core.parse_isoformat(content['created'])
@@ -836,7 +836,7 @@ class HistoricalHuntResult(core.BaseJsonResource):
     RESOURCE_ENDPOINT = '/hunt/historical/results'
 
     def __init__(self, content, api=None):
-        super(HistoricalHuntResult, self).__init__(content=content, api=api)
+        super().__init__(content=content, api=api)
         self.id = content['id']
         self.historicalscan_id = content['historicalscan_id']
         self.instance_id = content['instance_id']
@@ -850,6 +850,7 @@ class HistoricalHuntResult(core.BaseJsonResource):
         self.download_url = content.get('download_url')
         self.community = content.get('community')
 
+
 class HistoricalHuntResultList(HistoricalHuntResult):
     RESOURCE_ENDPOINT = '/hunt/historical/results/list'
 
@@ -859,7 +860,7 @@ class TagLink(core.BaseJsonResource):
     RESOURCE_ID_KEYS = ['hash']
 
     def __init__(self, content, api=None):
-        super(TagLink, self).__init__(content, api=api)
+        super().__init__(content, api=api)
         self.id = content.get('id')
         self.sha256 = content.get('sha256')
         self.created = core.parse_isoformat(content.get('created'))
@@ -886,7 +887,7 @@ class MalwareFamily(core.BaseJsonResource):
     RESOURCE_ID_KEYS = ['name']
 
     def __init__(self, content, api=None):
-        super(MalwareFamily, self).__init__(content, api=api)
+        super().__init__(content, api=api)
         self.id = content.get('id')
         self.created = core.parse_isoformat(content.get('created'))
         self.updated = core.parse_isoformat(content.get('updated'))
@@ -899,7 +900,7 @@ class Tag(core.BaseJsonResource):
     RESOURCE_ID_KEYS = ['name']
 
     def __init__(self, content, api=None):
-        super(Tag, self).__init__(content, api=api)
+        super().__init__(content, api=api)
         self.id = content.get('id')
         self.created = core.parse_isoformat(content.get('created'))
         self.updated = core.parse_isoformat(content.get('updated'))
@@ -913,7 +914,7 @@ class Tag(core.BaseJsonResource):
 
 class Assertion(core.BaseJsonResource):
     def __init__(self, content, api=None, scanfile=None):
-        super(Assertion, self).__init__(content, api=api)
+        super().__init__(content, api=api)
         self.scanfile = scanfile
         self.author = content['author']
         self.author_name = content['author_name']
@@ -930,7 +931,7 @@ class Assertion(core.BaseJsonResource):
 
 class Vote(core.BaseJsonResource):
     def __init__(self, content, api=None, scanfile=None):
-        super(Vote, self).__init__(content, api=api)
+        super().__init__(content, api=api)
         self.scanfile = scanfile
         self.arbiter = content['arbiter']
         self.vote = content['vote']
@@ -978,7 +979,7 @@ class ArtifactType(Enum):
 
 class Hash(core.Hashable):
     def __init__(self, hash_, hash_type=None, validate_hash=True):
-        super(Hash, self).__init__(hash_value=hash_, hash_type=hash_type, validate_hash=validate_hash)
+        super().__init__(hash_value=hash_, hash_type=hash_type, validate_hash=validate_hash)
 
     @classmethod
     def from_hashable(cls, hash_, hash_type=None):
@@ -1011,7 +1012,7 @@ class SandboxTask(core.BaseJsonResource):
     RESOURCE_ENDPOINT = '/sandbox/sandboxtask'
 
     def __init__(self, content, api=None):
-        super(SandboxTask, self).__init__(content, api=api)
+        super().__init__(content, api=api)
         self.id = content['id']
         self.community = content['community']
         self.sandbox = content['sandbox']
@@ -1077,7 +1078,7 @@ class SandboxTask(core.BaseJsonResource):
 
 class SandboxArtifact(core.BaseJsonResource):
     def __init__(self, content, api=None):
-        super(SandboxArtifact, self).__init__(content, api=api)
+        super().__init__(content, api=api)
         self.created = content['created']
         self.id = content['id']
         self.instance_id = content['instance_id']
@@ -1091,7 +1092,7 @@ class SandboxProvider(core.BaseJsonResource):
     RESOURCE_ENDPOINT = "/sandbox/provider"
 
     def __init__(self, content, api=None):
-        super(SandboxProvider, self).__init__(content, api=api)
+        super().__init__(content, api=api)
         self.slug = content['slug']
         self.name = content['name']
         self.tool = content['tool']
@@ -1100,14 +1101,14 @@ class SandboxProvider(core.BaseJsonResource):
     @classmethod
     def parse_result(cls, api, content, **kwargs):
         logger.debug('Parsing resource %s', cls.__name__)
-        return [super(SandboxProvider, cls).parse_result(api, content[slug], **kwargs) for slug in content.keys()]
+        return [super().parse_result(api, content[slug], **kwargs) for slug in content.keys()]
 
 
 class Events(core.BaseJsonResource):
     RESOURCE_ENDPOINT = "/activity"
 
     def __init__(self, content, api=None):
-        super(Events, self).__init__(content, api=api)
+        super().__init__(content, api=api)
         self.event_timestamp = content['event_timestamp']
         self.event_type = content['event_type']
         self.source = content['source']

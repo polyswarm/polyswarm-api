@@ -61,7 +61,7 @@ class JsonResourceTestCase(TestCase):
 
 class ScanTestCaseV2(TestCase):
     def __init__(self, *args, **kwargs):
-        super(ScanTestCaseV2, self).__init__(*args, **kwargs)
+        super().__init__(*args, **kwargs)
         self.test_api_key = '11111111111111111111111111111111'
         self.api_version = 'v3'
 

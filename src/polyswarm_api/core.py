@@ -18,7 +18,7 @@ logger = logging.getLogger(__name__)
 
 class PolyswarmSession(requests.Session):
     def __init__(self, key, retries, user_agent=settings.DEFAULT_USER_AGENT, verify=True, **kwargs):
-        super(PolyswarmSession, self).__init__(**kwargs)
+        super().__init__(**kwargs)
         logger.debug('Creating PolyswarmHTTP instance')
         self.requests_retry_session(retries=retries)
 
@@ -228,12 +228,12 @@ class PolyswarmRequest(object):
         ).execute()
 
 
-class BaseResource(object):
+class BaseResource:
     def __init__(self, content, *args, **kwargs):
         # hack to behave as in python 3, signature should be
         # __init__(self, content, *args, api=None, **kwargs)
         api = kwargs.pop('api', None)
-        super(BaseResource, self).__init__(*args, **kwargs)
+        super().__init__(*args, **kwargs)
         self.api = api
         self._content = content
 
@@ -248,7 +248,7 @@ class BaseJsonResource(BaseResource):
     RESOURCE_ID_KEYS = ['id']
 
     def __init__(self, content, *args, **kwargs):
-        super(BaseJsonResource, self).__init__(content, *args, **kwargs)
+        super().__init__(content, *args, **kwargs)
         self.json = content
 
     def __int__(self):
@@ -465,7 +465,7 @@ def is_valid_sha256(value):
     return is_hex(value)
 
 
-class Hashable(object):
+class Hashable:
     SUPPORTED_HASH_TYPES = {
         'sha1': is_valid_sha1,
         'sha256': is_valid_sha256,
@@ -478,7 +478,7 @@ class Hashable(object):
         hash_value = kwargs.pop('hash_value', None)
         hash_type = kwargs.pop('hash_type', None)
         validate_hash = kwargs.pop('validate_hash', False)
-        super(Hashable, self).__init__(*args, **kwargs)
+        super().__init__(*args, **kwargs)
 
         self._hash = hash_value.strip() if hash_value is not None else None
 
