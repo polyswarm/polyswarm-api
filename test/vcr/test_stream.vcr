@@ -61,8 +61,6 @@ interactions:
       - bytes
       Content-Disposition:
       - attachment;filename=47952344535139569.tar.gz
-      Content-Encoding:
-      - gzip
       Content-Length:
       - '280'
       Content-Security-Policy:

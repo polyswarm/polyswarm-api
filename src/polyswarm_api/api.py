@@ -3,19 +3,14 @@ import time
 
 import polyswarm_api.core
 
-try:
-    from urllib.parse import urlparse
-except ImportError:
-    from urlparse import urlparse
-
-from future.utils import string_types
+from urllib.parse import urlparse
 
 from polyswarm_api import exceptions, resources, settings
 
 logger = logging.getLogger(__name__)
 
 
-class PolyswarmAPI(object):
+class PolyswarmAPI:
     """A synchronous interface to the public and private PolySwarm APIs."""
 
     def __init__(self, key, uri=None, community=None, timeout=None, verify=True, **kwargs):
@@ -36,9 +31,9 @@ class PolyswarmAPI(object):
         self._engines = None
 
     def __repr__(self):
-        clsname = '{0.__module__}.{0.__name__}'.format(self.__class__)
-        attrs = 'uri={0.uri!r}, community={0.community!r}, timeout={0.timeout!r}'.format(self)
-        return '<{}({}) at 0x{:x}>'.format(clsname, attrs, id(self))
+        clsname = f'{self.__class__.__module__}.{self.__class__.__name__}'
+        attrs = f'uri={self.uri!r}, community={self.community!r}, timeout={self.timeout!r}'
+        return f'<{clsname}({attrs}) at 0x{id(self):x}>'
 
     @property
     def engines(self):
@@ -49,11 +44,11 @@ class PolyswarmAPI(object):
 
     def refresh_engine_cache(self):
         """
-        Rrefresh the cached engine listing
+        Refresh the cached engine listing
         """
         engines = list(resources.Engine.list(self).result())
         if not engines:
-            raise exceptions.InvalidValueException("Recieved empty engines listing")
+            raise exceptions.InvalidValueException("Received empty engines listing")
         self._engines = engines
 
     def wait_for(self, scan, timeout=settings.DEFAULT_SCAN_TIMEOUT):
@@ -71,8 +66,8 @@ class PolyswarmAPI(object):
             if scan_result.failed or scan_result.window_closed:
                 return scan_result
             elif -1 < timeout < time.time() - start:
-                raise exceptions.TimeoutException('Timed out waiting for scan {} to finish. Please try again.'
-                                                  .format(scan))
+                raise exceptions.TimeoutException(
+                    f'Timed out waiting for scan {scan} to finish. Please try again.')
             else:
                 time.sleep(settings.POLL_FREQUENCY)
 
@@ -234,7 +229,7 @@ class PolyswarmAPI(object):
         if hasattr(artifact, 'read') and hasattr(artifact.read, '__call__'):
             artifact = resources.LocalArtifact.from_handle(self, artifact, artifact_name=artifact_name or '',
                                                            artifact_type=artifact_type)
-        elif isinstance(artifact, string_types):
+        elif isinstance(artifact, str):
             if artifact_type == resources.ArtifactType.FILE:
                 artifact = resources.LocalArtifact.from_path(self, artifact, artifact_type=artifact_type,
                                                              artifact_name=artifact_name)
@@ -289,7 +284,7 @@ class PolyswarmAPI(object):
         return resources.ArtifactInstance.rescan_id(self, scan, scan_config=scan_config).result()
 
     def _parse_rule(self, rule):
-        if isinstance(rule, string_types):
+        if isinstance(rule, str):
             rule, rule_id = resources.YaraRuleset(dict(yara=rule), api=self), None
         elif isinstance(rule, (resources.YaraRuleset, int)):
             rule, rule_id = None, rule
@@ -704,7 +699,7 @@ class PolyswarmAPI(object):
         if hasattr(artifact, 'read') and hasattr(artifact.read, '__call__'):
             artifact = resources.LocalArtifact.from_handle(self, artifact, artifact_name=artifact_name or '',
                                                            artifact_type=artifact_type)
-        elif isinstance(artifact, string_types):
+        elif isinstance(artifact, str):
             if artifact_type == resources.ArtifactType.FILE:
                 artifact = resources.LocalArtifact.from_path(self, artifact, artifact_type=artifact_type,
                                                              artifact_name=artifact_name)
