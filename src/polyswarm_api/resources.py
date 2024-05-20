@@ -608,13 +608,8 @@ class LocalArtifact(core.BaseResource, core.Hashable):
         remove_on_error = False
         try:
             if folder:
-                # TODO: this should be replaced with os.makedirs(path, exist_ok=True)
-                #  once we drop support to python 2.7
                 if not os.path.exists(folder):
-                    try:
-                        os.makedirs(folder)
-                    except FileExistsError:
-                        pass
+                    os.makedirs(folder, exist_ok=True)
                 remove_on_error = True
                 self.handle = open(os.path.join(folder, self.artifact_name), mode='wb+', **kwargs)
             else:
