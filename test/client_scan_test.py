@@ -19,19 +19,9 @@ vcr = vcr_.VCR(cassette_library_dir='test/vcr',
                path_transformer=vcr_.VCR.ensure_suffix('.vcr'))
 
 
-# TODO: the day we drop python 2.7 support we can use python 3 version of this
-@contextmanager
-def TemporaryDirectory():
-    name = tempfile.mkdtemp()
-    try:
-        yield name
-    finally:
-        shutil.rmtree(name)
-
-
 @contextmanager
 def temp_dir(files_dict):
-    with TemporaryDirectory() as tmp_dir:
+    with tempfile.TemporaryDirectory() as tmp_dir:
         files = []
         for file_name, file_content in files_dict.items():
             mode = 'w' if isinstance(file_content, str) else 'wb'
