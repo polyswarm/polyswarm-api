@@ -1152,7 +1152,6 @@ class ReportTemplate(core.BaseJsonResource):
             self.created = content['created']
             self.template_name = content['template_name']
             self.includes = content.get('includes')
-            self.excludes = content.get('excludes')
             self.primary_color = content.get('primary_color')
             self.footer_text = content.get('footer_text')
             self.last_page_text = content.get('last_page_text')
