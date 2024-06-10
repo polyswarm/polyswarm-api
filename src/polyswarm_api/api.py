@@ -3,19 +3,14 @@ import time
 
 import polyswarm_api.core
 
-try:
-    from urllib.parse import urlparse
-except ImportError:
-    from urlparse import urlparse
-
-from future.utils import string_types
+from urllib.parse import urlparse
 
 from polyswarm_api import exceptions, resources, settings
 
 logger = logging.getLogger(__name__)
 
 
-class PolyswarmAPI(object):
+class PolyswarmAPI:
     """A synchronous interface to the public and private PolySwarm APIs."""
 
     def __init__(self, key, uri=None, community=None, timeout=None, verify=True, **kwargs):
@@ -35,6 +30,11 @@ class PolyswarmAPI(object):
         self.session = polyswarm_api.core.PolyswarmSession(key, retries=settings.DEFAULT_RETRIES, verify=verify, **kwargs)
         self._engines = None
 
+    def __repr__(self):
+        clsname = f'{self.__class__.__module__}.{self.__class__.__name__}'
+        attrs = f'uri={self.uri!r}, community={self.community!r}, timeout={self.timeout!r}'
+        return f'<{clsname}({attrs}) at 0x{id(self):x}>'
+
     @property
     def engines(self):
         if not self._engines:
@@ -44,11 +44,11 @@ class PolyswarmAPI(object):
 
     def refresh_engine_cache(self):
         """
-        Rrefresh the cached engine listing
+        Refresh the cached engine listing
         """
         engines = list(resources.Engine.list(self).result())
         if not engines:
-            raise exceptions.InvalidValueException("Recieved empty engines listing")
+            raise exceptions.InvalidValueException("Received empty engines listing")
         self._engines = engines
 
     def wait_for(self, scan, timeout=settings.DEFAULT_SCAN_TIMEOUT):
@@ -66,8 +66,8 @@ class PolyswarmAPI(object):
             if scan_result.failed or scan_result.window_closed:
                 return scan_result
             elif -1 < timeout < time.time() - start:
-                raise exceptions.TimeoutException('Timed out waiting for scan {} to finish. Please try again.'
-                                                  .format(scan))
+                raise exceptions.TimeoutException(
+                    f'Timed out waiting for scan {scan} to finish. Please try again.')
             else:
                 time.sleep(settings.POLL_FREQUENCY)
 
@@ -229,7 +229,7 @@ class PolyswarmAPI(object):
         if hasattr(artifact, 'read') and hasattr(artifact.read, '__call__'):
             artifact = resources.LocalArtifact.from_handle(self, artifact, artifact_name=artifact_name or '',
                                                            artifact_type=artifact_type)
-        elif isinstance(artifact, string_types):
+        elif isinstance(artifact, str):
             if artifact_type == resources.ArtifactType.FILE:
                 artifact = resources.LocalArtifact.from_path(self, artifact, artifact_type=artifact_type,
                                                              artifact_name=artifact_name)
@@ -284,7 +284,7 @@ class PolyswarmAPI(object):
         return resources.ArtifactInstance.rescan_id(self, scan, scan_config=scan_config).result()
 
     def _parse_rule(self, rule):
-        if isinstance(rule, string_types):
+        if isinstance(rule, str):
             rule, rule_id = resources.YaraRuleset(dict(yara=rule), api=self), None
         elif isinstance(rule, (resources.YaraRuleset, int)):
             rule, rule_id = None, rule
@@ -699,7 +699,7 @@ class PolyswarmAPI(object):
         if hasattr(artifact, 'read') and hasattr(artifact.read, '__call__'):
             artifact = resources.LocalArtifact.from_handle(self, artifact, artifact_name=artifact_name or '',
                                                            artifact_type=artifact_type)
-        elif isinstance(artifact, string_types):
+        elif isinstance(artifact, str):
             if artifact_type == resources.ArtifactType.FILE:
                 artifact = resources.LocalArtifact.from_path(self, artifact, artifact_type=artifact_type,
                                                              artifact_name=artifact_name)
@@ -823,7 +823,48 @@ class PolyswarmAPI(object):
         logger.info('List events')
         return resources.Events.list(self, **kwargs).result()
 
-    def __repr__(self):
-        clsname = '{0.__module__}.{0.__name__}'.format(self.__class__)
-        attrs = 'uri={0.uri!r}, community={0.community!r}, timeout={0.timeout!r}'.format(self)
-        return '<{}({}) at 0x{:x}>'.format(clsname, attrs, id(self))
+    def report_create(self, **kwargs):
+        return resources.ReportTask.create(self, **kwargs).result()
+
+    def report_get(self, **kwargs):
+        return resources.ReportTask.get(self, **kwargs).result()
+
+    def report_download(self, report_id, folder):
+        report = resources.ReportTask.get(self, id=report_id).result()
+        result = report.download_report(folder=folder).result()
+        result.handle.close()
+        return result
+
+    def report_template_logo_download(self, template_id, folder):
+        report = resources.ReportTemplate.get(self, id=template_id).result()
+        result = report.download_logo(folder).result()
+        result.handle.close()
+        return result
+
+    def report_template_logo_delete(self, template_id):
+        report = resources.ReportTemplate.get(self, id=template_id).result()
+        result = report.delete_logo().result()
+        return result
+
+    def report_template_logo_upload(self, template_id, logo_file, content_tpe):
+        report = resources.ReportTemplate.get(self, id=template_id).result()
+        result = report.upload_logo(logo_file, content_tpe).result()
+        return result
+
+    def report_template_create(self, **kwargs):
+        return resources.ReportTemplate.create(self, **kwargs).result()
+
+    def report_template_update(self, template_id, **kwargs):
+        return resources.ReportTemplate.update(self, id=template_id, **kwargs).result()
+
+    def report_template_get(self, template_id):
+        return resources.ReportTemplate.get(self, id=template_id).result()
+
+    def report_template_delete(self, template_id):
+        return resources.ReportTemplate.delete(self, id=template_id).result()
+
+    def report_template_list(self, is_default=None):
+        params = {}
+        if is_default is not None:
+            params['is_default'] = is_default
+        return resources.ReportTemplate.list(self, **params).result()

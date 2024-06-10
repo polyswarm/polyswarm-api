@@ -7,38 +7,24 @@ import tarfile
 from contextlib import contextmanager
 
 import vcr as vcr_
-from future.utils import string_types
 
 from polyswarm_api.api import PolyswarmAPI
 from polyswarm_api import core
 from polyswarm_api import exceptions
 
-try:
-    from unittest import TestCase, mock
-except ImportError:
-    import mock
+from unittest import TestCase, mock
 
 
 vcr = vcr_.VCR(cassette_library_dir='test/vcr',
                path_transformer=vcr_.VCR.ensure_suffix('.vcr'))
 
 
-# TODO: the day we drop python 2.7 support we can use python 3 version of this
-@contextmanager
-def TemporaryDirectory():
-    name = tempfile.mkdtemp()
-    try:
-        yield name
-    finally:
-        shutil.rmtree(name)
-
-
 @contextmanager
 def temp_dir(files_dict):
-    with TemporaryDirectory() as tmp_dir:
+    with tempfile.TemporaryDirectory() as tmp_dir:
         files = []
         for file_name, file_content in files_dict.items():
-            mode = 'w' if isinstance(file_content, string_types) else 'wb'
+            mode = 'w' if isinstance(file_content, str) else 'wb'
             file_path = os.path.join(tmp_dir, file_name)
             open(file_path, mode=mode).write(file_content)
             files.append(file_path)
@@ -65,20 +51,20 @@ class JsonResourceTestCase(TestCase):
 
 class ScanTestCaseV2(TestCase):
     def __init__(self, *args, **kwargs):
-        super(ScanTestCaseV2, self).__init__(*args, **kwargs)
+        super().__init__(*args, **kwargs)
         self.test_api_key = '11111111111111111111111111111111'
         self.api_version = 'v3'
 
     @vcr.use_cassette()
     def test_submission(self):
-        api = PolyswarmAPI(self.test_api_key, uri='http://localhost:9696/{}'.format(self.api_version), community='gamma')
+        api = PolyswarmAPI(self.test_api_key, uri=f'http://localhost:9696/{self.api_version}', community='gamma')
         result = api.submit('test/malicious')
         assert result.failed is False
         assert result.result is None
 
     @vcr.use_cassette()
     def test_rescans(self):
-        api = PolyswarmAPI(self.test_api_key, uri='http://localhost:9696/{}'.format(self.api_version), community='gamma')
+        api = PolyswarmAPI(self.test_api_key, uri=f'http://localhost:9696/{self.api_version}', community='gamma')
         result = api.rescan('275a021bbfb6489e54d471899f7db9d1663fc695ec2fe2a2c4538aabf651fd0f')
         assert result.failed is False
         assert result.result is None
@@ -88,7 +74,7 @@ class ScanTestCaseV2(TestCase):
 
     @vcr.use_cassette()
     def test_download(self):
-        api = PolyswarmAPI(self.test_api_key, uri='http://localhost:9696/{}'.format(self.api_version), community='gamma')
+        api = PolyswarmAPI(self.test_api_key, uri=f'http://localhost:9696/{self.api_version}', community='gamma')
         with temp_dir({}) as (path, _):
             api.download(path, '275a021bbfb6489e54d471899f7db9d1663fc695ec2fe2a2c4538aabf651fd0f')
             with open(os.path.join(path, '275a021bbfb6489e54d471899f7db9d1663fc695ec2fe2a2c4538aabf651fd0f'), 'rb') as result:
@@ -97,7 +83,7 @@ class ScanTestCaseV2(TestCase):
 
     @vcr.use_cassette()
     def test_download_to_handle(self):
-        api = PolyswarmAPI(self.test_api_key, uri='http://localhost:9696/{}'.format(self.api_version), community='gamma')
+        api = PolyswarmAPI(self.test_api_key, uri=f'http://localhost:9696/{self.api_version}', community='gamma')
         with temp_dir({}) as (path, _):
             with open(os.path.join(path, 'temp_file_handle'), 'wb') as f:
                 api.download_to_handle('275a021bbfb6489e54d471899f7db9d1663fc695ec2fe2a2c4538aabf651fd0f', f)
@@ -106,7 +92,7 @@ class ScanTestCaseV2(TestCase):
 
     @vcr.use_cassette()
     def test_stream(self):
-        api = PolyswarmAPI(self.test_api_key, uri='http://localhost:9696/{}'.format(self.api_version), community='gamma')
+        api = PolyswarmAPI(self.test_api_key, uri=f'http://localhost:9696/{self.api_version}', community='gamma')
         with temp_dir({}) as (path, _):
             result = list(api.stream())
             artifact_archive = result[0]
@@ -118,13 +104,13 @@ class ScanTestCaseV2(TestCase):
 
     @vcr.use_cassette()
     def test_hash_search(self):
-        api = PolyswarmAPI(self.test_api_key, uri='http://localhost:9696/{}'.format(self.api_version), community='gamma')
+        api = PolyswarmAPI(self.test_api_key, uri=f'http://localhost:9696/{self.api_version}', community='gamma')
         result = list(api.search('275a021bbfb6489e54d471899f7db9d1663fc695ec2fe2a2c4538aabf651fd0f'))
         assert result[0].sha256 == '275a021bbfb6489e54d471899f7db9d1663fc695ec2fe2a2c4538aabf651fd0f'
 
     @vcr.use_cassette()
     def test_metadata_search(self):
-        api = PolyswarmAPI(self.test_api_key, uri='http://localhost:9696/{}'.format(self.api_version), community='gamma')
+        api = PolyswarmAPI(self.test_api_key, uri=f'http://localhost:9696/{self.api_version}', community='gamma')
         result = list(api.search_by_metadata('artifact.sha256:275a021bbfb6489e54d471899f7db9d1663fc695ec2fe2a2c4538aabf651fd0f'))
         assert result[0].sha256 == '275a021bbfb6489e54d471899f7db9d1663fc695ec2fe2a2c4538aabf651fd0f'
 
@@ -229,7 +215,7 @@ class ScanTestCaseV2(TestCase):
 
     @vcr.use_cassette()
     def test_live(self):
-        api = PolyswarmAPI(self.test_api_key, uri='http://localhost:9696/{}'.format(self.api_version), community='gamma')
+        api = PolyswarmAPI(self.test_api_key, uri=f'http://localhost:9696/{self.api_version}', community='gamma')
         with open('test/eicar.yara') as yara:
             rule = api.ruleset_create('eicar', yara.read())
         rule = api.live_start(rule_id=rule.id)
@@ -250,7 +236,7 @@ class ScanTestCaseV2(TestCase):
 
     @vcr.use_cassette()
     def test_historical(self):
-        api = PolyswarmAPI(self.test_api_key, uri='http://localhost:9696/{}'.format(self.api_version), community='gamma')
+        api = PolyswarmAPI(self.test_api_key, uri=f'http://localhost:9696/{self.api_version}', community='gamma')
         with open('test/eicar.yara') as yara:
             historical_hunt = api.historical_create(yara.read())
         assert historical_hunt.status == 'PENDING'
@@ -261,7 +247,7 @@ class ScanTestCaseV2(TestCase):
 
     @vcr.use_cassette()
     def test_list_historical(self):
-        api = PolyswarmAPI(self.test_api_key, uri='http://localhost:9696/{}'.format(self.api_version), community='gamma')
+        api = PolyswarmAPI(self.test_api_key, uri=f'http://localhost:9696/{self.api_version}', community='gamma')
         with open('test/eicar.yara') as yara:
             yara_content = yara.read()
         historical_ids = []
@@ -274,13 +260,13 @@ class ScanTestCaseV2(TestCase):
 
     @vcr.use_cassette()
     def test_historical_results(self):
-        api = PolyswarmAPI(self.test_api_key, uri='http://localhost:9696/{}'.format(self.api_version), community='gamma')
+        api = PolyswarmAPI(self.test_api_key, uri=f'http://localhost:9696/{self.api_version}', community='gamma')
         result = list(api.historical_results(hunt='48011760326110718'))
         assert len(result) == 6
 
     @vcr.use_cassette()
     def test_rules(self):
-        api = PolyswarmAPI(self.test_api_key, uri='http://localhost:9696/{}'.format(self.api_version), community='gamma')
+        api = PolyswarmAPI(self.test_api_key, uri=f'http://localhost:9696/{self.api_version}', community='gamma')
         # creating
         with open('test/eicar.yara') as rule:
             contents = rule.read()
@@ -304,7 +290,7 @@ class ScanTestCaseV2(TestCase):
 
     @vcr.use_cassette()
     def test_tool_metadata(self):
-        api = PolyswarmAPI(self.test_api_key, uri='http://localhost:9696/{}'.format(self.api_version), community='gamma')
+        api = PolyswarmAPI(self.test_api_key, uri=f'http://localhost:9696/{self.api_version}', community='gamma')
         api.tool_metadata_create(41782351738405672, 'test_tool_1', {'key': 'value'})
         api.tool_metadata_create(41782351738405672, 'test_tool_2', {'key2': 'value2'})
         metadata = list(api.tool_metadata_list(41782351738405672))
@@ -315,7 +301,7 @@ class ScanTestCaseV2(TestCase):
 
     @vcr.use_cassette()
     def test_iocs_by_hash(self):
-        api = PolyswarmAPI(self.test_api_key, uri='http://localhost:9696/{}'.format(self.api_version), community='gamma')
+        api = PolyswarmAPI(self.test_api_key, uri=f'http://localhost:9696/{self.api_version}', community='gamma')
         api.tool_metadata_create(
             '275a021bbfb6489e54d471899f7db9d1663fc695ec2fe2a2c4538aabf651fd0f', 'cape_sandbox_v2', {'cape_sandbox_v2': {
                 'extracted_c2_ips': ['1.2.3.4'],
@@ -330,7 +316,7 @@ class ScanTestCaseV2(TestCase):
 
     @vcr.use_cassette()
     def test_search_by_ioc(self):
-        api = PolyswarmAPI(self.test_api_key, uri='http://localhost:9696/{}'.format(self.api_version), community='gamma')
+        api = PolyswarmAPI(self.test_api_key, uri=f'http://localhost:9696/{self.api_version}', community='gamma')
         api.tool_metadata_create(
             '275a021bbfb6489e54d471899f7db9d1663fc695ec2fe2a2c4538aabf651fd0f', 'cape_sandbox_v2', {'cape_sandbox_v2': {
                 'extracted_c2_ips': ['1.2.3.4'],

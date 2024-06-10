@@ -5,15 +5,9 @@ import functools
 import requests
 from enum import Enum
 from hashlib import sha256 as _sha256, sha1 as _sha1, md5 as _md5
+from urllib.parse import urlparse
 
-try:
-    from urllib.parse import urlparse
-except ImportError:
-    from urlparse import urlparse
-
-from future.utils import raise_from, string_types
-
-# Windows might rase an OSError instead of an ImportError like this
+# Windows might raise an OSError instead of an ImportError like this
 # OSError: [WinError 193] %1 is not a valid Win32 application
 try:
     import yara
@@ -33,7 +27,7 @@ class Engine(core.BaseJsonResource):
     RESOURCE_ENDPOINT = '/microengines'
 
     def __init__(self, content, api=None):
-        super(Engine, self).__init__(content=content, api=api)
+        super().__init__(content=content, api=api)
         self.id = str(content['id'])
         self.name = content['name']
 
@@ -95,7 +89,7 @@ class Metadata(core.BaseJsonResource):
     KNOWN_KEYS = {'artifact', 'exiftool', 'hash', 'lief', 'pefile', 'scan', 'strings'}
 
     def __init__(self, content, api=None):
-        super(Metadata, self).__init__(content=content, api=api)
+        super().__init__(content=content, api=api)
         self.created = core.parse_isoformat(self.artifact.get('created'))
 
         self.id = self._get('artifact.id')
@@ -144,7 +138,7 @@ class Metadata(core.BaseJsonResource):
         params.extend(('ips', v) for v in ips)
         params.extend(('urls', v) for v in urls)
         params.extend(('domains', v) for v in domains)
-        super_params, json_params = super(Metadata, cls)._get_params(**kwargs)
+        super_params, json_params = super()._get_params(**kwargs)
         params.extend(super_params.items())
         return params, json_params
 
@@ -159,7 +153,7 @@ class IOC(core.BaseJsonResource):
             api,
             {
                 'method': 'GET',
-                'url': '{}/{}/{}/{}'.format(api.uri, path, hash_type, hash_value),
+                'url': f'{api.uri}/{path}/{hash_type}/{hash_value}',
                 'params': {
                     'hide_known_good': hide_known_good,
                     'community': api.community,
@@ -183,7 +177,7 @@ class IOC(core.BaseJsonResource):
             api,
             {
                 'method': 'GET',
-                'url': '{}/ioc/search'.format(api.uri),
+                'url': f'{api.uri}/ioc/search',
                 'params': params
             },
             result_parser=cls,
@@ -195,7 +189,7 @@ class IOC(core.BaseJsonResource):
             api,
             {
                 'method': 'GET',
-                'url': '{}/ioc/known'.format(api.uri),
+                'url': f'{api.uri}/ioc/known',
                 'params': {
                     'ip': ips,
                     'domain': domains
@@ -210,7 +204,7 @@ class IOC(core.BaseJsonResource):
             api,
             {
                 'method': 'POST',
-                'url': '{}/ioc/known'.format(api.uri),
+                'url': f'{api.uri}/ioc/known',
                 'json': {
                     'type': type,
                     'host': host,
@@ -227,7 +221,7 @@ class IOC(core.BaseJsonResource):
             api,
             {
                 'method': 'POST',
-                'url': '{}/ioc/known'.format(api.uri),
+                'url': f'{api.uri}/ioc/known',
                 'json': {
                     'type': type,
                     'host': host,
@@ -244,7 +238,7 @@ class IOC(core.BaseJsonResource):
             api,
             {
                 'method': 'PUT',
-                'url': '{}/ioc/known'.format(api.uri),
+                'url': f'{api.uri}/ioc/known',
                 'json': {
                     'id': id,
                     'type': type,
@@ -262,7 +256,7 @@ class IOC(core.BaseJsonResource):
             api,
             {
                 'method': 'DELETE',
-                'url': '{}/ioc/known'.format(api.uri),
+                'url': f'{api.uri}/ioc/known',
                 'params': {
                     'id': id
                 }
@@ -275,8 +269,8 @@ class ArtifactInstance(core.BaseJsonResource, core.Hashable):
     RESOURCE_ENDPOINT = '/instance'
 
     def __init__(self, content, api=None):
-        super(ArtifactInstance, self).__init__(content=content, api=api,
-                                               hash_value=content['sha256'], hash_type='sha256')
+        super().__init__(content=content, api=api,
+                         hash_value=content['sha256'], hash_type='sha256')
         # Artifact fields
         self.sha256 = content['sha256']
         self.artifact_id = content.get('artifact_id')
@@ -342,7 +336,7 @@ class ArtifactInstance(core.BaseJsonResource, core.Hashable):
             api,
             {
                 'method': 'HEAD',
-                'url': '{}/search/hash/{}'.format(api.uri, hash_type),
+                'url': f'{api.uri}/search/hash/{hash_type}',
                 'params': {
                     'hash': hash_value,
                     'community': api.community,
@@ -356,7 +350,7 @@ class ArtifactInstance(core.BaseJsonResource, core.Hashable):
             api,
             {
                 'method': 'GET',
-                'url': '{}/search/hash/{}'.format(api.uri, hash_type),
+                'url': f'{api.uri}/search/hash/{hash_type}',
                 'params': {
                     'hash': hash_value,
                     'community': api.community,
@@ -371,7 +365,7 @@ class ArtifactInstance(core.BaseJsonResource, core.Hashable):
             api,
             {
                 'method': 'GET',
-                'url': '{}/search/url'.format(api.uri),
+                'url': f'{api.uri}/search/url',
                 'params': {
                     'url': url,
                     'community': api.community,
@@ -386,7 +380,7 @@ class ArtifactInstance(core.BaseJsonResource, core.Hashable):
             api,
             {
                 'method': 'GET',
-                'url': '{}/search/instances'.format(api.uri),
+                'url': f'{api.uri}/search/instances',
                 'params': {
                     'hash': hash_value,
                     'community': api.community,
@@ -399,7 +393,7 @@ class ArtifactInstance(core.BaseJsonResource, core.Hashable):
     def submit(cls, api, artifact, artifact_name, artifact_type, scan_config=None):
         parameters = {
             'method': 'POST',
-            'url': '{}/consumer/submission/{}'.format(api.uri, api.community),
+            'url': f'{api.uri}/consumer/submission/{api.community}',
             'files': {
                 'file': (artifact_name, artifact),
             },
@@ -420,8 +414,8 @@ class ArtifactInstance(core.BaseJsonResource, core.Hashable):
     def rescan(cls, api, hash_value, hash_type, scan_config=None):
         parameters = {
             'method': 'POST',
-            'url': '{}/consumer/submission/{}/rescan/{}/{}'.format(api.uri, api.community, hash_type, hash_value),
-            'data': { 'community': api.community }
+            'url': f'{api.uri}/consumer/submission/{api.community}/rescan/{hash_type}/{hash_value}',
+            'data': {'community': api.community}
         }
         if scan_config:
             parameters['data']['scan-config'] = scan_config
@@ -435,7 +429,7 @@ class ArtifactInstance(core.BaseJsonResource, core.Hashable):
     def rescan_id(cls, api, submission_id, scan_config=None):
         parameters = {
             'method': 'POST',
-            'url': '{}/consumer/submission/{}/rescan/{}'.format(api.uri, api.community, int(submission_id)),
+            'url': f'{api.uri}/consumer/submission/{api.community}/rescan/{int(submission_id)}',
         }
         if scan_config:
             parameters.setdefault('data', {})['scan-config'] = scan_config
@@ -451,7 +445,7 @@ class ArtifactInstance(core.BaseJsonResource, core.Hashable):
             api,
             {
                 'method': 'GET',
-                'url': '{}/consumer/submission/{}/{}'.format(api.uri, api.community, int(submission_id)),
+                'url': f'{api.uri}/consumer/submission/{api.community}/{int(submission_id)}',
             },
             result_parser=cls,
         ).execute()
@@ -460,7 +454,7 @@ class ArtifactInstance(core.BaseJsonResource, core.Hashable):
     def metadata_rerun(cls, api, hashes, analyses=None, skip_es=None):
         parameters = {
             'method': 'POST',
-            'url': '{}/consumer/metadata'.format(api.uri),
+            'url': f'{api.uri}/consumer/metadata',
             'json': {'hashes': hashes},
         }
         if analyses:
@@ -499,7 +493,7 @@ class ArtifactArchive(core.BaseJsonResource):
     RESOURCE_ENDPOINT = '/consumer/download/stream'
 
     def __init__(self, content, api=None):
-        super(ArtifactArchive, self).__init__(content=content, api=api)
+        super().__init__(content=content, api=api)
         self.id = content['id']
         self.community = content['community']
         self.created = core.parse_isoformat(content['created'])
@@ -510,7 +504,7 @@ class AssertionsJob(core.BaseJsonResource):
     RESOURCE_ENDPOINT = '/consumer/assertions-job'
 
     def __init__(self, content, api=None):
-        super(AssertionsJob, self).__init__(content=content, api=api)
+        super().__init__(content=content, api=api)
         self.id = content['id']
         self.engine_id = content['engine_id']
         self.created = core.parse_isoformat(content['created'])
@@ -530,7 +524,7 @@ class VotesJob(core.BaseJsonResource):
     RESOURCE_ENDPOINT = '/consumer/votes-job'
 
     def __init__(self, content, api=None):
-        super(VotesJob, self).__init__(content=content, api=api)
+        super().__init__(content=content, api=api)
         self.id = content['id']
         self.engine_id = content['engine_id']
         self.created = core.parse_isoformat(content['created'])
@@ -581,7 +575,7 @@ class LocalArtifact(core.BaseResource, core.Hashable):
             raise exceptions.InvalidValueException('At least one of path or handle must be defined.')
 
         # initialize super classes and default values
-        super(LocalArtifact, self).__init__(response, api=api, hash_type='sha256')
+        super().__init__(response, api=api, hash_type='sha256')
         self.sha256 = None
         self.sha1 = None
         self.md5 = None
@@ -614,13 +608,8 @@ class LocalArtifact(core.BaseResource, core.Hashable):
         remove_on_error = False
         try:
             if folder:
-                # TODO: this should be replaced with os.makedirs(path, exist_ok=True)
-                #  once we drop support to python 2.7
                 if not os.path.exists(folder):
-                    try:
-                        os.makedirs(folder)
-                    except FileExistsError:
-                        pass
+                    os.makedirs(folder, exist_ok=True)
                 remove_on_error = True
                 self.handle = open(os.path.join(folder, self.artifact_name), mode='wb+', **kwargs)
             else:
@@ -652,7 +641,7 @@ class LocalArtifact(core.BaseResource, core.Hashable):
             api,
             {
                 'method': 'GET',
-                'url': '{}/consumer/download/{}/{}'.format(api.uri, hash_type, hash_value),
+                'url': f'{api.uri}/consumer/download/{hash_type}/{hash_value}',
                 'stream': True,
                 'params': { 'community': api.community },
             },
@@ -668,7 +657,7 @@ class LocalArtifact(core.BaseResource, core.Hashable):
             api,
             {
                 'method': 'GET',
-                'url': '{}/instance/download'.format(api.uri),
+                'url': f'{api.uri}/instance/download',
                 'stream': True,
                 'params': {'instance_id': instance_id},
             },
@@ -729,7 +718,7 @@ class LocalArtifact(core.BaseResource, core.Hashable):
 
     @classmethod
     def from_path(cls, api, path, artifact_type=None, analyze=False, artifact_name=None, **kwargs):
-        if not isinstance(path, string_types):
+        if not isinstance(path, str):
             raise exceptions.InvalidValueException('Path should be a string')
         artifact_name = artifact_name or os.path.basename(path)
         handle = open(path, mode='rb', **kwargs)
@@ -739,7 +728,7 @@ class LocalArtifact(core.BaseResource, core.Hashable):
 
     @classmethod
     def from_content(cls, api, content, artifact_name=None, artifact_type=None, analyze=False):
-        if isinstance(content, string_types):
+        if isinstance(content, str):
             content = content.encode("utf8")
         handle = io.BytesIO(content)
         # create the LocalHandle with the given handle and don't write anything to it
@@ -749,7 +738,7 @@ class LocalArtifact(core.BaseResource, core.Hashable):
     @property
     def hash(self):
         self.analyze_artifact()
-        return super(LocalArtifact, self).hash
+        return super().hash
 
     def analyze_artifact(self, force=False):
         if not self.analyzed or force:
@@ -776,7 +765,7 @@ class YaraRuleset(core.BaseJsonResource):
     RESOURCE_ENDPOINT = '/hunt/rule'
 
     def __init__(self, content, api=None):
-        super(YaraRuleset, self).__init__(content, api=api)
+        super().__init__(content, api=api)
         self.id = content.get('id')
         self.livescan_id = content.get('livescan_id')
         self.livescan_created = content.get('livescan_created')
@@ -796,7 +785,7 @@ class LiveHuntResult(core.BaseJsonResource):
     RESOURCE_ENDPOINT = '/hunt/live'
 
     def __init__(self, content, api=None):
-        super(LiveHuntResult, self).__init__(content=content, api=api)
+        super().__init__(content=content, api=api)
         self.id = content['id']
         self.livescan_id = content['livescan_id']
         self.instance_id = content['instance_id']
@@ -820,7 +809,7 @@ class HistoricalHunt(core.BaseJsonResource):
     RESOURCE_ENDPOINT = '/hunt/historical'
 
     def __init__(self, content, api=None):
-        super(HistoricalHunt, self).__init__(content=content, api=api)
+        super().__init__(content=content, api=api)
         # active only present for live   hunts
         self.id = content['id']
         self.created = core.parse_isoformat(content['created'])
@@ -842,7 +831,7 @@ class HistoricalHuntResult(core.BaseJsonResource):
     RESOURCE_ENDPOINT = '/hunt/historical/results'
 
     def __init__(self, content, api=None):
-        super(HistoricalHuntResult, self).__init__(content=content, api=api)
+        super().__init__(content=content, api=api)
         self.id = content['id']
         self.historicalscan_id = content['historicalscan_id']
         self.instance_id = content['instance_id']
@@ -856,6 +845,7 @@ class HistoricalHuntResult(core.BaseJsonResource):
         self.download_url = content.get('download_url')
         self.community = content.get('community')
 
+
 class HistoricalHuntResultList(HistoricalHuntResult):
     RESOURCE_ENDPOINT = '/hunt/historical/results/list'
 
@@ -865,7 +855,7 @@ class TagLink(core.BaseJsonResource):
     RESOURCE_ID_KEYS = ['hash']
 
     def __init__(self, content, api=None):
-        super(TagLink, self).__init__(content, api=api)
+        super().__init__(content, api=api)
         self.id = content.get('id')
         self.sha256 = content.get('sha256')
         self.created = core.parse_isoformat(content.get('created'))
@@ -892,7 +882,7 @@ class MalwareFamily(core.BaseJsonResource):
     RESOURCE_ID_KEYS = ['name']
 
     def __init__(self, content, api=None):
-        super(MalwareFamily, self).__init__(content, api=api)
+        super().__init__(content, api=api)
         self.id = content.get('id')
         self.created = core.parse_isoformat(content.get('created'))
         self.updated = core.parse_isoformat(content.get('updated'))
@@ -905,7 +895,7 @@ class Tag(core.BaseJsonResource):
     RESOURCE_ID_KEYS = ['name']
 
     def __init__(self, content, api=None):
-        super(Tag, self).__init__(content, api=api)
+        super().__init__(content, api=api)
         self.id = content.get('id')
         self.created = core.parse_isoformat(content.get('created'))
         self.updated = core.parse_isoformat(content.get('updated'))
@@ -919,7 +909,7 @@ class Tag(core.BaseJsonResource):
 
 class Assertion(core.BaseJsonResource):
     def __init__(self, content, api=None, scanfile=None):
-        super(Assertion, self).__init__(content, api=api)
+        super().__init__(content, api=api)
         self.scanfile = scanfile
         self.author = content['author']
         self.author_name = content['author_name']
@@ -936,7 +926,7 @@ class Assertion(core.BaseJsonResource):
 
 class Vote(core.BaseJsonResource):
     def __init__(self, content, api=None, scanfile=None):
-        super(Vote, self).__init__(content, api=api)
+        super().__init__(content, api=api)
         self.scanfile = scanfile
         self.arbiter = content['arbiter']
         self.vote = content['vote']
@@ -961,9 +951,8 @@ class ArtifactType(Enum):
         try:
             return ArtifactType[value.upper()]
         except Exception as e:
-            raise raise_from(
-                exceptions.InvalidValueException(
-                    'Unable to get the artifact type from the provided value {}'.format(value)), e)
+            raise exceptions.InvalidValueException(
+                    f'Unable to get the artifact type from the provided value {value}') from e
 
     @staticmethod
     def to_string(artifact_type):
@@ -984,7 +973,7 @@ class ArtifactType(Enum):
 
 class Hash(core.Hashable):
     def __init__(self, hash_, hash_type=None, validate_hash=True):
-        super(Hash, self).__init__(hash_value=hash_, hash_type=hash_type, validate_hash=validate_hash)
+        super().__init__(hash_value=hash_, hash_type=hash_type, validate_hash=validate_hash)
 
     @classmethod
     def from_hashable(cls, hash_, hash_type=None):
@@ -998,8 +987,8 @@ class Hash(core.Hashable):
         """
         if issubclass(type(hash_), core.Hashable):
             if hash_type and hash_.hash_type != hash_type:
-                raise exceptions.InvalidValueException('Detected hash type {}, got {} for hashable {}'
-                                                       .format(hash_.hash_type, hash_type, hash_.hash))
+                raise exceptions.InvalidValueException(
+                    f'Detected hash type {hash_.hash_type}, got {hash_type} for hashable {hash_.hash}')
             return Hash(hash_.hash, hash_type=hash_type)
         return Hash(hash_, hash_type=hash_type)
 
@@ -1010,14 +999,14 @@ class Hash(core.Hashable):
         return self.hash
 
     def __repr__(self):
-        return "{}={}".format(self.hash_type, self.hash)
+        return f"{self.hash_type}={self.hash}"
 
 
 class SandboxTask(core.BaseJsonResource):
     RESOURCE_ENDPOINT = '/sandbox/sandboxtask'
 
     def __init__(self, content, api=None):
-        super(SandboxTask, self).__init__(content, api=api)
+        super().__init__(content, api=api)
         self.id = content['id']
         self.community = content['community']
         self.sandbox = content['sandbox']
@@ -1083,7 +1072,7 @@ class SandboxTask(core.BaseJsonResource):
 
 class SandboxArtifact(core.BaseJsonResource):
     def __init__(self, content, api=None):
-        super(SandboxArtifact, self).__init__(content, api=api)
+        super().__init__(content, api=api)
         self.created = content['created']
         self.id = content['id']
         self.instance_id = content['instance_id']
@@ -1097,7 +1086,7 @@ class SandboxProvider(core.BaseJsonResource):
     RESOURCE_ENDPOINT = "/sandbox/provider"
 
     def __init__(self, content, api=None):
-        super(SandboxProvider, self).__init__(content, api=api)
+        super().__init__(content, api=api)
         self.slug = content['slug']
         self.name = content['name']
         self.tool = content['tool']
@@ -1113,9 +1102,104 @@ class Events(core.BaseJsonResource):
     RESOURCE_ENDPOINT = "/activity"
 
     def __init__(self, content, api=None):
-        super(Events, self).__init__(content, api=api)
+        super().__init__(content, api=api)
         self.event_timestamp = content['event_timestamp']
         self.event_type = content['event_type']
         self.source = content['source']
         self.team_account_id = content['team_account_id']
         self.user_account_id = content['user_account_id']
+
+
+class ReportTask(core.BaseJsonResource):
+    RESOURCE_ENDPOINT = "/reports"
+
+    def __init__(self, content, api=None):
+        super().__init__(content, api=api)
+        self.id = content['id']
+        self.type = content['type']
+        self.format = content['format']
+        self.state = content['state']
+        self.community = content['community']
+        self.created = content['created']
+        self.template_id = content.get('template_id')
+        self.template_metadata = content.get('template_metadata', {})
+        self.sandbox_task_id = content.get('sandbox_task_id')
+        self.instance_id = content.get('instance_id')
+        self.url = content['url']
+
+    def download_report(self, folder=None):
+        """ This method is special, in that it is simply for downloading from S3 """
+        return core.PolyswarmRequest(
+            self.api,
+            {
+                'method': 'GET',
+                'url': self.url,
+                'stream': True,
+                'headers': {'Authorization': None}
+            },
+            result_parser=LocalArtifact,
+            folder=folder,
+        ).execute()
+
+
+class ReportTemplate(core.BaseJsonResource):
+    RESOURCE_ENDPOINT = "/reports/templates"
+
+    def __init__(self, content, api=None):
+        super().__init__(content, api=api)
+        if content:
+            self.id = content['id']
+            self.created = content['created']
+            self.template_name = content['template_name']
+            self.includes = content.get('includes')
+            self.primary_color = content.get('primary_color')
+            self.footer_text = content.get('footer_text')
+            self.last_page_text = content.get('last_page_text')
+            self.is_default = content.get('is_default', False)
+            self.logo_content_length = content.get('logo_content_length')
+            self.logo_url = f"{self.api.uri}/reports/templates/logo?id={self.id}"
+            self.logo_content_type = content.get('logo_content_type')
+            self.logo_height = content.get('logo_height')
+            self.logo_width = content.get('logo_width')
+
+    def download_logo(self, folder):
+        return core.PolyswarmRequest(
+            self.api,
+            {
+                'method': 'GET',
+                'url': self.logo_url,
+            },
+            result_parser=LocalArtifact,
+            folder=folder,
+        ).execute()
+
+    def delete_logo(self):
+        return core.PolyswarmRequest(
+            self.api,
+            {
+                'method': 'DELETE',
+                'url': self.logo_url,
+            },
+        ).execute()
+
+    def upload_logo(self, logo_file, content_tpe):
+        if not logo_file:
+            raise exceptions.InvalidValueException('A local file must be provided in order to upload')
+        logo_file.seek(0, io.SEEK_END)
+        length = logo_file.tell()
+        logo_file.seek(0)
+        if not length:
+            raise exceptions.InvalidValueException('Empty file')
+        # r = requests.put(self.upload_url, data=logo_file, **kwargs)
+        # r.raise_for_status()
+        # return r
+        return core.PolyswarmRequest(
+            self.api,
+            {
+                'method': 'PUT',
+                'url': f'{self.api.uri}/reports/templates/logo?id={self.id}',
+                'data': logo_file,
+                'headers': {'Content-Type': content_tpe}
+            },
+            result_parser=self.__class__
+        ).execute()
