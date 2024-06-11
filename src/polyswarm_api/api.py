@@ -844,6 +844,10 @@ class PolyswarmAPI:
 
     def report_download(self, report_id, folder):
         report = resources.ReportTask.get(self, id=report_id).result()
+        if report.state == 'PENDING':
+            raise exceptions.InvalidValueException('Report is in PENDING state, wait for completion first')
+        if report.state == 'FAILED':
+            raise exceptions.InvalidValueException("Report is in FAILED state, won't be generated")
         result = report.download_report(folder=folder).result()
         result.handle.close()
         return result
