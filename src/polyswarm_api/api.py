@@ -824,9 +824,22 @@ class PolyswarmAPI:
         return resources.Events.list(self, **kwargs).result()
 
     def report_create(self, **kwargs):
-        return resources.ReportTask.create(self, **kwargs).result()
+        nowait = kwargs.pop('nowait', False)
+        timeout = kwargs.pop('timeout', None)
+        folder = kwargs.pop('destination', None)
+        report = resources.ReportTask.create(self, **kwargs).result()
+        if not nowait:
+            report = self.report_wait_for(report.id, timeout)
+            if folder:
+                result = report.download_report(folder=folder).result()
+                result.handle.close()
+                return result
+        return report
 
     def report_get(self, **kwargs):
+        """
+        :param kwargs: Keyword arguments, "id" is required.
+        """
         return resources.ReportTask.get(self, **kwargs).result()
 
     def report_download(self, report_id, folder):
@@ -834,6 +847,26 @@ class PolyswarmAPI:
         result = report.download_report(folder=folder).result()
         result.handle.close()
         return result
+
+    def report_wait_for(self, report_id, timeout=settings.DEFAULT_REPORT_TIMEOUT):
+        """
+        Wait for a Report to finish successfully.
+
+        :param report_id: Report id to wait for
+        :param timeout: Maximum time in seconds to wait before raising a TimeoutException
+        :return: The ReportTask resource waited on, either in 'SUCCEEDED' or 'FAILED' state
+        """
+        logger.info('Waiting for report %s', report_id)
+        start = time.time()
+        while True:
+            report_result = self.report_get(id=report_id)
+            if report_result.state != 'PENDING':
+                return report_result
+            elif -1 < timeout < time.time() - start:
+                raise exceptions.TimeoutException(
+                    f'Timed out waiting for report {report_id} to finish. Please try again.')
+            else:
+                time.sleep(settings.POLL_FREQUENCY)
 
     def report_template_logo_download(self, template_id, folder):
         report = resources.ReportTemplate.get(self, id=template_id).result()
