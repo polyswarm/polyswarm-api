@@ -830,7 +830,6 @@ class PolyswarmAPI:
                       sandbox_task_id=None,
                       template_id=None,
                       template_metadata=None,
-                      nowait=False, timeout=None, destination=None,
                       **kwargs):
         """
         Create a report, either 'pdf' or 'html' (format argument).
@@ -845,13 +844,6 @@ class PolyswarmAPI:
                                              template_id=template_id,
                                              template_metadata=template_metadata,
                                              **kwargs).result()
-        if nowait:
-            return report
-        report = self.report_wait_for(report.id, timeout)
-        if destination:
-            result = report.download_report(folder=destination).result()
-            result.handle.close()
-            return result
         return report
 
     def report_get(self, id, **kwargs):
