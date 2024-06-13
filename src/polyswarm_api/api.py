@@ -823,17 +823,61 @@ class PolyswarmAPI:
         logger.info('List events')
         return resources.Events.list(self, **kwargs).result()
 
-    def report_create(self, **kwargs):
-        return resources.ReportTask.create(self, **kwargs).result()
+    def report_create(self,
+                      type,
+                      format,
+                      instance_id=None,
+                      sandbox_task_id=None,
+                      template_id=None,
+                      template_metadata=None,
+                      **kwargs):
+        """
+        Create a report, either 'pdf' or 'html' (format argument).
+        Regarding the type argument, either instance_id (type='scan')
+        or sandbox_task_id (type='sandbox') has to be provided.
+        """
+        report = resources.ReportTask.create(self,
+                                             type=type,
+                                             format=format,
+                                             instance_id=instance_id,
+                                             sandbox_task_id=sandbox_task_id,
+                                             template_id=template_id,
+                                             template_metadata=template_metadata,
+                                             **kwargs).result()
+        return report
 
-    def report_get(self, **kwargs):
-        return resources.ReportTask.get(self, **kwargs).result()
+    def report_get(self, id, **kwargs):
+        return resources.ReportTask.get(self, id=id, **kwargs).result()
 
     def report_download(self, report_id, folder):
         report = resources.ReportTask.get(self, id=report_id).result()
+        if report.state == 'PENDING':
+            raise exceptions.InvalidValueException('Report is in PENDING state, wait for completion first')
+        if report.state == 'FAILED':
+            raise exceptions.InvalidValueException("Report is in FAILED state, won't be generated")
         result = report.download_report(folder=folder).result()
         result.handle.close()
         return result
+
+    def report_wait_for(self, report_id, timeout=settings.DEFAULT_REPORT_TIMEOUT):
+        """
+        Wait for a Report to finish successfully.
+
+        :param report_id: Report id to wait for
+        :param timeout: Maximum time in seconds to wait before raising a TimeoutException
+        :return: The ReportTask resource waited on, either in 'SUCCEEDED' or 'FAILED' state
+        """
+        logger.info('Waiting for report %s', report_id)
+        start = time.time()
+        while True:
+            report_result = self.report_get(id=report_id)
+            if report_result.state != 'PENDING':
+                return report_result
+            elif -1 < timeout < time.time() - start:
+                raise exceptions.TimeoutException(
+                    f'Timed out waiting for report {report_id} to finish. Please try again.')
+            else:
+                time.sleep(settings.POLL_FREQUENCY)
 
     def report_template_logo_download(self, template_id, folder):
         report = resources.ReportTemplate.get(self, id=template_id).result()
@@ -851,11 +895,50 @@ class PolyswarmAPI:
         result = report.upload_logo(logo_file, content_tpe).result()
         return result
 
-    def report_template_create(self, **kwargs):
-        return resources.ReportTemplate.create(self, **kwargs).result()
+    def report_template_create(self,
+                               template_name,
+                               is_default=False,
+                               primary_color=None,
+                               footer_text=None,
+                               last_page_text=None,
+                               includes=None,
+                               **kwargs):
+        """
+        Create a template for reports.
+        A team account can have multiple templates, and setting is_default=True
+        makes it the default when a report is created without specifying template_id
+        (see report_create method).
+        The includes argument can be a list with sections to be included
+        in the reports. The list can include any of the following section names:
+        summary, detections, fileMetadata, network, droppedFiles, extractedConfig, analysis.
+        """
+        return resources.ReportTemplate.create(self,
+                                               template_name=template_name,
+                                               is_default=is_default,
+                                               primary_color=primary_color,
+                                               footer_text=footer_text,
+                                               last_page_text=last_page_text,
+                                               includes=includes,
+                                               **kwargs).result()
 
-    def report_template_update(self, template_id, **kwargs):
-        return resources.ReportTemplate.update(self, id=template_id, **kwargs).result()
+    def report_template_update(self,
+                               template_id,
+                               template_name=None,
+                               is_default=None,
+                               primary_color=None,
+                               footer_text=None,
+                               last_page_text=None,
+                               includes=None,
+                               **kwargs):
+        return resources.ReportTemplate.update(self,
+                                               id=template_id,
+                                               template_name=template_name,
+                                               is_default=is_default,
+                                               primary_color=primary_color,
+                                               footer_text=footer_text,
+                                               last_page_text=last_page_text,
+                                               includes=includes,
+                                               **kwargs).result()
 
     def report_template_get(self, template_id):
         return resources.ReportTemplate.get(self, id=template_id).result()
@@ -863,8 +946,5 @@ class PolyswarmAPI:
     def report_template_delete(self, template_id):
         return resources.ReportTemplate.delete(self, id=template_id).result()
 
-    def report_template_list(self, is_default=None):
-        params = {}
-        if is_default is not None:
-            params['is_default'] = is_default
-        return resources.ReportTemplate.list(self, **params).result()
+    def report_template_list(self, is_default=None, **kwargs):
+        return resources.ReportTemplate.list(self, is_default=is_default, **kwargs).result()
