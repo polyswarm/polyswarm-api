@@ -211,14 +211,26 @@ class PolyswarmAPI:
         logger.info('Deleting known good ioc %s', id)
         return resources.IOC.delete_known_good(self, id).result()
 
-    def submit(self, artifact, artifact_type=resources.ArtifactType.FILE, artifact_name=None, scan_config=None):
+    def submit(
+            self,
+            artifact,
+            artifact_type=resources.ArtifactType.FILE,
+            artifact_name=None,
+            scan_config=None,
+            is_zip=False,
+            zip_password=None,
+    ):
         """
-        Submit artifacts to polyswarm and return UUIDs
+        Submit artifacts to polyswarm
 
         :param artifact: A file-like, path to file, url or LocalArtifact instance
         :param artifact_type: The ArtifactType or strings containing "file" or "url"
         :param artifact_name: An appropriate filename for the Artifact
         :param scan_config: The scan configuration to be used, e.g.: "default", "more-time", "most-time"
+        :param is_zip: If this flag is set, will handle the file as a zip
+          in the server and decompress before processing.
+        :param zip_password: Will use this password to decompress the zip file.
+          If provided, will handle the file as a zip.
         :return: An ArtifactInstance resource
         """
         logger.info('Submitting artifact of type %s', artifact_type)
@@ -239,11 +251,15 @@ class PolyswarmAPI:
         if artifact_type == resources.ArtifactType.URL:
             scan_config = scan_config or 'more-time'
         if isinstance(artifact, resources.LocalArtifact):
-            instance = resources.ArtifactInstance.create(self,
-                                                         artifact_name=artifact.artifact_name,
-                                                         artifact_type=artifact.artifact_type.name,
-                                                         scan_config=scan_config,
-                                                         community=self.community).result()
+            instance = resources.ArtifactInstance.create(
+                self,
+                artifact_name=artifact.artifact_name,
+                artifact_type=artifact.artifact_type.name,
+                scan_config=scan_config,
+                community=self.community,
+                is_zip=is_zip,
+                zip_password=zip_password,
+            ).result()
             instance.upload_file(artifact)
             return resources.ArtifactInstance.update(self, id=instance.id, community=self.community).result()
         else:
@@ -690,7 +706,17 @@ class PolyswarmAPI:
         return resources.SandboxTask.create(self, artifact_id=instance_id, provider_slug=provider_slug, vm_slug=vm_slug,
                                             network_enabled=network_enabled).result()
 
-    def sandbox_file(self, artifact, provider_slug, vm_slug, artifact_type=resources.ArtifactType.FILE, artifact_name=None, network_enabled=True):
+    def sandbox_file(
+            self,
+            artifact,
+            provider_slug,
+            vm_slug,
+            artifact_type=resources.ArtifactType.FILE,
+            artifact_name=None,
+            network_enabled=True,
+            is_zip=False,
+            zip_password=None,
+    ):
         logger.info('Sandboxing file in provider %s vm %s', provider_slug, vm_slug)
         artifact_type = resources.ArtifactType.parse(artifact_type)
         # TODO This is a python 2.7 check if artifact is a file-like instance, consider changing
@@ -708,13 +734,17 @@ class PolyswarmAPI:
                                                                 artifact_name=artifact_name or artifact,
                                                                 artifact_type=artifact_type)
         if isinstance(artifact, resources.LocalArtifact):
-            task = resources.SandboxTask.create_file(self,
-                                                     artifact_name=artifact.artifact_name,
-                                                     artifact_type=artifact.artifact_type.name,
-                                                     community=self.community,
-                                                     provider_slug=provider_slug,
-                                                     vm_slug=vm_slug,
-                                                     network_enabled=network_enabled).result()
+            task = resources.SandboxTask.create_file(
+                self,
+                artifact_name=artifact.artifact_name,
+                artifact_type=artifact.artifact_type.name,
+                community=self.community,
+                provider_slug=provider_slug,
+                vm_slug=vm_slug,
+                network_enabled=network_enabled,
+                is_zip=is_zip,
+                zip_password=zip_password,
+            ).result()
             task.upload_file(artifact)
             return resources.SandboxTask.update_file(self, id=task.id, community=self.community).result()
         else:
