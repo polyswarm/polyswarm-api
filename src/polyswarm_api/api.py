@@ -238,10 +238,7 @@ class PolyswarmAPI:
         """
         logger.info('Submitting artifact of type %s', artifact_type)
         artifact_type = resources.ArtifactType.parse(artifact_type)
-        # TODO This is a python 2.7 check if artifact is a file-like instance, consider changing
-        #  to isinstance(artifact, io.IOBase) when deprecating 2.7 and implementing making LocalHandle
-        #  inherit io.IOBase, although this will change the method delegation logic in the resource
-        if hasattr(artifact, 'read') and hasattr(artifact.read, '__call__'):
+        if isinstance(artifact, io.IOBase):
             artifact = resources.LocalArtifact.from_handle(self, artifact, artifact_name=artifact_name or '',
                                                            artifact_type=artifact_type)
         elif isinstance(artifact, str):
