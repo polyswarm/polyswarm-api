@@ -1,3 +1,4 @@
+import io
 import logging
 import time
 
@@ -217,8 +218,7 @@ class PolyswarmAPI:
             artifact_type=resources.ArtifactType.FILE,
             artifact_name=None,
             scan_config=None,
-            is_zip=False,
-            zip_password=None,
+            preprocessing=None,
     ):
         """
         Submit artifacts to polyswarm
@@ -227,18 +227,18 @@ class PolyswarmAPI:
         :param artifact_type: The ArtifactType or strings containing "file" or "url"
         :param artifact_name: An appropriate filename for the Artifact
         :param scan_config: The scan configuration to be used, e.g.: "default", "more-time", "most-time"
-        :param is_zip: If this flag is set, will handle the file as a zip
-          in the server and decompress before processing.
-        :param zip_password: Will use this password to decompress the zip file.
-          If provided, will handle the file as a zip.
+        :param preprocessing: Preprocessing settings to be applied to the artifact, None means no preprocessing,
+                              otherwise a dict with the following attributes can be passed:
+                              - type (string): either "zip" or "qrcode", the first mean the file is a zip that
+                                the server has to decompress to then scan the content (only one file inside allowed).
+                                "qrcode" means the file is a QR Code image with a URL as payload, and you want
+                                to scan the URL, not the actual file (artifact_type has to be "URL").
+                              - password (string, optional): will use this password to decompress the zip file.
         :return: An ArtifactInstance resource
         """
         logger.info('Submitting artifact of type %s', artifact_type)
         artifact_type = resources.ArtifactType.parse(artifact_type)
-        # TODO This is a python 2.7 check if artifact is a file-like instance, consider changing
-        #  to isinstance(artifact, io.IOBase) when deprecating 2.7 and implementing making LocalHandle
-        #  inherit io.IOBase, although this will change the method delegation logic in the resource
-        if hasattr(artifact, 'read') and hasattr(artifact.read, '__call__'):
+        if isinstance(artifact, io.IOBase):
             artifact = resources.LocalArtifact.from_handle(self, artifact, artifact_name=artifact_name or '',
                                                            artifact_type=artifact_type)
         elif isinstance(artifact, str):
@@ -246,8 +246,16 @@ class PolyswarmAPI:
                 artifact = resources.LocalArtifact.from_path(self, artifact, artifact_type=artifact_type,
                                                              artifact_name=artifact_name)
             elif artifact_type == resources.ArtifactType.URL:
-                artifact = resources.LocalArtifact.from_content(self, artifact, artifact_name=artifact_name or artifact,
-                                                                artifact_type=artifact_type)
+                if preprocessing and preprocessing['type'] == 'qrcode':
+                    artifact = resources.LocalArtifact.from_path(self,
+                                                                 artifact,
+                                                                 artifact_type=artifact_type,
+                                                                 artifact_name=artifact_name)
+                else:
+                    artifact = resources.LocalArtifact.from_content(self,
+                                                                    artifact,
+                                                                    artifact_name=artifact_name or artifact,
+                                                                    artifact_type=artifact_type)
         if artifact_type == resources.ArtifactType.URL:
             scan_config = scan_config or 'more-time'
         if isinstance(artifact, resources.LocalArtifact):
@@ -257,8 +265,7 @@ class PolyswarmAPI:
                 artifact_type=artifact.artifact_type.name,
                 scan_config=scan_config,
                 community=self.community,
-                is_zip=is_zip,
-                zip_password=zip_password,
+                preprocessing=preprocessing,
             ).result()
             instance.upload_file(artifact)
             return resources.ArtifactInstance.update(self, id=instance.id, community=self.community).result()
