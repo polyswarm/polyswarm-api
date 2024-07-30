@@ -985,3 +985,6 @@ class PolyswarmAPI:
 
     def report_template_list(self, is_default=None, **kwargs):
         return resources.ReportTemplate.list(self, is_default=is_default, **kwargs).result()
+
+    def account_whois(self, **kwargs):
+        return resources.WhoIs.get(self, **kwargs).result()

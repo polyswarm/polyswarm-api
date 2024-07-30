@@ -1203,3 +1203,14 @@ class ReportTemplate(core.BaseJsonResource):
             },
             result_parser=self.__class__
         ).execute()
+
+
+class WhoIs(core.BaseJsonResource):
+    RESOURCE_ENDPOINT = "/public/accounts/whois"
+
+    def __init__(self, content, api=None):
+        super().__init__(content, api=api)
+        self.account_name = content['account_name']
+        self.account_number = content['account_number']
+        self.account_type = content['account_type']
+        self.communities = content['communities']
