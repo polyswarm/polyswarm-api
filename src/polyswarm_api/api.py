@@ -988,3 +988,6 @@ class PolyswarmAPI:
 
     def account_whois(self, **kwargs):
         return resources.WhoIs.get(self, **kwargs).result()
+
+    def account_features(self, **kwargs):
+        return resources.AccountFeatures.get(self, **kwargs).result()
