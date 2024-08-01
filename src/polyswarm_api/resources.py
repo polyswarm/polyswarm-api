@@ -1211,7 +1211,7 @@ class AccountFeatures(core.BaseJsonResource):
     def __init__(self, content, api=None):
         super().__init__(content, api=api)
         self.account_number = content['account_number']
-        self.user_account_number = content['user_account_number']
+        self.user_account_number = content.get('user_account_number')
         self.account_plan_name = content['account_plan_name']
         self.plan_period_start = content['plan_period_start']
         self.plan_period_end = content['plan_period_end']
@@ -1243,6 +1243,7 @@ class WhoIs(core.BaseJsonResource):
     def __init__(self, content, api=None):
         super().__init__(content, api=api)
         self.account_number = content['account_number']
+        self.user_account_number = content.get('user_account_number')
         self.account_name = content['account_name']
         self.account_type = content['account_type']
         self.communities = content['communities']
