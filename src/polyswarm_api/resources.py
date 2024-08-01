@@ -1203,3 +1203,48 @@ class ReportTemplate(core.BaseJsonResource):
             },
             result_parser=self.__class__
         ).execute()
+
+
+class AccountFeatures(core.BaseJsonResource):
+    RESOURCE_ENDPOINT = "/public/accounts"
+
+    def __init__(self, content, api=None):
+        super().__init__(content, api=api)
+        self.account_number = content['account_number']
+        self.user_account_number = content.get('user_account_number')
+        self.account_plan_name = content['account_plan_name']
+        self.plan_period_start = content['plan_period_start']
+        self.plan_period_end = content['plan_period_end']
+        self.window_start = content['window_start']
+        self.window_end = content['window_end']
+        self.tenant = content.get('tenant')
+        self.daily_api_limit = content['daily_api_limit']
+        self.daily_api_remaining = content['daily_api_remaining']
+        self.has_stream_access = content['has_stream_access']
+        self.is_trial = content['is_trial']
+        self.is_trial_expired = content['is_trial_expired']
+        self.trial_started_at = content['trial_started_at']
+        self.trial_ended_at = content['trial_ended_at']
+        self.features = []
+        for feature in content['features']:
+            self.features.append({
+                'base_uses': feature['base_uses'],
+                'name': feature['name'],
+                'overage': feature['overage'],
+                'remaining_uses': feature['remaining_uses'],
+                'tag': feature['tag'],
+                'value': feature['value'],
+            })
+
+
+class WhoIs(core.BaseJsonResource):
+    RESOURCE_ENDPOINT = "/public/accounts/whois"
+
+    def __init__(self, content, api=None):
+        super().__init__(content, api=api)
+        self.account_number = content['account_number']
+        self.user_account_number = content.get('user_account_number')
+        self.account_name = content['account_name']
+        self.account_type = content['account_type']
+        self.communities = content['communities']
+        self.tenant = content.get('tenant')
