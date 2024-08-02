@@ -721,10 +721,33 @@ class PolyswarmAPI:
             artifact_type=resources.ArtifactType.FILE,
             artifact_name=None,
             network_enabled=True,
-            is_zip=False,
-            zip_password=None,
+            preprocessing=None,
     ):
-        logger.info('Sandboxing file in provider %s vm %s', provider_slug, vm_slug)
+        """
+        Submit artifacts to Polyswarm Sandboxing system.
+
+        :param artifact: A file-like, path to file, url or LocalArtifact instance
+        :param artifact_name: An appropriate filename for the Artifact
+        :artifact_type: the type of artifact to be submitted, default FILE. Use URL type
+                        with the preprocessing field to scan URLs inside QR Code images
+        :param network_enabled: Whether the VM has to have Internet connection enabled or not.
+        :param provider_slug: the slug of the provider that is going to execute the sandboxing, e.g.
+                              'cape' or 'triage'.
+                              Use `sandbox_providers()` to get the list of providers.
+        :param vm_slug: The slug of the virtual machine used for the sandboxing, depending on the
+                        VM chosen is the OS and software that is going to host the sandboxing. Each
+                        provider (provider_slug) support different VMs, so check with `sandbox_providers()`
+                        the list of VMs available.
+        :param preprocessing: Preprocessing settings to be applied to the artifact, None means no preprocessing,
+                              otherwise a dict with the following attributes can be passed:
+                              - type (string): either "zip" or "qrcode", the first mean the file is a zip that
+                                the server has to decompress to then scan the content (only one file inside allowed).
+                                "qrcode" means the file is a QR Code image with a URL as payload, and you want
+                                to scan the URL, not the actual file (artifact_type has to be "URL").
+                              - password (string, optional): will use this password to decompress the zip file.
+        :return: An ArtifactInstance resource
+        """
+        logger.info('Sandboxing %s in provider %s vm %s', artifact_type.name.lower(), provider_slug, vm_slug)
         artifact_type = resources.ArtifactType.parse(artifact_type)
         if isinstance(artifact, io.IOBase):
             artifact = resources.LocalArtifact.from_handle(self, artifact, artifact_name=artifact_name or '',
@@ -746,8 +769,7 @@ class PolyswarmAPI:
                 provider_slug=provider_slug,
                 vm_slug=vm_slug,
                 network_enabled=network_enabled,
-                is_zip=is_zip,
-                zip_password=zip_password,
+                preprocessing=preprocessing,
             ).result()
             task.upload_file(artifact)
             return resources.SandboxTask.update_file(self, id=task.id, community=self.community).result()
@@ -756,6 +778,10 @@ class PolyswarmAPI:
                 'Artifacts should be a path to a file or a LocalArtifact instance')
 
     def sandbox_url(self, url, provider_slug, vm_slug, browser=None):
+        """
+        Submit URL to Polyswarm Sandboxing system.
+        To submit a URL from a QR Code image, see sandbox_file().
+        """
         logger.info('Sandboxing url in provider %s vm %s', provider_slug, vm_slug)
         artifact = resources.LocalArtifact.from_content(self, url, artifact_name=url, artifact_type='URL')
         task = resources.SandboxTask.create_file(self,
