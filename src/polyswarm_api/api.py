@@ -804,11 +804,10 @@ class PolyswarmAPI:
                               or the file name if artifact is provided (QR Code image file).
         :param preprocessing: Preprocessing settings to be applied to the artifact, None means no preprocessing,
                               otherwise a dict with the following attributes can be passed:
-                              - type (string): either "zip" or "qrcode", the first mean the file is a zip that
-                                the server has to decompress to then scan the content (only one file inside allowed).
-                                "qrcode" means the file is a QR Code image with a URL as payload, and you want
-                                to scan the URL, not the actual file (artifact_type has to be "URL").
-                              - password (string, optional): will use this password to decompress the zip file.
+                              - type (string): only "qrcode" is supported for URL sandboxing:
+                                the file is a QR Code image with a URL as payload, and you want
+                                to scan the URL, not the actual file. This argument has to be used with the
+                                `artifact` param, and `url` set to `None`.
         """
         logger.info('Sandboxing url in provider %s vm %s', provider_slug, vm_slug)
         if artifact and url:
