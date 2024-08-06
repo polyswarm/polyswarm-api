@@ -16,9 +16,7 @@ interactions:
     uri: http://localhost:9696/v3/sandbox/sandboxtask/latest?community=gamma&sha256=a709f37b3a50608f2e9830f92ea25da04bfa4f34d2efecfd061de9f29af02427&sandbox=cape
   response:
     body:
-      string: '{"result":{"account_number":null,"community":"gamma","created":"2023-06-15T21:45:32.184762","expiration":"2023-06-15T22:15:32.186270","id":85108672518483213,"instance_id":97100845313623104,"report":{},"sandbox":"cape","sandbox_artifacts":[],"sha256":"a709f37b3a50608f2e9830f92ea25da04bfa4f34d2efecfd061de9f29af02427","status":"PENDING","team_account_number":null,"upload_url":null},"status":"OK"}
-
-        '
+      string: '{"result":{"account_number":null,"community":"gamma","created":"2023-06-15T21:45:32.184762","expiration":"2023-06-15T22:15:32.186270","id":85108672518483213,"instance_id":97100845313623104,"report":{},"sandbox":"cape","sandbox_artifacts":[],"sha256":"a709f37b3a50608f2e9830f92ea25da04bfa4f34d2efecfd061de9f29af02427","status":"PENDING","team_account_number":null,"upload_url":null,"config":{"artifact_type":"FILE","browser":null,"network_enabled":true,"provider":{"id":"2","name":"triage","slug":"triage","tool":"triage_sandbox_v0"},"target":"malicious-enc.zip","vm":{}},"artifact":{"extended_type":null,"filename":"a709f37b3a50608f2e9830f92ea25da04bfa4f34d2efecfd061de9f29af02427","mimetype":"text/plain","size":68}},"status":"OK"}'
     headers:
       Connection:
       - close
