@@ -295,6 +295,7 @@ class ArtifactInstance(core.BaseJsonResource, core.Hashable):
         self.community = content.get('community')
         self.created = core.parse_isoformat(content.get('created'))
         self.failed = content.get('failed')
+        self.failed_reason = content.get('failed_reason')
         self.filename = content.get('filename')
         self.result = content.get('result')
         self.type = content.get('type')
