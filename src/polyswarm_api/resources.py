@@ -295,6 +295,7 @@ class ArtifactInstance(core.BaseJsonResource, core.Hashable):
         self.community = content.get('community')
         self.created = core.parse_isoformat(content.get('created'))
         self.failed = content.get('failed')
+        self.failed_reason = content.get('failed_reason')
         self.filename = content.get('filename')
         self.result = content.get('result')
         self.type = content.get('type')
@@ -1131,6 +1132,10 @@ class ReportTask(core.BaseJsonResource):
 
     def download_report(self, folder=None):
         """ This method is special, in that it is simply for downloading from S3 """
+        if self.state == 'PENDING':
+            raise exceptions.InvalidValueException('Report is in PENDING state, wait for completion first')
+        if self.state == 'FAILED':
+            raise exceptions.InvalidValueException("Report is in FAILED state, won't be generated")
         return core.PolyswarmRequest(
             self.api,
             {
