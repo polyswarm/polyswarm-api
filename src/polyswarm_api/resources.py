@@ -1237,10 +1237,11 @@ class AccountFeatures(core.BaseJsonResource):
             self.features.append({
                 'base_uses': feature['base_uses'],
                 'name': feature['name'],
-                'overage': feature['overage'],
                 'remaining_uses': feature['remaining_uses'],
                 'tag': feature['tag'],
                 'value': feature['value'],
+                'overage': feature.get('overage'),
+                'backing_feature': feature.get('backing_feature'),
             })
 
 
