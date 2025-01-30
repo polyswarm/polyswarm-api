@@ -8,7 +8,7 @@ with open('README.md', 'r') as readme:
 
 
 setup(
-    name='polyswarm-api',
+    name='polyswarm_api',
     version='3.11.0',
     description='Client library to simplify interacting with the PolySwarm consumer API',
     long_description=long_description,
