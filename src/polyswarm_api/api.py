@@ -23,8 +23,8 @@ class PolyswarmAPI:
         :param verify: Boolean, whether or not to verify TLS connections.
         :param **kwargs: Keyword args to pass to requests.Session
         """
-        key_masked = (key[0:4] if key and len(key) > 16 else '') + '******'
-        logger.info('Creating PolyswarmAPI instance: api_key: %s, api_uri: %s, community: %s', key_masked, uri, community)
+        key_masked = '******' + (key[-4:] if key and len(key) > 16 else '')
+        logger.info('Creating PolyswarmAPI instance | api-key: %s, api-uri: %s, community: %s', key_masked, uri, community)
         self.uri = uri or settings.DEFAULT_GLOBAL_API
         self.community = community or settings.DEFAULT_COMMUNITY
         self.timeout = timeout or settings.DEFAULT_HTTP_TIMEOUT
