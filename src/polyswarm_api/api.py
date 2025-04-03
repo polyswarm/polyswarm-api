@@ -931,6 +931,29 @@ class PolyswarmAPI:
         logger.info('List events')
         return resources.Events.list(self, **kwargs).result()
 
+    def sample_zip_task_create(self, instance_ids, **kwargs):
+        """
+        Create a task that creates a zip of sample/s
+        """
+        logger.info('Create zip archive task')
+        task = resources.SampleZipTask.create(self,
+                                              instance_ids=instance_ids,
+                                              **kwargs).result()
+        return task
+
+    def sample_zip_task_get(self, id, **kwargs):
+        return resources.SampleZipTask.get(self, id=id, **kwargs).result()
+
+    def sample_zip_download(self, id, folder):
+        task = resources.SampleZipTask.get(self, id=id).result()
+        if task.state == 'PENDING':
+            raise exceptions.InvalidValueException('Report is in PENDING state, wait for completion first')
+        if task.state == 'FAILED':
+            raise exceptions.InvalidValueException("Report is in FAILED state, won't be generated")
+        result = task.download_zip(folder=folder).result()
+        result.handle.close()
+        return result
+
     def report_create(self,
                       type,
                       format,
