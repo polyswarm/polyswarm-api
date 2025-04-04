@@ -931,13 +931,15 @@ class PolyswarmAPI:
         logger.info('List events')
         return resources.Events.list(self, **kwargs).result()
 
-    def sample_bundle_task_create(self, instance_ids, **kwargs):
+    def sample_bundle_task_create(self, instance_ids, preserve_filenames=False, filename=None, **kwargs):
         """
         Create a task that creates a zip of sample/s
         """
         logger.info('Create zip archive task')
         task = resources.BundleTask.create(self,
                                               instance_ids=instance_ids,
+                                              filename=filename,
+                                              preserve_filenames=preserve_filenames,
                                               **kwargs).result()
         return task
 
