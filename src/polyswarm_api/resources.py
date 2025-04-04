@@ -1112,8 +1112,8 @@ class Events(core.BaseJsonResource):
         self.team_account_id = content['team_account_id']
         self.user_account_id = content['user_account_id']
 
-class SampleZipTask(core.BaseJsonResource):
-    RESOURCE_ENDPOINT = "/zip"
+class BundleTask(core.BaseJsonResource):
+    RESOURCE_ENDPOINT = "/bundle"
 
     def __init__(self, content, api=None):
         super().__init__(content, api=api)
@@ -1122,6 +1122,7 @@ class SampleZipTask(core.BaseJsonResource):
         self.community = content['community']
         self.created = content['created']
         self.instance_ids = content.get('instance_ids')
+        self.filename = content.get('filename')
         self.url = content['url']
 
     def download_zip(self, folder=None):
