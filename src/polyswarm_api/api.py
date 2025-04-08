@@ -949,9 +949,9 @@ class PolyswarmAPI:
     def sample_bundle_download(self, id, folder):
         task = resources.BundleTask.get(self, id=id).result()
         if task.state == 'PENDING':
-            raise exceptions.InvalidValueException('Report is in PENDING state, wait for completion first')
+            raise exceptions.InvalidValueException('Bundle is in PENDING state, wait for completion first')
         if task.state == 'FAILED':
-            raise exceptions.InvalidValueException("Report is in FAILED state, won't be generated")
+            raise exceptions.InvalidValueException("Bundle is in FAILED state, won't be generated")
         result = task.download_zip(folder=folder).result()
         result.handle.close()
         return result

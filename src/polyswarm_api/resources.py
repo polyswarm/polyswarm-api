@@ -1123,14 +1123,15 @@ class BundleTask(core.BaseJsonResource):
         self.created = content['created']
         self.instance_ids = content.get('instance_ids')
         self.filename = content.get('filename')
+        self.preserve_filenames = content.get('preserve_filenames')
         self.url = content['url']
 
     def download_zip(self, folder=None):
         """ This method is special, in that it is simply for downloading from S3 """
         if self.state == 'PENDING':
-            raise exceptions.InvalidValueException('Report is in PENDING state, wait for completion first')
+            raise exceptions.InvalidValueException('Bundle is in PENDING state, wait for completion first')
         if self.state == 'FAILED':
-            raise exceptions.InvalidValueException("Report is in FAILED state, won't be generated")
+            raise exceptions.InvalidValueException("Bundle is in FAILED state, won't be generated")
         return core.PolyswarmRequest(
             self.api,
             {
