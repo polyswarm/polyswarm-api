@@ -940,14 +940,15 @@ class PolyswarmAPI:
                                               instance_ids=instance_ids,
                                               filename=filename,
                                               preserve_filenames=preserve_filenames,
+                                              community=self.community,
                                               **kwargs).result()
         return task
 
     def sample_bundle_task_get(self, id, **kwargs):
-        return resources.BundleTask.get(self, id=id, **kwargs).result()
+        return resources.BundleTask.get(self, id=id, community=self.community, **kwargs).result()
 
     def sample_bundle_download(self, id, folder):
-        task = resources.BundleTask.get(self, id=id).result()
+        task = resources.BundleTask.get(self, id=id, community=self.community).result()
         if task.state == 'PENDING':
             raise exceptions.InvalidValueException('Bundle is in PENDING state, wait for completion first')
         if task.state == 'FAILED':
