@@ -931,6 +931,32 @@ class PolyswarmAPI:
         logger.info('List events')
         return resources.Events.list(self, **kwargs).result()
 
+    def sample_bundle_task_create(self, instance_ids, preserve_filenames=False, filename=None, **kwargs):
+        """
+        Create a task that creates a zip of sample/s
+        """
+        logger.info('Create zip archive task')
+        task = resources.BundleTask.create(self,
+                                              instance_ids=instance_ids,
+                                              filename=filename,
+                                              preserve_filenames=preserve_filenames,
+                                              community=self.community,
+                                              **kwargs).result()
+        return task
+
+    def sample_bundle_task_get(self, id, **kwargs):
+        return resources.BundleTask.get(self, id=id, community=self.community, **kwargs).result()
+
+    def sample_bundle_download(self, id, folder):
+        task = resources.BundleTask.get(self, id=id, community=self.community).result()
+        if task.state == 'PENDING':
+            raise exceptions.InvalidValueException('Bundle is in PENDING state, wait for completion first')
+        if task.state == 'FAILED':
+            raise exceptions.InvalidValueException("Bundle is in FAILED state, won't be generated")
+        result = task.download_zip(folder=folder).result()
+        result.handle.close()
+        return result
+
     def report_create(self,
                       type,
                       format,

@@ -1112,6 +1112,37 @@ class Events(core.BaseJsonResource):
         self.team_account_id = content['team_account_id']
         self.user_account_id = content['user_account_id']
 
+class BundleTask(core.BaseJsonResource):
+    RESOURCE_ENDPOINT = "/bundle"
+
+    def __init__(self, content, api=None):
+        super().__init__(content, api=api)
+        self.id = content['id']
+        self.state = content['state']
+        self.community = content['community']
+        self.created = content['created']
+        self.instance_ids = content.get('instance_ids')
+        self.filename = content.get('filename')
+        self.preserve_filenames = content.get('preserve_filenames')
+        self.url = content['url']
+
+    def download_zip(self, folder=None):
+        """ This method is special, in that it is simply for downloading from S3 """
+        if self.state == 'PENDING':
+            raise exceptions.InvalidValueException('Bundle is in PENDING state, wait for completion first')
+        if self.state == 'FAILED':
+            raise exceptions.InvalidValueException("Bundle is in FAILED state, won't be generated")
+        return core.PolyswarmRequest(
+            self.api,
+            {
+                'method': 'GET',
+                'url': self.url,
+                'stream': True,
+                'headers': {'Authorization': None}
+            },
+            result_parser=LocalArtifact,
+            folder=folder,
+        ).execute()
 
 class ReportTask(core.BaseJsonResource):
     RESOURCE_ENDPOINT = "/reports"
