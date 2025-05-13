@@ -669,6 +669,22 @@ class LocalArtifact(core.BaseResource, core.Hashable):
         ).execute()
 
     @classmethod
+    def download_sandbox_artifact(cls, api, sandbox_task_id, instance_id, handle=None, folder=None, artifact_name=None):
+        return core.PolyswarmRequest(
+            api,
+            {
+                'method': 'GET',
+                'url': f'{api.uri}/sandbox/sandboxtask/instance',
+                'stream': True,
+                'params': {'id': sandbox_task_id, 'instance_id': instance_id},
+            },
+            result_parser=cls,
+            handle=handle,
+            folder=folder,
+            artifact_name=artifact_name,
+        ).execute()
+
+    @classmethod
     def download_archive(cls, api, u, handle=None, folder=None, artifact_name=None):
         """ This method is special, in that it is simply for downloading from S3 """
         return core.PolyswarmRequest(
