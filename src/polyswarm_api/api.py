@@ -707,6 +707,22 @@ class PolyswarmAPI:
 
         return artifact
 
+    def download_sandbox_artifact(self, out_dir, sandbox_task_id, instance_id):
+        """
+        Grab the data of sandbox artifact identified by sandbox task id and instance id,
+        and write the data to a file in the provided directory under a file named after the sandbox artifact.
+        :param out_dir: Destination directory to download the file.
+        :param sandbox_task_id: The sandbox task id we should use to lookup the artifact to download.
+        :param instance_id: The instance id we should use to lookup the artifact to download.
+        :return: A LocalArtifact resource
+        """
+        logger.info('Downloading sandbox artifact %s %s', sandbox_task_id, instance_id)
+        sandbox_artifact = resources.LocalArtifact.download_sandbox_artifact(
+            self, sandbox_task_id, instance_id, folder=out_dir).result()
+        sandbox_artifact.handle.close()
+
+        return sandbox_artifact
+
     def sandbox(self, instance_id, provider_slug, vm_slug, network_enabled):
         logger.info(
             'Sandboxing %s in provider %s vm %s internet %s', instance_id, provider_slug, vm_slug, network_enabled)
