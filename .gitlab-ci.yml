@@ -80,11 +80,6 @@ release-pypi:
   tags:
     - stage-kube-newer
   stage: release
-  before_script:
-    - pip install -q --upgrade pip
-    - pip install setuptools~=79.0 pkginfo
-    - pip install -q $END_TO_END_LIB@$CI_COMMIT_REF_NAME || pip install -q $END_TO_END_LIB
-    - e2e init
   script:
     # release to internal pypi but do not tag yet
     - e2e release --skip-tag --remote https://github.com/polyswarm/$CI_PROJECT_NAME.git
