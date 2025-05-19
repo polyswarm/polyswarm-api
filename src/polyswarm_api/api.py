@@ -23,8 +23,8 @@ class PolyswarmAPI:
         :param verify: Boolean, whether or not to verify TLS connections.
         :param **kwargs: Keyword args to pass to requests.Session
         """
-        key_masked = (key[0:4] if key and len(key) > 16 else '') + '******'
-        logger.info('Creating PolyswarmAPI instance: api_key: %s, api_uri: %s, community: %s', key_masked, uri, community)
+        key_masked = '******' + (key[-4:] if key and len(key) > 16 else '')
+        logger.info('Creating PolyswarmAPI instance | api-key: %s, api-uri: %s, community: %s', key_masked, uri, community)
         self.uri = uri or settings.DEFAULT_GLOBAL_API
         self.community = community or settings.DEFAULT_COMMUNITY
         self.timeout = timeout or settings.DEFAULT_HTTP_TIMEOUT
@@ -707,6 +707,22 @@ class PolyswarmAPI:
 
         return artifact
 
+    def download_sandbox_artifact(self, out_dir, sandbox_task_id, instance_id):
+        """
+        Grab the data of sandbox artifact identified by sandbox task id and instance id,
+        and write the data to a file in the provided directory under a file named after the sandbox artifact.
+        :param out_dir: Destination directory to download the file.
+        :param sandbox_task_id: The sandbox task id we should use to lookup the artifact to download.
+        :param instance_id: The instance id we should use to lookup the artifact to download.
+        :return: A LocalArtifact resource
+        """
+        logger.info('Downloading sandbox artifact %s %s', sandbox_task_id, instance_id)
+        sandbox_artifact = resources.LocalArtifact.download_sandbox_artifact(
+            self, sandbox_task_id, instance_id, folder=out_dir).result()
+        sandbox_artifact.handle.close()
+
+        return sandbox_artifact
+
     def sandbox(self, instance_id, provider_slug, vm_slug, network_enabled):
         logger.info(
             'Sandboxing %s in provider %s vm %s internet %s', instance_id, provider_slug, vm_slug, network_enabled)
@@ -930,6 +946,32 @@ class PolyswarmAPI:
     def event_list(self, **kwargs):
         logger.info('List events')
         return resources.Events.list(self, **kwargs).result()
+
+    def sample_bundle_task_create(self, instance_ids, preserve_filenames=False, filename=None, **kwargs):
+        """
+        Create a task that creates a zip of sample/s
+        """
+        logger.info('Create zip archive task')
+        task = resources.BundleTask.create(self,
+                                              instance_ids=instance_ids,
+                                              filename=filename,
+                                              preserve_filenames=preserve_filenames,
+                                              community=self.community,
+                                              **kwargs).result()
+        return task
+
+    def sample_bundle_task_get(self, id, **kwargs):
+        return resources.BundleTask.get(self, id=id, community=self.community, **kwargs).result()
+
+    def sample_bundle_download(self, id, folder):
+        task = resources.BundleTask.get(self, id=id, community=self.community).result()
+        if task.state == 'PENDING':
+            raise exceptions.InvalidValueException('Bundle is in PENDING state, wait for completion first')
+        if task.state == 'FAILED':
+            raise exceptions.InvalidValueException("Bundle is in FAILED state, won't be generated")
+        result = task.download_zip(folder=folder).result()
+        result.handle.close()
+        return result
 
     def report_create(self,
                       type,
