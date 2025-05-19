@@ -80,6 +80,8 @@ release-pypi:
   tags:
     - stage-kube-newer
   stage: release
+  before_script:
+    - pip3 install setuptools~=79.0
   script:
     # release to internal pypi but do not tag yet
     - e2e release --skip-tag --remote https://github.com/polyswarm/$CI_PROJECT_NAME.git
