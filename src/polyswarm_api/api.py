@@ -738,6 +738,7 @@ class PolyswarmAPI:
             artifact_name=None,
             network_enabled=True,
             preprocessing=None,
+            arguments=[],
     ):
         """
         Submit artifacts to Polyswarm Sandboxing system.
@@ -786,6 +787,7 @@ class PolyswarmAPI:
                 vm_slug=vm_slug,
                 network_enabled=network_enabled,
                 preprocessing=preprocessing,
+                arguments=arguments,
             ).result()
             task.upload_file(artifact)
             return resources.SandboxTask.update_file(self, id=task.id, community=self.community).result()
