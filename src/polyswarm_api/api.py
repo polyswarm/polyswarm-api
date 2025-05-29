@@ -465,7 +465,7 @@ class PolyswarmAPI:
 
     def historical_delete_list(self, historical_ids):
         """
-        Delete a historical hunts.
+        Delete historical hunts.
 
         :param historical_ids: Historical Hunt IDs
         :return: The deleted Hunt resource
@@ -679,7 +679,7 @@ class PolyswarmAPI:
 
     def download(self, out_dir, hash_, hash_type=None):
         """
-        Grab the data of artifact identified by hash, and write the data to a file in the provided directory
+        Grab the data of an artifact identified by hash and write the data to a file in the provided directory
         under a file named after the hash_.
         :param out_dir: Destination directory to download the file.
         :param hash_: The hash we should use to lookup the artifact to download.
@@ -695,7 +695,7 @@ class PolyswarmAPI:
 
     def download_id(self, out_dir, instance_id):
         """
-        Grab the data of artifact identified by hash, and write the data to a file in the provided directory
+        Grab the data of an artifact identified by hash and write the data to a file in the provided directory
         under a file named after the hash_.
         :param out_dir: Destination directory to download the file.
         :param instance_id: The instance id we should use to lookup the artifact to download.
@@ -709,7 +709,7 @@ class PolyswarmAPI:
 
     def download_sandbox_artifact(self, out_dir, sandbox_task_id, instance_id):
         """
-        Grab the data of sandbox artifact identified by sandbox task id and instance id,
+        Grab the data of a sandbox artifact identified by sandbox task id and instance id,
         and write the data to a file in the provided directory under a file named after the sandbox artifact.
         :param out_dir: Destination directory to download the file.
         :param sandbox_task_id: The sandbox task id we should use to lookup the artifact to download.
@@ -752,17 +752,17 @@ class PolyswarmAPI:
                               'cape' or 'triage'.
                               Use `sandbox_providers()` to get the list of providers.
         :param vm_slug: The slug of the virtual machine used for the sandboxing, depending on the
-                        VM chosen is the OS and software that is going to host the sandboxing. Each
-                        provider (provider_slug) support different VMs, so check with `sandbox_providers()`
+                        VM chosen, is the OS and software that is going to host the sandboxing. Each
+                        provider (provider_slug) supports different VMs, so check with `sandbox_providers()`
                         the list of VMs available.
         :param preprocessing: Preprocessing settings to be applied to the artifact, None means no preprocessing,
                               otherwise a dict with the following attributes can be passed:
-                              - type (string): either "zip" or "qrcode", the first mean the file is a zip that
+                              - type (string): either "zip" or "qrcode", the first means the file is a zip that
                                 the server has to decompress to then scan the content (only one file inside allowed).
                                 "qrcode" means the file is a QR Code image with a URL as payload, and you want
                                 to scan the URL, not the actual file (artifact_type has to be "URL").
                               - password (string, optional): will use this password to decompress the zip file.
-        :param arguments: The arguemnts to be passed to the sample being sandboxed, e.g. '--password=<PASSWORD>'
+        :param arguments: The arguments to be passed to the sample being sandboxed, e.g. '--some-param="<PARAM VAL>"'
         :return: An ArtifactInstance resource
         """
         logger.info('Sandboxing %s in provider %s vm %s', artifact_type.name.lower(), provider_slug, vm_slug)
@@ -812,8 +812,8 @@ class PolyswarmAPI:
                               'cape' or 'triage'.
                               Use `sandbox_providers()` to get the list of providers.
         :param vm_slug: The slug of the virtual machine used for the sandboxing, depending on the
-                        VM chosen is the OS and software that is going to host the sandboxing. Each
-                        provider (provider_slug) support different VMs, so check with `sandbox_providers()`
+                        VM chosen, is the OS and software that is going to host the sandboxing. Each
+                        provider (provider_slug) supports different VMs, so check with `sandbox_providers()`
                         the list of VMs available.
         :param browser: browser name, e.g. 'edge' or 'firefox'.
         :param artifact: A file-like, path to file, or LocalArtifact instance (default None). The url
@@ -826,7 +826,7 @@ class PolyswarmAPI:
                               - type (string): only "qrcode" is supported for URL sandboxing:
                                 the file is a QR Code image with a URL as payload, and you want
                                 to scan the URL, not the actual file. This argument has to be used with the
-                                `artifact` param, and `url` set to `None`.
+                                `artifact` param and `url` set to `None`.
         """
         logger.info('Sandboxing url in provider %s vm %s', provider_slug, vm_slug)
         if artifact and url:
@@ -1058,7 +1058,7 @@ class PolyswarmAPI:
                                **kwargs):
         """
         Create a template for reports.
-        A team account can have multiple templates, and setting is_default=True
+        A team account can have multiple templates, and the setting is_default=True
         makes it the default when a report is created without specifying template_id
         (see report_create method).
         The includes argument can be a list with sections to be included
