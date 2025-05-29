@@ -738,6 +738,7 @@ class PolyswarmAPI:
             artifact_name=None,
             network_enabled=True,
             preprocessing=None,
+            arguments='',
     ):
         """
         Submit artifacts to Polyswarm Sandboxing system.
@@ -761,6 +762,7 @@ class PolyswarmAPI:
                                 "qrcode" means the file is a QR Code image with a URL as payload, and you want
                                 to scan the URL, not the actual file (artifact_type has to be "URL").
                               - password (string, optional): will use this password to decompress the zip file.
+        :param arguments: The arguemnts to be passed to the sample being sandboxed, e.g. '--password=<PASSWORD>'
         :return: An ArtifactInstance resource
         """
         logger.info('Sandboxing %s in provider %s vm %s', artifact_type.name.lower(), provider_slug, vm_slug)
@@ -786,6 +788,7 @@ class PolyswarmAPI:
                 vm_slug=vm_slug,
                 network_enabled=network_enabled,
                 preprocessing=preprocessing,
+                arguments=arguments,
             ).result()
             task.upload_file(artifact)
             return resources.SandboxTask.update_file(self, id=task.id, community=self.community).result()
