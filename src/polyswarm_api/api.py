@@ -996,14 +996,15 @@ class PolyswarmAPI:
                                              sandbox_task_id=sandbox_task_id,
                                              template_id=template_id,
                                              template_metadata=template_metadata,
+                                             community=self.community,
                                              **kwargs).result()
         return report
 
     def report_get(self, id, **kwargs):
-        return resources.ReportTask.get(self, id=id, **kwargs).result()
+        return resources.ReportTask.get(self, id=id, community=self.community, **kwargs).result()
 
     def report_download(self, report_id, folder):
-        report = resources.ReportTask.get(self, id=report_id).result()
+        report = self.report_get(id=report_id)
         if report.state == 'PENDING':
             raise exceptions.InvalidValueException('Report is in PENDING state, wait for completion first')
         if report.state == 'FAILED':
