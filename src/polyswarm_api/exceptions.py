@@ -36,6 +36,10 @@ class NoResultsException(RequestException):
     pass
 
 
+class FailedInstanceException(RequestException):
+    pass
+
+
 #########################################
 # Types layer exceptions
 #########################################

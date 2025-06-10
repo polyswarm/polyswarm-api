@@ -148,6 +148,8 @@ class PolyswarmRequest(object):
                     raise exceptions.UsageLimitsExceededException(self, message)
                 elif self.status_code == 404:
                     raise exceptions.NotFoundException(self, self._result)
+                elif self.status_code == 422:
+                    raise exceptions.FailedInstanceException(self, self._result)
                 else:
                     raise exceptions.RequestException(self, self._bad_status_message())
             elif self.status_code == 204:
