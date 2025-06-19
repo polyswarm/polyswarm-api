@@ -31,11 +31,6 @@ class Engine(core.BaseJsonResource):
         self.id = str(content['id'])
         self.name = content['name']
 
-        try:
-            self.address = content['address'].lower()
-        except:
-            self.address = None
-
         account_number = content.get('accountNumber')
         self.account_number = str(account_number) if account_number else None
 
@@ -67,10 +62,9 @@ class Engine(core.BaseJsonResource):
         return self.id == other.id if isinstance(other, Engine) else False
 
     def __repr__(self):
-        return '{}(name={}, address={}, status={}, engine_type={})'.format(
+        return '{}(name={}, status={}, engine_type={})'.format(
             self.__class__.__name__,
             self.name,
-            self.address,
             self.status,
             self.engine_type,
         )
