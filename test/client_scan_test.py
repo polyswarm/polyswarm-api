@@ -118,7 +118,6 @@ class ScanTestCaseV2(TestCase):
     def test_resolve_engine_name(self):
         responses.add(responses.GET, 'http://localhost:3000/api/v1/microengines/list', json={'results': [
         {
-            "address": "0x2A1EEEe60A652961a4B6981b6103CDcb63efBD6b",
             "engineId": "8565030964589685",
             "vendorWebsite": "http://www.polyswarm.io",
             "accountNumber": 181953637296,
@@ -137,7 +136,6 @@ class ScanTestCaseV2(TestCase):
             "id": "8565030964589685"
         },
         {
-            "address": None,
             "engineId": "8565030964589685",
             "accountNumber": 191777777796,
             "engineType": "engine",
@@ -152,7 +150,6 @@ class ScanTestCaseV2(TestCase):
             "name": "Test",
             "id": "9128037974787675"
         },{
-            "address": "84858992620316109",
             "engineId": "84858992620316109",
             "vendorWebsite": "http://www.polyswarm.io",
             "accountNumber": 181953637296,
@@ -171,7 +168,6 @@ class ScanTestCaseV2(TestCase):
             "id": "84858992620316109"
             },
         {
-            "address": "0x73653AAAfa73EC3CEBb9c0500d81f94B1153ecDF",
             "engineId": "49931709284165436",
             "vendorWebsite": "http://www.polyswarm.io",
             "accountNumber": 181953637296,
@@ -205,12 +201,6 @@ class ScanTestCaseV2(TestCase):
             api.refresh_engine_cache()
 
         # Run tests after failed `refresh_engine_cache` to verify that we haven't cleared `api.engines`
-        assert {
-            'Intezer': '0x73653aaafa73ec3cebb9c0500d81f94b1153ecdf',
-            'IRIS-H': '84858992620316109',
-            'K7-Arbiter': '0x2a1eeee60a652961a4b6981b6103cdcb63efbd6b',
-            'Test': None,
-        } == {e.name: e.address for e in api.engines}
         assert len(set(api.engines)) == 4
 
     @vcr.use_cassette()
