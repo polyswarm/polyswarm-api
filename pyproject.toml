@@ -1,0 +1,83 @@
+[build-system]
+requires = ["setuptools>=68", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "polyswarm-api"
+version = "3.14.0"
+description = "Client library to simplify interacting with the PolySwarm consumer API"
+readme = "README.md"
+requires-python = ">=3.10,<4"
+authors = [{ name = "PolySwarm Developers", email = "info@polyswarm.io" }]
+license = { text = "MIT" }
+urls = { Homepage = "https://github.com/polyswarm/polyswarm-api" }
+classifiers = [
+  "Intended Audience :: Developers",
+  "License :: OSI Approved :: MIT License",
+  "Operating System :: OS Independent",
+  "Programming Language :: Python :: 3.10",
+  "Programming Language :: Python :: 3.11",
+  "Programming Language :: Python :: 3.12",
+]
+dependencies = [
+  "requests>=2.31",
+  "python-dateutil>=2.9",
+]
+
+[project.optional-dependencies]
+tests = [
+    "bump-my-version~=1.2",
+    "pytest~=7.4",
+    "jsonschema~=3.0.2",
+    "responses~=0.23.3",
+    "python-dateutil~=2.9.0",
+    'vcrpy~=7.0',
+]
+
+[tool.setuptools]
+include-package-data = true
+package-dir = { "" = "src" }
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.bumpversion]
+current_version = "3.14.0"
+commit = true
+tag = false
+sign_tags = true
+tag_name = "{new_version}"
+parse = '^(?P<major>\d+)\.(?P<minor>\d+)\.(?P<patch>\d+)(?:\.dev(?P<dev>\d+))?(?:\+(?P<local>[a-z0-9]+(?:\.[a-z0-9]+)*))?$'
+serialize = [
+  "{major}.{minor}.{patch}.dev{dev}+{short_commit_sha}",
+  "{major}.{minor}.{patch}"
+]
+
+[tool.bumpversion.parts.dev]
+first_value = "0"
+optional_value = "0"
+
+[[tool.bumpversion.files]]
+filename = "src/polyswarm_api/__init__.py"
+search = "__version__ = '{current_version}'"
+replace = "__version__ = '{new_version}'"
+
+[tool.pytest.ini_options]
+log_cli = true
+log_cli_level = "DEBUG"
+log_format = "%(asctime)s %(levelname)-2s [%(name)s:%(filename)s:%(lineno)d:%(funcName)1s()] %(message)s"
+python_files = ["test_*.py", "*_test.py"]
+testpaths = ["test"]
+norecursedirs = [
+    ".git",
+    ".idea",
+]
+filterwarnings = [
+    "ignore::DeprecationWarning",
+]
+addopts = [
+    "--continue-on-collection-errors",
+    "-v",
+    "-s",
+    "-rxXs",
+]
