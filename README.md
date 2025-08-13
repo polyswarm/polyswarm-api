@@ -1,4 +1,4 @@
-# polyswarm-api
+# polyswarm_api
 
 An interface to the PolySwarm Customer APIs.
 For an easy-to-use CLI tool, or as an example of how to use these APIs, please see [polyswarm-cli](https://github.com/polyswarm/polyswarm-cli)
@@ -9,7 +9,7 @@ Supports Python 3.7 and greater.
 
 From PyPI:
 
-    pip install polyswarm-api
+    pip install polyswarm_api
 
 From source:
 
@@ -22,11 +22,11 @@ From source:
 
 ## Usage
 
-See the [polyswarm-api documentation](https://docs.polyswarm.io/docs/polyswarm-customer-api) for usage guidance.
+See the [polyswarm_api documentation](https://docs.polyswarm.io/docs/polyswarm-customer-api) for usage guidance.
 
 ## API Reference
 
-See the [polyswarm-api reference](https://polyswarm-api.readthedocs.io/en/latest/autoapi/index.html) for API References.
+See the [polyswarm_api reference](https://polyswarm-api.readthedocs.io/en/latest/autoapi/index.html) for API References.
 
 ## Questions? Problems?
 
