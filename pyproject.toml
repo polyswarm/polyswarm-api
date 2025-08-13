@@ -3,7 +3,7 @@ requires = ["setuptools>=68", "wheel"]
 build-backend = "setuptools.build_meta"
 
 [project]
-name = "polyswarm-api"
+name = "polyswarm_api"
 version = "3.14.0"
 description = "Client library to simplify interacting with the PolySwarm consumer API"
 readme = "README.md"
