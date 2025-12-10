@@ -978,8 +978,7 @@ class PolyswarmAPI:
 
     def llm_report_create(self, instance_id=None, sandbox_task_id=None):
         """
-        Create a llm generated report, from the scan and sandbox
-        results.
+        Create a llm generated report, from the scan and/or sandbox results.
         """
         if not instance_id and not sandbox_task_id:
             raise exceptions.InvalidValueException('Either instance_id or sandbox_task_id must be provided')
