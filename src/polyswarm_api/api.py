@@ -229,10 +229,11 @@ class PolyswarmAPI:
         :param scan_config: The scan configuration to be used, e.g.: "default", "more-time", "most-time"
         :param preprocessing: Preprocessing settings to be applied to the artifact, None means no preprocessing,
                               otherwise a dict with the following attributes can be passed:
-                              - type (string): either "zip" or "qrcode", the first mean the file is a zip that
+                              - type (string): either "zip", "base64", or "qrcode". "zip" means the file is a zip that
                                 the server has to decompress to then scan the content (only one file inside allowed).
-                                "qrcode" means the file is a QR Code image with a URL as payload, and you want
-                                to scan the URL, not the actual file (artifact_type has to be "URL").
+                                "base64" means the file content is base64-encoded and the server has to decode it
+                                before scanning. "qrcode" means the file is a QR Code image with a URL as payload,
+                                and you want to scan the URL, not the actual file (artifact_type has to be "URL").
                               - password (string, optional): will use this password to decompress the zip file.
         :return: An ArtifactInstance resource
         """
@@ -757,10 +758,11 @@ class PolyswarmAPI:
                         the list of VMs available.
         :param preprocessing: Preprocessing settings to be applied to the artifact, None means no preprocessing,
                               otherwise a dict with the following attributes can be passed:
-                              - type (string): either "zip" or "qrcode", the first means the file is a zip that
+                              - type (string): either "zip", "base64", or "qrcode". "zip" means the file is a zip that
                                 the server has to decompress to then scan the content (only one file inside allowed).
-                                "qrcode" means the file is a QR Code image with a URL as payload, and you want
-                                to scan the URL, not the actual file (artifact_type has to be "URL").
+                                "base64" means the file content is base64-encoded and the server has to decode it
+                                before scanning. "qrcode" means the file is a QR Code image with a URL as payload,
+                                and you want to scan the URL, not the actual file (artifact_type has to be "URL").
                               - password (string, optional): will use this password to decompress the zip file.
         :param arguments: The arguments to be passed to the sample being sandboxed, e.g. '--some-param="<PARAM VAL>"'
         :return: An ArtifactInstance resource
