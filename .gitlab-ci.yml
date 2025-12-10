@@ -30,7 +30,7 @@ dev-pypi:
     - pip install -q $END_TO_END_LIB@$CI_COMMIT_REF_NAME || pip install -q $END_TO_END_LIB
     - e2e init
   script:
-    - bump-my-version bump --no-commit --no-tag local
+    - bump-my-version bump --no-commit --no-tag dev
     - python -m build
     - e2e release --dev --skip-tag
 
