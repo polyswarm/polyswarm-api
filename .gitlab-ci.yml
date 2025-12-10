@@ -27,10 +27,12 @@ dev-pypi:
   stage: build
   before_script:
     - pip3 install -q --upgrade pip build twine bump-my-version
+    - pip install -q $END_TO_END_LIB@$CI_COMMIT_REF_NAME || pip install -q $END_TO_END_LIB
+    - e2e init
   script:
-    - bump-my-version bump --no-commit --no-tag dev
+    - bump-my-version bump --no-commit --no-tag local
     - python -m build
-    - twine upload --skip-existing --disable-progress-bar --non-interactive dist/*
+    - e2e release --dev --skip-tag
 
 ###############################################################
 # Test Stage
