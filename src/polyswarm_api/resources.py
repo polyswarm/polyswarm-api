@@ -1190,6 +1190,37 @@ class ReportTask(core.BaseJsonResource):
         ).execute()
 
 
+class ReportLLMPostProcessing(core.BaseJsonResource):
+    RESOURCE_ENDPOINT = '/reports/llm'
+
+    def __init__(self, content, api=None):
+        super().__init__(content, api=api)
+        self.id = content['id']
+        self.community = content['community']
+        self.created = content['created']
+        self.sandbox_task_id = content.get('sandbox_task_id')
+        self.instance_id = content.get('instance_id')
+        self.state = content['state']
+        self.url = content['url']
+
+    def download_report(self, folder=None):
+        """ This method is special, in that it is simply for downloading from S3 """
+        if self.state == 'PENDING':
+            raise exceptions.InvalidValueException('Report is in PENDING state, wait for completion first')
+        if self.state == 'FAILED':
+            raise exceptions.InvalidValueException("Report is in FAILED state, won't be generated")
+        return core.PolyswarmRequest(
+            self.api,
+            {
+                'method': 'GET',
+                'url': self.url,
+                'stream': True,
+                'headers': {'Authorization': None}
+            },
+            result_parser=LocalArtifact,
+            folder=folder,
+        ).execute()
+
 class ReportTemplate(core.BaseJsonResource):
     RESOURCE_ENDPOINT = "/reports/templates"
 
