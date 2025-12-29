@@ -980,6 +980,27 @@ class PolyswarmAPI:
         result.handle.close()
         return result
 
+    def llm_report_create(self, instance_id=None, sandbox_task_id=None):
+        """
+        Create a llm generated report, from the scan and/or sandbox results.
+        """
+        if not instance_id and not sandbox_task_id:
+            raise exceptions.InvalidValueException('Either instance_id or sandbox_task_id must be provided')
+        report_task = resources.ReportLLMPostProcessing.create(self,
+                                                               instance_id=instance_id,
+                                                               sandbox_task_id=sandbox_task_id).result()
+        return report_task
+
+    def llm_report_get(self, report_task_id):
+        task = resources.ReportLLMPostProcessing.get(self, id=report_task_id, community=self.community).result()
+        return task
+
+    def llm_report_download(self, report_task_id, folder):
+        task = resources.ReportLLMPostProcessing.get(self, id=report_task_id, community=self.community).result()
+        result = task.download_report(folder=folder).result()
+        result.handle.close()
+        return result
+
     def report_create(self,
                       type,
                       format,
