@@ -1328,3 +1328,19 @@ class WhoIs(core.BaseJsonResource):
         self.account_type = content['account_type']
         self.communities = content['communities']
         self.tenant = content.get('tenant')
+
+
+class LLMPromptConfig(core.BaseJsonResource):
+    RESOURCE_ENDPOINT = "/prompt_config"
+
+    def __init__(self, content, api=None):
+        super().__init__(content, api=api)
+        self.id = content['id']
+        self.name = content['name']
+        self.system_prompt = content['system_prompt']
+        self.cape_only_prompt = content.get('cape_only_prompt')
+        self.triage_only_prompt = content.get('triage_only_prompt')
+        self.scan_only_prompt = content.get('scan_only_prompt')
+        self.is_active = content.get('is_active', False)
+        self.created = core.parse_isoformat(content.get('created'))
+        self.modified = core.parse_isoformat(content.get('modified'))
