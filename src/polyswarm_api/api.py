@@ -1133,3 +1133,64 @@ class PolyswarmAPI:
 
     def account_features(self, **kwargs):
         return resources.AccountFeatures.get(self, **kwargs).result()
+
+    def prompt_config_create(self, name, system_prompt, is_active=False, cape_only_prompt=None, 
+                            triage_only_prompt=None, scan_only_prompt=None):
+        """
+        Create a new LLM prompt configuration.
+        :param name: The name of the prompt configuration
+        :param system_prompt: The system prompt text
+        :param is_active: Whether this should be the active prompt configuration (default False)
+        :param cape_only_prompt: Optional Cape-specific prompt text
+        :param triage_only_prompt: Optional Triage-specific prompt text
+        :param scan_only_prompt: Optional Scan-specific prompt text
+        :return: An LLMPromptConfig resource
+        """
+        logger.info('Creating prompt config %s', name)
+        return resources.LLMPromptConfig.create(self,
+                                                name=name,
+                                                system_prompt=system_prompt,
+                                                is_active=is_active,
+                                                cape_only_prompt=cape_only_prompt,
+                                                triage_only_prompt=triage_only_prompt,
+                                                scan_only_prompt=scan_only_prompt).result()
+
+    def prompt_config_get(self, prompt_config_id):
+        """
+        Get an LLM prompt configuration by ID.
+        :param prompt_config_id: The ID of the prompt configuration
+        :return: An LLMPromptConfig resource
+        """
+        logger.info('Getting prompt config %s', prompt_config_id)
+        return resources.LLMPromptConfig.get(self, id=prompt_config_id).result()
+
+    def prompt_config_update(self, prompt_config_id, name=None, system_prompt=None, is_active=None,
+                            cape_only_prompt=None, triage_only_prompt=None, scan_only_prompt=None):
+        """
+        Update an existing LLM prompt configuration.
+        :param prompt_config_id: The ID of the prompt configuration to update
+        :param name: The new name (optional)
+        :param system_prompt: The new system prompt text (optional)
+        :param is_active: Whether this should be the active prompt configuration (optional)
+        :param cape_only_prompt: Optional Cape-specific prompt text (optional)
+        :param triage_only_prompt: Optional Triage-specific prompt text (optional)
+        :param scan_only_prompt: Optional Scan-specific prompt text (optional)
+        :return: An LLMPromptConfig resource
+        """
+        logger.info('Updating prompt config %s', prompt_config_id)
+        return resources.LLMPromptConfig.update(self,
+                                                id=prompt_config_id,
+                                                name=name,
+                                                system_prompt=system_prompt,
+                                                is_active=is_active,
+                                                cape_only_prompt=cape_only_prompt,
+                                                triage_only_prompt=triage_only_prompt,
+                                                scan_only_prompt=scan_only_prompt).result()
+
+    def prompt_config_list(self, **kwargs):
+        """
+        List all LLM prompt configurations.
+        :return: A generator of LLMPromptConfig resources
+        """
+        logger.info('Listing prompt configs')
+        return resources.LLMPromptConfig.list(self, **kwargs).result()
