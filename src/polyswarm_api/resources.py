@@ -1344,3 +1344,28 @@ class LLMPromptConfig(core.BaseJsonResource):
         self.is_active = content.get('is_active', False)
         self.created = core.parse_isoformat(content.get('created'))
         self.modified = core.parse_isoformat(content.get('modified'))
+
+
+class Webhook(core.BaseJsonResource):
+    RESOURCE_ENDPOINT = "/webhook"
+
+    def __init__(self, content, api=None):
+        super().__init__(content, api=api)
+        self.id = content['id']
+        self.webhook_uri = content['webhook_uri']
+        self.account_number = content['account_number']
+        self.team_account_number = content.get('team_account_number')
+        self.secret_sha256 = content['secret_sha256']
+        self.status = content['status']
+        self.events = content.get('events')
+
+    @classmethod
+    def test(cls, api, webhook_id):
+        return core.PolyswarmRequest(
+            api,
+            {
+                'method': 'POST',
+                'url': f'{api.uri}/webhook/test',
+                'params': {'id': webhook_id},
+            },
+        ).execute()

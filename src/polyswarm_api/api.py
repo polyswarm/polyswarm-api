@@ -1194,3 +1194,75 @@ class PolyswarmAPI:
         """
         logger.info('Listing prompt configs')
         return resources.LLMPromptConfig.list(self, **kwargs).result()
+
+    def webhook_create(self, webhook_uri, secret, status='enabled', events=None):
+        """
+        Create a new webhook.
+        
+        :param webhook_uri: The URI where webhook events should be sent
+        :param secret: The secret key used for HMAC signature verification
+        :param status: Webhook status ('enabled' or 'disabled')
+        :param events: Optional dictionary specifying which events to subscribe to
+        :return: A Webhook resource
+        """
+        logger.info('Creating webhook %s', webhook_uri)
+        return resources.Webhook.create(self,
+                                       webhook_uri=webhook_uri,
+                                       secret=secret,
+                                       status=status,
+                                       events=events).result()
+
+    def webhook_get(self, webhook_id):
+        """
+        Get a webhook by ID.
+        :param webhook_id: The ID of the webhook
+        :return: A Webhook resource
+        """
+        logger.info('Getting webhook %s', webhook_id)
+        return resources.Webhook.get(self, id=webhook_id).result()
+
+    def webhook_update(self, webhook_id, webhook_uri=None, secret=None, status=None,
+                      team_account_number=None, events=None):
+        """
+        Update an existing webhook.
+        :param webhook_id: The ID of the webhook to update
+        :param webhook_uri: The new webhook URI (optional)
+        :param secret: The new secret SHA256 for HMAC signing (optional)
+        :param status: The new status ('enabled' or 'disabled') (optional)
+        :param events: Event configuration (optional)
+        :return: A Webhook resource
+        """
+        logger.info('Updating webhook %s', webhook_id)
+        return resources.Webhook.update(self,
+                                        id=webhook_id,
+                                        webhook_uri=webhook_uri,
+                                        secret=secret,
+                                        status=status,
+                                        events=events).result()
+
+    def webhook_delete(self, webhook_id):
+        """
+        Delete a webhook.
+        :param webhook_id: The ID of the webhook to delete
+        :return: A success message
+        """
+        logger.info('Deleting webhook %s', webhook_id)
+        return resources.Webhook.delete(self, id=webhook_id).result()
+
+    def webhook_list(self):
+        """
+        List all webhooks for the current account.
+        :return: A generator of Webhook resources
+        """
+        logger.info('Listing webhooks')
+        return resources.Webhook.list(self).result()
+
+    def webhook_test(self, webhook_id):
+        """
+        Test a webhook by sending a test payload.
+        :param webhook_id: The ID of the webhook to test
+        """
+        logger.info('Testing webhook %s', webhook_id)
+        res = resources.Webhook.test(self, webhook_id=webhook_id)
+        if res.status_code != 200:
+            raise exceptions.RequestException('Failed to test webhook %s', webhook_id)
