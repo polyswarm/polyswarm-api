@@ -1197,12 +1197,12 @@ class PolyswarmAPI:
 
     def webhook_create(self, webhook_uri, secret, status='enabled', events=None):
         """
-        Create a new webhook.
+        Create a new webhook for notifications from Polyswarm events.
         
         :param webhook_uri: The URI where webhook events should be sent
         :param secret: The secret key used for HMAC signature verification
         :param status: Webhook status ('enabled' or 'disabled')
-        :param events: Optional dictionary specifying which events to subscribe to
+        :param events: Optional dictionary specifying which events to subscribe to. Available options: sandbox_done
         :return: A Webhook resource
         """
         logger.info('Creating webhook %s', webhook_uri)
@@ -1214,7 +1214,7 @@ class PolyswarmAPI:
 
     def webhook_get(self, webhook_id):
         """
-        Get a webhook by ID.
+        Get a notification webhook by ID.
         :param webhook_id: The ID of the webhook
         :return: A Webhook resource
         """
@@ -1224,7 +1224,7 @@ class PolyswarmAPI:
     def webhook_update(self, webhook_id, webhook_uri=None, secret=None, status=None,
                       team_account_number=None, events=None):
         """
-        Update an existing webhook.
+        Update an existing notification webhook.
         :param webhook_id: The ID of the webhook to update
         :param webhook_uri: The new webhook URI (optional)
         :param secret: The new secret SHA256 for HMAC signing (optional)
@@ -1242,7 +1242,7 @@ class PolyswarmAPI:
 
     def webhook_delete(self, webhook_id):
         """
-        Delete a webhook.
+        Delete a notification webhook.
         :param webhook_id: The ID of the webhook to delete
         :return: A success message
         """
@@ -1251,7 +1251,7 @@ class PolyswarmAPI:
 
     def webhook_list(self):
         """
-        List all webhooks for the current account.
+        List all notification webhooks for the current account.
         :return: A generator of Webhook resources
         """
         logger.info('Listing webhooks')
@@ -1259,7 +1259,7 @@ class PolyswarmAPI:
 
     def webhook_test(self, webhook_id):
         """
-        Test a webhook by sending a test payload.
+        Test a notification webhook by sending a test payload.
         :param webhook_id: The ID of the webhook to test
         """
         logger.info('Testing webhook %s', webhook_id)
