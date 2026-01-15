@@ -1347,7 +1347,7 @@ class LLMPromptConfig(core.BaseJsonResource):
 
 
 class Webhook(core.BaseJsonResource):
-    RESOURCE_ENDPOINT = "/webhook"
+    RESOURCE_ENDPOINT = "/notification/webhook"
 
     def __init__(self, content, api=None):
         super().__init__(content, api=api)
