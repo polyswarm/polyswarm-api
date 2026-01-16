@@ -1355,7 +1355,6 @@ class Webhook(core.BaseJsonResource):
         self.webhook_uri = content['webhook_uri']
         self.account_number = content['account_number']
         self.team_account_number = content.get('team_account_number')
-        self.secret_sha256 = content['secret_sha256']
         self.status = content['status']
         self.events = content.get('events')
 
