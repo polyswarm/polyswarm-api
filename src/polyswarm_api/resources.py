@@ -1365,7 +1365,7 @@ class Webhook(core.BaseJsonResource):
             api,
             {
                 'method': 'POST',
-                'url': f'{api.uri}/webhook/test',
+                'url': f'{api.uri}{cls.RESOURCE_ENDPOINT}/test',
                 'params': {'id': webhook_id},
             },
         ).execute()
