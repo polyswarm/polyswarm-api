@@ -219,6 +219,7 @@ class PolyswarmAPI:
             artifact_name=None,
             scan_config=None,
             preprocessing=None,
+            expiration_window=None,
     ):
         """
         Submit artifacts to polyswarm
@@ -237,6 +238,7 @@ class PolyswarmAPI:
                                 means the file is a QR Code image with a URL as payload, and you want to scan the URL,
                                 not the actual file (artifact_type has to be "URL").
                               - password (string, optional): will use this password to decompress the zip or 7zip file.
+        :param expiration_window: The expiration window in days (7, 30, or 180). Only valid for private communities.
         :return: An ArtifactInstance resource
         """
         logger.info('Submitting artifact of type %s', artifact_type)
@@ -269,6 +271,7 @@ class PolyswarmAPI:
                 scan_config=scan_config,
                 community=self.community,
                 preprocessing=preprocessing,
+                expiration_window=expiration_window,
             ).result()
             instance.upload_file(artifact)
             return resources.ArtifactInstance.update(self, id=instance.id, community=self.community).result()
