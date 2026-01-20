@@ -20,3 +20,4 @@ _templates
 
 docker-compose.yaml
 e2e.yaml
+.envrc
