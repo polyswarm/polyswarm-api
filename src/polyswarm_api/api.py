@@ -1195,7 +1195,7 @@ class PolyswarmAPI:
         logger.info('Listing prompt configs')
         return resources.LLMPromptConfig.list(self, **kwargs).result()
 
-    def webhook_create(self, webhook_uri, secret, status='enabled', events=None):
+    def notification_webhook_create(self, webhook_uri, secret, status='enabled', events=None):
         """
         Create a new webhook for notifications from Polyswarm events.
         
@@ -1212,7 +1212,7 @@ class PolyswarmAPI:
                                        status=status,
                                        events=events).result()
 
-    def webhook_get(self, webhook_id):
+    def notification_webhook_get(self, webhook_id):
         """
         Get a notification webhook by ID.
         :param webhook_id: The ID of the webhook
@@ -1221,7 +1221,7 @@ class PolyswarmAPI:
         logger.info('Getting webhook %s', webhook_id)
         return resources.Webhook.get(self, id=webhook_id).result()
 
-    def webhook_update(self, webhook_id, webhook_uri=None, secret=None, status=None,
+    def notification_webhook_update(self, webhook_id, webhook_uri=None, secret=None, status=None,
                       team_account_number=None, events=None):
         """
         Update an existing notification webhook.
@@ -1240,7 +1240,7 @@ class PolyswarmAPI:
                                         status=status,
                                         events=events).result()
 
-    def webhook_delete(self, webhook_id):
+    def notification_webhook_delete(self, webhook_id):
         """
         Delete a notification webhook.
         :param webhook_id: The ID of the webhook to delete
@@ -1249,7 +1249,7 @@ class PolyswarmAPI:
         logger.info('Deleting webhook %s', webhook_id)
         return resources.Webhook.delete(self, id=webhook_id).result()
 
-    def webhook_list(self):
+    def notification_webhook_list(self):
         """
         List all notification webhooks for the current account.
         :return: A generator of Webhook resources
@@ -1257,7 +1257,7 @@ class PolyswarmAPI:
         logger.info('Listing webhooks')
         return resources.Webhook.list(self).result()
 
-    def webhook_test(self, webhook_id):
+    def notification_webhook_test(self, webhook_id):
         """
         Test a notification webhook by sending a test payload.
         :param webhook_id: The ID of the webhook to test
