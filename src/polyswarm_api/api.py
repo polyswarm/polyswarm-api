@@ -1206,7 +1206,6 @@ class PolyswarmAPI:
         :return: A Webhook resource
         """
         logger.info('Creating webhook %s', webhook_uri)
-        import pdb; pdb.set_trace()
         return resources.Webhook.create(self,
                                        webhook_uri=webhook_uri,
                                        secret=secret,
