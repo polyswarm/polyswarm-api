@@ -1202,10 +1202,11 @@ class PolyswarmAPI:
         :param webhook_uri: The URI where webhook events should be sent
         :param secret: The secret key used for HMAC signature verification
         :param status: Webhook status ('enabled' or 'disabled')
-        :param events: Optional dictionary specifying which events to subscribe to. Available options: sandbox_done
+        :param events: Optional set specifying which events to subscribe to. Available options: sandbox_done
         :return: A Webhook resource
         """
         logger.info('Creating webhook %s', webhook_uri)
+        import pdb; pdb.set_trace()
         return resources.Webhook.create(self,
                                        webhook_uri=webhook_uri,
                                        secret=secret,
