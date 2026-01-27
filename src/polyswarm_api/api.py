@@ -219,6 +219,7 @@ class PolyswarmAPI:
             artifact_name=None,
             scan_config=None,
             preprocessing=None,
+            expiration_window=None,
     ):
         """
         Submit artifacts to polyswarm
@@ -237,6 +238,7 @@ class PolyswarmAPI:
                                 means the file is a QR Code image with a URL as payload, and you want to scan the URL,
                                 not the actual file (artifact_type has to be "URL").
                               - password (string, optional): will use this password to decompress the zip or 7zip file.
+        :param expiration_window: The expiration window in days (7, 30, or 180). Only valid for private communities.
         :return: An ArtifactInstance resource
         """
         logger.info('Submitting artifact of type %s', artifact_type)
@@ -269,6 +271,7 @@ class PolyswarmAPI:
                 scan_config=scan_config,
                 community=self.community,
                 preprocessing=preprocessing,
+                expiration_window=expiration_window,
             ).result()
             instance.upload_file(artifact)
             return resources.ArtifactInstance.update(self, id=instance.id, community=self.community).result()
@@ -980,6 +983,27 @@ class PolyswarmAPI:
         result.handle.close()
         return result
 
+    def llm_report_create(self, instance_id=None, sandbox_task_id=None):
+        """
+        Create a llm generated report, from the scan and/or sandbox results.
+        """
+        if not instance_id and not sandbox_task_id:
+            raise exceptions.InvalidValueException('Either instance_id or sandbox_task_id must be provided')
+        report_task = resources.ReportLLMPostProcessing.create(self,
+                                                               instance_id=instance_id,
+                                                               sandbox_task_id=sandbox_task_id).result()
+        return report_task
+
+    def llm_report_get(self, report_task_id):
+        task = resources.ReportLLMPostProcessing.get(self, id=report_task_id, community=self.community).result()
+        return task
+
+    def llm_report_download(self, report_task_id, folder):
+        task = resources.ReportLLMPostProcessing.get(self, id=report_task_id, community=self.community).result()
+        result = task.download_report(folder=folder).result()
+        result.handle.close()
+        return result
+
     def report_create(self,
                       type,
                       format,
@@ -1112,3 +1136,136 @@ class PolyswarmAPI:
 
     def account_features(self, **kwargs):
         return resources.AccountFeatures.get(self, **kwargs).result()
+
+    def prompt_config_create(self, name, system_prompt, is_active=False, cape_only_prompt=None, 
+                            triage_only_prompt=None, scan_only_prompt=None):
+        """
+        Create a new LLM prompt configuration.
+        :param name: The name of the prompt configuration
+        :param system_prompt: The system prompt text
+        :param is_active: Whether this should be the active prompt configuration (default False)
+        :param cape_only_prompt: Optional Cape-specific prompt text
+        :param triage_only_prompt: Optional Triage-specific prompt text
+        :param scan_only_prompt: Optional Scan-specific prompt text
+        :return: An LLMPromptConfig resource
+        """
+        logger.info('Creating prompt config %s', name)
+        return resources.LLMPromptConfig.create(self,
+                                                name=name,
+                                                system_prompt=system_prompt,
+                                                is_active=is_active,
+                                                cape_only_prompt=cape_only_prompt,
+                                                triage_only_prompt=triage_only_prompt,
+                                                scan_only_prompt=scan_only_prompt).result()
+
+    def prompt_config_get(self, prompt_config_id):
+        """
+        Get an LLM prompt configuration by ID.
+        :param prompt_config_id: The ID of the prompt configuration
+        :return: An LLMPromptConfig resource
+        """
+        logger.info('Getting prompt config %s', prompt_config_id)
+        return resources.LLMPromptConfig.get(self, id=prompt_config_id).result()
+
+    def prompt_config_update(self, prompt_config_id, name=None, system_prompt=None, is_active=None,
+                            cape_only_prompt=None, triage_only_prompt=None, scan_only_prompt=None):
+        """
+        Update an existing LLM prompt configuration.
+        :param prompt_config_id: The ID of the prompt configuration to update
+        :param name: The new name (optional)
+        :param system_prompt: The new system prompt text (optional)
+        :param is_active: Whether this should be the active prompt configuration (optional)
+        :param cape_only_prompt: Optional Cape-specific prompt text (optional)
+        :param triage_only_prompt: Optional Triage-specific prompt text (optional)
+        :param scan_only_prompt: Optional Scan-specific prompt text (optional)
+        :return: An LLMPromptConfig resource
+        """
+        logger.info('Updating prompt config %s', prompt_config_id)
+        return resources.LLMPromptConfig.update(self,
+                                                id=prompt_config_id,
+                                                name=name,
+                                                system_prompt=system_prompt,
+                                                is_active=is_active,
+                                                cape_only_prompt=cape_only_prompt,
+                                                triage_only_prompt=triage_only_prompt,
+                                                scan_only_prompt=scan_only_prompt).result()
+
+    def prompt_config_list(self, **kwargs):
+        """
+        List all LLM prompt configurations.
+        :return: A generator of LLMPromptConfig resources
+        """
+        logger.info('Listing prompt configs')
+        return resources.LLMPromptConfig.list(self, **kwargs).result()
+
+    def notification_webhook_create(self, webhook_uri, secret, status='enabled', events=None):
+        """
+        Create a new webhook for notifications from Polyswarm events.
+        
+        :param webhook_uri: The URI where webhook events should be sent
+        :param secret: The secret key used for HMAC signature verification
+        :param status: Webhook status ('enabled' or 'disabled')
+        :param events: Optional set specifying which events to subscribe to. Available options: sandbox_done
+        :return: A Webhook resource
+        """
+        logger.info('Creating webhook %s', webhook_uri)
+        return resources.Webhook.create(self,
+                                       webhook_uri=webhook_uri,
+                                       secret=secret,
+                                       status=status,
+                                       events=events).result()
+
+    def notification_webhook_get(self, webhook_id):
+        """
+        Get a notification webhook by ID.
+        :param webhook_id: The ID of the webhook
+        :return: A Webhook resource
+        """
+        logger.info('Getting webhook %s', webhook_id)
+        return resources.Webhook.get(self, id=webhook_id).result()
+
+    def notification_webhook_update(self, webhook_id, webhook_uri=None, secret=None, status=None,
+                      team_account_number=None, events=None):
+        """
+        Update an existing notification webhook.
+        :param webhook_id: The ID of the webhook to update
+        :param webhook_uri: The new webhook URI (optional)
+        :param secret: The new secret SHA256 for HMAC signing (optional)
+        :param status: The new status ('enabled' or 'disabled') (optional)
+        :param events: Event configuration (optional)
+        :return: A Webhook resource
+        """
+        logger.info('Updating webhook %s', webhook_id)
+        return resources.Webhook.update(self,
+                                        id=webhook_id,
+                                        webhook_uri=webhook_uri,
+                                        secret=secret,
+                                        status=status,
+                                        events=events).result()
+
+    def notification_webhook_delete(self, webhook_id):
+        """
+        Delete a notification webhook.
+        :param webhook_id: The ID of the webhook to delete
+        :return: A success message
+        """
+        logger.info('Deleting webhook %s', webhook_id)
+        return resources.Webhook.delete(self, id=webhook_id).result()
+
+    def notification_webhook_list(self):
+        """
+        List all notification webhooks for the current account.
+        :return: A generator of Webhook resources
+        """
+        logger.info('Listing webhooks')
+        return resources.Webhook.list(self).result()
+
+    def notification_webhook_test(self, webhook_id):
+        """
+        Test a notification webhook by sending a test payload.
+        :param webhook_id: The ID of the webhook to test
+        """
+        logger.info('Testing webhook %s', webhook_id)
+        res = resources.Webhook.test(self, webhook_id=webhook_id)
+        if res.status_code != 200:
+            raise exceptions.RequestException('Failed to test webhook %s', webhook_id)

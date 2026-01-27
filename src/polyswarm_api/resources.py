@@ -1190,6 +1190,37 @@ class ReportTask(core.BaseJsonResource):
         ).execute()
 
 
+class ReportLLMPostProcessing(core.BaseJsonResource):
+    RESOURCE_ENDPOINT = '/reports/llm'
+
+    def __init__(self, content, api=None):
+        super().__init__(content, api=api)
+        self.id = content['id']
+        self.community = content['community']
+        self.created = content['created']
+        self.sandbox_task_id = content.get('sandbox_task_id')
+        self.instance_id = content.get('instance_id')
+        self.state = content['state']
+        self.url = content['url']
+
+    def download_report(self, folder=None):
+        """ This method is special, in that it is simply for downloading from S3 """
+        if self.state == 'PENDING':
+            raise exceptions.InvalidValueException('Report is in PENDING state, wait for completion first')
+        if self.state == 'FAILED':
+            raise exceptions.InvalidValueException("Report is in FAILED state, won't be generated")
+        return core.PolyswarmRequest(
+            self.api,
+            {
+                'method': 'GET',
+                'url': self.url,
+                'stream': True,
+                'headers': {'Authorization': None}
+            },
+            result_parser=LocalArtifact,
+            folder=folder,
+        ).execute()
+
 class ReportTemplate(core.BaseJsonResource):
     RESOURCE_ENDPOINT = "/reports/templates"
 
@@ -1297,3 +1328,43 @@ class WhoIs(core.BaseJsonResource):
         self.account_type = content['account_type']
         self.communities = content['communities']
         self.tenant = content.get('tenant')
+
+
+class LLMPromptConfig(core.BaseJsonResource):
+    RESOURCE_ENDPOINT = "/prompt_config"
+
+    def __init__(self, content, api=None):
+        super().__init__(content, api=api)
+        self.id = content['id']
+        self.name = content['name']
+        self.system_prompt = content['system_prompt']
+        self.cape_only_prompt = content.get('cape_only_prompt')
+        self.triage_only_prompt = content.get('triage_only_prompt')
+        self.scan_only_prompt = content.get('scan_only_prompt')
+        self.is_active = content.get('is_active', False)
+        self.created = core.parse_isoformat(content.get('created'))
+        self.modified = core.parse_isoformat(content.get('modified'))
+
+
+class Webhook(core.BaseJsonResource):
+    RESOURCE_ENDPOINT = "/notification/webhook"
+
+    def __init__(self, content, api=None):
+        super().__init__(content, api=api)
+        self.id = content['id']
+        self.webhook_uri = content['webhook_uri']
+        self.account_number = content['account_number']
+        self.team_account_number = content.get('team_account_number')
+        self.status = content['status']
+        self.events = content.get('events')
+
+    @classmethod
+    def test(cls, api, webhook_id):
+        return core.PolyswarmRequest(
+            api,
+            {
+                'method': 'POST',
+                'url': f'{api.uri}{cls.RESOURCE_ENDPOINT}/test',
+                'params': {'id': webhook_id},
+            },
+        ).execute()
