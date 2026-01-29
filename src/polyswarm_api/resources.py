@@ -1122,6 +1122,24 @@ class Events(core.BaseJsonResource):
         self.team_account_id = content['team_account_id']
         self.user_account_id = content['user_account_id']
 
+
+class Sample(core.BaseJsonResource):
+    RESOURCE_ENDPOINT = '/sample'
+    RESOURCE_ID_KEYS = ['sha256']
+
+    def __init__(self, content, api=None):
+        super().__init__(content, api=api)
+        self.artifact_instance = content.get('artifact_instance', {})
+        self.sandbox = content.get('sandbox', {})
+        self.metadata = content.get('metadata', {})
+
+    @classmethod
+    def _get_endpoint(cls, api, **kwargs):
+        sha256 = kwargs.pop('sha256', None)
+        if sha256:
+            return f'{api.uri}{cls.RESOURCE_ENDPOINT}/{sha256}'
+        return cls._endpoint(api, **kwargs)
+
 class BundleTask(core.BaseJsonResource):
     RESOURCE_ENDPOINT = "/bundle"
 

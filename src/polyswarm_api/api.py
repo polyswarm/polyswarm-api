@@ -957,6 +957,28 @@ class PolyswarmAPI:
         logger.info('List events')
         return resources.Events.list(self, **kwargs).result()
 
+    def sample(self, sha256, artifact_instance_id=None, sandbox_task_id_cape=None,
+               sandbox_task_id_triage=None, artifact_metadata_id=None):
+        """
+        Get aggregated sample information including artifact instance, sandbox tasks, and metadata.
+
+        :param sha256: SHA256 hash of the artifact
+        :param artifact_instance_id: Optional specific artifact instance ID
+        :param sandbox_task_id_cape: Optional specific Cape sandbox task ID
+        :param sandbox_task_id_triage: Optional specific Triage sandbox task ID
+        :param artifact_metadata_id: Optional specific artifact metadata ID
+        :return: A Sample resource with aggregated data
+        """
+        logger.info('Getting sample %s', sha256)
+        return resources.Sample.get(
+            self,
+            sha256=sha256,
+            artifact_instance_id=artifact_instance_id,
+            sandbox_task_id_cape=sandbox_task_id_cape,
+            sandbox_task_id_triage=sandbox_task_id_triage,
+            artifact_metadata_id=artifact_metadata_id,
+        ).result()
+
     def sample_bundle_task_create(self, instance_ids, preserve_filenames=False, filename=None, **kwargs):
         """
         Create a task that creates a zip of sample/s
