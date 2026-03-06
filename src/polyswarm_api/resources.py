@@ -1132,6 +1132,7 @@ class Sample(core.BaseJsonResource):
         self.artifact_instance = content.get('artifact_instance', {})
         self.sandbox = content.get('sandbox', {})
         self.metadata = content.get('metadata', {})
+        self.pending = content.get('pending', {})
 
     @classmethod
     def _get_endpoint(cls, api, **kwargs):
