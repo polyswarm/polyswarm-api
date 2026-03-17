@@ -1,38 +1,14 @@
-image: $REPO_URL/stage
-
-stages:
-  - build
-  - test
-  - release
-
-variables:
-  DOCKER_HOST: tcp://localhost:2376
-  DOCKER_TLS_CERTDIR: "/certs"
-  DOCKER_TLS_VERIFY: 1
-  DOCKER_CERT_PATH: "$DOCKER_TLS_CERTDIR/client"
-
-default:
-  before_script:
-    - pip install -q --upgrade pip
-    - pip install -q $END_TO_END_LIB@$CI_COMMIT_REF_NAME || pip install -q $END_TO_END_LIB
-    - e2e init
+include:
+  - project: 'externalci/ci-image'
+    ref: master
+    file: '.gitlab-ci-default.yaml'
 
 ###############################################################
-# Build Stage (jobs inside a stage run in parallel)
+# Build Stage
 ###############################################################
 
 dev-pypi:
-  tags:
-    - stage-kube-newer
-  stage: build
-  before_script:
-    - pip3 install -q --upgrade pip build twine bump-my-version
-    - pip install -q $END_TO_END_LIB@$CI_COMMIT_REF_NAME || pip install -q $END_TO_END_LIB
-    - e2e init
-  script:
-    - bump-my-version bump --no-commit --no-tag dev
-    - python -m build
-    - e2e release --dev --skip-tag
+  extends: .dev-pypi
 
 ###############################################################
 # Test Stage
@@ -76,15 +52,4 @@ test-run312:
 ###############################################################
 
 release-pypi:
-  tags:
-    - stage-kube-newer
-  stage: release
-  script:
-    # release to internal pypi but do not tag yet
-    - e2e release --skip-tag --remote https://github.com/polyswarm/$CI_PROJECT_NAME.git
-    # release to public pypi and tag
-    - e2e release
-      -u "$PUBLIC_TWINE_USERNAME"
-      -p "$PUBLIC_TWINE_PASSWORD"
-      -r "$PUBLIC_TWINE_REPOSITORY_URL"
-      --remote "https://github.com/polyswarm/$CI_PROJECT_NAME.git"
+  extends: .release-pypi-public
