@@ -1009,7 +1009,7 @@ class PolyswarmAPI:
         """
         Create a llm generated report, from the scan and/or sandbox results.
         """
-        if not instance_id and not sandbox_task_id:
+        if not instance_id and not cape_sandbox_task_id and not triage_sandbox_task_id:
             raise exceptions.InvalidValueException('Either instance_id or sandbox_task_id must be provided')
         report_task = resources.ReportLLMPostProcessing.create(self,
                                                                instance_id=instance_id,
