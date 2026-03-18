@@ -1217,7 +1217,8 @@ class ReportLLMPostProcessing(core.BaseJsonResource):
         self.id = content['id']
         self.community = content['community']
         self.created = content['created']
-        self.sandbox_task_id = content.get('sandbox_task_id')
+        self.cape_sandbox_task_id = content.get('cape_sandbox_task_id')
+        self.triage_sandbox_task_id = content.get('triage_sandbox_task_id')
         self.instance_id = content.get('instance_id')
         self.state = content['state']
         self.url = content['url']
