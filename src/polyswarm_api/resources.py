@@ -1133,6 +1133,8 @@ class Sample(core.BaseJsonResource):
         self.sandbox = content.get('sandbox', {})
         self.metadata = content.get('metadata', {})
         self.pending = content.get('pending', {})
+        self.llm_report_task = content.get('llm_report_task')
+        self.tasks = content.get('tasks')
 
     @classmethod
     def _get_endpoint(cls, api, **kwargs):
