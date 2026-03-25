@@ -1133,6 +1133,8 @@ class Sample(core.BaseJsonResource):
         self.sandbox = content.get('sandbox', {})
         self.metadata = content.get('metadata', {})
         self.pending = content.get('pending', {})
+        self.llm_report_task = content.get('llm_report_task')
+        self.tasks = content.get('tasks')
 
     @classmethod
     def _get_endpoint(cls, api, **kwargs):
@@ -1217,10 +1219,12 @@ class ReportLLMPostProcessing(core.BaseJsonResource):
         self.id = content['id']
         self.community = content['community']
         self.created = content['created']
-        self.sandbox_task_id = content.get('sandbox_task_id')
+        self.cape_sandbox_task_id = content.get('cape_sandbox_task_id')
+        self.triage_sandbox_task_id = content.get('triage_sandbox_task_id')
         self.instance_id = content.get('instance_id')
         self.state = content['state']
         self.url = content['url']
+        self.report = content['report']
 
     def download_report(self, folder=None):
         """ This method is special, in that it is simply for downloading from S3 """
