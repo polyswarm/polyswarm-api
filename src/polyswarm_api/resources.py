@@ -1224,6 +1224,7 @@ class ReportLLMPostProcessing(core.BaseJsonResource):
         self.instance_id = content.get('instance_id')
         self.state = content['state']
         self.url = content['url']
+        self.report = content['report']
 
     def download_report(self, folder=None):
         """ This method is special, in that it is simply for downloading from S3 """
