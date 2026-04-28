@@ -1,0 +1,48 @@
+interactions:
+- request:
+    body: '{"id":"1","type":"ip","host":"1.2.3.4","source":"test","good":1}'
+    headers:
+      accept:
+      - '*/*'
+      accept-encoding:
+      - gzip, deflate
+      authorization:
+      - '11111111111111111111111111111111'
+      connection:
+      - keep-alive
+      content-length:
+      - '64'
+      content-type:
+      - application/json
+      host:
+      - localhost:9696
+      user-agent:
+      - polyswarm_api/3.18.0 (x86_64-Linux-CPython-3.12.13)
+    method: PUT
+    uri: http://localhost:9696/v3/ioc/known
+  response:
+    body:
+      string: '{"result":{"good":1,"host":"1.2.3.4","id":1,"source":"test","type":"ip"},"status":"OK"}
+
+        '
+    headers:
+      Access-Control-Allow-Origin:
+      - '*'
+      Access-Control-Expose-Headers:
+      - Authorization
+      Connection:
+      - keep-alive
+      Content-Length:
+      - '88'
+      Content-Type:
+      - application/json
+      Date:
+      - Mon, 27 Apr 2026 23:59:21 GMT
+      Server:
+      - gunicorn
+      X-Billing-ID:
+      - '111'
+    status:
+      code: 200
+      message: OK
+version: 1

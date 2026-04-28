@@ -1,0 +1,36 @@
+interactions:
+- request:
+    body: ''
+    headers:
+      accept:
+      - '*/*'
+      accept-encoding:
+      - gzip, deflate
+      authorization:
+      - '11111111111111111111111111111111'
+      connection:
+      - keep-alive
+      host:
+      - localhost:9696
+      user-agent:
+      - polyswarm_api/3.18.0 (x86_64-Linux-CPython-3.12.13)
+    method: GET
+    uri: http://localhost:9696/v3/ioc/known?ip=1.2.3.4
+  response:
+    body:
+      string: '{"result":[{"good":true,"host":"1.2.3.4","id":1,"source":"test","type":"ip"}],"status":"OK"}
+
+        '
+    headers:
+      Connection:
+      - Keep-Alive
+      Content-Length:
+      - '93'
+      Content-Type:
+      - application/json
+      X-Billing-ID:
+      - '1'
+    status:
+      code: 200
+      message: OK
+version: 1

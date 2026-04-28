@@ -233,7 +233,7 @@ class PolySwarmAsyncAPI:
             yield item
 
     async def search_by_ioc(self, ip=None, domain=None, ttp=None, imphash=None):
-        """Search by IOC. Async generator of ArtifactInstance."""
+        """Search by IOC. Async generator of IOC."""
         params = {}
         if ip:
             params["ip"] = ip
@@ -249,7 +249,7 @@ class PolySwarmAsyncAPI:
                 "url": f"{self.uri}/ioc/search",
                 "params": params,
             },
-            result_parser=resources.ArtifactInstance,
+            result_parser=resources.IOC,
         ):
             yield item
 
@@ -308,8 +308,7 @@ class PolySwarmAsyncAPI:
         return await self._single(
             {
                 "method": "DELETE",
-                "url": f"{self.uri}/ioc/known",
-                "json": {"id": str(int(id))},
+                "url": f"{self.uri}/ioc/known?id={id}",
             },
             result_parser=resources.IOC,
         )
@@ -383,12 +382,13 @@ class PolySwarmAsyncAPI:
                 self.session._client, instance.upload_url, artifact
             )
 
-            # Finalize
+            # Finalize — id goes in URL params, community in JSON body (mirrors sync update())
             return await self._single(
                 {
                     "method": "PUT",
                     "url": f"{self.uri}{resources.ArtifactInstance.RESOURCE_ENDPOINT}",
-                    "params": {"id": instance.id, "community": self.community},
+                    "params": {"id": str(int(instance.id))},
+                    "json": {"community": self.community},
                 },
                 result_parser=resources.ArtifactInstance,
             )
@@ -557,7 +557,7 @@ class PolySwarmAsyncAPI:
         return await self._single(
             {
                 "method": "GET",
-                "url": f"{self.uri}{resources.HistoricalHunt.RESOURCE_ENDPOINT}",
+                "url": f"{self.uri}{resources.HistoricalHunt.RESOURCE_ENDPOINT}/?id={hunt}",
                 "params": {"id": str(int(hunt)), "community": self.community},
             },
             result_parser=resources.HistoricalHunt,
@@ -568,7 +568,7 @@ class PolySwarmAsyncAPI:
         return await self._single(
             {
                 "method": "PUT",
-                "url": f"{self.uri}{resources.HistoricalHunt.RESOURCE_ENDPOINT}",
+                "url": f"{self.uri}{resources.HistoricalHunt.RESOURCE_ENDPOINT}/?id={hunt}",
                 "params": {"id": str(int(hunt)), "community": self.community},
             },
             result_parser=resources.HistoricalHunt,
@@ -579,7 +579,7 @@ class PolySwarmAsyncAPI:
         return await self._single(
             {
                 "method": "DELETE",
-                "url": f"{self.uri}{resources.HistoricalHunt.RESOURCE_ENDPOINT}",
+                "url": f"{self.uri}{resources.HistoricalHunt.RESOURCE_ENDPOINT}/?id={hunt}",
                 "json": {"id": str(int(hunt)), "community": self.community},
             },
             result_parser=resources.HistoricalHunt,
@@ -698,7 +698,7 @@ class PolySwarmAsyncAPI:
         return await self._single(
             {
                 "method": "PUT",
-                "url": f"{self.uri}{resources.YaraRuleset.RESOURCE_ENDPOINT}",
+                "url": f"{self.uri}{resources.YaraRuleset.RESOURCE_ENDPOINT}?id={ruleset_id}",
                 "json": json_params,
             },
             result_parser=resources.YaraRuleset,
@@ -709,7 +709,7 @@ class PolySwarmAsyncAPI:
         return await self._single(
             {
                 "method": "DELETE",
-                "url": f"{self.uri}{resources.YaraRuleset.RESOURCE_ENDPOINT}",
+                "url": f"{self.uri}{resources.YaraRuleset.RESOURCE_ENDPOINT}?id={ruleset_id}",
                 "json": {"id": str(int(ruleset_id)), "community": self.community},
             },
             result_parser=resources.YaraRuleset,
@@ -1208,7 +1208,7 @@ class PolySwarmAsyncAPI:
                 "method": "POST",
                 "url": f"{self.uri}{resources.ToolMetadata.RESOURCE_ENDPOINT}",
                 "json": {
-                    "instance_id": str(int(instance_id)),
+                    "instance_id": instance_id,
                     "tool": tool,
                     "tool_metadata": tool_metadata,
                 },

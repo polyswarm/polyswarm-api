@@ -49,6 +49,7 @@ class AsyncPolyswarmSession:
             transport=transport,
             timeout=timeout,
             verify=verify,
+            follow_redirects=True,
             **httpx_kwargs,
         )
 
@@ -59,6 +60,29 @@ class AsyncPolyswarmSession:
     async def close(self):
         """Close the underlying httpx client."""
         await self._client.aclose()
+
+
+class _HttpxResponseAdapter:
+    """Make httpx.Response compatible with code that expects a requests.Response.
+
+    ``LocalArtifact`` (and a few other resource classes) call
+    ``response.iter_content(chunk_size)`` which is a requests-ism.
+    httpx exposes the same data via ``iter_bytes`` / ``.content``.
+    """
+
+    def __init__(self, response: httpx.Response):
+        self.status_code = response.status_code
+        self.headers = response.headers
+        self.url = str(response.url)
+        self._content = response.content
+
+    def iter_content(self, chunk_size=None):
+        content = self._content
+        if not chunk_size or len(content) <= chunk_size:
+            yield content
+        else:
+            for i in range(0, len(content), chunk_size):
+                yield content[i : i + chunk_size]
 
 
 class AsyncPolyswarmRequest:
@@ -110,6 +134,15 @@ class AsyncPolyswarmRequest:
         method = params.pop("method")
         url = params.pop("url")
         params.pop("stream", None)  # httpx doesn't use stream= kwarg for non-streaming
+
+        # httpx rejects None header values; requests uses None to *remove* a header.
+        # Strip them out here — the session-level header stays, but no TypeError.
+        if "headers" in params:
+            params["headers"] = {
+                k: v for k, v in params["headers"].items() if v is not None
+            }
+            if not params["headers"]:
+                del params["headers"]
 
         self.raw_result = await self.session.request(method, url, **params)
         self.parse_result(self.raw_result)
@@ -172,6 +205,10 @@ class AsyncPolyswarmRequest:
                         self.api_instance, result_data, **self.parser_kwargs
                     )
             else:
+                # Non-JSON parsers (e.g. LocalArtifact) expect a requests.Response
+                # interface (iter_content, etc.).  Wrap httpx.Response if needed.
+                if isinstance(result, httpx.Response):
+                    result = _HttpxResponseAdapter(result)
                 self._result = self.result_parser.parse_result(
                     self.api_instance, result, **self.parser_kwargs
                 )
