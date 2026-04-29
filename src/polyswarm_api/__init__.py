@@ -1,6 +1,11 @@
 # https://www.python.org/dev/peps/pep-0008/#module-level-dunder-names
-__version__ = '3.18.0'
+__version__ = '3.19.0'
 __release_url__ = 'https://api.github.com/repos/polyswarm/polyswarm-api/releases/latest'
 
 from . import api
 from . import exceptions
+
+try:
+    from .aio import PolySwarmAsyncAPI
+except ImportError:
+    pass  # httpx not installed; install polyswarm_api[async] to enable

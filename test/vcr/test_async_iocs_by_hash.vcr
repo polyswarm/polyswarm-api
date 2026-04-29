@@ -1,0 +1,90 @@
+interactions:
+- request:
+    body: '{"instance_id":"41782351738405672","tool":"cape_sandbox_v2","tool_metadata":{"cape_sandbox_v2":{"extracted_c2_ips":["1.2.3.4"],"extracted_c2_urls":["www.virus.com"],"ttp":["T1081","T1060","T1069"]}}}'
+    headers:
+      accept:
+      - '*/*'
+      accept-encoding:
+      - gzip, deflate
+      authorization:
+      - '11111111111111111111111111111111'
+      connection:
+      - keep-alive
+      content-length:
+      - '199'
+      content-type:
+      - application/json
+      host:
+      - localhost:9696
+      user-agent:
+      - polyswarm_api/3.18.0 (x86_64-Linux-CPython-3.12.13)
+    method: POST
+    uri: http://localhost:9696/v3/artifact/metadata
+  response:
+    body:
+      string: '{"result":{"created":"2026-04-27T23:53:24.919358+00:00","tool":"cape_sandbox_v2","tool_metadata":{"cape_sandbox_v2":{"extracted_c2_ips":["1.2.3.4"],"extracted_c2_urls":["www.virus.com"],"ttp":["T1081","T1060","T1069"]}},"updated":"2026-04-27T23:53:24.919358+00:00"},"status":"OK"}
+
+        '
+    headers:
+      Access-Control-Allow-Origin:
+      - '*'
+      Access-Control-Expose-Headers:
+      - Authorization
+      Connection:
+      - keep-alive
+      Content-Length:
+      - '281'
+      Content-Type:
+      - application/json
+      Date:
+      - Mon, 27 Apr 2026 23:53:24 GMT
+      Server:
+      - gunicorn
+      X-Billing-ID:
+      - '111'
+    status:
+      code: 200
+      message: OK
+- request:
+    body: ''
+    headers:
+      accept:
+      - '*/*'
+      accept-encoding:
+      - gzip, deflate
+      authorization:
+      - '11111111111111111111111111111111'
+      connection:
+      - keep-alive
+      host:
+      - localhost:9696
+      user-agent:
+      - polyswarm_api/3.18.0 (x86_64-Linux-CPython-3.12.13)
+    method: GET
+    uri: http://localhost:9696/v3/ioc/sha256/275a021bbfb6489e54d471899f7db9d1663fc695ec2fe2a2c4538aabf651fd0f
+  response:
+    body:
+      string: '{"has_more":false,"limit":50,"result":{"imphash":"","ips":["1.2.3.4"],"ttps":["T1081","T1060","T1069"],"urls":["www.virus.com"]},"status":"OK"}
+
+        '
+    headers:
+      Access-Control-Allow-Origin:
+      - '*'
+      Access-Control-Expose-Headers:
+      - Authorization
+      Connection:
+      - keep-alive
+      Content-Length:
+      - '69'
+      Content-Type:
+      - application/json
+      Date:
+      - Mon, 27 Apr 2026 23:53:25 GMT
+      Server:
+      - gunicorn
+      X-Billing-ID:
+      - '111'
+    status:
+      code: 200
+      message: OK
+version: 1

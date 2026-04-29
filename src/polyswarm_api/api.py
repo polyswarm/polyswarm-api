@@ -1095,9 +1095,13 @@ class PolyswarmAPI:
         result = report.delete_logo().result()
         return result
 
-    def report_template_logo_upload(self, template_id, logo_file, content_tpe):
+    def report_template_logo_upload(self, template_id, logo_file, content_type=None, content_tpe=None):
+        if content_tpe is not None and content_type is None:
+            content_type = content_tpe
+        if content_type is None:
+            raise exceptions.InvalidValueException("missing required argument: 'content_type'")
         report = resources.ReportTemplate.get(self, id=template_id).result()
-        result = report.upload_logo(logo_file, content_tpe).result()
+        result = report.upload_logo(logo_file, content_type).result()
         return result
 
     def report_template_create(self,
