@@ -22,6 +22,7 @@ classifiers = [
 dependencies = [
   "requests>=2.31",
   "python-dateutil>=2.9",
+  "jmespath>=1.0",
 ]
 
 [project.optional-dependencies]

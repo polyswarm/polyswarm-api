@@ -258,6 +258,27 @@ class BaseJsonResource(BaseResource):
             raise TypeError(f'Resource {type(self).__name__} does not have an id and can not be cast to int')
         return int(id_)
 
+    def jmespath(self, expr):
+        """Apply a JMESPath expression to this resource's underlying JSON.
+
+        Lets callers pull fields out of any API response without manual dotted-path
+        navigation or piping ``--fmt json`` CLI output through ``jq``. Uses JMESPath
+        syntax — see https://jmespath.org for the full grammar (no leading dot,
+        ``[*]`` projections, ``[?expr]`` filters, function calls, etc.).
+
+        Returns ``None`` when the expression resolves nothing in the document.
+
+        Example::
+
+            instance = api.lookup(scan_id)
+            polyscore = instance.jmespath("scan.latest_scan.polyscore")
+            mal_engines = instance.jmespath(
+                "scan.latest_scan.assertions[?verdict=='malicious'].engine.name"
+            )
+        """
+        import jmespath as _jmespath
+        return _jmespath.search(expr, self.json)
+
     def _get(self, path, default=None, content=None):
         """
         Helper for rendering attributes of child objects in the json that might be None.
