@@ -335,7 +335,7 @@ class ArtifactInstance(core.BaseJsonResource, core.Hashable):
                 'params': {
                     'hash': hash_value,
                     'community': api.community,
-                    'require_scan': require_scan,
+                    'require_scan': str(require_scan).lower(),
                 },
             },
         ).execute()
