@@ -326,7 +326,7 @@ class ArtifactInstance(core.BaseJsonResource, core.Hashable):
         return r
 
     @classmethod
-    def exists_hash(cls, api, hash_value, hash_type):
+    def exists_hash(cls, api, hash_value, hash_type, require_scan=False):
         return core.PolyswarmRequest(
             api,
             {
@@ -335,6 +335,7 @@ class ArtifactInstance(core.BaseJsonResource, core.Hashable):
                 'params': {
                     'hash': hash_value,
                     'community': api.community,
+                    'require_scan': str(require_scan).lower(),
                 },
             },
         ).execute()
