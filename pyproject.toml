@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "polyswarm_api"
-version = "3.19.0"
+version = "3.19.1"
 description = "Client library to simplify interacting with the PolySwarm consumer API"
 readme = "README.md"
 requires-python = ">=3.10,<4"
@@ -48,7 +48,7 @@ package-dir = { "" = "src" }
 where = ["src"]
 
 [tool.bumpversion]
-current_version = "3.19.0"
+current_version = "3.19.1"
 commit = true
 tag = false
 sign_tags = true
