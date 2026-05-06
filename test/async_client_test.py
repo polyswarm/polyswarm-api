@@ -195,6 +195,18 @@ class TestAsyncScanCase:
         assert len(all_tasks) == 2
         assert {t.sandbox for t in all_tasks} == {'cape', 'triage'}
 
+    # ── Sample (aggregated view) ──────────────────────────────────────────────
+
+    @vcr.use_cassette()
+    async def test_async_sample(self):
+        async with self._api() as api:
+            result = await api.sample(SHA256)
+        assert isinstance(result.artifact_instance, dict)
+        assert isinstance(result.sandbox, dict)
+        assert {'cape', 'triage'} <= set(result.sandbox.keys())
+        assert isinstance(result.tasks, dict)
+        assert {'artifact_instance', 'llm_report', 'sandbox_cape', 'sandbox_triage'} <= set(result.tasks.keys())
+
     # ── YARA Rulesets ─────────────────────────────────────────────────────────
 
     @vcr.use_cassette()

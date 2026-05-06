@@ -293,10 +293,13 @@ class BaseJsonResource(BaseResource):
         return [cls.parse_result(api_instance, entry, **kwargs) for entry in json_data]
 
     @classmethod
-    def _endpoint(cls, api, **kwargs):
+    def _endpoint(cls, api, endpoint_fmt=None, **kwargs):
         if cls.RESOURCE_ENDPOINT is None:
             raise exceptions.InvalidValueException('RESOURCE_ENDPOINT is not configured for this resource.')
-        return '{api.uri}{endpoint}'.format(api=api, endpoint=cls.RESOURCE_ENDPOINT, **kwargs)
+        endpoint = cls.RESOURCE_ENDPOINT
+        if endpoint_fmt is not None:
+            endpoint = endpoint.format(**endpoint_fmt)
+        return '{api.uri}{endpoint}'.format(api=api, endpoint=endpoint, **kwargs)
 
     @classmethod
     def _list_endpoint(cls, api, **kwargs):
@@ -323,7 +326,7 @@ class BaseJsonResource(BaseResource):
         return cls._endpoint(api, **kwargs)
 
     @classmethod
-    def _params(cls, method, *param_keys, **kwargs):
+    def _params(cls, method, *param_keys, endpoint_fmt=None, **kwargs):
         params = {}
         json_params = {}
         for k, v in kwargs.items():
