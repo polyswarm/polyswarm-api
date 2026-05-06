@@ -1650,7 +1650,7 @@ class PolySwarmAsyncAPI:
         return await self._single(
             {
                 "method": "POST",
-                "url": f"{self.uri}{resources.Sample.RESOURCE_ENDPOINT}/{sha256}",
+                "url": f"{self.uri}{resources.Sample.RESOURCE_ENDPOINT.format(sha256=sha256)}",
                 "json": json_body,
             },
             result_parser=resources.Sample,

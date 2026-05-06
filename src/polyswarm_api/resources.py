@@ -1125,7 +1125,7 @@ class Events(core.BaseJsonResource):
 
 
 class Sample(core.BaseJsonResource):
-    RESOURCE_ENDPOINT = '/sample'
+    RESOURCE_ENDPOINT = '/sample/{sha256}'
     RESOURCE_ID_KEYS = ['sha256']
 
     def __init__(self, content, api=None):
@@ -1136,23 +1136,6 @@ class Sample(core.BaseJsonResource):
         self.pending = content.get('pending', {})
         self.llm_report_task = content.get('llm_report_task')
         self.tasks = content.get('tasks')
-
-    @classmethod
-    def _get_endpoint(cls, api, **kwargs):
-        sha256 = kwargs.pop('sha256', None)
-        if sha256:
-            return f'{api.uri}{cls.RESOURCE_ENDPOINT}/{sha256}'
-        return cls._endpoint(api, **kwargs)
-
-    @classmethod
-    def _create_endpoint(cls, api, **kwargs):
-        sha256 = kwargs.get('sha256')
-        return f'{api.uri}{cls.RESOURCE_ENDPOINT}/{sha256}'
-
-    @classmethod
-    def _create_params(cls, **kwargs):
-        kwargs.pop('sha256', None)
-        return cls._params('POST', *cls.RESOURCE_ID_KEYS, **kwargs)
 
 class BundleTask(core.BaseJsonResource):
     RESOURCE_ENDPOINT = "/bundle"

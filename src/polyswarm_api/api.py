@@ -975,7 +975,7 @@ class PolyswarmAPI:
         logger.info('Getting sample %s', sha256)
         return resources.Sample.create(
             self,
-            sha256=sha256,
+            endpoint_fmt={'sha256': sha256},
             community=self.community,
             artifact_instance_id=artifact_instance_id,
             sandbox_task_id_cape=sandbox_task_id_cape,
