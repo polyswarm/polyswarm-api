@@ -1144,6 +1144,16 @@ class Sample(core.BaseJsonResource):
             return f'{api.uri}{cls.RESOURCE_ENDPOINT}/{sha256}'
         return cls._endpoint(api, **kwargs)
 
+    @classmethod
+    def _create_endpoint(cls, api, **kwargs):
+        sha256 = kwargs.get('sha256')
+        return f'{api.uri}{cls.RESOURCE_ENDPOINT}/{sha256}'
+
+    @classmethod
+    def _create_params(cls, **kwargs):
+        kwargs.pop('sha256', None)
+        return cls._params('POST', *cls.RESOURCE_ID_KEYS, **kwargs)
+
 class BundleTask(core.BaseJsonResource):
     RESOURCE_ENDPOINT = "/bundle"
 

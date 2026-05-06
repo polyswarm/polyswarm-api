@@ -959,25 +959,29 @@ class PolyswarmAPI:
         return resources.Events.list(self, **kwargs).result()
 
     def sample(self, sha256, artifact_instance_id=None, sandbox_task_id_cape=None,
-               sandbox_task_id_triage=None, artifact_metadata_id=None):
+               sandbox_task_id_triage=None, artifact_metadata_id=None, llm_report_id=None):
         """
-        Get aggregated sample information including artifact instance, sandbox tasks, and metadata.
+        Get aggregated sample information including artifact instance, sandbox tasks, metadata,
+        and LLM report.
 
         :param sha256: SHA256 hash of the artifact
         :param artifact_instance_id: Optional specific artifact instance ID
         :param sandbox_task_id_cape: Optional specific Cape sandbox task ID
         :param sandbox_task_id_triage: Optional specific Triage sandbox task ID
         :param artifact_metadata_id: Optional specific artifact metadata ID
+        :param llm_report_id: Optional specific LLM report task ID
         :return: A Sample resource with aggregated data
         """
         logger.info('Getting sample %s', sha256)
-        return resources.Sample.get(
+        return resources.Sample.create(
             self,
             sha256=sha256,
+            community=self.community,
             artifact_instance_id=artifact_instance_id,
             sandbox_task_id_cape=sandbox_task_id_cape,
             sandbox_task_id_triage=sandbox_task_id_triage,
             artifact_metadata_id=artifact_metadata_id,
+            llm_report_id=llm_report_id,
         ).result()
 
     def sample_bundle_task_create(self, instance_ids, preserve_filenames=False, filename=None, **kwargs):

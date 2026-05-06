@@ -403,3 +403,13 @@ class ScanTestCaseV2(TestCase):
 
         assert len(tasks) == 2
         assert set(t.sandbox for t in tasks) == {'cape', 'triage'}
+
+    @vcr.use_cassette()
+    def test_sample(self):
+        api = PolyswarmAPI(self.test_api_key, uri=f'http://localhost:9696/{self.api_version}', community='gamma')
+        result = api.sample('275a021bbfb6489e54d471899f7db9d1663fc695ec2fe2a2c4538aabf651fd0f')
+        assert isinstance(result.artifact_instance, dict)
+        assert isinstance(result.sandbox, dict)
+        assert {'cape', 'triage'} <= set(result.sandbox.keys())
+        assert isinstance(result.tasks, dict)
+        assert {'artifact_instance', 'llm_report', 'sandbox_cape', 'sandbox_triage'} <= set(result.tasks.keys())
