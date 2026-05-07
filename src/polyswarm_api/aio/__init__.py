@@ -1629,25 +1629,29 @@ class PolySwarmAsyncAPI:
         sandbox_task_id_cape=None,
         sandbox_task_id_triage=None,
         artifact_metadata_id=None,
+        llm_report_id=None,
     ):
-        """Get aggregated sample info (artifact instance + sandbox + metadata).
+        """Get aggregated sample info (artifact instance + sandbox + metadata + llm report).
 
-        Returns a Sample resource with .artifact_instance, .sandbox, .metadata, .pending.
+        Returns a Sample resource with .artifact_instance, .sandbox, .metadata, .pending,
+        .llm_report_task, .tasks.
         """
-        params = {}
+        json_body = {"community": self.community}
         if artifact_instance_id is not None:
-            params["artifact_instance_id"] = str(int(artifact_instance_id))
+            json_body["artifact_instance_id"] = str(int(artifact_instance_id))
         if sandbox_task_id_cape is not None:
-            params["sandbox_task_id_cape"] = str(int(sandbox_task_id_cape))
+            json_body["sandbox_task_id_cape"] = str(int(sandbox_task_id_cape))
         if sandbox_task_id_triage is not None:
-            params["sandbox_task_id_triage"] = str(int(sandbox_task_id_triage))
+            json_body["sandbox_task_id_triage"] = str(int(sandbox_task_id_triage))
         if artifact_metadata_id is not None:
-            params["artifact_metadata_id"] = str(int(artifact_metadata_id))
+            json_body["artifact_metadata_id"] = str(int(artifact_metadata_id))
+        if llm_report_id is not None:
+            json_body["llm_report_id"] = str(int(llm_report_id))
         return await self._single(
             {
-                "method": "GET",
-                "url": f"{self.uri}{resources.Sample.RESOURCE_ENDPOINT}/{sha256}",
-                "params": params or None,
+                "method": "POST",
+                "url": f"{self.uri}{resources.Sample.RESOURCE_ENDPOINT.format(sha256=sha256)}",
+                "json": json_body,
             },
             result_parser=resources.Sample,
         )

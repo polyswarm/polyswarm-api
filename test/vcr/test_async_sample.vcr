@@ -1,0 +1,48 @@
+interactions:
+- request:
+    body: '{"community":"gamma"}'
+    headers:
+      accept:
+      - '*/*'
+      accept-encoding:
+      - gzip, deflate
+      authorization:
+      - '11111111111111111111111111111111'
+      connection:
+      - keep-alive
+      content-length:
+      - '21'
+      content-type:
+      - application/json
+      host:
+      - localhost:9696
+      user-agent:
+      - polyswarm_api/3.19.1 (x86_64-Linux-CPython-3.14.2)
+    method: POST
+    uri: http://localhost:9696/v3/sample/275a021bbfb6489e54d471899f7db9d1663fc695ec2fe2a2c4538aabf651fd0f
+  response:
+    body:
+      string: '{"result":{"artifact_instance":{},"llm_report_task":{},"metadata":{},"sandbox":{"cape":{},"triage":{}},"tasks":{"artifact_instance":{"rendered_id":null,"requested_id":null,"requested_status":null},"llm_report":{"rendered_id":null,"requested_id":null,"requested_status":null},"metadata":{"rendered_id":null,"requested_id":null,"requested_status":null},"sandbox_cape":{"rendered_id":null,"requested_id":null,"requested_status":null},"sandbox_triage":{"rendered_id":null,"requested_id":null,"requested_status":null}}},"status":"OK"}
+
+        '
+    headers:
+      Access-Control-Allow-Origin:
+      - '*'
+      Access-Control-Expose-Headers:
+      - Authorization
+      Connection:
+      - keep-alive
+      Content-Length:
+      - '530'
+      Content-Type:
+      - application/json
+      Date:
+      - Wed, 06 May 2026 16:35:56 GMT
+      Server:
+      - gunicorn
+      X-Billing-ID:
+      - '111'
+    status:
+      code: 200
+      message: OK
+version: 1
