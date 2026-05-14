@@ -803,6 +803,8 @@ class LiveHuntResult(core.BaseJsonResource):
         self.instance_id = content['instance_id']
         self.created = core.parse_isoformat(content['created'])
         self.sha256 = content['sha256']
+        self.md5 = content.get('md5')
+        self.sha1 = content.get('sha1')
         self.rule_name = content['rule_name']
         self.tags = content['tags']
         self.polyscore = content['polyscore']
@@ -848,6 +850,8 @@ class HistoricalHuntResult(core.BaseJsonResource):
         self.historicalscan_id = content['historicalscan_id']
         self.instance_id = content['instance_id']
         self.sha256 = content['sha256']
+        self.md5 = content.get('md5')
+        self.sha1 = content.get('sha1')
         self.created = core.parse_isoformat(content['created'])
         self.rule_name = content['rule_name']
         self.tags = content['tags']
