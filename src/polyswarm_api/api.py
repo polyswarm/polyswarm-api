@@ -126,9 +126,13 @@ class PolyswarmAPI:
         logger.info('Retrieving the metadata mapping')
         return resources.MetadataMapping.get(self).result()
 
-    def metadata_field_properties_create(self, field_path, description,
-                                         example=None, category=None, aliases=None):
-        """Create a metadata field properties entry.
+    def metadata_field_properties_write(self, field_path, description,
+                                        example=None, category=None, aliases=None):
+        """Upsert a metadata field properties entry (the single write path).
+
+        Inserts a new row if no entry exists for `field_path`, otherwise
+        updates the existing row in place. Server-side this is a POST to
+        /v3/search/metadata/properties.
 
         :param field_path: Dotted ES leaf path (e.g. 'polyunite.malware_family').
         :param description: Human-readable description of the field.
@@ -137,7 +141,7 @@ class PolyswarmAPI:
         :param aliases: Optional list of friendly-name shortcuts.
         :return: A MetadataFieldProperties resource.
         """
-        logger.info('Creating metadata field properties %s', field_path)
+        logger.info('Writing metadata field properties %s', field_path)
         return resources.MetadataFieldProperties.create(self,
                                                         field_path=field_path,
                                                         description=description,
@@ -153,25 +157,6 @@ class PolyswarmAPI:
         """
         logger.info('Getting metadata field properties %s', field_path)
         return resources.MetadataFieldProperties.get(self, field_path=field_path).result()
-
-    def metadata_field_properties_update(self, field_path, description=None,
-                                         example=None, category=None, aliases=None):
-        """Update a metadata field properties entry.
-
-        :param field_path: Dotted ES leaf path of the entry to update.
-        :param description: Optional new description.
-        :param example: Optional new example.
-        :param category: Optional new category.
-        :param aliases: Optional new aliases list.
-        :return: The updated MetadataFieldProperties resource.
-        """
-        logger.info('Updating metadata field properties %s', field_path)
-        return resources.MetadataFieldProperties.update(self,
-                                                        field_path=field_path,
-                                                        description=description,
-                                                        example=example,
-                                                        category=category,
-                                                        aliases=aliases).result()
 
     def metadata_field_properties_delete(self, field_path):
         """Delete a metadata field properties entry.
