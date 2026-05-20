@@ -187,6 +187,75 @@ class PolySwarmAsyncAPI:
             result_parser=resources.MetadataMapping,
         )
 
+    async def metadata_field_properties_create(self, field_path, description,
+                                               example=None, category=None, aliases=None):
+        """Create a metadata field properties entry."""
+        return await self._single(
+            {
+                "method": "POST",
+                "url": f"{self.uri}{resources.MetadataFieldProperties.RESOURCE_ENDPOINT}",
+                "json": {
+                    "field_path": field_path,
+                    "description": description,
+                    "example": example,
+                    "category": category,
+                    "aliases": aliases,
+                },
+            },
+            result_parser=resources.MetadataFieldProperties,
+        )
+
+    async def metadata_field_properties_get(self, field_path):
+        """Get a metadata field properties entry by field_path."""
+        return await self._single(
+            {
+                "method": "GET",
+                "url": f"{self.uri}{resources.MetadataFieldProperties.RESOURCE_ENDPOINT}",
+                "params": {"field_path": field_path},
+            },
+            result_parser=resources.MetadataFieldProperties,
+        )
+
+    async def metadata_field_properties_update(self, field_path, description=None,
+                                               example=None, category=None, aliases=None):
+        """Update a metadata field properties entry."""
+        body = {}
+        for k, v in (('description', description), ('example', example),
+                     ('category', category), ('aliases', aliases)):
+            if v is not None:
+                body[k] = v
+        return await self._single(
+            {
+                "method": "PUT",
+                "url": f"{self.uri}{resources.MetadataFieldProperties.RESOURCE_ENDPOINT}",
+                "params": {"field_path": field_path},
+                "json": body,
+            },
+            result_parser=resources.MetadataFieldProperties,
+        )
+
+    async def metadata_field_properties_delete(self, field_path):
+        """Delete a metadata field properties entry."""
+        return await self._single(
+            {
+                "method": "DELETE",
+                "url": f"{self.uri}{resources.MetadataFieldProperties.RESOURCE_ENDPOINT}",
+                "params": {"field_path": field_path},
+            },
+            result_parser=resources.MetadataFieldProperties,
+        )
+
+    async def metadata_field_properties_list(self):
+        """List all metadata field properties entries. Async generator."""
+        async for item in self._generate(
+            {
+                "method": "GET",
+                "url": f"{self.uri}{resources.MetadataFieldProperties.RESOURCE_ENDPOINT}/list",
+            },
+            result_parser=resources.MetadataFieldProperties,
+        ):
+            yield item
+
     async def search_by_metadata(
         self, query, include=None, exclude=None, ips=None, urls=None, domains=None
     ):
