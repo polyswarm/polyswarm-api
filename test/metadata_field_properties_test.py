@@ -30,14 +30,14 @@ class MetadataFieldPropertiesSyncTest(TestCase):
         self.api = PolyswarmAPI('1' * 32, uri=_BASE_URL, community='gamma')
 
     @responses.activate
-    def test_create(self):
+    def test_write(self):
         row = _sample_row()
         responses.add(
             responses.POST, _RESOURCE_URL,
             json={'result': row, 'status': 'OK'},
             status=200,
         )
-        result = self.api.metadata_field_properties_create(
+        result = self.api.metadata_field_properties_write(
             field_path=row['field_path'],
             description=row['description'],
             example=row['example'],
@@ -58,24 +58,6 @@ class MetadataFieldPropertiesSyncTest(TestCase):
         )
         result = self.api.metadata_field_properties_get(field_path=row['field_path'])
         assert result.field_path == row['field_path']
-        # Verify the field_path is in the query string.
-        request_url = responses.calls[0].request.url
-        assert 'field_path=polyunite.malware_family' in request_url
-
-    @responses.activate
-    def test_update(self):
-        row = _sample_row()
-        row['description'] = 'new desc'
-        responses.add(
-            responses.PUT, _RESOURCE_URL,
-            json={'result': row, 'status': 'OK'},
-            status=200,
-        )
-        result = self.api.metadata_field_properties_update(
-            field_path=row['field_path'],
-            description='new desc',
-        )
-        assert result.description == 'new desc'
         request_url = responses.calls[0].request.url
         assert 'field_path=polyunite.malware_family' in request_url
 

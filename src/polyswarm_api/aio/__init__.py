@@ -187,9 +187,9 @@ class PolySwarmAsyncAPI:
             result_parser=resources.MetadataMapping,
         )
 
-    async def metadata_field_properties_create(self, field_path, description,
-                                               example=None, category=None, aliases=None):
-        """Create a metadata field properties entry."""
+    async def metadata_field_properties_write(self, field_path, description,
+                                              example=None, category=None, aliases=None):
+        """Upsert a metadata field properties entry (the single write path)."""
         return await self._single(
             {
                 "method": "POST",
@@ -212,24 +212,6 @@ class PolySwarmAsyncAPI:
                 "method": "GET",
                 "url": f"{self.uri}{resources.MetadataFieldProperties.RESOURCE_ENDPOINT}",
                 "params": {"field_path": field_path},
-            },
-            result_parser=resources.MetadataFieldProperties,
-        )
-
-    async def metadata_field_properties_update(self, field_path, description=None,
-                                               example=None, category=None, aliases=None):
-        """Update a metadata field properties entry."""
-        body = {}
-        for k, v in (('description', description), ('example', example),
-                     ('category', category), ('aliases', aliases)):
-            if v is not None:
-                body[k] = v
-        return await self._single(
-            {
-                "method": "PUT",
-                "url": f"{self.uri}{resources.MetadataFieldProperties.RESOURCE_ENDPOINT}",
-                "params": {"field_path": field_path},
-                "json": body,
             },
             result_parser=resources.MetadataFieldProperties,
         )
