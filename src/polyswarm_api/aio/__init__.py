@@ -25,6 +25,7 @@ import logging
 import time
 
 from polyswarm_api import exceptions, resources, settings
+from polyswarm_api._base import PolyswarmAPIBase
 
 from .core import AsyncPolyswarmRequest, AsyncPolyswarmSession
 from .upload import async_upload_file, async_upload_logo
@@ -34,7 +35,7 @@ logger = logging.getLogger(__name__)
 __all__ = ["PolySwarmAsyncAPI"]
 
 
-class PolySwarmAsyncAPI:
+class PolySwarmAsyncAPI(PolyswarmAPIBase):
     """Async interface to the PolySwarm API.
 
     Same method signatures and return types as polyswarm_api.PolyswarmAPI,
@@ -51,9 +52,7 @@ class PolySwarmAsyncAPI:
         verify: bool = True,
         **httpx_kwargs,
     ):
-        self.uri = uri or settings.DEFAULT_GLOBAL_API
-        self.community = community or settings.DEFAULT_COMMUNITY
-        self.timeout = timeout or settings.DEFAULT_HTTP_TIMEOUT
+        super().__init__(key, uri=uri, community=community, timeout=timeout, verify=verify)
         self.session = AsyncPolyswarmSession(
             key,
             retries=settings.DEFAULT_RETRIES,
@@ -61,7 +60,6 @@ class PolySwarmAsyncAPI:
             timeout=self.timeout,
             **httpx_kwargs,
         )
-        self._engines = None
 
     async def close(self):
         """Close the underlying HTTP client."""
@@ -73,7 +71,52 @@ class PolySwarmAsyncAPI:
     async def __aexit__(self, *exc):
         await self.close()
 
-    # ── Internal helpers ─────────────────────────────────────────
+    # ── PolyswarmAPIBase hooks ──────────────────────────────────────
+    #
+    # ``_single`` / ``_paginate`` are polymorphic: they accept either an
+    # unexecuted ``AsyncPolyswarmRequest`` / ``PolyswarmRequest`` (new
+    # style, used by Phase 2 endpoint migrations) OR a legacy
+    # ``(request_dict, result_parser=)`` pair (still used by the
+    # endpoints currently in this file).
+
+    async def _single(self, request_or_dict, result_parser=None, **kwargs):  # type: ignore[override]
+        request = self._coerce_to_request(request_or_dict, result_parser, kwargs)
+        executed = await request.execute()
+        return executed.result()
+
+    async def _paginate(self, request_or_dict, result_parser=None, **kwargs):  # type: ignore[override]
+        request = self._coerce_to_request(request_or_dict, result_parser, kwargs)
+        executed = await request.execute()
+        if executed._paginated:
+            async for item in executed.consume_results():
+                yield item
+        else:
+            result = executed._result
+            if isinstance(result, list):
+                for item in result:
+                    yield item
+            elif result is not None:
+                yield result
+
+    def _coerce_to_request(self, request_or_dict, result_parser, parser_kwargs):
+        if isinstance(request_or_dict, dict):
+            return AsyncPolyswarmRequest(
+                self, request_or_dict, result_parser=result_parser, **parser_kwargs,
+            )
+        # Sync ``PolyswarmRequest`` from resource classmethods needs to be
+        # rebuilt as an ``AsyncPolyswarmRequest`` so it runs on the async
+        # transport. ``parse_result`` is inherited so no behaviour drift.
+        return AsyncPolyswarmRequest(
+            request_or_dict.api_instance,
+            request_or_dict.request_parameters,
+            result_parser=request_or_dict.result_parser,
+            **request_or_dict.parser_kwargs,
+        )
+
+    async def _sleep(self, seconds):
+        await asyncio.sleep(seconds)
+
+    # ── Legacy dict-based helpers (still used by current endpoints) ─
 
     async def _exec(self, request_parameters, result_parser=None, **kwargs):
         """Build, execute, and return the AsyncPolyswarmRequest."""
@@ -81,24 +124,14 @@ class PolySwarmAsyncAPI:
             self, request_parameters, result_parser=result_parser, **kwargs
         ).execute()
 
-    async def _single(self, request_parameters, result_parser=None, **kwargs):
-        """Execute and return a single (non-paginated) result."""
-        req = await self._exec(request_parameters, result_parser, **kwargs)
-        return req.result()
-
     async def _generate(self, request_parameters, result_parser=None, **kwargs):
-        """Execute and yield results from a (possibly paginated) response."""
-        req = await self._exec(request_parameters, result_parser, **kwargs)
-        if req._paginated:
-            async for item in req.consume_results():
-                yield item
-        else:
-            result = req._result
-            if isinstance(result, list):
-                for item in result:
-                    yield item
-            elif result is not None:
-                yield result
+        """Execute and yield results from a (possibly paginated) response.
+
+        Alias for ``_paginate`` with explicit dict-based call signature —
+        retained for backward compat with endpoint bodies in this file.
+        """
+        async for item in self._paginate(request_parameters, result_parser, **kwargs):
+            yield item
 
     # ── Engines ──────────────────────────────────────────────────
 

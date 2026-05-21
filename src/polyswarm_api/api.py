@@ -7,11 +7,12 @@ import polyswarm_api.core
 from urllib.parse import urlparse
 
 from polyswarm_api import exceptions, resources, settings
+from polyswarm_api._base import PolyswarmAPIBase
 
 logger = logging.getLogger(__name__)
 
 
-class PolyswarmAPI:
+class PolyswarmAPI(PolyswarmAPIBase):
     """A synchronous interface to the public and private PolySwarm APIs."""
 
     def __init__(self, key, uri=None, community=None, timeout=None, verify=True, **kwargs):
@@ -23,18 +24,31 @@ class PolyswarmAPI:
         :param verify: Boolean, whether or not to verify TLS connections.
         :param **kwargs: Keyword args to pass to requests.Session
         """
-        key_masked = '******' + (key[-4:] if key and len(key) > 16 else '')
-        logger.info('Creating PolyswarmAPI instance | api-key: %s, api-uri: %s, community: %s', key_masked, uri, community)
-        self.uri = uri or settings.DEFAULT_GLOBAL_API
-        self.community = community or settings.DEFAULT_COMMUNITY
-        self.timeout = timeout or settings.DEFAULT_HTTP_TIMEOUT
-        self.session = polyswarm_api.core.PolyswarmSession(key, retries=settings.DEFAULT_RETRIES, verify=verify, **kwargs)
-        self._engines = None
+        super().__init__(key, uri=uri, community=community, timeout=timeout, verify=verify, **kwargs)
+        self.session = polyswarm_api.core.PolyswarmSession(
+            key, retries=settings.DEFAULT_RETRIES, verify=verify, **kwargs,
+        )
 
-    def __repr__(self):
-        clsname = f'{self.__class__.__module__}.{self.__class__.__name__}'
-        attrs = f'uri={self.uri!r}, community={self.community!r}, timeout={self.timeout!r}'
-        return f'<{clsname}({attrs}) at 0x{id(self):x}>'
+    # ── PolyswarmAPIBase hooks ──────────────────────────────────────
+
+    def _single(self, request):
+        """Execute the request synchronously and return the parsed result."""
+        return request.execute().result()
+
+    def _paginate(self, request):
+        """Execute the request synchronously and yield items (handles pagination)."""
+        executed = request.execute()
+        if executed._paginated:
+            yield from executed.consume_results()
+        else:
+            result = executed._result
+            if isinstance(result, list):
+                yield from result
+            elif result is not None:
+                yield result
+
+    def _sleep(self, seconds):
+        time.sleep(seconds)
 
     @property
     def engines(self):
