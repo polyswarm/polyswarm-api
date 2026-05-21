@@ -126,55 +126,6 @@ class PolyswarmAPI:
         logger.info('Retrieving the metadata mapping')
         return resources.MetadataMapping.get(self).result()
 
-    def metadata_field_properties_write(self, field_path, description,
-                                        example=None, category=None, aliases=None):
-        """Upsert a metadata field properties entry (the single write path).
-
-        Inserts a new row if no entry exists for `field_path`, otherwise
-        updates the existing row in place. Server-side this is a POST to
-        /v3/search/metadata/properties.
-
-        :param field_path: Dotted ES leaf path (e.g. 'polyunite.malware_family').
-        :param description: Human-readable description of the field.
-        :param example: Optional example search string.
-        :param category: Optional category grouping the field belongs to.
-        :param aliases: Optional list of friendly-name shortcuts.
-        :return: A MetadataFieldProperties resource.
-        """
-        logger.info('Writing metadata field properties %s', field_path)
-        return resources.MetadataFieldProperties.create(self,
-                                                        field_path=field_path,
-                                                        description=description,
-                                                        example=example,
-                                                        category=category,
-                                                        aliases=aliases).result()
-
-    def metadata_field_properties_get(self, field_path):
-        """Get a metadata field properties entry by field_path.
-
-        :param field_path: Dotted ES leaf path.
-        :return: A MetadataFieldProperties resource.
-        """
-        logger.info('Getting metadata field properties %s', field_path)
-        return resources.MetadataFieldProperties.get(self, field_path=field_path).result()
-
-    def metadata_field_properties_delete(self, field_path):
-        """Delete a metadata field properties entry.
-
-        :param field_path: Dotted ES leaf path of the entry to delete.
-        :return: The deleted MetadataFieldProperties resource.
-        """
-        logger.info('Deleting metadata field properties %s', field_path)
-        return resources.MetadataFieldProperties.delete(self, field_path=field_path).result()
-
-    def metadata_field_properties_list(self, **kwargs):
-        """List all metadata field properties entries.
-
-        :return: A generator of MetadataFieldProperties resources.
-        """
-        logger.info('Listing metadata field properties')
-        return resources.MetadataFieldProperties.list(self, **kwargs).result()
-
     def search_by_metadata(self, query, include=None, exclude=None, ips=None, urls=None, domains=None):
         """
         Search artifacts by metadata
