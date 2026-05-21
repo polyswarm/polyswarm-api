@@ -78,6 +78,21 @@ class MetadataMapping(core.BaseJsonResource):
     RESOURCE_ENDPOINT = '/search/metadata/mappings'
 
 
+class MetadataFieldProperties(core.BaseJsonResource):
+    RESOURCE_ENDPOINT = '/search/metadata/properties'
+    RESOURCE_ID_KEYS = ['field_path']
+
+    def __init__(self, content, api=None):
+        super().__init__(content, api=api)
+        self.field_path = content['field_path']
+        self.description = content.get('description')
+        self.example = content.get('example')
+        self.category = content.get('category')
+        self.aliases = content.get('aliases')
+        self.created = core.parse_isoformat(content.get('created'))
+        self.updated = core.parse_isoformat(content.get('updated'))
+
+
 class Metadata(core.BaseJsonResource):
     RESOURCE_ENDPOINT = '/search/metadata/query'
     KNOWN_KEYS = {'artifact', 'exiftool', 'hash', 'lief', 'pefile', 'scan', 'strings'}
