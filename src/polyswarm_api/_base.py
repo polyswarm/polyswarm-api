@@ -84,6 +84,37 @@ class PolyswarmAPIBase:
         """Block for ``seconds``. Sync uses ``time.sleep``; async ``asyncio.sleep``."""
         raise NotImplementedError
 
+    _request_cls = None  # subclass sets to PolyswarmRequest / AsyncPolyswarmRequest
+
+    def _coerce_request(self, request, result_parser=None, parser_kwargs=None):
+        """Normalise the various inputs to ``_single`` / ``_paginate`` into
+        a request instance of the subclass's ``_request_cls``.
+
+        ``request`` is one of:
+
+        * an unexecuted ``PolyswarmRequest`` returned by a resource
+          classmethod (``resources.Foo.create(self, …)``) — rebuilt as
+          the subclass's ``_request_cls`` so the right transport is used;
+        * a request-parameters dict (legacy / inline endpoint bodies).
+        """
+        from polyswarm_api.core import PolyswarmRequest
+        parser_kwargs = parser_kwargs or {}
+        if isinstance(request, PolyswarmRequest):
+            return self._request_cls(
+                self,
+                request.request_parameters,
+                result_parser=request.result_parser,
+                **request.parser_kwargs,
+            )
+        if isinstance(request, dict):
+            return self._request_cls(
+                self, request, result_parser=result_parser, **parser_kwargs,
+            )
+        raise TypeError(
+            f'_single / _paginate expect a PolyswarmRequest or request-parameters '
+            f'dict, got {type(request).__name__}',
+        )
+
     # ── Shared endpoint surface ─────────────────────────────────────
     #
     # Each method is defined ONCE here and works for both sync and async

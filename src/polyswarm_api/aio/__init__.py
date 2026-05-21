@@ -73,18 +73,19 @@ class PolySwarmAsyncAPI(PolyswarmAPIBase):
 
     # ── PolyswarmAPIBase hooks ──────────────────────────────────────
     #
-    # ``_single`` / ``_paginate`` take a request-parameters dict plus a
-    # ``result_parser`` and return a single value / async generator
-    # respectively. This is the shape the existing endpoint bodies in
-    # this file already use; it's also what Phase 2 endpoint methods on
-    # ``PolyswarmAPIBase`` will call.
+    # ``_single`` / ``_paginate`` accept either an unexecuted
+    # ``PolyswarmRequest`` returned by a resource classmethod (Phase 2
+    # endpoints) or a request-parameters dict (legacy / inline). The
+    # async transport is plugged in via ``_request_cls``.
 
-    async def _single(self, request_parameters, result_parser=None, **kwargs):  # type: ignore[override]
-        req = await self._exec(request_parameters, result_parser, **kwargs)
+    _request_cls = AsyncPolyswarmRequest
+
+    async def _single(self, request, result_parser=None, **kwargs):  # type: ignore[override]
+        req = await self._coerce_request(request, result_parser, kwargs).execute()
         return req.result()
 
-    async def _paginate(self, request_parameters, result_parser=None, **kwargs):  # type: ignore[override]
-        req = await self._exec(request_parameters, result_parser, **kwargs)
+    async def _paginate(self, request, result_parser=None, **kwargs):  # type: ignore[override]
+        req = await self._coerce_request(request, result_parser, kwargs).execute()
         if req._paginated:
             async for item in req.consume_results():
                 yield item
@@ -102,7 +103,7 @@ class PolySwarmAsyncAPI(PolyswarmAPIBase):
     # ── Internals ───────────────────────────────────────────────────
 
     async def _exec(self, request_parameters, result_parser=None, **kwargs):
-        """Build and execute an ``AsyncPolyswarmRequest``."""
+        """Build and execute an ``AsyncPolyswarmRequest`` (legacy helper)."""
         return await AsyncPolyswarmRequest(
             self, request_parameters, result_parser=result_parser, **kwargs,
         ).execute()

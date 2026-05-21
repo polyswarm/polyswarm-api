@@ -503,35 +503,40 @@ class BaseJsonResource(BaseResource):
             request_params['headers'] = headers
         return PolyswarmRequest(api, request_params, result_parser=cls)
 
+    # NOTE: these classmethods return an UNEXECUTED ``PolyswarmRequest``.
+    # Phase 2 of the sync/async refactor (DN-8225) moved execution onto
+    # the API client's ``_single`` / ``_paginate`` so the same request
+    # builder works on both sync and async transports.
+
     @classmethod
     def create(cls, api, **kwargs):
         return cls._build_request(api, 'POST', cls._create_endpoint(api, **kwargs),
-                                  cls._create_headers(api), *cls._create_params(**kwargs)).execute()
+                                  cls._create_headers(api), *cls._create_params(**kwargs))
 
     @classmethod
     def get(cls, api, **kwargs):
         return cls._build_request(api, 'GET', cls._get_endpoint(api, **kwargs),
-                                  cls._get_headers(api), *cls._get_params(**kwargs)).execute()
+                                  cls._get_headers(api), *cls._get_params(**kwargs))
 
     @classmethod
     def head(cls, api, **kwargs):
         return cls._build_request(api, 'HEAD', cls._head_endpoint(api, **kwargs),
-                                  cls._head_headers(api), *cls._head_params(**kwargs)).execute()
+                                  cls._head_headers(api), *cls._head_params(**kwargs))
 
     @classmethod
     def update(cls, api, **kwargs):
         return cls._build_request(api, 'PUT', cls._update_endpoint(api, **kwargs),
-                                  cls._update_headers(api), *cls._update_params(**kwargs)).execute()
+                                  cls._update_headers(api), *cls._update_params(**kwargs))
 
     @classmethod
     def delete(cls, api, **kwargs):
         return cls._build_request(api, 'DELETE', cls._delete_endpoint(api, **kwargs),
-                                  cls._delete_headers(api), *cls._delete_params(**kwargs)).execute()
+                                  cls._delete_headers(api), *cls._delete_params(**kwargs))
 
     @classmethod
     def list(cls, api, **kwargs):
         return cls._build_request(api, 'GET', cls._list_endpoint(api, **kwargs),
-                                  cls._list_headers(api), *cls._list_params(**kwargs)).execute()
+                                  cls._list_headers(api), *cls._list_params(**kwargs))
 
 
 def is_hex(value):

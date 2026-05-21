@@ -169,7 +169,7 @@ class IOC(core.BaseJsonResource):
                 },
             },
             result_parser=cls,
-        ).execute()
+        )
 
     @classmethod
     def ioc_search(cls, api, ip=None, domain=None, ttp=None, imphash=None):
@@ -190,7 +190,7 @@ class IOC(core.BaseJsonResource):
                 'params': params
             },
             result_parser=cls,
-        ).execute()
+        )
 
     @classmethod
     def check_known_hosts(cls, api, ips, domains):
@@ -205,7 +205,7 @@ class IOC(core.BaseJsonResource):
                 }
             },
             result_parser=cls,
-        ).execute()
+        )
 
     @classmethod
     def create_known_good(cls, api, type, host, source):
@@ -222,7 +222,7 @@ class IOC(core.BaseJsonResource):
                 }
             },
             result_parser=cls,
-        ).execute()
+        )
 
     @classmethod
     def create_known_bad(cls, api, type, host, source):
@@ -239,7 +239,7 @@ class IOC(core.BaseJsonResource):
                 }
             },
             result_parser=cls,
-        ).execute()
+        )
 
     @classmethod
     def update_known_good(cls, api, id, type, host, source, good):
@@ -257,7 +257,7 @@ class IOC(core.BaseJsonResource):
                 }
             },
             result_parser=cls,
-        ).execute()
+        )
 
     @classmethod
     def delete_known_good(cls, api, id):
@@ -271,7 +271,7 @@ class IOC(core.BaseJsonResource):
                 }
             },
             result_parser=cls,
-        ).execute()
+        )
 
 
 class ArtifactInstance(core.BaseJsonResource, core.Hashable):
@@ -349,7 +349,7 @@ class ArtifactInstance(core.BaseJsonResource, core.Hashable):
                     'require_scan': str(require_scan).lower(),
                 },
             },
-        ).execute()
+        )
 
     @classmethod
     def search_hash(cls, api, hash_value, hash_type):
@@ -364,7 +364,7 @@ class ArtifactInstance(core.BaseJsonResource, core.Hashable):
                 },
             },
             result_parser=cls,
-        ).execute()
+        )
 
     @classmethod
     def search_url(cls, api, url):
@@ -379,7 +379,7 @@ class ArtifactInstance(core.BaseJsonResource, core.Hashable):
                 },
             },
             result_parser=cls,
-        ).execute()
+        )
 
     @classmethod
     def list_scans(cls, api, hash_value):
@@ -394,7 +394,7 @@ class ArtifactInstance(core.BaseJsonResource, core.Hashable):
                 },
             },
             result_parser=cls,
-        ).execute()
+        )
 
     @classmethod
     def submit(cls, api, artifact, artifact_name, artifact_type, scan_config=None):
@@ -415,7 +415,7 @@ class ArtifactInstance(core.BaseJsonResource, core.Hashable):
             api,
             parameters,
             result_parser=cls,
-        ).execute()
+        )
 
     @classmethod
     def rescan(cls, api, hash_value, hash_type, scan_config=None):
@@ -430,7 +430,7 @@ class ArtifactInstance(core.BaseJsonResource, core.Hashable):
             api,
             parameters,
             result_parser=cls,
-        ).execute()
+        )
 
     @classmethod
     def rescan_id(cls, api, submission_id, scan_config=None):
@@ -444,7 +444,7 @@ class ArtifactInstance(core.BaseJsonResource, core.Hashable):
             api,
             parameters,
             result_parser=cls,
-        ).execute()
+        )
 
     @classmethod
     def lookup_uuid(cls, api, submission_id):
@@ -455,7 +455,7 @@ class ArtifactInstance(core.BaseJsonResource, core.Hashable):
                 'url': f'{api.uri}/consumer/submission/{api.community}/{int(submission_id)}',
             },
             result_parser=cls,
-        ).execute()
+        )
 
     @classmethod
     def metadata_rerun(cls, api, hashes, analyses=None, skip_es=None):
@@ -472,7 +472,7 @@ class ArtifactInstance(core.BaseJsonResource, core.Hashable):
             api,
             parameters,
             result_parser=cls,
-        ).execute()
+        )
 
     def __str__(self):
         return "ArtifactInstance-<%s>" % self.hash
@@ -656,7 +656,7 @@ class LocalArtifact(core.BaseResource, core.Hashable):
             handle=handle,
             folder=folder,
             artifact_name=artifact_name,
-        ).execute()
+        )
 
     @classmethod
     def download_id(cls, api, instance_id, handle=None, folder=None, artifact_name=None):
@@ -672,7 +672,7 @@ class LocalArtifact(core.BaseResource, core.Hashable):
             handle=handle,
             folder=folder,
             artifact_name=artifact_name,
-        ).execute()
+        )
 
     @classmethod
     def download_sandbox_artifact(cls, api, sandbox_task_id, instance_id, handle=None, folder=None, artifact_name=None):
@@ -688,7 +688,7 @@ class LocalArtifact(core.BaseResource, core.Hashable):
             handle=handle,
             folder=folder,
             artifact_name=artifact_name,
-        ).execute()
+        )
 
     @classmethod
     def download_archive(cls, api, u, handle=None, folder=None, artifact_name=None):
@@ -705,7 +705,7 @@ class LocalArtifact(core.BaseResource, core.Hashable):
             handle=handle,
             folder=folder,
             artifact_name=artifact_name,
-        ).execute()
+        )
 
     # Inspired by
     # https://github.com/python/cpython/blob/29500737d45cbca9604d9ce845fb2acc3f531401/Lib/tempfile.py#L461
@@ -1075,24 +1075,24 @@ class SandboxTask(core.BaseJsonResource):
         params, _ = cls._get_params(community=api.community, **kwargs)
         url = cls._endpoint(api) + '/latest'
         parameters = {'method': 'GET', 'url': url, 'params': params}
-        return core.PolyswarmRequest(api, parameters, result_parser=cls).execute()
+        return core.PolyswarmRequest(api, parameters, result_parser=cls)
 
     @classmethod
     def my_tasks(cls, api, **kwargs):
         params, _ = cls._get_params(community=api.community, **kwargs)
         url = cls._endpoint(api) + '/my-tasks'
         parameters = {'method': 'GET', 'url': url, 'params': params}
-        return core.PolyswarmRequest(api, parameters, result_parser=cls).execute()
+        return core.PolyswarmRequest(api, parameters, result_parser=cls)
 
     @classmethod
     def create_file(cls, api, **kwargs):
         return cls._build_request(api, 'POST', cls._create_endpoint(api, **kwargs) + '/instance',
-                                  cls._create_headers(api), *cls._create_params(**kwargs)).execute()
+                                  cls._create_headers(api), *cls._create_params(**kwargs))
 
     @classmethod
     def update_file(cls, api, **kwargs):
         return cls._build_request(api, 'PUT', cls._update_endpoint(api, **kwargs) + '/instance',
-                                  cls._update_headers(api), *cls._update_params(**kwargs)).execute()
+                                  cls._update_headers(api), *cls._update_params(**kwargs))
 
 
 class SandboxArtifact(core.BaseJsonResource):
@@ -1178,7 +1178,7 @@ class BundleTask(core.BaseJsonResource):
             },
             result_parser=LocalArtifact,
             folder=folder,
-        ).execute()
+        )
 
 class ReportTask(core.BaseJsonResource):
     RESOURCE_ENDPOINT = "/reports"
@@ -1213,7 +1213,7 @@ class ReportTask(core.BaseJsonResource):
             },
             result_parser=LocalArtifact,
             folder=folder,
-        ).execute()
+        )
 
 
 class ReportLLMPostProcessing(core.BaseJsonResource):
@@ -1247,7 +1247,7 @@ class ReportLLMPostProcessing(core.BaseJsonResource):
             },
             result_parser=LocalArtifact,
             folder=folder,
-        ).execute()
+        )
 
 class ReportTemplate(core.BaseJsonResource):
     RESOURCE_ENDPOINT = "/reports/templates"
@@ -1278,7 +1278,7 @@ class ReportTemplate(core.BaseJsonResource):
             },
             result_parser=LocalArtifact,
             folder=folder,
-        ).execute()
+        )
 
     def delete_logo(self):
         return core.PolyswarmRequest(
@@ -1287,7 +1287,7 @@ class ReportTemplate(core.BaseJsonResource):
                 'method': 'DELETE',
                 'url': self.logo_url,
             },
-        ).execute()
+        )
 
     def upload_logo(self, logo_file, content_tpe):
         if not logo_file:
@@ -1309,7 +1309,7 @@ class ReportTemplate(core.BaseJsonResource):
                 'headers': {'Content-Type': content_tpe}
             },
             result_parser=self.__class__
-        ).execute()
+        )
 
 
 class AccountFeatures(core.BaseJsonResource):
@@ -1395,4 +1395,4 @@ class Webhook(core.BaseJsonResource):
                 'url': f'{api.uri}{cls.RESOURCE_ENDPOINT}/test',
                 'params': {'id': webhook_id},
             },
-        ).execute()
+        )
