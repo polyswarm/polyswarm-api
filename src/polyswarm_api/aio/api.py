@@ -364,15 +364,14 @@ class PolySwarmAsyncAPI(PolyswarmAPIBase):
         )
 
     async def sandbox_providers(self):
-        """List sandbox providers. Async generator of SandboxProvider."""
-        async for item in self._generate(
-            {
-                "method": "GET",
-                "url": f"{self.uri}{resources.SandboxProvider.RESOURCE_ENDPOINT}/list",
-            },
-            result_parser=resources.SandboxProvider,
-        ):
-            yield item
+        """List sandboxes available in polyswarm.
+
+        Mirrors the sync shape: returns an executed request whose ``.json``
+        carries the providers-by-slug envelope. Caller reads
+        ``(await api.sandbox_providers()).json``.
+        """
+        logger.info('Listing sandbox names')
+        return await self._coerce_request(resources.SandboxProvider.list(self)).execute()
 
     async def report_wait_for(self, report_id, timeout=settings.DEFAULT_REPORT_TIMEOUT):
         """Async poll until report is ready."""

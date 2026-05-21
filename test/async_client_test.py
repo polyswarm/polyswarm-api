@@ -158,12 +158,11 @@ class TestAsyncScanCase:
     @vcr.use_cassette()
     async def test_async_sandbox_providers(self):
         async with self._api() as api:
-            providers = [r async for r in api.sandbox_providers()]
-        # SandboxProvider.parse_result returns a list-of-providers per slug
-        # flatten to check slugs
-        slugs = {p.slug for p in providers}
-        assert 'cape' in slugs
-        assert 'triage' in slugs
+            response = await api.sandbox_providers()
+        # Mirrors the sync shape (see test_sandbox_providers in
+        # client_scan_test.py): ``.json['result']`` is keyed by provider slug.
+        assert response.json['result']['cape']['slug'] == 'cape'
+        assert response.json['result']['triage']['slug'] == 'triage'
 
     @vcr.use_cassette()
     async def test_async_sandboxtask_submit(self):
