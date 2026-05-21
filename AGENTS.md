@@ -2,6 +2,29 @@
 
 Orientation document for AI agents and humans new to the repo. Update it when major workflow decisions land.
 
+This file points at the right places to read for context, lays out the gitflow / VCR / commit conventions, and outlines the shared sync+async architecture. **Detailed contracts, invariants, and per-area design live under [`specs/`](./specs/)** — read those before changing the corresponding code.
+
+## Reading order for a new contributor
+
+1. This file (gitflow + conventions + architectural shape).
+2. [`specs/00-overview.md`](./specs/00-overview.md) — what the SDK is and how the pieces fit.
+3. The spec(s) for the area you're changing — see [`specs/`](./specs/) index below.
+4. The code in `src/polyswarm_api/` itself; the specs are authoritative on intent, the code on detail.
+
+## Specs index
+
+| Spec | Scope |
+|---|---|
+| [`specs/00-overview.md`](./specs/00-overview.md) | What this repo ships, where it sits in the platform, repo layout |
+| [`specs/01-architecture.md`](./specs/01-architecture.md) | `PolyswarmAPIBase` + sync/async pattern, request/response pipeline, `_single` / `_paginate` contract |
+| [`specs/02-resources.md`](./specs/02-resources.md) | `BaseJsonResource`, classmethod builder convention, per-domain resource catalogue |
+| [`specs/03-endpoints.md`](./specs/03-endpoints.md) | Endpoint catalogue: single vs paginated, sync/async-specific carve-outs (polling, uploads), URL builders |
+| [`specs/04-testing.md`](./specs/04-testing.md) | `responses` / `respx` / VCR conventions, `ClientTestCase` parametrisation, record-on-delete workflow |
+| [`specs/05-downstream-contract.md`](./specs/05-downstream-contract.md) | What the published surface looks like to consumers (the CLI, downstream services), backward-compat invariants |
+| [`specs/99-open-questions.md`](./specs/99-open-questions.md) | Known follow-ups and unresolved questions |
+
+Specs respect a strict convention: each one is independently readable, opens with **Scope** and **Invariants**, and lists the files / symbols it talks about. Update the spec in the same PR as the code change; if a PR drifts from the spec, the spec is wrong until proven otherwise.
+
 ## Gitflow — **read this before opening a PR**
 
 This repo follows a strict `feature → develop → master` flow:
@@ -34,75 +57,29 @@ If you ever omit `--base`, the gh CLI defaults to the repo's default branch — 
 
 PR #295 was merged directly to `master` and had to be reverted (#296) and re-opened against `develop`. The version file wasn't touched, so no PyPI release fired — but the rollback was still disruptive. Don't repeat it.
 
-## Layout
+## Architectural shape (the short version)
 
-- `src/polyswarm_api/_base.py` — **`PolyswarmAPIBase`** holds the shared constructor, instance state, and (incrementally) every endpoint method. Both sync and async clients subclass it.
-- `src/polyswarm_api/api.py` — sync `PolyswarmAPI(PolyswarmAPIBase)`. Provides `_single` / `_paginate` / `_sleep` via `requests.Session` (and, eventually, `httpx.Client`).
-- `src/polyswarm_api/aio/__init__.py` — async `PolySwarmAsyncAPI(PolyswarmAPIBase)`. Provides `_single` / `_paginate` / `_sleep` via `httpx.AsyncClient`.
-- `src/polyswarm_api/core.py` — `PolyswarmRequest` (sync HTTP execution + response parsing) and the `BaseJsonResource` / `BaseResource` machinery for resource models.
-- `src/polyswarm_api/aio/core.py` — `AsyncPolyswarmRequest(PolyswarmRequest)`. Inherits `parse_result` and friends from the sync request; only `execute`, `consume_results`, and `next_page` are overridden with their async bodies.
-- `src/polyswarm_api/resources.py` — per-domain resource classes (mostly pure data wrappers).
-- `test/` — pytest suite. Unit tests mock the HTTP boundary with `responses` (sync) and `respx` (async); the parametrisation harness in `metadata_field_properties_test.py` runs every test against both. Integration tests in `client_scan_test.py` / `async_client_test.py` use VCR cassettes — see "VCR cassette workflow" below.
+Detailed treatment is in [`specs/01-architecture.md`](./specs/01-architecture.md). The summary:
 
-## Sync + async via shared base
+- **`PolyswarmAPIBase`** (`src/polyswarm_api/_base.py`) holds every endpoint method. Both sync `PolyswarmAPI` and async `PolySwarmAsyncAPI` subclass it.
+- Each base method is a one-liner: `return self._single(resources.X.method(self, …))` or `return self._paginate(…)`. The body is regular `def` (not `async def`).
+- Sync subclass: `_single` returns the value, `_paginate` is a generator function. Caller writes `result = api.foo()` or `for x in api.foo()`.
+- Async subclass: `_single` is `async def` (returns a coroutine), `_paginate` is an async generator function. Caller writes `result = await api.foo()` or `async for x in api.foo()`.
+- The async caller's `await` consumes the coroutine that the base method passed through. No metaclass magic.
 
-Every endpoint method lives **once** on `PolyswarmAPIBase`. The body is sync-shaped and ends with `return self._single(...)` or `return self._paginate(...)`. Each subclass overrides those helpers — sync returns the value (or a generator); async returns a coroutine (or an async generator). The caller picks the matching syntax:
+The only sync/async-specific code lives in `_single` / `_paginate` / `_sleep` on each subclass, plus a small set of methods that genuinely diverge (polling helpers, file uploads, the `engines` property — see [`specs/03-endpoints.md`](./specs/03-endpoints.md)).
 
-```python
-class PolyswarmAPIBase:
-    def metadata_field_properties_get(self, field_path):
-        return self._single(
-            {'method': 'GET',
-             'url': f'{self.uri}{resources.MetadataFieldProperties.RESOURCE_ENDPOINT}',
-             'params': {'field_path': field_path}},
-            result_parser=resources.MetadataFieldProperties,
-        )
-
-# sync caller
-row = api.metadata_field_properties_get('polyunite.malware_family')
-
-# async caller — no separate method needed
-row = await async_api.metadata_field_properties_get('polyunite.malware_family')
-```
-
-For paginated endpoints, `_paginate` is a generator on sync and an async generator on async — `for x in api.foo()` vs `async for x in api.foo()`.
-
-The trick that makes this work without metaclass magic: base methods are regular `def` (not `async def`) and just return whatever `self._single(...)` returned. Sync `_single` returns the parsed value directly; async `_single` is `async def`, so calling it returns a coroutine that the base method returns through. The caller's `await` consumes the coroutine.
-
-This is the same pattern landed in the `akm` client (`/home/sam/repos/api-key-management`) — reference that codebase for a worked example.
-
-### Migration status (DN-8225)
-
-**Complete.** PR `feature/httpx-shared-base` lands the full consolidation:
-
-* All ~100 endpoint methods live once on `PolyswarmAPIBase`.
-* Sync transport migrated from `requests` → `httpx.Client`.
-* `requests` removed from runtime dependencies (httpx is the sole HTTP lib).
-* `BaseJsonResource.create` / `get` / etc. and per-resource classmethods (`ArtifactInstance.search_hash`, …) all return **unexecuted** `PolyswarmRequest` instances. Execution moves to the API client's `_single` / `_paginate`, which re-wrap as the subclass's `_request_cls` (sync `PolyswarmRequest` vs async `AsyncPolyswarmRequest`).
-* `AsyncPolyswarmRequest` inherits from sync `PolyswarmRequest` — `parse_result`, error mapping, pagination metadata bookkeeping all shared via inheritance.
-* Both client classes shrink to ~330 lines each (was ~1,300 sync + ~1,900 async); ~1,500 net lines deleted across the client modules.
-
-Methods that intentionally stay sync- or async-specific on their respective subclass (not on the base):
-
-* `__init__` and the context-manager protocol.
-* `_single` / `_paginate` / `_sleep` — the three transport hooks.
-* Polling helpers: `wait_for` / `report_wait_for` (use `time.sleep` vs `asyncio.sleep`).
-* File-upload paths: `submit`, `sandbox_file`, `sandbox_url` (sync uses `LocalArtifact.upload_file` via `httpx.put`; async uses `polyswarm_api.aio.upload.async_upload_file` — neonscan's monkey-patch site).
-* `refresh_engine_cache` + `engines` property (mutates `self._engines`; the sync `engines` property can't await an async refresh).
-* `sandbox_providers` (quirk: returns the executed `PolyswarmRequest` so callers can read `.json`).
-
-### Outstanding follow-up
-
-Test parametrisation across the full suite is not yet rolled out — only `metadata_field_properties_test.py` uses the `ClientTestCase` `__init_subclass__` harness that runs every test against both clients. `client_scan_test.py` (sync) and `async_client_test.py` (async) still have separate test bodies. Migrating them is mechanical — rewrite each test body sync-shaped and let `_AsyncToSync` drive the async variant — but it's per-test work and not blocking the architectural consolidation. Track this on DN-8225 as a remaining sub-task.
+`httpx` is the single HTTP library — `requests` is no longer a runtime dependency. The sync transport uses `httpx.Client`, async uses `httpx.AsyncClient`. Both produce `httpx.Response` objects with the same synchronous `.json()` / `.raise_for_status()` surface, so the response-parsing layer is shared via inheritance (`AsyncPolyswarmRequest` extends `PolyswarmRequest`).
 
 ## When adding a new resource
 
 Mirror the existing patterns (`LLMPromptConfig`, `MetadataFieldProperties`, `YaraRuleset`):
 
-1. `class FooBar(core.BaseJsonResource): RESOURCE_ENDPOINT = '/…'`. If the resource's identifier isn't `id`, set `RESOURCE_ID_KEYS = ['your_key']` so the base class routes it into the query string for `GET`/`DELETE`/`PUT`.
+1. `class FooBar(core.BaseJsonResource): RESOURCE_ENDPOINT = '/…'`. If the resource's identifier isn't `id`, set `RESOURCE_ID_KEYS = ['your_key']` so the base class routes it into the query string for `GET` / `DELETE` / `PUT`.
 2. Add convenience methods on **`PolyswarmAPIBase`** (`_base.py`). Each is a one-liner: `return self._single({'method': '…', 'url': '…', …}, result_parser=resources.FooBar)`. **Do not** add separate sync and async versions in `api.py` / `aio/__init__.py` — the base method works for both.
 3. For paginated list endpoints, call `self._paginate(...)` instead. Sync callers iterate with `for`; async callers with `async for`.
-4. Test with the parametrised `ClientTestCase` harness in `metadata_field_properties_test.py` — your tests run against both clients automatically.
+4. Test with the parametrised `ClientTestCase` harness in `test/metadata_field_properties_test.py` — your tests run against both clients automatically. See [`specs/04-testing.md`](./specs/04-testing.md).
+5. Update [`specs/03-endpoints.md`](./specs/03-endpoints.md) (and any other relevant spec) in the same PR.
 
 ## VCR cassette workflow
 
@@ -117,11 +94,19 @@ pytest test/<test_file>.py::TestClass::test_method
 
 The deletion makes VCR record a fresh cassette; the test runs against whatever e2e environment your settings point at.
 
-**`match_on=['method', 'uri']`** is set on the VCR config so the same cassette serves both sync (`requests`) and async (`httpx`) — header differences between the two HTTP libraries are ignored.
+**VCR matcher convention** (see [`specs/04-testing.md`](./specs/04-testing.md) for the full details): use `[method, scheme, host, port, path, query]` rather than the literal `uri` matcher — the `query` matcher compares params as a set, so cassettes survive httpx's different param-ordering.
 
 **Invariant: tests must pass against the live e2e stack with VCR off.** VCR is an efficiency cache, not a load-bearing requirement. Don't hardcode `record_mode='none'`. If a test only works against the recorded cassette, that's a bug in the test.
 
-## Companion repos
+## Commit + PR hygiene
+
+- Conventional commit prefixes (`feat:`, `fix:`, `refactor:`, `chore:`, `docs:`, `test:`).
+- Small, scoped commits — each one should be independently reviewable.
+- **Don't reference ticket IDs or internal project codes in commit messages, PR titles, or PR descriptions.** This repo is public; published artefacts shouldn't leak internal references. Track tickets in the internal tracker, not the git history.
+- **Don't name private companion repos in PR descriptions or commit messages on this repo.** Internal services are downstream of this SDK; refer to them by category ("the downstream consumers" / "the CLI client") rather than by repo name.
+- No AI-attribution trailers on commits (`Co-Authored-By: Claude …`, "Generated with Claude Code", etc.) — they're noise and they don't belong in project history.
+
+## Companion repos (public)
 
 - `polyswarm-cli` — wraps these methods in click commands. SDK changes that need a CLI surface usually ship as a pair (`polyswarm-api` PR + `polyswarm-cli` PR with the SDK PR linked under `## Requires`).
 - `artifact-index` — the server-side API the SDK talks to. New endpoints land there first; the SDK PR comes after.

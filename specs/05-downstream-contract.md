@@ -1,0 +1,272 @@
+# Downstream contract — what consumers can rely on
+
+## Scope
+
+The public surface this SDK ships to PyPI and what consumers may reasonably depend on. Use this spec when judging whether a change is a breaking change, what needs a major version bump, and which symbols / behaviours are load-bearing for downstream code paths.
+
+## Invariants
+
+1. **Anything reachable from `polyswarm_api/__init__.py`, `polyswarm_api.aio`, `polyswarm_api.resources`, or `polyswarm_api.exceptions` is the public surface.** Changes that remove, rename, or alter the signature of those symbols are breaking and require a major version bump.
+2. **Method signatures on `PolyswarmAPI` and `PolySwarmAsyncAPI` are part of the contract.** Same for the resource classes returned (`ArtifactInstance`, `HistoricalHunt`, `Webhook`, …) and their field names.
+3. **Exception class names and the inheritance hierarchy are part of the contract.** Callers catch on specific subclasses (`except NotFoundException:`).
+4. **The two upload helpers at module level are monkey-patch sites.** `polyswarm_api.aio.upload.async_upload_file` and `polyswarm_api.aio.async_upload_file` (re-export) are module-level callables that downstream code patches at runtime. Don't move them to a class or rename them without a major version bump and explicit migration guidance.
+5. **The `[async]` extras group is preserved.** Downstream consumers pin `polyswarm-api[async]`. The extra is now an empty list (since `httpx` is a core dependency) but the name must remain so old pin specs parse.
+6. **Version bumps go on the `develop → master` step, not feature PRs.** A PyPI release fires automatically when `pyproject.toml` `version` changes on `master`.
+
+## Files
+
+- `src/polyswarm_api/__init__.py` — exports + `__version__`.
+- `src/polyswarm_api/aio/__init__.py` — `PolySwarmAsyncAPI` export.
+- `src/polyswarm_api/aio/upload.py` — `async_upload_file` (monkey-patch site).
+- `src/polyswarm_api/resources.py` — every public resource class.
+- `src/polyswarm_api/exceptions.py` — every public exception class.
+- `pyproject.toml` — `dependencies`, `optional-dependencies`, `version`, `[tool.bumpversion]`.
+
+## Public exports
+
+### `polyswarm_api`
+
+```python
+__version__: str
+__release_url__: str
+api: module                          # contains PolyswarmAPI
+exceptions: module                   # contains the exception hierarchy
+PolySwarmAsyncAPI: class             # imported lazily; None if httpx missing (legacy)
+```
+
+`from polyswarm_api import api as polyswarm_api_module` is supported.
+`from polyswarm_api.api import PolyswarmAPI` is the canonical import.
+
+### `polyswarm_api.api`
+
+```python
+class PolyswarmAPI(PolyswarmAPIBase):
+    def __init__(self, key, uri=None, community=None, timeout=None, verify=True, **kwargs): ...
+    def close(self): ...
+    def __enter__(self): ...
+    def __exit__(self, exc_type, exc, tb): ...
+    # plus every endpoint method (inherited from PolyswarmAPIBase) — see specs/03-endpoints.md
+```
+
+### `polyswarm_api.aio`
+
+```python
+class PolySwarmAsyncAPI(PolyswarmAPIBase):
+    def __init__(self, key, uri=None, community=None, timeout=None, verify=True, **httpx_kwargs): ...
+    async def close(self): ...
+    async def __aenter__(self): ...
+    async def __aexit__(self, *exc): ...
+    # plus every endpoint method (inherited from PolyswarmAPIBase)
+
+# Module-level callables — monkey-patch sites. See "Monkey-patch sites" below.
+async_upload_file: callable
+async_upload_logo: callable
+```
+
+### `polyswarm_api.aio.upload`
+
+```python
+async def async_upload_file(api, instance, artifact, attempts=3, **kwargs): ...
+async def async_upload_logo(api, template, logo_file, content_type, **kwargs): ...
+```
+
+### `polyswarm_api.resources`
+
+Every class listed in [`02-resources.md`](./02-resources.md). The relevant subset that downstream consumers commonly import:
+
+```python
+ArtifactInstance, LocalArtifact, Hash
+Engine
+Metadata, MetadataMapping, MetadataFieldProperties
+IOC
+LiveYaraRuleset, LiveHuntResult, LiveHuntResultList
+HistoricalHunt, HistoricalHuntResult, HistoricalHuntResultList, HistoricalHuntList
+YaraRuleset
+Tag, MalwareFamily, TagLink
+AssertionsJob, VotesJob
+SandboxTask, SandboxProvider
+ArtifactArchive
+BundleTask
+ToolMetadata, Events
+Sample
+ReportTask, ReportTemplate, ReportLLMPostProcessing
+LLMPromptConfig
+Webhook
+WhoIs, AccountFeatures
+ArtifactType                         # enum: FILE, URL
+```
+
+### `polyswarm_api.exceptions`
+
+```python
+class PolyswarmException(Exception): ...
+class RequestException(PolyswarmException): ...
+class NotFoundException(RequestException): ...
+class FailedInstanceException(RequestException): ...
+class NoResultsException(RequestException): ...
+class UsageLimitsExceededException(RequestException): ...
+class InvalidValueException(PolyswarmException): ...
+class TimeoutException(PolyswarmException): ...
+```
+
+Each exception (except `InvalidValueException`) carries a `.result` attribute holding the originating `PolyswarmRequest`. Callers can read `.result.status_code`, `.result.json`, `.result.request_parameters`. The format of these is stable.
+
+### `polyswarm_api.core`
+
+Power-user surface for callers that want to subclass, inject, or wrap:
+
+```python
+class BaseResource: ...
+class BaseJsonResource(BaseResource):
+    RESOURCE_ENDPOINT: str
+    RESOURCE_ID_KEYS: list[str]
+class PolyswarmRequest: ...
+class PolyswarmSession: ...                       # httpx.Client wrapper
+class HttpxResponseAdapter: ...                   # requests-compat shim
+class Hashable: ...
+def is_valid_sha1 / _sha256 / _md5(value) -> bool
+def parse_isoformat(date_string)
+```
+
+These are stable but less curated than the top-level exports. Downstream callers that subclass `BaseJsonResource` to add custom resource types are supported.
+
+## Constructor signatures (stable)
+
+### `PolyswarmAPI`
+
+```python
+PolyswarmAPI(
+    key: str,
+    uri: str | None = None,                     # defaults to settings.DEFAULT_GLOBAL_API
+    community: str | None = None,               # defaults to settings.DEFAULT_COMMUNITY
+    timeout: float | None = None,               # defaults to settings.DEFAULT_HTTP_TIMEOUT
+    verify: bool = True,
+    **kwargs,                                   # forwarded to httpx.Client (formerly to requests.Session)
+)
+```
+
+`**kwargs` is forwarded to `httpx.Client`. The previous (3.x) version forwarded to `requests.Session`. Kwargs that worked on both (`timeout`, `verify`, `headers`) are unchanged. `requests`-only kwargs (e.g. `proxies` as a dict-of-protocol-strings) need translation to httpx's equivalent (`proxy=` / `proxies=` dict).
+
+### `PolySwarmAsyncAPI`
+
+```python
+PolySwarmAsyncAPI(
+    key: str,
+    uri: str | None = None,
+    community: str | None = None,
+    timeout: float | None = None,
+    verify: bool = True,
+    **httpx_kwargs,                             # forwarded to httpx.AsyncClient
+)
+```
+
+## Monkey-patch sites
+
+The two helpers below are intentionally module-level callables (not class methods, not static methods) so downstream code can replace them at runtime — typically to inject custom credential handling, retry policies, or proxy configuration for the underlying S3 / object-store upload:
+
+```python
+polyswarm_api.aio.upload.async_upload_file
+polyswarm_api.aio.async_upload_file              # alias / re-export
+```
+
+Both have the same signature:
+
+```python
+async def async_upload_file(
+    api: PolySwarmAsyncAPI,
+    instance: ArtifactInstance,
+    artifact: LocalArtifact,
+    attempts: int = 3,
+    **kwargs,
+) -> httpx.Response: ...
+```
+
+**Don't:**
+
+- Convert them to instance methods on `PolySwarmAsyncAPI`.
+- Rename them.
+- Change their signature without a major version bump.
+- Remove the `polyswarm_api.aio.async_upload_file` alias.
+
+A consumer that patches these expects the patch site to persist across SDK versions. Breaking that on a minor version bump silently breaks production uploads.
+
+## Resource response shapes
+
+The resource classes (`ArtifactInstance`, `HistoricalHunt`, etc.) wrap server JSON. Their attribute names match the JSON keys returned by the server's REST API. Server-side schema changes propagate; the SDK doesn't transform field names.
+
+What is part of the contract:
+
+- The set of attributes exposed on each resource class.
+- The `__int__(self)` coercion (`int(instance) == instance.id`).
+- `.json` (the raw JSON dict) is accessible on every `BaseJsonResource`.
+- `.jmespath(expr)` is available on every `BaseJsonResource`.
+
+What is **not** part of the contract:
+
+- The exact server JSON shape — that lives in the artifact-index repo's contract.
+- The order of fields in the JSON.
+
+## Pagination
+
+Generator endpoints return an iterable:
+
+```python
+for instance in api.search(hash_):                # sync — Python generator
+    ...
+
+async for instance in async_api.search(hash_):    # async — async generator
+    ...
+```
+
+Server-paginated responses (with `has_more`) transparently fetch next pages. The iterator drives `next_page()` calls as the caller consumes items. Caller code doesn't need to handle `offset` / `limit` manually.
+
+Returning `len(list(api.foo()))` to count results is supported but consumes the entire result set in memory. Use server-side filters where available.
+
+## Backward compatibility — what's preserved
+
+Migrating from a pre-consolidation SDK version (3.x), callers retain:
+
+- Public constructor signatures (with the noted `**kwargs` forwarding change from `requests.Session` to `httpx.Client`).
+- All endpoint method names and signatures.
+- All exception classes.
+- All resource class names and field shapes.
+- `polyswarm_api.aio.upload.async_upload_file` and the bare-module alias.
+- The `[async]` extras group (now empty since `httpx` is a core dep).
+- `PolyswarmSession`, `PolyswarmRequest`, `BaseJsonResource` — the lower-level types under `polyswarm_api.core`.
+
+## Backward compatibility — what changes
+
+- `requests` is no longer a runtime dependency. Callers that imported `requests` indirectly via `polyswarm_api` need to add it to their own requirements if they relied on the side-effect install.
+- `PolyswarmAPI(**requests_session_kwargs)` becomes `PolyswarmAPI(**httpx_client_kwargs)`. Most kwargs translate cleanly; some have minor renames (`proxies` dict shape, `verify` SSL context).
+- `BaseJsonResource.create` / `get` / etc. return **unexecuted** `PolyswarmRequest` instances. Callers using the high-level `PolyswarmAPI` methods are unaffected; callers that used the resource classmethods directly need to call `_single` / `_paginate` on the API client (or `.execute().result()` on the request manually).
+
+## Versioning
+
+| Change | Bump |
+|---|---|
+| New endpoint method | minor |
+| New resource class | minor |
+| New field on a resource (mirror of a new server-side field) | minor |
+| Bug fix in request/response handling | patch |
+| Signature change on a public method | major |
+| Rename / removal of a public symbol | major |
+| Behaviour change on a documented contract (e.g. `_paginate` swaps to `_single`) | major |
+| Internal refactor (private symbols, helper rewrites) | patch |
+
+`pyproject.toml`'s `[tool.bumpversion]` is the single source of truth. Use `bump-my-version` to update — don't hand-edit the version string.
+
+## Release flow
+
+1. Feature PR opens against `develop`. CI runs (lint, tests, build).
+2. Reviewers merge to `develop`.
+3. When a maintainer is ready to cut a release, they open a `develop → master` PR. The version bump goes in this PR (or as a prep commit on `develop` just before the merge).
+4. Merge to `master` fires the PyPI release pipeline.
+
+No feature PR should touch `pyproject.toml`'s `version` unless the maintainer asks. See `AGENTS.md` §Gitflow.
+
+## Companion repos
+
+- **polyswarm-cli** — wraps these methods in CLI subcommands. CLI changes that need an SDK surface ship as a pair: SDK PR opens first, CLI PR depends on it via `## Requires` in the description.
+- **artifact-index** — the server-side REST API the SDK talks to. New endpoints land there first; the SDK PR adds the method on `PolyswarmAPIBase` and the resource class.
+
+Internal services downstream of the SDK aren't named here on purpose; this is a public repo. Their pin specs and breakage risk are tracked in the corresponding internal channels.
