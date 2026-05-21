@@ -346,7 +346,9 @@ class ScanTestCaseV2(TestCase):
     @vcr.use_cassette()
     def test_check_known_host(self):
         v3api = PolyswarmAPI(self.test_api_key, uri='http://localhost:9696/v3', community='gamma')
-        known = v3api.check_known_hosts(ips=["1.2.3.4"])
+        # ``check_known_hosts`` is a paginated endpoint — materialize the
+        # generator before indexing.
+        known = list(v3api.check_known_hosts(ips=["1.2.3.4"]))
         assert known[0].json['host'] == "1.2.3.4"
         assert known[0].json['type'] == "ip"
 

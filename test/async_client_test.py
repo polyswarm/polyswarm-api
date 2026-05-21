@@ -27,9 +27,11 @@ from polyswarm_api import exceptions
 vcr = vcr_.VCR(
     cassette_library_dir='test/vcr',
     path_transformer=vcr_.VCR.ensure_suffix('.vcr'),
-    # Ignore request headers so cassettes recorded via requests replay cleanly
-    # with the httpx-backed async client.
-    match_on=['method', 'uri'],
+    # Use default matchers minus 'uri' — that's literal string matching
+    # which is order-sensitive on query parameters. The 'query' matcher
+    # compares params as a set, so cassettes recorded with one param
+    # order replay cleanly even if httpx serialises them differently.
+    match_on=['method', 'scheme', 'host', 'port', 'path', 'query'],
 )
 
 

@@ -13,7 +13,7 @@ interactions:
       User-Agent:
       - polyswarm-api/3.3.2 (x86_64-Linux-CPython-3.10.7)
     method: GET
-    uri: http://localhost:9696/v3/sandbox/sandboxtask/latest?sha256=a709f37b3a50608f2e9830f92ea25da04bfa4f34d2efecfd061de9f29af02427&sandbox=cape
+    uri: http://localhost:9696/v3/sandbox/sandboxtask/latest?community=gamma&sha256=a709f37b3a50608f2e9830f92ea25da04bfa4f34d2efecfd061de9f29af02427&sandbox=cape
   response:
     body:
       string: '{"result":{"account_number":null,"community":"gamma","created":"2023-06-15T21:45:32.184762","expiration":"2023-06-15T22:15:32.186270","id":85108672518483213,"instance_id":97100845313623104,"report":{},"sandbox":"cape","sandbox_artifacts":[],"sha256":"a709f37b3a50608f2e9830f92ea25da04bfa4f34d2efecfd061de9f29af02427","status":"PENDING","team_account_number":null,"upload_url":null,"config":{"artifact_type":"FILE","browser":null,"network_enabled":true,"provider":{"id":"2","name":"triage","slug":"triage","tool":"triage_sandbox_v0"},"target":"malicious-enc.zip","vm":{}},"artifact":{"extended_type":null,"filename":"a709f37b3a50608f2e9830f92ea25da04bfa4f34d2efecfd061de9f29af02427","mimetype":"text/plain","size":68}},"status":"OK"}'
@@ -47,7 +47,7 @@ interactions:
       User-Agent:
       - polyswarm-api/3.3.2 (x86_64-Linux-CPython-3.10.7)
     method: GET
-    uri: http://localhost:9696/v3/sandbox/sandboxtask/latest?sha256=a709f37b3a50608f2e9830f92ea25da04bfa4f34d2efecfd061de9f29af02427&sandbox=triage
+    uri: http://localhost:9696/v3/sandbox/sandboxtask/latest?community=gamma&sha256=a709f37b3a50608f2e9830f92ea25da04bfa4f34d2efecfd061de9f29af02427&sandbox=triage
   response:
     body:
       string: '{"result":{"account_number":null,"community":"gamma","created":"2023-06-15T21:45:28.101404","expiration":"2023-06-15T22:15:28.103952","id":79194629748428026,"instance_id":29206071649051056,"report":{"analysis":{"score":1},"extracted":null,"extracted_c2_ip_port":[],"extracted_c2_ips":[],"malware_family":[],"sample_id":"230615-1l936aghce",
