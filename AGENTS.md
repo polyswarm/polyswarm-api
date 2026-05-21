@@ -61,13 +61,14 @@ PR #295 was merged directly to `master` and had to be reverted (#296) and re-ope
 
 Detailed treatment is in [`specs/01-architecture.md`](./specs/01-architecture.md). The summary:
 
-- **`PolyswarmAPIBase`** (`src/polyswarm_api/_base.py`) holds every endpoint method. Both sync `PolyswarmAPI` and async `PolySwarmAsyncAPI` subclass it.
-- Each base method is a one-liner: `return self._single(resources.X.method(self, …))` or `return self._paginate(…)`. The body is regular `def` (not `async def`).
+- **`PolyswarmAPIBase`** (`src/polyswarm_api/_base.py`) holds the endpoint methods whose body is a single `return self._single(...)` or `return self._paginate(...)`. Both sync `PolyswarmAPI` (`api.py`) and async `PolySwarmAsyncAPI` (`aio/api.py`) subclass it.
+- Each base method is a one-liner. The body is regular `def` (not `async def`).
 - Sync subclass: `_single` returns the value, `_paginate` is a generator function. Caller writes `result = api.foo()` or `for x in api.foo()`.
 - Async subclass: `_single` is `async def` (returns a coroutine), `_paginate` is an async generator function. Caller writes `result = await api.foo()` or `async for x in api.foo()`.
 - The async caller's `await` consumes the coroutine that the base method passed through. No metaclass magic.
+- **Sync is the source of truth.** When sync and async diverge (return shape, exception class, side effects), the sync side wins; align async to sync.
 
-The only sync/async-specific code lives in `_single` / `_paginate` / `_sleep` on each subclass, plus a small set of methods that genuinely diverge (polling helpers, file uploads, the `engines` property — see [`specs/03-endpoints.md`](./specs/03-endpoints.md)).
+Methods whose body reads a `_single` result and acts on it (close a handle, branch on state, feed it into a second `_single`) **cannot** sit on the base — the shared-body trick depends on `_single`'s return being inert until the caller awaits it. Those live on the subclasses as a sync+async pair (sync body verbatim from before; async with `await` inserted at each call). Polling helpers, file uploads, the `engines` property, and the `sandbox_providers` quirk also live on each subclass. See [`specs/03-endpoints.md`](./specs/03-endpoints.md) for the full carve-out catalogue.
 
 `httpx` is the single HTTP library — `requests` is no longer a runtime dependency. The sync transport uses `httpx.Client`, async uses `httpx.AsyncClient`. Both produce `httpx.Response` objects with the same synchronous `.json()` / `.raise_for_status()` surface, so the response-parsing layer is shared via inheritance (`AsyncPolyswarmRequest` extends `PolyswarmRequest`).
 
@@ -76,7 +77,7 @@ The only sync/async-specific code lives in `_single` / `_paginate` / `_sleep` on
 Mirror the existing patterns (`LLMPromptConfig`, `MetadataFieldProperties`, `YaraRuleset`):
 
 1. `class FooBar(core.BaseJsonResource): RESOURCE_ENDPOINT = '/…'`. If the resource's identifier isn't `id`, set `RESOURCE_ID_KEYS = ['your_key']` so the base class routes it into the query string for `GET` / `DELETE` / `PUT`.
-2. Add convenience methods on **`PolyswarmAPIBase`** (`_base.py`). Each is a one-liner: `return self._single({'method': '…', 'url': '…', …}, result_parser=resources.FooBar)`. **Do not** add separate sync and async versions in `api.py` / `aio/__init__.py` — the base method works for both.
+2. Add convenience methods on **`PolyswarmAPIBase`** (`_base.py`). Each is a one-liner: `return self._single({'method': '…', 'url': '…', …}, result_parser=resources.FooBar)`. **Do not** add separate sync and async versions in `api.py` / `aio/api.py` — the base method works for both. Exception: if the body has to read the `_single` result (close a handle, branch on state, issue a second call), put a sync+async pair on the subclasses instead.
 3. For paginated list endpoints, call `self._paginate(...)` instead. Sync callers iterate with `for`; async callers with `async for`.
 4. Test with the parametrised `ClientTestCase` harness in `test/metadata_field_properties_test.py` — your tests run against both clients automatically. See [`specs/04-testing.md`](./specs/04-testing.md).
 5. Update [`specs/03-endpoints.md`](./specs/03-endpoints.md) (and any other relevant spec) in the same PR.

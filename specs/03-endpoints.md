@@ -6,17 +6,18 @@ The full catalogue of methods on the public client surface, where each one lives
 
 ## Invariants
 
-1. **New endpoints go on `PolyswarmAPIBase`** unless they fall into one of the documented carve-outs (polling, file uploads, properties, the `sandbox_providers` quirk).
+1. **New endpoints go on `PolyswarmAPIBase`** if and only if the body is a single statement of the form `return self._single(...)` or `return self._paginate(...)`. Anything that reads the result of `_single` and acts on it lives on the subclasses (see below).
 2. **`_paginate` is for endpoints whose callers iterate.** If callers write `for x in api.foo()` (or `async for x in api.foo()`), the base method calls `_paginate`. If callers consume a single value (`result = api.foo()`), call `_single`.
 3. **The sync subclass's `_paginate` is a generator function.** The async subclass's `_paginate` is an async generator function. Don't `return` from them — `yield from` (sync) / `async for … yield` (async).
 4. **Polling helpers stay on each subclass.** They wrap a `while True:` loop around `_sleep`; the loop body is sync/async-specific even though the orchestration is the same.
 5. **File uploads stay on each subclass.** Sync uploads to the pre-signed S3 URL via `httpx.put`; async uses `polyswarm_api.aio.upload.async_upload_file` (a module-level callable that downstream consumers monkey-patch — see [`05-downstream-contract.md`](./05-downstream-contract.md)).
+6. **Sync is the source of truth.** When a method exists in both subclasses (carve-out pair), the sync body is canonical; the async twin mirrors it with `await` inserted at each `_single` call. Return shapes must match between transports.
 
 ## Files
 
 - `src/polyswarm_api/_base.py` — every endpoint that's on the shared base.
 - `src/polyswarm_api/api.py` — sync-only carve-outs.
-- `src/polyswarm_api/aio/__init__.py` — async-only carve-outs.
+- `src/polyswarm_api/aio/api.py` — async-only carve-outs (re-exported through `aio/__init__.py`).
 
 ## Classification grid
 
@@ -26,10 +27,11 @@ Search / lookup (single resource each):
 
 | Method | Resource builder | Notes |
 |---|---|---|
-| `exists(hash_, hash_type=None, require_scan=False)` | `ArtifactInstance.exists_hash` | HEAD; returns `bool` derived from status code. |
 | `lookup(scan)` | `ArtifactInstance.lookup_uuid` | |
 | `rescan(hash_, hash_type=None, scan_config=None)` | `ArtifactInstance.rescan` | |
 | `rescan_id(scan, scan_config=None)` | `ArtifactInstance.rescan_id` | |
+
+(`exists` lives on the subclasses — it reads the HEAD status code returned by `_single` and converts to bool; see "Multi-statement carve-outs" below.)
 
 Metadata (single):
 
@@ -98,11 +100,9 @@ Downloads (single):
 
 | Method | Resource builder | Notes |
 |---|---|---|
-| `download(out_dir, hash_, hash_type=None)` | `LocalArtifact.download` | Opens / closes the local handle. |
-| `download_id(out_dir, instance_id)` | `LocalArtifact.download_id` | Same. |
-| `download_sandbox_artifact(out_dir, sandbox_task_id, instance_id)` | `LocalArtifact.download_sandbox_artifact` | Same. |
-| `download_archive(out_dir, s3_path)` | `LocalArtifact.download_archive` | Same. |
-| `download_to_handle(hash_, fh, hash_type=None)` | `LocalArtifact.download` | Streams to an existing file handle. |
+| `download_to_handle(hash_, fh, hash_type=None)` | `LocalArtifact.download` | Streams to an existing file handle. Caller owns the handle, so no read-and-close needed. |
+
+(`download` / `download_id` / `download_sandbox_artifact` / `download_archive` live on the subclasses — they close the returned `LocalArtifact`'s handle before returning; see "Multi-statement carve-outs" below.)
 
 Sandbox (single):
 
@@ -121,7 +121,8 @@ Samples / metadata / events (single):
 | `sample(sha256, …)` | `Sample.create` (with `endpoint_fmt={'sha256': sha256}`) |
 | `sample_bundle_task_create(instance_ids, …)` | `BundleTask.create` |
 | `sample_bundle_task_get(id, **kwargs)` | `BundleTask.get` |
-| `sample_bundle_download(id, folder)` | `BundleTask.get` → `task.download_zip(folder=folder)` (instance method) |
+
+(`sample_bundle_download` is on the subclasses — it does a two-step `BundleTask.get` → `task.download_zip` flow. See "Multi-statement carve-outs".)
 
 LLM / report:
 
@@ -129,17 +130,14 @@ LLM / report:
 |---|---|
 | `llm_report_create(instance_id=None, cape_sandbox_task_id=None, triage_sandbox_task_id=None)` | `ReportLLMPostProcessing.create` |
 | `llm_report_get(report_task_id)` | `ReportLLMPostProcessing.get` |
-| `llm_report_download(report_task_id, folder)` | `.get` → `task.download_report(folder=folder)` |
 | `report_create(type, format, …)` | `ReportTask.create` |
 | `report_get(id, **kwargs)` | `ReportTask.get` |
-| `report_download(report_id, folder)` | `.report_get` → `report.download_report(folder=folder)` |
-| `report_template_logo_download(template_id, folder)` | `ReportTemplate.get` → `report.download_logo(folder)` |
-| `report_template_logo_delete(template_id)` | `ReportTemplate.get` → `report.delete_logo()` |
-| `report_template_logo_upload(template_id, logo_file, content_type=…)` | `ReportTemplate.get` → `report.upload_logo(logo_file, content_type)` |
 | `report_template_create(template_name, …)` | `ReportTemplate.create` |
 | `report_template_update(template_id, …)` | `ReportTemplate.update` |
 | `report_template_get(template_id)` | `ReportTemplate.get` |
 | `report_template_delete(template_id)` | `ReportTemplate.delete` |
+
+(`llm_report_download`, `report_download`, `report_template_logo_download` / `_delete` / `_upload` are on the subclasses — each does a multi-step flow. See "Multi-statement carve-outs".)
 
 Account / prompt config / webhooks (single):
 
@@ -181,7 +179,7 @@ Account / prompt config / webhooks (single):
 | `notification_webhook_list()` | `Webhook.list` |
 | `report_template_list(is_default=None, **kwargs)` | `ReportTemplate.list` |
 
-### On each subclass — sync/async-specific
+### On each subclass — transport-level carve-outs
 
 | Method | Why it's not on the base |
 |---|---|
@@ -194,7 +192,27 @@ Account / prompt config / webhooks (single):
 | `sandbox_url(url, …)` | Same. |
 | `refresh_engine_cache()` | Mutates `self._engines`. Sync `@property` (`api.engines`) reads the cache and triggers refresh; async can't expose a sync `@property` that awaits, so each subclass implements its own. |
 | `engines` (property) | Sync only — raises `AttributeError` on the async subclass with guidance to call `await refresh_engine_cache()` and read `_engines`. |
-| `sandbox_providers()` | Returns the executed `PolyswarmRequest` itself (not the parsed list) so callers can read `.json`. Pre-existing surface quirk; sync executes immediately, async awaits. |
+| `sandbox_providers()` | Returns the executed `PolyswarmRequest` itself (not the parsed list) so callers can read `.json['result'][slug]`. Sync shape; async mirrors it (`await api.sandbox_providers()` then read `.json`). |
+
+### On each subclass — multi-statement carve-outs
+
+Methods whose body reads a `_single` result and acts on it. They can't share a body with both transports — on async, `_single` returns a coroutine, so the rest of the body operates on a coroutine and fails. Each lives as a sync+async pair, with sync as the source of truth and async inserting `await` at each `_single` call.
+
+| Method | Shape | Why |
+|---|---|---|
+| `exists(hash_, hash_type=None, require_scan=False)` | `_single(HEAD …) → str(status) == '200'` | Branches on the returned status code. Async without `await` would compare `str(coroutine) == '200'` → always False. |
+| `download(out_dir, hash_, hash_type=None)` | `_single` → `artifact.handle.close()` → return | Reads `.handle` on the result. |
+| `download_id(out_dir, instance_id)` | Same shape as `download`. | |
+| `download_sandbox_artifact(out_dir, sandbox_task_id, instance_id)` | Same shape. | |
+| `download_archive(out_dir, s3_path)` | Same shape. | |
+| `sample_bundle_download(id, folder)` | `_single(BundleTask.get)` → state check → `_single(task.download_zip)` → `.handle.close()` | Two `_single`s with a state branch between them. |
+| `llm_report_download(report_task_id, folder)` | Two `_single`s. | |
+| `report_download(report_id, folder)` | `self.report_get(…)` → state check → `_single(report.download_report)` → `.handle.close()` | `report_get` is itself a `_single` wrapper; on async, the async twin must `await self.report_get(…)`. |
+| `report_template_logo_download(template_id, folder)` | `_single(ReportTemplate.get)` → `_single(report.download_logo)` | Two `_single`s. |
+| `report_template_logo_delete(template_id)` | Two `_single`s. | |
+| `report_template_logo_upload(template_id, logo_file, content_type=…)` | Argument validation + two `_single`s. | |
+
+These are not on the base because invariant #1 limits the base to single-statement `return self._single(...)` / `return self._paginate(...)` bodies — anything that consumes a `_single` result needs `await` on the async side, which can't be expressed in a shared body.
 
 ### Helpers (private)
 
@@ -302,23 +320,33 @@ The async surface preserves the attribute (`_engines`) so callers can manually t
 Pre-existing surface that returns the **executed** `PolyswarmRequest` object (not the parsed resource list) so callers can read `.json['result']['cape']['slug']` etc. Each subclass implements it:
 
 Sync: `resources.SandboxProvider.list(self).execute()` — note the explicit `.execute()`.
-Async: `await resources.SandboxProvider.list(self).execute()` — same, awaited.
+Async: `await self._coerce_request(resources.SandboxProvider.list(self)).execute()` — same shape, awaited, with `_coerce_request` rebuilding the request as an `AsyncPolyswarmRequest` so the right transport is used.
 
-A test against this is in `client_scan_test.py::ScanTestCaseV2::test_sandbox_providers`. New code should not pattern after this — prefer `_single` / `_paginate` and return a parsed resource. The quirk persists for backward compatibility.
+The return shape is identical across transports: an executed request whose `.json['result']` is keyed by provider slug. Tests in `client_scan_test.py::ScanTestCaseV2::test_sandbox_providers` (sync) and `async_client_test.py::TestAsyncScanCase::test_async_sandbox_providers` (async) read the same way.
+
+New code should not pattern after this — prefer `_single` / `_paginate` and return a parsed resource. The quirk persists for backward compatibility.
 
 ## Where to put a new endpoint
 
 ```
-Question                                 Answer
-─────────────────────────────────────    ────────────────────
-Caller iterates the result?               → _paginate, on the base
-Caller uses a single value?               → _single, on the base
-Both sync and async return type identical?    → on the base
-                                          (yes for ~95% of methods)
-Polling loop?                             → both subclasses (mirror wait_for)
-Pre-signed file upload?                   → both subclasses (mirror submit)
-Sync-only @property?                      → sync subclass; async raises AttributeError
-Quirk requiring .execute() at call site?  → both subclasses (mirror sandbox_providers)
+Question                                          Answer
+─────────────────────────────────────────────    ─────────────────────
+Body is a single `return self._single(...)` /     → on the base
+  `return self._paginate(...)`?
+Body reads the _single result and acts on it      → both subclasses
+  (attribute, branch, second _single)?              (multi-statement carve-out)
+Caller iterates the result?                       → _paginate
+Caller uses a single value?                       → _single
+Polling loop?                                     → both subclasses (mirror wait_for)
+Pre-signed file upload?                           → both subclasses (mirror submit)
+Sync-only @property?                              → sync subclass;
+                                                    async raises AttributeError
+Quirk requiring .execute() at call site?          → both subclasses
+                                                    (mirror sandbox_providers)
 ```
 
-If you find yourself adding a method to both `api.py` and `aio/__init__.py` and the bodies look the same modulo `await`, that's a smell — it almost certainly belongs on the base.
+If you find yourself adding a method to both `api.py` and `aio/api.py` and the bodies look the same modulo `await`, check whether the body is single-statement — if so, it belongs on the base instead. Multi-statement bodies legitimately live on the subclasses as a pair.
+
+## Known coverage gaps
+
+The async test surface mirrors most of the sync surface, but some of the carved-out methods don't yet have async-side cassettes (`exists`, `download`, `download_id`, `download_sandbox_artifact`, `download_archive`, `sample_bundle_download`, `llm_report_download`, `report_download`, `report_template_logo_*`). The carve-outs are mechanical mirrors of the sync versions (same body with `await`), and the sync side is covered, so behaviour is verified at the sync level — but standalone async coverage is a follow-up once the e2e stack is healthy enough to record fresh cassettes.

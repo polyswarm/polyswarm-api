@@ -6,18 +6,22 @@ How requests flow from a caller through the SDK to the server and back. Covers t
 
 ## Invariants
 
-1. **One endpoint method, one implementation.** Every endpoint method lives on `PolyswarmAPIBase`. Adding the same method to both `PolyswarmAPI` and `PolySwarmAsyncAPI` is a bug.
+1. **One endpoint method, one implementation — for single-step bodies.** Every endpoint method whose body is `return self._single(...)` or `return self._paginate(...)` lives on `PolyswarmAPIBase`. Adding the same method to both `PolyswarmAPI` and `PolySwarmAsyncAPI` for those cases is a bug.
 2. **Base methods are regular `def`, not `async def`.** The body returns whatever `self._single(...)` / `self._paginate(...)` returned; the subclass decides whether that's a value, a coroutine, a generator, or an async generator.
-3. **The only sync/async-specific code on the subclasses is**: `__init__`, the context-manager protocol, `_single`, `_paginate`, `_sleep`, plus the small carve-out set documented in [`03-endpoints.md`](./03-endpoints.md).
-4. **`httpx` is the single HTTP library.** Sync uses `httpx.Client`; async uses `httpx.AsyncClient`. Both produce `httpx.Response`, so the response-parsing layer is shared via inheritance.
-5. **Resource classmethods return UNEXECUTED `PolyswarmRequest` objects.** `BaseJsonResource.create` / `get` / etc. and per-resource builders (`ArtifactInstance.search_hash`, …) hand back a builder; the API client owns execution. This is what makes the sync/async unification possible — the same builder can run on either transport.
-6. **Public method signatures and response-resource shapes do not change without a major version bump.** See [`05-downstream-contract.md`](./05-downstream-contract.md).
+3. **Multi-statement bodies live on the subclasses.** If a method reads a `_single` / `_paginate` result and acts on it — reads an attribute, branches on state, feeds it into a second request — it cannot share a body across transports (the async `_single` returns a coroutine, not a value). Such methods live on `PolyswarmAPI` (sync) and `PolySwarmAsyncAPI` (async) as a pair, with the sync body as the source of truth and the async body inserting `await` at each call. See the carve-out table at the bottom of this doc.
+4. **`PolyswarmRequest` is always one HTTP call** (or one templated call in the paginated case — the same builder is re-issued with new `offset`/`limit`). Composing two HTTP calls inside a single request type is not allowed.
+5. **The only sync/async-specific code on the subclasses is**: `__init__`, the context-manager protocol, `_single`, `_paginate`, `_sleep`, plus the carve-out set documented below and in [`03-endpoints.md`](./03-endpoints.md).
+6. **`httpx` is the single HTTP library.** Sync uses `httpx.Client`; async uses `httpx.AsyncClient`. Both produce `httpx.Response`, so the response-parsing layer is shared via inheritance.
+7. **Resource classmethods return UNEXECUTED `PolyswarmRequest` objects.** `BaseJsonResource.create` / `get` / etc. and per-resource builders (`ArtifactInstance.search_hash`, …) hand back a builder; the API client owns execution. This is what makes the sync/async unification possible — the same builder can run on either transport.
+8. **Public method signatures and response-resource shapes do not change without a major version bump.** See [`05-downstream-contract.md`](./05-downstream-contract.md).
+9. **Sync is the source of truth.** When the sync and async sides diverge (return shape, exception class, side-effect timing), the sync side wins. Align async to sync; never the reverse.
 
 ## Files
 
 - `src/polyswarm_api/_base.py` — `PolyswarmAPIBase`.
 - `src/polyswarm_api/api.py` — `PolyswarmAPI(PolyswarmAPIBase)` and sync-only carve-out methods.
-- `src/polyswarm_api/aio/__init__.py` — `PolySwarmAsyncAPI(PolyswarmAPIBase)` and async-only carve-outs.
+- `src/polyswarm_api/aio/api.py` — `PolySwarmAsyncAPI(PolyswarmAPIBase)` and async-only carve-outs.
+- `src/polyswarm_api/aio/__init__.py` — thin re-export of `PolySwarmAsyncAPI` from `aio/api.py`.
 - `src/polyswarm_api/core.py` — `PolyswarmRequest`, `PolyswarmSession`, `HttpxResponseAdapter`, `BaseResource` / `BaseJsonResource`, helpers (`_normalise_bool_params`, `RequestParamsEncoder`).
 - `src/polyswarm_api/aio/core.py` — `AsyncPolyswarmSession`, `AsyncPolyswarmRequest(PolyswarmRequest)`.
 
@@ -229,17 +233,34 @@ The same `search_hash` classmethod is reachable from both transports because the
 
 ## Sync/async carve-outs
 
-Some methods genuinely diverge per subclass; they're not on the base:
+Some methods genuinely diverge per subclass; they're not on the base. Two categories:
+
+### Transport-level carve-outs
 
 | Method | Why it's not on the base |
 |---|---|
 | `__init__`, `close` / `aclose`, `__enter__` / `__exit__` / `__aenter__` / `__aexit__` | Each constructs its own HTTP client and exposes a sync vs async context-manager protocol. |
 | `_single`, `_paginate`, `_sleep`, `_exec` | These are the abstract transport hooks themselves. |
-| `wait_for(scan, timeout=…)` | Polling loop with `time.sleep` (sync) vs `asyncio.sleep` (async). The body shape is identical otherwise. |
+| `wait_for(scan, timeout=…)` | Polling loop with `time.sleep` (sync) vs `asyncio.sleep` (async). |
 | `report_wait_for(report_id, timeout=…)` | Same — polling loop. |
-| `submit(artifact, …)`, `sandbox_file(…)`, `sandbox_url(…)` | File-upload paths. Sync uses `LocalArtifact.upload_file()` (which calls `httpx.put` directly). Async uses `polyswarm_api.aio.upload.async_upload_file()` (the monkey-patch site). |
-| `refresh_engine_cache`, `engines` property | The sync `@property` reads `self._engines` and calls `refresh_engine_cache()` if missing. The async version can't do that from a regular `@property`. Each subclass implements its own. |
-| `sandbox_providers()` | Pre-existing quirk: returns the executed `PolyswarmRequest` directly (so callers can read `.json`). The sync subclass calls `.execute()` synchronously; the async subclass `await`s. |
+| `submit(artifact, …)`, `sandbox_file(…)`, `sandbox_url(…)` | File-upload paths. Sync uses `LocalArtifact.upload_file()` (which calls `httpx.put` directly). Async uses `polyswarm_api.aio.upload.async_upload_file()`. |
+| `refresh_engine_cache`, `engines` property | The sync `@property` reads `self._engines` and calls `refresh_engine_cache()` if missing. The async version can't do that from a regular `@property`. |
+| `sandbox_providers()` | Returns the executed `PolyswarmRequest` directly so callers read `.json` (sync shape). Async mirrors this — `await api.sandbox_providers()` then read `.json`. |
+
+### Multi-statement endpoint carve-outs
+
+Methods whose body reads a `_single` result and acts on it. The shared-base pass-through trick only works for single-statement `return self._single(...)` bodies; these methods would silently break on async (coroutine instead of value), so each lives as a sync+async pair.
+
+| Method | Shape |
+|---|---|
+| `exists` | one `_single`, branches on returned status code |
+| `download`, `download_id`, `download_sandbox_artifact`, `download_archive` | one `_single`, then `artifact.handle.close()` |
+| `sample_bundle_download` | two `_single`s, state-branch between them |
+| `llm_report_download` | two `_single`s |
+| `report_download` | `report_get()` + state-branch + `_single(report.download_report)` |
+| `report_template_logo_download` / `_delete` / `_upload` | two `_single`s (fetch template, then act on it) |
+
+Adding a new method whose body needs to consume a `_single` result follows the same pattern: write the sync body on `PolyswarmAPI`, write the async twin on `PolySwarmAsyncAPI` with `await` inserted at each `_single` call. Don't try to share it via the base — invariant #3.
 
 [`03-endpoints.md`](./03-endpoints.md) catalogues each method and notes whether it's on the base.
 
