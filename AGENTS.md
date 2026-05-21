@@ -73,7 +73,27 @@ This is the same pattern landed in the `akm` client (`/home/sam/repos/api-key-ma
 
 ### Migration status (DN-8225)
 
-The shared base + the inheritance dedupe on `AsyncPolyswarmRequest` landed in PR `feature/httpx-shared-base`. **The metadata family is the only one currently migrated** (`metadata_mapping`, `metadata_field_properties_*`). The other ~110 endpoints still live twice — once in `api.py`, once in `aio/__init__.py`. Migrating them is mechanical (translate each pair into a single `PolyswarmAPIBase` method calling `self._single(...)`) and tracked as Phase 2 of DN-8225.
+**Complete.** PR `feature/httpx-shared-base` lands the full consolidation:
+
+* All ~100 endpoint methods live once on `PolyswarmAPIBase`.
+* Sync transport migrated from `requests` → `httpx.Client`.
+* `requests` removed from runtime dependencies (httpx is the sole HTTP lib).
+* `BaseJsonResource.create` / `get` / etc. and per-resource classmethods (`ArtifactInstance.search_hash`, …) all return **unexecuted** `PolyswarmRequest` instances. Execution moves to the API client's `_single` / `_paginate`, which re-wrap as the subclass's `_request_cls` (sync `PolyswarmRequest` vs async `AsyncPolyswarmRequest`).
+* `AsyncPolyswarmRequest` inherits from sync `PolyswarmRequest` — `parse_result`, error mapping, pagination metadata bookkeeping all shared via inheritance.
+* Both client classes shrink to ~330 lines each (was ~1,300 sync + ~1,900 async); ~1,500 net lines deleted across the client modules.
+
+Methods that intentionally stay sync- or async-specific on their respective subclass (not on the base):
+
+* `__init__` and the context-manager protocol.
+* `_single` / `_paginate` / `_sleep` — the three transport hooks.
+* Polling helpers: `wait_for` / `report_wait_for` (use `time.sleep` vs `asyncio.sleep`).
+* File-upload paths: `submit`, `sandbox_file`, `sandbox_url` (sync uses `LocalArtifact.upload_file` via `httpx.put`; async uses `polyswarm_api.aio.upload.async_upload_file` — neonscan's monkey-patch site).
+* `refresh_engine_cache` + `engines` property (mutates `self._engines`; the sync `engines` property can't await an async refresh).
+* `sandbox_providers` (quirk: returns the executed `PolyswarmRequest` so callers can read `.json`).
+
+### Outstanding follow-up
+
+Test parametrisation across the full suite is not yet rolled out — only `metadata_field_properties_test.py` uses the `ClientTestCase` `__init_subclass__` harness that runs every test against both clients. `client_scan_test.py` (sync) and `async_client_test.py` (async) still have separate test bodies. Migrating them is mechanical — rewrite each test body sync-shaped and let `_AsyncToSync` drive the async variant — but it's per-test work and not blocking the architectural consolidation. Track this on DN-8225 as a remaining sub-task.
 
 ## When adding a new resource
 
