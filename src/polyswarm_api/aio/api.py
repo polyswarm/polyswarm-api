@@ -395,6 +395,45 @@ class PolySwarmAsyncAPI(PolyswarmAPIBase):
     # each ``_single`` call. See the matching comment block in
     # api.py for why these aren't on the shared base.
 
+    async def download(self, out_dir, hash_, hash_type=None):
+        """Async twin of PolyswarmAPI.download."""
+        logger.info('Downloading %s into %s', hash_, out_dir)
+        hash_ = resources.Hash.from_hashable(hash_, hash_type=hash_type)
+        artifact = await self._single(
+            resources.LocalArtifact.download(self, hash_.hash, hash_.hash_type, folder=out_dir),
+        )
+        artifact.handle.close()
+        return artifact
+
+    async def download_id(self, out_dir, instance_id):
+        """Async twin of PolyswarmAPI.download_id."""
+        logger.info('Downloading %s into %s', instance_id, out_dir)
+        artifact = await self._single(
+            resources.LocalArtifact.download_id(self, instance_id, folder=out_dir),
+        )
+        artifact.handle.close()
+        return artifact
+
+    async def download_sandbox_artifact(self, out_dir, sandbox_task_id, instance_id):
+        """Async twin of PolyswarmAPI.download_sandbox_artifact."""
+        logger.info('Downloading sandbox artifact %s %s', sandbox_task_id, instance_id)
+        sandbox_artifact = await self._single(
+            resources.LocalArtifact.download_sandbox_artifact(
+                self, sandbox_task_id, instance_id, folder=out_dir,
+            ),
+        )
+        sandbox_artifact.handle.close()
+        return sandbox_artifact
+
+    async def download_archive(self, out_dir, s3_path):
+        """Async twin of PolyswarmAPI.download_archive."""
+        logger.info('Downloading %s into %s', s3_path, out_dir)
+        artifact = await self._single(
+            resources.LocalArtifact.download_archive(self, s3_path, folder=out_dir),
+        )
+        artifact.handle.close()
+        return artifact
+
     async def exists(self, hash_, hash_type=None, require_scan=False):
         """Async twin of PolyswarmAPI.exists. Returns bool."""
         logger.info('Exists for hash %s', hash_)

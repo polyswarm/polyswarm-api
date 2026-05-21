@@ -317,6 +317,62 @@ class PolyswarmAPI(PolyswarmAPIBase):
     # methods live on the subclasses as sync+async pairs. The async
     # twins are in [aio/api.py](aio/api.py).
 
+    def download(self, out_dir, hash_, hash_type=None):
+        """
+        Grab the data of an artifact identified by hash and write the data to a file in the provided directory
+        under a file named after the hash_.
+        :param out_dir: Destination directory to download the file.
+        :param hash_: The hash we should use to lookup the artifact to download.
+        :param hash_type: Hash type of the provided hash_. Will attempt to auto-detect if not explicitly provided.
+        :return: A LocalArtifact resource
+        """
+        logger.info('Downloading %s into %s', hash_, out_dir)
+        hash_ = resources.Hash.from_hashable(hash_, hash_type=hash_type)
+        artifact = self._single(resources.LocalArtifact.download(self, hash_.hash, hash_.hash_type, folder=out_dir))
+        artifact.handle.close()
+        return artifact
+
+    def download_id(self, out_dir, instance_id):
+        """
+        Grab the data of an artifact identified by hash and write the data to a file in the provided directory
+        under a file named after the hash_.
+        :param out_dir: Destination directory to download the file.
+        :param instance_id: The instance id we should use to lookup the artifact to download.
+        :return: A LocalArtifact resource
+        """
+        logger.info('Downloading %s into %s', instance_id, out_dir)
+        artifact = self._single(resources.LocalArtifact.download_id(self, instance_id, folder=out_dir))
+        artifact.handle.close()
+        return artifact
+
+    def download_sandbox_artifact(self, out_dir, sandbox_task_id, instance_id):
+        """
+        Grab the data of a sandbox artifact identified by sandbox task id and instance id,
+        and write the data to a file in the provided directory under a file named after the sandbox artifact.
+        :param out_dir: Destination directory to download the file.
+        :param sandbox_task_id: The sandbox task id we should use to lookup the artifact to download.
+        :param instance_id: The instance id we should use to lookup the artifact to download.
+        :return: A LocalArtifact resource
+        """
+        logger.info('Downloading sandbox artifact %s %s', sandbox_task_id, instance_id)
+        sandbox_artifact = self._single(resources.LocalArtifact.download_sandbox_artifact(
+            self, sandbox_task_id, instance_id, folder=out_dir))
+        sandbox_artifact.handle.close()
+        return sandbox_artifact
+
+    def download_archive(self, out_dir, s3_path):
+        """
+        Grab the data in the s3 path provided in the stream() method, and write the contents
+        in the provided directory.
+        :param out_dir: Destination directory to download the file.
+        :param s3_path: Target S3 object to download.
+        :return: A LocalArtifact resource
+        """
+        logger.info('Downloading %s into %s', s3_path, out_dir)
+        artifact = self._single(resources.LocalArtifact.download_archive(self, s3_path, folder=out_dir))
+        artifact.handle.close()
+        return artifact
+
     def exists(self, hash_, hash_type=None, require_scan=False):
         """
         Search for the latest scans matching the given hash and hash_type.
