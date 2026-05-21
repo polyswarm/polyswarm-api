@@ -73,65 +73,42 @@ class PolySwarmAsyncAPI(PolyswarmAPIBase):
 
     # ── PolyswarmAPIBase hooks ──────────────────────────────────────
     #
-    # ``_single`` / ``_paginate`` are polymorphic: they accept either an
-    # unexecuted ``AsyncPolyswarmRequest`` / ``PolyswarmRequest`` (new
-    # style, used by Phase 2 endpoint migrations) OR a legacy
-    # ``(request_dict, result_parser=)`` pair (still used by the
-    # endpoints currently in this file).
+    # ``_single`` / ``_paginate`` take a request-parameters dict plus a
+    # ``result_parser`` and return a single value / async generator
+    # respectively. This is the shape the existing endpoint bodies in
+    # this file already use; it's also what Phase 2 endpoint methods on
+    # ``PolyswarmAPIBase`` will call.
 
-    async def _single(self, request_or_dict, result_parser=None, **kwargs):  # type: ignore[override]
-        request = self._coerce_to_request(request_or_dict, result_parser, kwargs)
-        executed = await request.execute()
-        return executed.result()
+    async def _single(self, request_parameters, result_parser=None, **kwargs):  # type: ignore[override]
+        req = await self._exec(request_parameters, result_parser, **kwargs)
+        return req.result()
 
-    async def _paginate(self, request_or_dict, result_parser=None, **kwargs):  # type: ignore[override]
-        request = self._coerce_to_request(request_or_dict, result_parser, kwargs)
-        executed = await request.execute()
-        if executed._paginated:
-            async for item in executed.consume_results():
+    async def _paginate(self, request_parameters, result_parser=None, **kwargs):  # type: ignore[override]
+        req = await self._exec(request_parameters, result_parser, **kwargs)
+        if req._paginated:
+            async for item in req.consume_results():
                 yield item
         else:
-            result = executed._result
+            result = req._result
             if isinstance(result, list):
                 for item in result:
                     yield item
             elif result is not None:
                 yield result
 
-    def _coerce_to_request(self, request_or_dict, result_parser, parser_kwargs):
-        if isinstance(request_or_dict, dict):
-            return AsyncPolyswarmRequest(
-                self, request_or_dict, result_parser=result_parser, **parser_kwargs,
-            )
-        # Sync ``PolyswarmRequest`` from resource classmethods needs to be
-        # rebuilt as an ``AsyncPolyswarmRequest`` so it runs on the async
-        # transport. ``parse_result`` is inherited so no behaviour drift.
-        return AsyncPolyswarmRequest(
-            request_or_dict.api_instance,
-            request_or_dict.request_parameters,
-            result_parser=request_or_dict.result_parser,
-            **request_or_dict.parser_kwargs,
-        )
-
     async def _sleep(self, seconds):
         await asyncio.sleep(seconds)
 
-    # ── Legacy dict-based helpers (still used by current endpoints) ─
+    # ── Internals ───────────────────────────────────────────────────
 
     async def _exec(self, request_parameters, result_parser=None, **kwargs):
-        """Build, execute, and return the AsyncPolyswarmRequest."""
+        """Build and execute an ``AsyncPolyswarmRequest``."""
         return await AsyncPolyswarmRequest(
-            self, request_parameters, result_parser=result_parser, **kwargs
+            self, request_parameters, result_parser=result_parser, **kwargs,
         ).execute()
 
-    async def _generate(self, request_parameters, result_parser=None, **kwargs):
-        """Execute and yield results from a (possibly paginated) response.
-
-        Alias for ``_paginate`` with explicit dict-based call signature —
-        retained for backward compat with endpoint bodies in this file.
-        """
-        async for item in self._paginate(request_parameters, result_parser, **kwargs):
-            yield item
+    # Legacy alias retained for backward compatibility within this file.
+    _generate = _paginate
 
     # ── Engines ──────────────────────────────────────────────────
 
@@ -210,66 +187,8 @@ class PolySwarmAsyncAPI(PolyswarmAPIBase):
         ):
             yield item
 
-    async def metadata_mapping(self):
-        """Get available metadata field names and types."""
-        return await self._single(
-            {
-                "method": "GET",
-                "url": f"{self.uri}{resources.MetadataMapping.RESOURCE_ENDPOINT}",
-            },
-            result_parser=resources.MetadataMapping,
-        )
-
-    async def metadata_field_properties_write(self, field_path, description,
-                                              example=None, category=None, aliases=None):
-        """Upsert a metadata field properties entry (the single write path)."""
-        return await self._single(
-            {
-                "method": "POST",
-                "url": f"{self.uri}{resources.MetadataFieldProperties.RESOURCE_ENDPOINT}",
-                "json": {
-                    "field_path": field_path,
-                    "description": description,
-                    "example": example,
-                    "category": category,
-                    "aliases": aliases,
-                },
-            },
-            result_parser=resources.MetadataFieldProperties,
-        )
-
-    async def metadata_field_properties_get(self, field_path):
-        """Get a metadata field properties entry by field_path."""
-        return await self._single(
-            {
-                "method": "GET",
-                "url": f"{self.uri}{resources.MetadataFieldProperties.RESOURCE_ENDPOINT}",
-                "params": {"field_path": field_path},
-            },
-            result_parser=resources.MetadataFieldProperties,
-        )
-
-    async def metadata_field_properties_delete(self, field_path):
-        """Delete a metadata field properties entry."""
-        return await self._single(
-            {
-                "method": "DELETE",
-                "url": f"{self.uri}{resources.MetadataFieldProperties.RESOURCE_ENDPOINT}",
-                "params": {"field_path": field_path},
-            },
-            result_parser=resources.MetadataFieldProperties,
-        )
-
-    async def metadata_field_properties_list(self):
-        """List all metadata field properties entries. Async generator."""
-        async for item in self._generate(
-            {
-                "method": "GET",
-                "url": f"{self.uri}{resources.MetadataFieldProperties.RESOURCE_ENDPOINT}/list",
-            },
-            result_parser=resources.MetadataFieldProperties,
-        ):
-            yield item
+    # ``metadata_mapping`` and ``metadata_field_properties_*`` live on
+    # ``PolyswarmAPIBase``; await / async-for the inherited methods.
 
     async def search_by_metadata(
         self, query, include=None, exclude=None, ips=None, urls=None, domains=None

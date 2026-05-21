@@ -7,8 +7,17 @@ and (over time) every endpoint method as a one-line wrapper around
 ``self._single(...)`` or ``self._paginate(...)``. Sync subclass
 implements those via the sync HTTP transport; async via the async one.
 
+The trick that lets a single method body work for both: base methods
+are regular ``def`` (not ``async def``) and ``return
+self._single(...)``. Sync ``_single`` returns the parsed value; async
+``_single`` returns a coroutine; the base method just passes that
+through. Sync callers use the value directly, async callers ``await``
+it. For paginated endpoints, the same applies with generators vs
+async generators (``for`` / ``async for``).
+
 This first PR lands the shared base + the response-parsing inheritance
-(``AsyncPolyswarmRequest`` now inherits from ``PolyswarmRequest``).
+(``AsyncPolyswarmRequest`` now inherits from ``PolyswarmRequest``) +
+the metadata mapping/properties endpoints as a representative slice.
 Bulk endpoint-method consolidation follows in subsequent PRs tracked
 by DN-8225.
 """
@@ -16,7 +25,7 @@ from __future__ import annotations
 
 import logging
 
-from polyswarm_api import settings
+from polyswarm_api import resources, settings
 
 logger = logging.getLogger(__name__)
 
@@ -74,3 +83,83 @@ class PolyswarmAPIBase:
     def _sleep(self, seconds):
         """Block for ``seconds``. Sync uses ``time.sleep``; async ``asyncio.sleep``."""
         raise NotImplementedError
+
+    # ── Shared endpoint surface ─────────────────────────────────────
+    #
+    # Each method is defined ONCE here and works for both sync and async
+    # subclasses. The trick: bodies are sync-shaped (``return
+    # self._single(...)``), and ``_single`` / ``_paginate`` are
+    # overridden per subclass to return either a value/generator (sync)
+    # or a coroutine/async generator (async). The caller awaits or
+    # iterates over the result as appropriate.
+
+    # ── Metadata ────────────────────────────────────────────────────
+
+    def metadata_mapping(self):
+        """Get available metadata field names and types.
+
+        Sync: returns a ``MetadataMapping`` resource.
+        Async: returns a coroutine; ``await`` it for the same.
+        """
+        logger.info('Retrieving the metadata mapping')
+        return self._single(
+            {'method': 'GET',
+             'url': f'{self.uri}{resources.MetadataMapping.RESOURCE_ENDPOINT}'},
+            result_parser=resources.MetadataMapping,
+        )
+
+    def metadata_field_properties_write(self, field_path, description,
+                                        example=None, category=None, aliases=None):
+        """Upsert a metadata field properties entry (the single write path).
+
+        :param field_path: Dotted ES leaf path (e.g. 'polyunite.malware_family').
+        :param description: Human-readable description of the field.
+        :param example: Optional example search string.
+        :param category: Optional category grouping the field belongs to.
+        :param aliases: Optional list of friendly-name shortcuts.
+        :return: A ``MetadataFieldProperties`` resource.
+        """
+        logger.info('Writing metadata field properties %s', field_path)
+        return self._single(
+            {'method': 'POST',
+             'url': f'{self.uri}{resources.MetadataFieldProperties.RESOURCE_ENDPOINT}',
+             'json': {'field_path': field_path,
+                      'description': description,
+                      'example': example,
+                      'category': category,
+                      'aliases': aliases}},
+            result_parser=resources.MetadataFieldProperties,
+        )
+
+    def metadata_field_properties_get(self, field_path):
+        """Get a metadata field properties entry by ``field_path``."""
+        logger.info('Getting metadata field properties %s', field_path)
+        return self._single(
+            {'method': 'GET',
+             'url': f'{self.uri}{resources.MetadataFieldProperties.RESOURCE_ENDPOINT}',
+             'params': {'field_path': field_path}},
+            result_parser=resources.MetadataFieldProperties,
+        )
+
+    def metadata_field_properties_delete(self, field_path):
+        """Delete a metadata field properties entry."""
+        logger.info('Deleting metadata field properties %s', field_path)
+        return self._single(
+            {'method': 'DELETE',
+             'url': f'{self.uri}{resources.MetadataFieldProperties.RESOURCE_ENDPOINT}',
+             'params': {'field_path': field_path}},
+            result_parser=resources.MetadataFieldProperties,
+        )
+
+    def metadata_field_properties_list(self):
+        """List all metadata field properties entries.
+
+        Sync: returns a generator. Async: returns an async generator.
+        Iterate with ``for`` or ``async for`` accordingly.
+        """
+        logger.info('Listing metadata field properties')
+        return self._paginate(
+            {'method': 'GET',
+             'url': f'{self.uri}{resources.MetadataFieldProperties.RESOURCE_ENDPOINT}/list'},
+            result_parser=resources.MetadataFieldProperties,
+        )

@@ -31,17 +31,18 @@ class PolyswarmAPI(PolyswarmAPIBase):
 
     # ── PolyswarmAPIBase hooks ──────────────────────────────────────
 
-    def _single(self, request):
-        """Execute the request synchronously and return the parsed result."""
-        return request.execute().result()
+    def _single(self, request_parameters, result_parser=None, **kwargs):
+        """Execute the request synchronously and return its parsed result."""
+        req = self._exec(request_parameters, result_parser, **kwargs)
+        return req.result()
 
-    def _paginate(self, request):
-        """Execute the request synchronously and yield items (handles pagination)."""
-        executed = request.execute()
-        if executed._paginated:
-            yield from executed.consume_results()
+    def _paginate(self, request_parameters, result_parser=None, **kwargs):
+        """Execute synchronously and yield items (handles pagination)."""
+        req = self._exec(request_parameters, result_parser, **kwargs)
+        if req._paginated:
+            yield from req.consume_results()
         else:
-            result = executed._result
+            result = req._result
             if isinstance(result, list):
                 yield from result
             elif result is not None:
@@ -49,6 +50,12 @@ class PolyswarmAPI(PolyswarmAPIBase):
 
     def _sleep(self, seconds):
         time.sleep(seconds)
+
+    def _exec(self, request_parameters, result_parser=None, **kwargs):
+        """Build and execute a ``PolyswarmRequest``."""
+        return polyswarm_api.core.PolyswarmRequest(
+            self, request_parameters, result_parser=result_parser, **kwargs,
+        ).execute()
 
     @property
     def engines(self):
@@ -136,58 +143,8 @@ class PolyswarmAPI(PolyswarmAPIBase):
         hash_ = resources.Hash.from_hashable(hash_, hash_type='sha256')
         return resources.ArtifactInstance.list_scans(self, hash_.hash).result()
 
-    def metadata_mapping(self):
-        logger.info('Retrieving the metadata mapping')
-        return resources.MetadataMapping.get(self).result()
-
-    def metadata_field_properties_write(self, field_path, description,
-                                        example=None, category=None, aliases=None):
-        """Upsert a metadata field properties entry (the single write path).
-
-        Inserts a new row if no entry exists for `field_path`, otherwise
-        updates the existing row in place. Server-side this is a POST to
-        /v3/search/metadata/properties.
-
-        :param field_path: Dotted ES leaf path (e.g. 'polyunite.malware_family').
-        :param description: Human-readable description of the field.
-        :param example: Optional example search string.
-        :param category: Optional category grouping the field belongs to.
-        :param aliases: Optional list of friendly-name shortcuts.
-        :return: A MetadataFieldProperties resource.
-        """
-        logger.info('Writing metadata field properties %s', field_path)
-        return resources.MetadataFieldProperties.create(self,
-                                                        field_path=field_path,
-                                                        description=description,
-                                                        example=example,
-                                                        category=category,
-                                                        aliases=aliases).result()
-
-    def metadata_field_properties_get(self, field_path):
-        """Get a metadata field properties entry by field_path.
-
-        :param field_path: Dotted ES leaf path.
-        :return: A MetadataFieldProperties resource.
-        """
-        logger.info('Getting metadata field properties %s', field_path)
-        return resources.MetadataFieldProperties.get(self, field_path=field_path).result()
-
-    def metadata_field_properties_delete(self, field_path):
-        """Delete a metadata field properties entry.
-
-        :param field_path: Dotted ES leaf path of the entry to delete.
-        :return: The deleted MetadataFieldProperties resource.
-        """
-        logger.info('Deleting metadata field properties %s', field_path)
-        return resources.MetadataFieldProperties.delete(self, field_path=field_path).result()
-
-    def metadata_field_properties_list(self, **kwargs):
-        """List all metadata field properties entries.
-
-        :return: A generator of MetadataFieldProperties resources.
-        """
-        logger.info('Listing metadata field properties')
-        return resources.MetadataFieldProperties.list(self, **kwargs).result()
+    # ``metadata_mapping`` and ``metadata_field_properties_*`` live on
+    # ``PolyswarmAPIBase``; the sync/async dispatch is handled there.
 
     def search_by_metadata(self, query, include=None, exclude=None, ips=None, urls=None, domains=None):
         """
