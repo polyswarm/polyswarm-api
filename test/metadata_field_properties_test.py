@@ -13,7 +13,6 @@ from unittest import TestCase
 
 import httpx
 import respx
-import responses
 
 from polyswarm_api.aio import PolySwarmAsyncAPI
 from polyswarm_api.api import PolyswarmAPI
@@ -39,47 +38,31 @@ def _sample_row(field_path='polyunite.malware_family'):
 
 
 class _MockBoundary:
-    """Register the same expected HTTP exchanges with both ``responses``
-    (for the sync ``requests`` transport) and ``respx`` (for the async
-    ``httpx`` transport). Tests call ``add(method, url, json=...,
-    status=...)``; the harness routes it to whichever mock matches the
-    current client kind.
+    """Register expected HTTP exchanges via ``respx``. Both sync and
+    async clients now run on httpx, so a single mock library covers
+    both. Tests call ``add(method, url, json=..., status=...)``.
     """
 
     def __init__(self, client_kind: str):
         self.client_kind = client_kind
-        self._respx_router = respx.mock(assert_all_called=False) if client_kind == 'async' else None
-        self._calls = []  # list of (method, url) for tests that assert on call URLs
+        self._router = respx.mock(assert_all_called=False)
 
     def __enter__(self):
-        if self.client_kind == 'sync':
-            self._responses = responses.RequestsMock(assert_all_requests_are_fired=False)
-            self._responses.start()
-        else:
-            self._respx_router.start()
+        self._router.start()
         return self
 
     def __exit__(self, *exc):
-        if self.client_kind == 'sync':
-            self._responses.stop()
-            self._responses.reset()
-        else:
-            self._respx_router.stop()
-            self._respx_router.reset()
+        self._router.stop()
+        self._router.reset()
 
     def add(self, method: str, url: str, json: dict, status: int = 200):
-        if self.client_kind == 'sync':
-            self._responses.add(method, url, json=json, status=status)
-        else:
-            self._respx_router.route(method=method, url=url).mock(
-                return_value=httpx.Response(status, json=json),
-            )
+        self._router.route(method=method, url=url).mock(
+            return_value=httpx.Response(status, json=json),
+        )
 
     @property
     def last_request_url(self) -> str:
-        if self.client_kind == 'sync':
-            return self._responses.calls[0].request.url
-        return str(self._respx_router.calls[0].request.url)
+        return str(self._router.calls[0].request.url)
 
 
 class _AsyncToSync:

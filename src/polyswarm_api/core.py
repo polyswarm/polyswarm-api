@@ -1,63 +1,96 @@
 import json
 import logging
 from copy import deepcopy
-from urllib3 import Retry
 from binascii import unhexlify
 from json.decoder import JSONDecodeError
 
-import requests
+import httpx
 import datetime as dt
 from dateutil import parser
-from requests.adapters import HTTPAdapter
-from urllib3.exceptions import InsecureRequestWarning
 
 from polyswarm_api import settings, exceptions
 
 logger = logging.getLogger(__name__)
 
 
-class PolyswarmSession(requests.Session):
-    def __init__(self, key, retries, user_agent=settings.DEFAULT_USER_AGENT, verify=True, **kwargs):
-        super().__init__(**kwargs)
-        logger.debug('Creating PolyswarmHTTP instance')
-        self.requests_retry_session(retries=retries)
+class PolyswarmSession:
+    """Thin wrapper over ``httpx.Client`` exposing the request/verify/headers
+    surface that ``PolyswarmRequest`` expects.
 
-        if not verify:
-            logger.warn('Disabling TLS verification for this session.')
-            requests.packages.urllib3.disable_warnings(category=InsecureRequestWarning)
+    Migrated from ``requests.Session`` to ``httpx.Client`` so that the sync
+    and async clients share a single HTTP library.
+    """
 
+    def __init__(self, key, retries=settings.DEFAULT_RETRIES,
+                 user_agent=settings.DEFAULT_USER_AGENT, verify=True,
+                 timeout=settings.DEFAULT_HTTP_TIMEOUT, **httpx_kwargs):
+        logger.debug('Creating PolyswarmSession (httpx-backed)')
         self.verify = verify
-
+        hdrs = httpx_kwargs.pop('headers', None) or {}
         if key:
-            self.set_auth(key)
-
+            hdrs['Authorization'] = key
         if user_agent:
-            self.set_user_agent(user_agent)
-
-    def requests_retry_session(self, retries=settings.DEFAULT_RETRIES, backoff_factor=settings.DEFAULT_BACKOFF,
-                               status_forcelist=settings.DEFAULT_RETRY_CODES):
-        retry = Retry(
-            total=retries,
-            read=retries,
-            connect=retries,
-            backoff_factor=backoff_factor,
-            status_forcelist=status_forcelist,
+            hdrs['User-Agent'] = user_agent
+        transport = httpx_kwargs.pop('transport', None) or httpx.HTTPTransport(
+            retries=retries, verify=verify,
         )
-        adapter = HTTPAdapter(max_retries=retry)
-        self.mount('http://', adapter)
-        self.mount('https://', adapter)
+        self._client = httpx.Client(
+            headers=hdrs,
+            transport=transport,
+            timeout=timeout,
+            verify=verify,
+            follow_redirects=True,
+            **httpx_kwargs,
+        )
 
-    def set_auth(self, key):
-        if key:
-            self.headers.update({'Authorization': key})
-        else:
-            self.headers.pop('Authorization', None)
+    def request(self, method, url, **kwargs):
+        # httpx doesn't accept ``stream=`` as a kwarg to ``.request()``
+        # the way requests does. For now we drop it — large downloads
+        # buffer fully into memory, matching the async client's behaviour
+        # (see aio/core.py). Streamed download support is a future improvement.
+        kwargs.pop('stream', None)
+        # httpx rejects None header values; requests used them to remove
+        # a header. Strip them out — session-level header stays.
+        if 'headers' in kwargs:
+            kwargs['headers'] = {k: v for k, v in kwargs['headers'].items() if v is not None}
+            if not kwargs['headers']:
+                del kwargs['headers']
+        # httpx serialises bool params as lowercase ``true``/``false``;
+        # requests used Python's ``str()`` which yields ``True``/``False``.
+        # Existing cassettes were recorded against requests — normalise
+        # to the requests format so they keep replaying.
+        if 'params' in kwargs:
+            kwargs['params'] = _normalise_bool_params(kwargs['params'])
+        return self._client.request(method, url, **kwargs)
 
-    def set_user_agent(self, ua):
-        if ua:
-            self.headers.update({'User-Agent': ua})
-        else:
-            self.headers.pop('User-Agent', None)
+    @property
+    def headers(self):
+        return self._client.headers
+
+    def close(self):
+        self._client.close()
+
+
+def _normalise_bool_params(params):
+    """Convert bool values to capitalised strings (``'True'`` / ``'False'``)
+    matching the ``str(bool)`` serialisation that ``requests`` produced.
+
+    httpx writes booleans lowercase (``'true'`` / ``'false'``), so existing
+    VCR cassettes recorded with requests would mismatch. Apply this on
+    both the sync and async sessions to keep cassettes valid.
+    """
+    def _normalise_value(v):
+        if isinstance(v, bool):
+            return str(v)
+        if isinstance(v, (list, tuple)):
+            return [_normalise_value(item) for item in v]
+        return v
+
+    if isinstance(params, dict):
+        return {k: _normalise_value(v) for k, v in params.items()}
+    if isinstance(params, (list, tuple)):
+        return [(k, _normalise_value(v)) for k, v in params]
+    return params
 
 
 class RequestParamsEncoder(json.JSONEncoder):
@@ -66,6 +99,33 @@ class RequestParamsEncoder(json.JSONEncoder):
             return json.JSONEncoder.default(self, obj)
         except Exception:
             return str(obj)
+
+
+class HttpxResponseAdapter:
+    """Adapt ``httpx.Response`` to the ``requests.Response`` surface used by
+    non-JSON resource parsers (e.g. ``LocalArtifact``, which calls
+    ``response.iter_content(chunk_size)``).
+
+    Shared between sync ``PolyswarmRequest`` and async
+    ``AsyncPolyswarmRequest`` now that both transports use httpx.
+    """
+
+    def __init__(self, response):
+        self.status_code = response.status_code
+        self.headers = response.headers
+        self.url = str(response.url)
+        self._content = response.content
+
+    def iter_content(self, chunk_size=None):
+        content = self._content
+        if not chunk_size or len(content) <= chunk_size:
+            yield content
+        else:
+            for i in range(0, len(content), chunk_size):
+                yield content[i:i + chunk_size]
+
+    def json(self):
+        return json.loads(self._content)
 
 
 class PolyswarmRequest(object):
@@ -105,11 +165,21 @@ class PolyswarmRequest(object):
     def execute(self):
         logger.debug('Executing request.')
         self.request_parameters.setdefault('timeout', self.timeout)
-        if self.result_parser and not issubclass(self.result_parser, BaseJsonResource):
-            self.request_parameters.setdefault('stream', True)
         self.raw_result = self.session.request(**self.request_parameters)
         logger.debug('Request returned code %s', self.raw_result.status_code)
-        self.parse_result(self.raw_result)
+
+        # Non-JSON parsers expect a ``requests.Response``-shaped object with
+        # ``iter_content``. Wrap the ``httpx.Response`` so file downloads etc.
+        # see the surface they expect.
+        result_for_parsing = self.raw_result
+        if (
+            self.result_parser
+            and not issubclass(self.result_parser, BaseJsonResource)
+            and not hasattr(self.raw_result, 'iter_content')
+        ):
+            result_for_parsing = HttpxResponseAdapter(self.raw_result)
+
+        self.parse_result(result_for_parsing)
         return self
 
     def _bad_status_message(self):

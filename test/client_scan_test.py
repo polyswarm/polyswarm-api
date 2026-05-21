@@ -1,7 +1,8 @@
 import os
 import shutil
 import tempfile
-import responses
+import httpx
+import respx
 import pytest
 import tarfile
 from contextlib import contextmanager
@@ -114,9 +115,9 @@ class ScanTestCaseV2(TestCase):
         result = list(api.search_by_metadata('artifact.sha256:275a021bbfb6489e54d471899f7db9d1663fc695ec2fe2a2c4538aabf651fd0f'))
         assert result[0].sha256 == '275a021bbfb6489e54d471899f7db9d1663fc695ec2fe2a2c4538aabf651fd0f'
 
-    @responses.activate
     def test_resolve_engine_name(self):
-        responses.add(responses.GET, 'http://localhost:3000/api/v1/microengines/list', json={'results': [
+        with respx.mock(assert_all_called=False) as router:
+            ok_payload = {'results': [
         {
             "engineId": "8565030964589685",
             "vendorWebsite": "http://www.polyswarm.io",
@@ -185,23 +186,26 @@ class ScanTestCaseV2(TestCase):
             "name": "Intezer",
             "id": "49931709284165436"
             }
-        ]})
-        # This still does not have a v2 path
-        api = PolyswarmAPI(self.test_api_key, uri='http://localhost:3000/api/v1', community='gamma')
-        assert {'Intezer', 'IRIS-H', 'Test', 'K7-Arbiter'} == {e.name for e in api.engines}
-        assert {'K7-Arbiter'} == {e.name for e in api.engines if e.is_arbiter}
+        ]}
+            url = 'http://localhost:3000/api/v1/microengines/list'
+            route = router.get(url).mock(return_value=httpx.Response(200, json=ok_payload))
 
-        # Verify handling of invalid responses
-        responses.replace(responses.GET, 'http://localhost:3000/api/v1/microengines/list', status=500)
-        with pytest.raises(exceptions.RequestException):
-            api.refresh_engine_cache()
+            # This still does not have a v2 path
+            api = PolyswarmAPI(self.test_api_key, uri='http://localhost:3000/api/v1', community='gamma')
+            assert {'Intezer', 'IRIS-H', 'Test', 'K7-Arbiter'} == {e.name for e in api.engines}
+            assert {'K7-Arbiter'} == {e.name for e in api.engines if e.is_arbiter}
 
-        responses.replace(responses.GET, 'http://localhost:3000/api/v1/microengines/list', json={"results": []})
-        with pytest.raises(exceptions.InvalidValueException):
-            api.refresh_engine_cache()
+            # Verify handling of invalid responses
+            route.mock(return_value=httpx.Response(500))
+            with pytest.raises(exceptions.RequestException):
+                api.refresh_engine_cache()
 
-        # Run tests after failed `refresh_engine_cache` to verify that we haven't cleared `api.engines`
-        assert len(set(api.engines)) == 4
+            route.mock(return_value=httpx.Response(200, json={"results": []}))
+            with pytest.raises(exceptions.InvalidValueException):
+                api.refresh_engine_cache()
+
+            # Run tests after failed `refresh_engine_cache` to verify that we haven't cleared `api.engines`
+            assert len(set(api.engines)) == 4
 
     @vcr.use_cassette()
     def test_live(self):

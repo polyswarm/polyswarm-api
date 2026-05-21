@@ -2,7 +2,7 @@ import logging
 import os
 import io
 import functools
-import requests
+import httpx
 from enum import Enum
 from hashlib import sha256 as _sha256, sha1 as _sha1, md5 as _md5
 from urllib.parse import urlparse
@@ -331,12 +331,8 @@ class ArtifactInstance(core.BaseJsonResource, core.Hashable):
             artifact.seek(0, io.SEEK_END)
             length = artifact.tell()
             artifact.seek(0)
-            # https://github.com/psf/requests/issues/4215#issuecomment-319521235
-            # We have to manually handle the case when the file is empty
-            # in a way that requests won't set Transfer-Encoding: chunked
-            if not length:
-                artifact = ''
-            r = requests.put(self.upload_url, data=artifact, **kwargs)
+            content = b'' if not length else artifact.read()
+            r = httpx.put(self.upload_url, content=content, **kwargs)
             r.raise_for_status()
         return r
 
@@ -1065,12 +1061,8 @@ class SandboxTask(core.BaseJsonResource):
             artifact.seek(0, io.SEEK_END)
             length = artifact.tell()
             artifact.seek(0)
-            # https://github.com/psf/requests/issues/4215#issuecomment-319521235
-            # We have to manually handle the case when the file is empty
-            # in a way that requests won't set Transfer-Encoding: chunked
-            if not length:
-                artifact = ''
-            r = requests.put(self.upload_url, data=artifact, **kwargs)
+            content = b'' if not length else artifact.read()
+            r = httpx.put(self.upload_url, content=content, **kwargs)
             r.raise_for_status()
         return r
 

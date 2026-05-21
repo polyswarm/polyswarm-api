@@ -13,7 +13,12 @@ from typing import AsyncGenerator
 import httpx
 
 from polyswarm_api import settings
-from polyswarm_api.core import BaseJsonResource, PolyswarmRequest
+from polyswarm_api.core import (
+    BaseJsonResource,
+    HttpxResponseAdapter,
+    PolyswarmRequest,
+    _normalise_bool_params,
+)
 
 
 class AsyncPolyswarmSession:
@@ -51,31 +56,19 @@ class AsyncPolyswarmSession:
         )
 
     async def request(self, method: str, url: str, **kwargs) -> httpx.Response:
+        # Match the sync session's bool-param normalisation so existing
+        # cassettes (recorded against requests) keep replaying.
+        if 'params' in kwargs:
+            kwargs['params'] = _normalise_bool_params(kwargs['params'])
         return await self._client.request(method, url, **kwargs)
 
     async def close(self):
         await self._client.aclose()
 
 
-class _HttpxResponseAdapter:
-    """Adapt ``httpx.Response`` to the ``requests.Response`` surface used
-    by some non-JSON resource parsers (e.g. ``LocalArtifact``, which
-    calls ``response.iter_content(chunk_size)``).
-    """
-
-    def __init__(self, response: httpx.Response):
-        self.status_code = response.status_code
-        self.headers = response.headers
-        self.url = str(response.url)
-        self._content = response.content
-
-    def iter_content(self, chunk_size=None):
-        content = self._content
-        if not chunk_size or len(content) <= chunk_size:
-            yield content
-        else:
-            for i in range(0, len(content), chunk_size):
-                yield content[i : i + chunk_size]
+# ``_HttpxResponseAdapter`` is now ``HttpxResponseAdapter`` in
+# ``polyswarm_api.core`` (shared with sync, which is also httpx-backed).
+_HttpxResponseAdapter = HttpxResponseAdapter  # backward-compat alias
 
 
 class AsyncPolyswarmRequest(PolyswarmRequest):
@@ -115,9 +108,9 @@ class AsyncPolyswarmRequest(PolyswarmRequest):
         if (
             self.result_parser
             and not issubclass(self.result_parser, BaseJsonResource)
-            and isinstance(self.raw_result, httpx.Response)
+            and not hasattr(self.raw_result, 'iter_content')
         ):
-            result_for_parsing = _HttpxResponseAdapter(self.raw_result)
+            result_for_parsing = HttpxResponseAdapter(self.raw_result)
 
         self.parse_result(result_for_parsing)
         return self
