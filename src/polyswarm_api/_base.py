@@ -202,22 +202,12 @@ class PolyswarmAPIBase:
     # delegate to self._single(...) / self._paginate(...) so the same
     # body works for both sync and async transports.
 
-    def exists(self, hash_, hash_type=None, require_scan=False):
-        """
-        Search for the latest scans matching the given hash and hash_type.
-
-        :param hash_: A Hashable object (Artifact, local.LocalArtifact, Hash) or hex-encoded SHA256/SHA1/MD5
-        :param hash_type: Hash type of the provided hash_. Will attempt to auto-detect if not explicitly provided.
-        :param require_scan: If True, only return True if the artifact has been scanned. Default is False.
-        :return: A boolean if the instance exists for search.
-        """
-        logger.info('Exists for hash %s', hash_)
-        hash_ = resources.Hash.from_hashable(hash_, hash_type=hash_type)
-        result = self._single(resources.ArtifactInstance.exists_hash(self, hash_.hash, hash_.hash_type, require_scan=require_scan))
-        if str(result) == '200':
-            return True
-        else:
-            return False
+    # ``exists`` and the download / template / multi-step methods live on
+    # the subclasses ([PolyswarmAPI](api.py) /
+    # [PolySwarmAsyncAPI](aio/api.py)) as sync+async pairs. The
+    # ``return self._single(...)`` pass-through trick only works for
+    # single-statement bodies; methods that read a ``_single`` result and
+    # act on it can't share a body between transports.
 
     def search(self, hash_, hash_type=None):
         """

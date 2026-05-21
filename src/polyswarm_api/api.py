@@ -308,6 +308,29 @@ class PolyswarmAPI(PolyswarmAPIBase):
         # read ``.json`` on it (rather than the parsed resource list).
         return resources.SandboxProvider.list(self).execute()
 
+    # ── Multi-statement endpoint carve-outs ─────────────────────────
+    #
+    # Methods below read the result of a ``_single`` call and act on
+    # it (read an attribute, branch on state, feed it into a second
+    # request). The shared-base pass-through trick only works for
+    # single-statement ``return self._single(...)`` bodies, so these
+    # methods live on the subclasses as sync+async pairs. The async
+    # twins are in [aio/api.py](aio/api.py).
+
+    def exists(self, hash_, hash_type=None, require_scan=False):
+        """
+        Search for the latest scans matching the given hash and hash_type.
+
+        :param hash_: A Hashable object (Artifact, local.LocalArtifact, Hash) or hex-encoded SHA256/SHA1/MD5
+        :param hash_type: Hash type of the provided hash_. Will attempt to auto-detect if not explicitly provided.
+        :param require_scan: If True, only return True if the artifact has been scanned. Default is False.
+        :return: A boolean if the instance exists for search.
+        """
+        logger.info('Exists for hash %s', hash_)
+        hash_ = resources.Hash.from_hashable(hash_, hash_type=hash_type)
+        result = self._single(resources.ArtifactInstance.exists_hash(self, hash_.hash, hash_.hash_type, require_scan=require_scan))
+        return str(result) == '200'
+
     def report_wait_for(self, report_id, timeout=settings.DEFAULT_REPORT_TIMEOUT):
         """
         Wait for a Report to finish successfully.

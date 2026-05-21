@@ -387,4 +387,23 @@ class PolySwarmAsyncAPI(PolyswarmAPIBase):
             else:
                 await asyncio.sleep(settings.POLL_FREQUENCY)
 
+    # ── Multi-statement endpoint carve-outs ─────────────────────────
+    #
+    # Async twins of the methods on
+    # [PolyswarmAPI](../api.py). The sync versions are the source of
+    # truth — these mirror their bodies with ``await`` inserted at
+    # each ``_single`` call. See the matching comment block in
+    # api.py for why these aren't on the shared base.
+
+    async def exists(self, hash_, hash_type=None, require_scan=False):
+        """Async twin of PolyswarmAPI.exists. Returns bool."""
+        logger.info('Exists for hash %s', hash_)
+        hash_ = resources.Hash.from_hashable(hash_, hash_type=hash_type)
+        result = await self._single(
+            resources.ArtifactInstance.exists_hash(
+                self, hash_.hash, hash_.hash_type, require_scan=require_scan,
+            ),
+        )
+        return str(result) == '200'
+
     # ── Report Templates ─────────────────────────────────────────
