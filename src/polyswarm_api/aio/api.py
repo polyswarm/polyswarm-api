@@ -395,6 +395,34 @@ class PolySwarmAsyncAPI(PolyswarmAPIBase):
     # each ``_single`` call. See the matching comment block in
     # api.py for why these aren't on the shared base.
 
+    async def sample_bundle_download(self, id, folder):
+        """Async twin of PolyswarmAPI.sample_bundle_download."""
+        task = await self._single(
+            resources.BundleTask.get(self, id=id, community=self.community),
+        )
+        if task.state == 'PENDING':
+            raise exceptions.InvalidValueException(
+                'Bundle is in PENDING state, wait for completion first',
+            )
+        if task.state == 'FAILED':
+            raise exceptions.InvalidValueException(
+                "Bundle is in FAILED state, won't be generated",
+            )
+        result = await self._single(task.download_zip(folder=folder))
+        result.handle.close()
+        return result
+
+    async def llm_report_download(self, report_task_id, folder):
+        """Async twin of PolyswarmAPI.llm_report_download."""
+        task = await self._single(
+            resources.ReportLLMPostProcessing.get(
+                self, id=report_task_id, community=self.community,
+            ),
+        )
+        result = await self._single(task.download_report(folder=folder))
+        result.handle.close()
+        return result
+
     async def download(self, out_dir, hash_, hash_type=None):
         """Async twin of PolyswarmAPI.download."""
         logger.info('Downloading %s into %s', hash_, out_dir)

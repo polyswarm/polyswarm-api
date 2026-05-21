@@ -317,6 +317,22 @@ class PolyswarmAPI(PolyswarmAPIBase):
     # methods live on the subclasses as sync+async pairs. The async
     # twins are in [aio/api.py](aio/api.py).
 
+    def sample_bundle_download(self, id, folder):
+        task = self._single(resources.BundleTask.get(self, id=id, community=self.community))
+        if task.state == 'PENDING':
+            raise exceptions.InvalidValueException('Bundle is in PENDING state, wait for completion first')
+        if task.state == 'FAILED':
+            raise exceptions.InvalidValueException("Bundle is in FAILED state, won't be generated")
+        result = self._single(task.download_zip(folder=folder))
+        result.handle.close()
+        return result
+
+    def llm_report_download(self, report_task_id, folder):
+        task = self._single(resources.ReportLLMPostProcessing.get(self, id=report_task_id, community=self.community))
+        result = self._single(task.download_report(folder=folder))
+        result.handle.close()
+        return result
+
     def download(self, out_dir, hash_, hash_type=None):
         """
         Grab the data of an artifact identified by hash and write the data to a file in the provided directory

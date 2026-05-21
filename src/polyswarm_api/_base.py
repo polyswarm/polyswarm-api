@@ -857,15 +857,7 @@ class PolyswarmAPIBase:
     def sample_bundle_task_get(self, id, **kwargs):
         return self._single(resources.BundleTask.get(self, id=id, community=self.community, **kwargs))
 
-    def sample_bundle_download(self, id, folder):
-        task = self._single(resources.BundleTask.get(self, id=id, community=self.community))
-        if task.state == 'PENDING':
-            raise exceptions.InvalidValueException('Bundle is in PENDING state, wait for completion first')
-        if task.state == 'FAILED':
-            raise exceptions.InvalidValueException("Bundle is in FAILED state, won't be generated")
-        result = self._single(task.download_zip(folder=folder))
-        result.handle.close()
-        return result
+    # ``sample_bundle_download`` lives on the subclasses (multi-step).
 
     def llm_report_create(self, instance_id=None, cape_sandbox_task_id=None, triage_sandbox_task_id=None):
         """
@@ -883,11 +875,7 @@ class PolyswarmAPIBase:
         task = self._single(resources.ReportLLMPostProcessing.get(self, id=report_task_id, community=self.community))
         return task
 
-    def llm_report_download(self, report_task_id, folder):
-        task = self._single(resources.ReportLLMPostProcessing.get(self, id=report_task_id, community=self.community))
-        result = self._single(task.download_report(folder=folder))
-        result.handle.close()
-        return result
+    # ``llm_report_download`` lives on the subclasses (multi-step).
 
     def report_create(self,
                       type,
