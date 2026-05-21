@@ -904,15 +904,7 @@ class PolyswarmAPIBase:
     def report_get(self, id, **kwargs):
         return self._single(resources.ReportTask.get(self, id=id, community=self.community, **kwargs))
 
-    def report_download(self, report_id, folder):
-        report = self.report_get(id=report_id)
-        if report.state == 'PENDING':
-            raise exceptions.InvalidValueException('Report is in PENDING state, wait for completion first')
-        if report.state == 'FAILED':
-            raise exceptions.InvalidValueException("Report is in FAILED state, won't be generated")
-        result = self._single(report.download_report(folder=folder))
-        result.handle.close()
-        return result
+    # ``report_download`` lives on the subclasses (multi-step).
 
     def report_template_logo_download(self, template_id, folder):
         report = self._single(resources.ReportTemplate.get(self, id=template_id))

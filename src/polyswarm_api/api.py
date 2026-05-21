@@ -317,6 +317,16 @@ class PolyswarmAPI(PolyswarmAPIBase):
     # methods live on the subclasses as sync+async pairs. The async
     # twins are in [aio/api.py](aio/api.py).
 
+    def report_download(self, report_id, folder):
+        report = self.report_get(id=report_id)
+        if report.state == 'PENDING':
+            raise exceptions.InvalidValueException('Report is in PENDING state, wait for completion first')
+        if report.state == 'FAILED':
+            raise exceptions.InvalidValueException("Report is in FAILED state, won't be generated")
+        result = self._single(report.download_report(folder=folder))
+        result.handle.close()
+        return result
+
     def sample_bundle_download(self, id, folder):
         task = self._single(resources.BundleTask.get(self, id=id, community=self.community))
         if task.state == 'PENDING':
