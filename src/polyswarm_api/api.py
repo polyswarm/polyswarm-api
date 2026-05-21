@@ -317,6 +317,26 @@ class PolyswarmAPI(PolyswarmAPIBase):
     # methods live on the subclasses as sync+async pairs. The async
     # twins are in [aio/api.py](aio/api.py).
 
+    def report_template_logo_download(self, template_id, folder):
+        report = self._single(resources.ReportTemplate.get(self, id=template_id))
+        result = self._single(report.download_logo(folder))
+        result.handle.close()
+        return result
+
+    def report_template_logo_delete(self, template_id):
+        report = self._single(resources.ReportTemplate.get(self, id=template_id))
+        result = self._single(report.delete_logo())
+        return result
+
+    def report_template_logo_upload(self, template_id, logo_file, content_type=None, content_tpe=None):
+        if content_tpe is not None and content_type is None:
+            content_type = content_tpe
+        if content_type is None:
+            raise exceptions.InvalidValueException("missing required argument: 'content_type'")
+        report = self._single(resources.ReportTemplate.get(self, id=template_id))
+        result = self._single(report.upload_logo(logo_file, content_type))
+        return result
+
     def report_download(self, report_id, folder):
         report = self.report_get(id=report_id)
         if report.state == 'PENDING':

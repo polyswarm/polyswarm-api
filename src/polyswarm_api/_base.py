@@ -906,25 +906,8 @@ class PolyswarmAPIBase:
 
     # ``report_download`` lives on the subclasses (multi-step).
 
-    def report_template_logo_download(self, template_id, folder):
-        report = self._single(resources.ReportTemplate.get(self, id=template_id))
-        result = self._single(report.download_logo(folder))
-        result.handle.close()
-        return result
-
-    def report_template_logo_delete(self, template_id):
-        report = self._single(resources.ReportTemplate.get(self, id=template_id))
-        result = self._single(report.delete_logo())
-        return result
-
-    def report_template_logo_upload(self, template_id, logo_file, content_type=None, content_tpe=None):
-        if content_tpe is not None and content_type is None:
-            content_type = content_tpe
-        if content_type is None:
-            raise exceptions.InvalidValueException("missing required argument: 'content_type'")
-        report = self._single(resources.ReportTemplate.get(self, id=template_id))
-        result = self._single(report.upload_logo(logo_file, content_type))
-        return result
+    # ``report_template_logo_*`` (download / delete / upload) live on
+    # the subclasses (multi-step: fetch template, then act on it).
 
     def report_template_create(self,
                                template_name,

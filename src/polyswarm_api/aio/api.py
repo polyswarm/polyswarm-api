@@ -395,6 +395,30 @@ class PolySwarmAsyncAPI(PolyswarmAPIBase):
     # each ``_single`` call. See the matching comment block in
     # api.py for why these aren't on the shared base.
 
+    async def report_template_logo_download(self, template_id, folder):
+        """Async twin of PolyswarmAPI.report_template_logo_download."""
+        report = await self._single(resources.ReportTemplate.get(self, id=template_id))
+        result = await self._single(report.download_logo(folder))
+        result.handle.close()
+        return result
+
+    async def report_template_logo_delete(self, template_id):
+        """Async twin of PolyswarmAPI.report_template_logo_delete."""
+        report = await self._single(resources.ReportTemplate.get(self, id=template_id))
+        return await self._single(report.delete_logo())
+
+    async def report_template_logo_upload(self, template_id, logo_file,
+                                          content_type=None, content_tpe=None):
+        """Async twin of PolyswarmAPI.report_template_logo_upload."""
+        if content_tpe is not None and content_type is None:
+            content_type = content_tpe
+        if content_type is None:
+            raise exceptions.InvalidValueException(
+                "missing required argument: 'content_type'",
+            )
+        report = await self._single(resources.ReportTemplate.get(self, id=template_id))
+        return await self._single(report.upload_logo(logo_file, content_type))
+
     async def report_download(self, report_id, folder):
         """Async twin of PolyswarmAPI.report_download."""
         report = await self.report_get(id=report_id)
