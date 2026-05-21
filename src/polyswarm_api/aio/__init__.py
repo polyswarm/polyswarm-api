@@ -115,8 +115,6 @@ class PolySwarmAsyncAPI(PolyswarmAPIBase):
     # ── Engines ──────────────────────────────────────────────────
 
     @property
-
-    @property
     def engines(self):
         raise AttributeError(
             "Use 'await refresh_engine_cache()' then access '_engines' directly. "

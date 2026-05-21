@@ -1198,8 +1198,11 @@ class PolyswarmAPIBase:
         """
         Test a notification webhook by sending a test payload.
         :param webhook_id: The ID of the webhook to test
+        :raises: ``RequestException`` (or a specific subclass) when the server
+            returns a non-2xx response.
         """
         logger.info('Testing webhook %s', webhook_id)
-        res = resources.Webhook.test(self, webhook_id=webhook_id)
-        if res.status_code != 200:
-            raise exceptions.RequestException('Failed to test webhook %s', webhook_id)
+        # ``_single`` executes the request and raises the appropriate
+        # ``RequestException`` subclass on any non-2xx response; nothing
+        # extra to check here.
+        return self._single(resources.Webhook.test(self, webhook_id=webhook_id))

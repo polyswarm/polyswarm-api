@@ -201,14 +201,20 @@ class PolyswarmRequest(object):
     def parse_result(self, result):
         self.status_code = result.status_code
         if self.request_parameters['method'] == 'HEAD':
+            # HEAD: status code IS the result; suppress non-2xx mapping
+            # so callers (e.g. ``exists_hash``) can read 404 as "absent"
+            # without raising.
             logger.debug('HEAD method does not return results, setting it to the status code.')
             self._result = self.status_code
-        if not self.result_parser:
-            logger.debug('Result parser is not defined, skipping parsing results.')
             return
         logger.debug('Parsing request results.')
         try:
             if self.status_code // 100 != 2:
+                # Non-2xx: map to the appropriate exception regardless of
+                # whether ``result_parser`` is set. Previously this branch
+                # was gated on ``result_parser`` — endpoints whose
+                # builders did not set one (e.g. ``Webhook.test``) would
+                # silently swallow server errors.
                 self._extract_json_body(result)
                 if self.status_code == 429:
                     message = f'{self._result} This may mean you need to purchase a ' \
@@ -222,9 +228,14 @@ class PolyswarmRequest(object):
                     raise exceptions.FailedInstanceException(self, self._result)
                 else:
                     raise exceptions.RequestException(self, self._bad_status_message())
-            elif self.status_code == 204:
+            if not self.result_parser:
+                # 2xx without a parser: body is intentionally discarded
+                # (e.g. fire-and-forget endpoints like ``Webhook.test``).
+                logger.debug('Result parser is not defined, skipping parsing results.')
+                return
+            if self.status_code == 204:
                 raise exceptions.NoResultsException(self, 'The request returned no results.')
-            elif issubclass(self.result_parser, BaseJsonResource):
+            if issubclass(self.result_parser, BaseJsonResource):
                 self._extract_json_body(result)
                 if self.request_parameters['method'] == 'GET' and 'has_more' in self.json:
                     # has_more will always be present, being either False or True

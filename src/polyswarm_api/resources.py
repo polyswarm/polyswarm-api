@@ -1388,6 +1388,10 @@ class Webhook(core.BaseJsonResource):
 
     @classmethod
     def test(cls, api, webhook_id):
+        # No ``result_parser``: the server returns a generic OK envelope
+        # on success, not a Webhook-shaped payload. ``parse_result`` was
+        # updated so non-2xx still raises ``RequestException`` even
+        # without a parser.
         return core.PolyswarmRequest(
             api,
             {
