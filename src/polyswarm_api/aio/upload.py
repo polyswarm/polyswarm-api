@@ -1,7 +1,7 @@
-"""Async S3 upload for PolySwarm artifact submission.
+"""S3 upload for PolySwarm artifact submission.
 
-Module-level callable so downstream consumers can monkey-patch the upload
-path. See specs/05-downstream-contract.md.
+Module-level callable so downstream consumers can monkey-patch the
+upload path. See specs/05-downstream-contract.md.
 """
 
 import io

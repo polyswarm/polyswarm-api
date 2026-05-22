@@ -375,7 +375,7 @@ class TestAsyncEngineCache:
         await api.refresh_engine_cache()
         assert {'Intezer', 'IRIS-H', 'Test', 'K7-Arbiter'} == {e.name for e in api._engines}
         assert {'K7-Arbiter'} == {e.name for e in api._engines if e.is_arbiter}
-        await api.close()
+        await api.aclose()
 
     @respx.mock
     async def test_async_engine_cache_server_error_raises(self):
@@ -386,7 +386,7 @@ class TestAsyncEngineCache:
         api = PolySwarmAsyncAPI(self.test_api_key, uri='http://localhost:3000/api/v1', community='gamma')
         with pytest.raises(exceptions.RequestException):
             await api.refresh_engine_cache()
-        await api.close()
+        await api.aclose()
 
     @respx.mock
     async def test_async_engine_cache_empty_raises(self):
@@ -397,7 +397,7 @@ class TestAsyncEngineCache:
         api = PolySwarmAsyncAPI(self.test_api_key, uri='http://localhost:3000/api/v1', community='gamma')
         with pytest.raises(exceptions.InvalidValueException):
             await api.refresh_engine_cache()
-        await api.close()
+        await api.aclose()
 
 
 # ── Error handling (no cassettes) — mirrors no-cassette sync tests ────────────

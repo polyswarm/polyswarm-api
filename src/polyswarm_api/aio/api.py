@@ -1,25 +1,14 @@
-"""Async PolySwarm API client — canonical source for unasync codegen.
+"""PolySwarm API client.
 
-This module is the hand-written async client. ``scripts/unasync.py`` reads
-this file (and the rest of ``polyswarm_api/aio/``) and generates the sync
-mirror at ``polyswarm_api/api.py``. Every endpoint method, transport hook,
-and helper lives here as ``async def``; the generated sync versions are
-mechanically transformed.
+The async version lives here; the sync mirror at
+``polyswarm_api.api`` is generated from this file by
+``scripts/regenerate_sync.py``. Edit only the async source — the sync
+side is mechanically derived.
 
-Public surface unchanged:
+Public surface::
 
-    from polyswarm_api import PolyswarmAPI                 # sync (generated)
-    from polyswarm_api.aio import PolySwarmAsyncAPI        # async (this file)
-
-Usage (async)::
-
-    async with PolySwarmAsyncAPI(api_key) as client:
-        async for result in client.search_by_metadata("family:Emotet"):
-            print(result.json)
-
-        instance = await client.submit("/path/to/sample.exe")
-        scan = await client.wait_for(instance)
-        task = await client.sandbox(instance.id, "triage", "win10-build-15063")
+    from polyswarm_api import PolyswarmAPI                 # sync
+    from polyswarm_api.aio import PolySwarmAsyncAPI        # async
 """
 
 import asyncio
@@ -38,13 +27,12 @@ __all__ = ["PolySwarmAsyncAPI"]
 
 
 class PolySwarmAsyncAPI:
-    """Async interface to the PolySwarm API.
+    """Interface to the PolySwarm API.
 
-    All methods are ``async def``. Generator methods are async generators.
-    Parallelism is left to the caller (``asyncio.gather``, semaphores, …).
-
-    The sync counterpart (``polyswarm_api.PolyswarmAPI``) is generated from
-    this class by ``scripts/unasync.py``.
+    In this (canonical) file every method is ``async def``; generator
+    methods are async generators. The sync mirror generated at
+    ``polyswarm_api.api.PolyswarmAPI`` has the same methods as plain
+    ``def`` / generator functions.
     """
 
     _request_cls = AsyncPolyswarmRequest
@@ -81,15 +69,15 @@ class PolySwarmAsyncAPI:
         attrs = f'uri={self.uri!r}, community={self.community!r}, timeout={self.timeout!r}'
         return f'<{clsname}({attrs}) at 0x{id(self):x}>'
 
-    async def close(self):
+    async def aclose(self):
         """Close the underlying HTTP client."""
-        await self.session.close()
+        await self.session.aclose()
 
     async def __aenter__(self):
         return self
 
     async def __aexit__(self, *exc):
-        await self.close()
+        await self.aclose()
 
     # ── Transport hooks ─────────────────────────────────────────────
     #
@@ -99,24 +87,26 @@ class PolySwarmAsyncAPI:
 
     def _coerce_request(self, request, result_parser=None, parser_kwargs=None):
         """Normalise the ``_single`` / ``_paginate`` input into an
-        ``AsyncPolyswarmRequest`` (or its sync mirror, in the generated file).
+        ``AsyncPolyswarmRequest`` (sync mirror: ``PolyswarmRequest``).
+
+        ``request`` is one of:
+
+        * a request-parameters ``dict`` (legacy / inline endpoint bodies);
+        * a request object exposing ``request_parameters`` /
+          ``result_parser`` / ``parser_kwargs`` — typically returned by
+          resource classmethods. We rebuild it on the subclass's
+          ``_request_cls`` so the right transport is used.
         """
-        from polyswarm_api.core import PolyswarmRequest
         parser_kwargs = parser_kwargs or {}
-        if isinstance(request, PolyswarmRequest):
-            return self._request_cls(
-                self,
-                request.request_parameters,
-                result_parser=request.result_parser,
-                **request.parser_kwargs,
-            )
         if isinstance(request, dict):
             return self._request_cls(
                 self, request, result_parser=result_parser, **parser_kwargs,
             )
-        raise TypeError(
-            f'_single / _paginate expect a PolyswarmRequest or request-parameters '
-            f'dict, got {type(request).__name__}',
+        return self._request_cls(
+            self,
+            request.request_parameters,
+            result_parser=request.result_parser,
+            **request.parser_kwargs,
         )
 
     async def _single(self, request, result_parser=None, **kwargs):
@@ -152,7 +142,7 @@ class PolySwarmAsyncAPI:
         # Async clients can't expose a property that awaits — call
         # ``refresh_engine_cache()`` first and read ``self._engines``.
         # The sync mirror gets a working property via post-processing in
-        # scripts/unasync.py (see PROPERTY_OVERRIDES there).
+        # scripts/regenerate_sync.py (see ENGINES_SYNC there).
         raise AttributeError(
             "Use 'await refresh_engine_cache()' then access '_engines' directly. "
             "Properties cannot be async."

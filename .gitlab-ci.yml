@@ -56,10 +56,10 @@ test-unasync-mirror:
     - pip install --upgrade pip
     - pip install unasync ruff
   script:
-    - python scripts/unasync.py
+    - python scripts/regenerate_sync.py
     - |
       git diff --exit-code -- src/polyswarm_api/ || {
-        echo "Sync mirror is stale. Run scripts/unasync.py and commit the result."
+        echo "Sync mirror is stale. Run scripts/regenerate_sync.py and commit the result."
         exit 1
       }
 
