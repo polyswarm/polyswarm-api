@@ -1,0 +1,9 @@
+repos:
+  - repo: local
+    hooks:
+      - id: unasync
+        name: Regenerate sync mirror from aio/
+        entry: python scripts/unasync.py
+        language: system
+        pass_filenames: false
+        files: ^src/polyswarm_api/aio/[^/]+\.py$

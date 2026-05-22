@@ -41,6 +41,10 @@ tests = [
     "respx>=0.21",
     "httpx>=0.27",
 ]
+dev = [
+    "unasync>=0.6",
+    "ruff>=0.6",
+]
 
 [tool.setuptools]
 include-package-data = true

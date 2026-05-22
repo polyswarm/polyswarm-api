@@ -47,6 +47,22 @@ test-run312:
     - pip install .[tests]
     - pytest -s -v
 
+test-unasync-mirror:
+  tags:
+    - stage-kube-newer
+  image: python:3.12
+  stage: test
+  before_script:
+    - pip install --upgrade pip
+    - pip install unasync ruff
+  script:
+    - python scripts/unasync.py
+    - |
+      git diff --exit-code -- src/polyswarm_api/ || {
+        echo "Sync mirror is stale. Run scripts/unasync.py and commit the result."
+        exit 1
+      }
+
 ###############################################################
 # Release Stage
 ###############################################################
