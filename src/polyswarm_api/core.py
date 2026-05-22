@@ -58,7 +58,7 @@ class PolyswarmSession:
         timeout=settings.DEFAULT_HTTP_TIMEOUT,
         **httpx_kwargs,
     ):
-        logger.debug("Creating AsyncPolyswarmSession (httpx-backed)")
+        logger.debug("Creating %s (httpx-backed)", type(self).__name__)
         self.verify = verify
         hdrs = httpx_kwargs.pop("headers", None) or {}
         if key:
@@ -110,7 +110,8 @@ class PolyswarmRequest(object):
         self, api_instance, request_parameters, key=None, result_parser=None, **kwargs
     ):
         logger.debug(
-            "Creating AsyncPolyswarmRequest instance.\nRequest parameters: %s\nResult parser: %s",
+            "Creating %s instance.\nRequest parameters: %s\nResult parser: %s",
+            type(self).__name__,
             request_parameters,
             result_parser.__name__ if result_parser else "No result parser",
         )

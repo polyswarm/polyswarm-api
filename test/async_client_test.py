@@ -2,15 +2,16 @@
 
 Most tests reuse the existing VCR cassettes from the sync test suite —
 the HTTP interactions are identical; only the transport layer differs.
-VCR is configured with match_on=['method', 'uri'] so the request headers
-recorded by the requests library do not cause mismatches when httpx
-replays the cassette.
+VCR is configured with ``match_on=['method', 'scheme', 'host', 'port',
+'path', 'query']`` so query parameters compare as a set; this lets
+cassettes survive httpx's different param-ordering from the
+requests-recorded format.
 
 Error-handling and lifecycle tests that have no pre-recorded cassette
-use respx (the httpx equivalent of responses).
+use respx (the httpx mocking library).
 
 Run with:
-    pip install -e ".[async,tests]"
+    pip install -e ".[tests]"
     pytest test/async_client_test.py -v
 """
 import pytest
@@ -323,8 +324,8 @@ class TestAsyncScanCase:
 
 class TestAsyncEngineCache:
     """
-    Tests for the engine cache use respx (httpx equivalent of responses)
-    because the sync suite uses @responses.activate for this test.
+    Tests for the engine cache use respx (httpx mocking library) to mock
+    the engines-list endpoint without a VCR cassette.
     """
     test_api_key = '11111111111111111111111111111111'
 

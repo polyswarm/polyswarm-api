@@ -49,7 +49,7 @@ class AsyncPolyswarmSession:
     def __init__(self, key, retries=settings.DEFAULT_RETRIES,
                  user_agent=settings.DEFAULT_USER_AGENT, verify=True,
                  timeout=settings.DEFAULT_HTTP_TIMEOUT, **httpx_kwargs):
-        logger.debug('Creating AsyncPolyswarmSession (httpx-backed)')
+        logger.debug('Creating %s (httpx-backed)', type(self).__name__)
         self.verify = verify
         hdrs = httpx_kwargs.pop('headers', None) or {}
         if key:
@@ -94,8 +94,10 @@ class AsyncPolyswarmRequest(object):
     ``polyswarm_api.core.PolyswarmRequest``.
     """
     def __init__(self, api_instance, request_parameters, key=None, result_parser=None, **kwargs):
-        logger.debug('Creating AsyncPolyswarmRequest instance.\nRequest parameters: %s\nResult parser: %s',
-                     request_parameters, result_parser.__name__ if result_parser else 'No result parser')
+        logger.debug('Creating %s instance.\nRequest parameters: %s\nResult parser: %s',
+                     type(self).__name__,
+                     request_parameters,
+                     result_parser.__name__ if result_parser else 'No result parser')
         self.api_instance = api_instance
         self.session = self.api_instance.session or AsyncPolyswarmSession(key, retries=settings.DEFAULT_RETRIES)
         self.timeout = self.api_instance.timeout or settings.DEFAULT_HTTP_TIMEOUT

@@ -2,7 +2,7 @@
 
 ## Scope
 
-How the test suite is organised, the three mocking layers (`responses`, `respx`, `vcrpy`), the `ClientTestCase` parametrisation harness that runs each test against both clients, and the workflow for recording and re-recording cassettes against the live e2e stack.
+How the test suite is organised, the two mocking layers (`respx`, `vcrpy`), the `ClientTestCase` parametrisation harness that runs each test against both clients, and the workflow for recording and re-recording cassettes against the live e2e stack.
 
 ## Invariants
 
@@ -22,9 +22,9 @@ How the test suite is organised, the three mocking layers (`responses`, `respx`,
 - `test/vcr/*.vcr` — recorded cassettes.
 - `test/eicar.yara`, `test/malicious` — fixture files for upload tests.
 
-## Three mocking layers
+## Two mocking layers
 
-The SDK is tested at three levels:
+The SDK is tested at two levels:
 
 | Layer | Tool | What it covers | When to use |
 |---|---|---|---|

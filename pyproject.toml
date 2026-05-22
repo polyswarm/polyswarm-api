@@ -34,7 +34,6 @@ tests = [
     "bump-my-version~=1.2",
     "pytest~=7.4",
     "jsonschema~=3.0.2",
-    "responses~=0.23.3",
     "python-dateutil~=2.9.0",
     'vcrpy~=7.0',
     "pytest-asyncio>=0.23",

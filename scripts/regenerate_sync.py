@@ -51,6 +51,15 @@ REPLACEMENTS = {
     # ``import asyncio`` → ``import time``; ``asyncio.sleep(s)`` →
     # ``time.sleep(s)``. unasync tokenises before rewriting so string
     # literals (e.g. ``asyncio.gather`` in docstrings) are not touched.
+    #
+    # CONSTRAINT: ``asyncio.X`` for any ``X`` other than ``sleep`` will
+    # produce ``time.X`` in the generated sync mirror, which is
+    # nonsense. Don't introduce ``asyncio.gather`` / ``asyncio.Event``
+    # / etc. on the canonical side without first restructuring this
+    # rename (e.g. by importing ``sleep`` directly and renaming the
+    # binding, or by inlining the asyncio-specific call inside a
+    # ``# unasync: skip`` region — see the docs for unasync's escape
+    # hatches).
     "asyncio":               "time",
     # imports inside the canonical async refer to polyswarm_api.aio.* —
     # rewrite that segment so the generated sync points at the root.

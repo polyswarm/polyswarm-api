@@ -1,12 +1,12 @@
 """Tests for the metadata_field_properties SDK methods.
 
 Each test method runs twice — once against the sync ``PolyswarmAPI``
-(HTTP boundary mocked by ``responses``) and once against the async
-``PolySwarmAsyncAPI`` (HTTP boundary mocked by ``respx``). The
-parametrisation is automatic: ``ClientTestCase`` 's ``__init_subclass__``
-hook emits ``<Name>Sync`` and ``<Name>Async`` sibling classes for every
-subclass declared. The base subclass is hidden from pytest via
-``__test__ = False``.
+and once against the async ``PolySwarmAsyncAPI``. Both transports are
+``httpx``-backed, so the HTTP boundary is mocked by ``respx`` in either
+case. The parametrisation is automatic: ``ClientTestCase`` 's
+``__init_subclass__`` hook emits ``<Name>Sync`` and ``<Name>Async``
+sibling classes for every subclass declared. The base subclass is
+hidden from pytest via ``__test__ = False``.
 """
 import asyncio
 from unittest import TestCase

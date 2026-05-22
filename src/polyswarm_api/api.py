@@ -31,10 +31,12 @@ __all__ = ["PolyswarmAPI"]
 class PolyswarmAPI:
     """Interface to the PolySwarm API.
 
-    In this (canonical) file every method is ``async def``; generator
-    methods are async generators. The sync mirror generated at
-    ``polyswarm_api.api.PolyswarmAPI`` has the same methods as plain
-    ``def`` / generator functions.
+    The hand-written async client lives at ``polyswarm_api.aio`` and
+    uses ``httpx.AsyncClient``. The synchronous mirror at
+    ``polyswarm_api`` is generated from it and uses ``httpx.Client``.
+    Both expose the same method names and return shapes — sync callers
+    receive values / iterators directly; async callers ``await`` /
+    ``async for``.
     """
 
     _request_cls = PolyswarmRequest
@@ -187,11 +189,8 @@ class PolyswarmAPI:
     # ── Endpoint methods (canonical) ────────────────────────────
 
     def metadata_mapping(self):
-        """Get available metadata field names and types.
-
-        Sync: returns a ``MetadataMapping`` resource.
-        Async: returns a coroutine; ``await`` it for the same.
-        """
+        """Return the ``MetadataMapping`` describing available metadata
+        field names and types."""
         logger.info("Retrieving the metadata mapping")
         return self._single(
             {
@@ -254,11 +253,7 @@ class PolyswarmAPI:
         )
 
     def metadata_field_properties_list(self):
-        """List all metadata field properties entries.
-
-        Sync: returns a generator. Async: returns an async generator.
-        Iterate with ``for`` or ``async for`` accordingly.
-        """
+        """Iterate all metadata field properties entries."""
         logger.info("Listing metadata field properties")
         for item in self._paginate(
             {
@@ -1707,21 +1702,24 @@ class PolyswarmAPI:
                 time.sleep(settings.POLL_FREQUENCY)
 
     def report_template_logo_download(self, template_id, folder):
-        """Async twin of PolyswarmAPI.report_template_logo_download."""
+        """Download the logo image for a report template into ``folder``."""
         report = self._single(resources.ReportTemplate.get(self, id=template_id))
         result = self._single(report.download_logo(folder))
         result.handle.close()
         return result
 
     def report_template_logo_delete(self, template_id):
-        """Async twin of PolyswarmAPI.report_template_logo_delete."""
+        """Delete the logo image attached to a report template."""
         report = self._single(resources.ReportTemplate.get(self, id=template_id))
         return self._single(report.delete_logo())
 
     def report_template_logo_upload(
         self, template_id, logo_file, content_type=None, content_tpe=None
     ):
-        """Async twin of PolyswarmAPI.report_template_logo_upload."""
+        """Upload a logo image for a report template.
+
+        ``content_tpe`` is a legacy spelling kept for backwards compatibility.
+        """
         if content_tpe is not None and content_type is None:
             content_type = content_tpe
         if content_type is None:
@@ -1732,7 +1730,11 @@ class PolyswarmAPI:
         return self._single(report.upload_logo(logo_file, content_type))
 
     def report_download(self, report_id, folder):
-        """Async twin of PolyswarmAPI.report_download."""
+        """Download a completed report into ``folder``.
+
+        Raises ``InvalidValueException`` if the report is still pending or
+        has failed — call ``report_wait_for`` first if you need to block.
+        """
         report = self.report_get(id=report_id)
         if report.state == "PENDING":
             raise exceptions.InvalidValueException(
@@ -1747,7 +1749,11 @@ class PolyswarmAPI:
         return result
 
     def sample_bundle_download(self, id, folder):
-        """Async twin of PolyswarmAPI.sample_bundle_download."""
+        """Download the zip produced by a bundle task into ``folder``.
+
+        Raises ``InvalidValueException`` if the bundle is still pending or
+        has failed.
+        """
         task = self._single(
             resources.BundleTask.get(self, id=id, community=self.community),
         )
@@ -1764,7 +1770,7 @@ class PolyswarmAPI:
         return result
 
     def llm_report_download(self, report_task_id, folder):
-        """Async twin of PolyswarmAPI.llm_report_download."""
+        """Download the rendered LLM-post-processing report into ``folder``."""
         task = self._single(
             resources.ReportLLMPostProcessing.get(
                 self,
@@ -1777,7 +1783,13 @@ class PolyswarmAPI:
         return result
 
     def download(self, out_dir, hash_, hash_type=None):
-        """Async twin of PolyswarmAPI.download."""
+        """Download an artifact by hash into ``out_dir``.
+
+        :param out_dir: Destination directory for the downloaded file.
+        :param hash_: Hashable (Artifact, LocalArtifact, Hash) or hex-encoded SHA256/SHA1/MD5.
+        :param hash_type: Hash type; auto-detected from the literal if not provided.
+        :return: A ``LocalArtifact`` resource with its handle already closed.
+        """
         logger.info("Downloading %s into %s", hash_, out_dir)
         hash_ = resources.Hash.from_hashable(hash_, hash_type=hash_type)
         artifact = self._single(
@@ -1789,7 +1801,7 @@ class PolyswarmAPI:
         return artifact
 
     def download_id(self, out_dir, instance_id):
-        """Async twin of PolyswarmAPI.download_id."""
+        """Download an artifact by its instance id into ``out_dir``."""
         logger.info("Downloading %s into %s", instance_id, out_dir)
         artifact = self._single(
             resources.LocalArtifact.download_id(self, instance_id, folder=out_dir),
@@ -1798,7 +1810,7 @@ class PolyswarmAPI:
         return artifact
 
     def download_sandbox_artifact(self, out_dir, sandbox_task_id, instance_id):
-        """Async twin of PolyswarmAPI.download_sandbox_artifact."""
+        """Download a sandbox-produced artifact (e.g. PCAP, dropped file) into ``out_dir``."""
         logger.info("Downloading sandbox artifact %s %s", sandbox_task_id, instance_id)
         sandbox_artifact = self._single(
             resources.LocalArtifact.download_sandbox_artifact(
@@ -1812,7 +1824,7 @@ class PolyswarmAPI:
         return sandbox_artifact
 
     def download_archive(self, out_dir, s3_path):
-        """Async twin of PolyswarmAPI.download_archive."""
+        """Download an artifact-archive tarball from the ``stream()`` feed into ``out_dir``."""
         logger.info("Downloading %s into %s", s3_path, out_dir)
         artifact = self._single(
             resources.LocalArtifact.download_archive(self, s3_path, folder=out_dir),
@@ -1821,7 +1833,13 @@ class PolyswarmAPI:
         return artifact
 
     def exists(self, hash_, hash_type=None, require_scan=False):
-        """Async twin of PolyswarmAPI.exists. Returns bool."""
+        """Check whether an artifact with the given hash is known.
+
+        :param hash_: Hashable (Artifact, LocalArtifact, Hash) or hex-encoded SHA256/SHA1/MD5.
+        :param hash_type: Hash type; auto-detected if not provided.
+        :param require_scan: If True, only count artifacts that have been scanned.
+        :return: ``True`` if the artifact exists in PolySwarm's index.
+        """
         logger.info("Exists for hash %s", hash_)
         hash_ = resources.Hash.from_hashable(hash_, hash_type=hash_type)
         result = self._single(
