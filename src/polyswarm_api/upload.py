@@ -1,4 +1,4 @@
-"""Async S3 upload for PolySwarm artifact submission.
+"""Sync S3 upload for PolySwarm artifact submission.
 
 Module-level callable so downstream consumers can monkey-patch the upload
 path. See specs/05-downstream-contract.md.
@@ -14,8 +14,8 @@ from polyswarm_api import exceptions
 logger = logging.getLogger(__name__)
 
 
-async def async_upload_file(
-    client: httpx.AsyncClient,
+def upload_file(
+    client: httpx.Client,
     upload_url: str,
     artifact,
     attempts: int = 3,
@@ -23,7 +23,7 @@ async def async_upload_file(
     """Upload a file to a pre-signed S3 URL.
 
     Args:
-        client: httpx.AsyncClient (typically ``AsyncPolyswarmSession._client``).
+        client: httpx.Client (typically ``PolyswarmSession._client``).
         upload_url: pre-signed S3 URL from the API response.
         artifact: file-like object to upload.
         attempts: number of retry attempts.
@@ -44,7 +44,6 @@ async def async_upload_file(
             data = b""
         else:
             data = artifact.read()
-        r = await client.put(upload_url, content=data)
+        r = client.put(upload_url, content=data)
         r.raise_for_status()
     return r
-

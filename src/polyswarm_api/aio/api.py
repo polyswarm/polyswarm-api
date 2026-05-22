@@ -28,7 +28,7 @@ from polyswarm_api import exceptions, resources, settings
 from polyswarm_api._base import PolyswarmAPIBase
 
 from .core import AsyncPolyswarmRequest, AsyncPolyswarmSession
-from .upload import async_upload_file, async_upload_logo
+from .upload import async_upload_file
 
 logger = logging.getLogger(__name__)
 

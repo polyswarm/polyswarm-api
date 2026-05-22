@@ -320,21 +320,10 @@ class ArtifactInstance(core.BaseJsonResource, core.Hashable):
         self._benign_assertions = None
         self._valid_assertions = None
 
-    def upload_file(self, artifact, attempts=3, **kwargs):
-        if not self.upload_url:
-            raise exceptions.InvalidValueException('upload_url must be set to upload a file')
-        if not artifact:
-            raise exceptions.InvalidValueException('A LocalArtifact must be provided in order to upload')
-        r = None
-        while attempts > 0 and not r:
-            attempts -= 1
-            artifact.seek(0, io.SEEK_END)
-            length = artifact.tell()
-            artifact.seek(0)
-            content = b'' if not length else artifact.read()
-            r = httpx.put(self.upload_url, content=content, **kwargs)
-            r.raise_for_status()
-        return r
+    def upload_file(self, artifact, attempts=3):
+        """Upload to the pre-signed S3 URL. Thin shim over ``polyswarm_api.upload.upload_file``."""
+        from polyswarm_api.upload import upload_file as _upload
+        return _upload(self.api.session._client, self.upload_url, artifact, attempts)
 
     @classmethod
     def exists_hash(cls, api, hash_value, hash_type, require_scan=False):
@@ -1050,21 +1039,10 @@ class SandboxTask(core.BaseJsonResource):
         self.artifact = content['artifact']
         self.sandbox_artifacts = [SandboxArtifact(a, api=api) for a in content.get('sandbox_artifacts', [])]
 
-    def upload_file(self, artifact, attempts=3, **kwargs):
-        if not self.upload_url:
-            raise exceptions.InvalidValueException('upload_url must be set to upload a file')
-        if not artifact:
-            raise exceptions.InvalidValueException('A LocalArtifact must be provided in order to upload')
-        r = None
-        while attempts > 0 and not r:
-            attempts -= 1
-            artifact.seek(0, io.SEEK_END)
-            length = artifact.tell()
-            artifact.seek(0)
-            content = b'' if not length else artifact.read()
-            r = httpx.put(self.upload_url, content=content, **kwargs)
-            r.raise_for_status()
-        return r
+    def upload_file(self, artifact, attempts=3):
+        """Upload to the pre-signed S3 URL. Thin shim over ``polyswarm_api.upload.upload_file``."""
+        from polyswarm_api.upload import upload_file as _upload
+        return _upload(self.api.session._client, self.upload_url, artifact, attempts)
 
     @classmethod
     def get(cls, api, **kwargs):
