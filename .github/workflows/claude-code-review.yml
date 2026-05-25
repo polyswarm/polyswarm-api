@@ -35,47 +35,41 @@ jobs:
             REPO: ${{ github.repository }}
             PR NUMBER: ${{ github.event.pull_request.number }}
 
-            The authoritative descriptions of how this project works
-            live in the repo itself. Read them first:
+            Review this PR against the project's CLAUDE.md / AGENTS.md
+            and the `specs/` directory — they are authoritative on
+            conventions, contracts, architecture, and intent. Read the
+            spec for every area the PR touches before reviewing the
+            corresponding code.
 
-              - AGENTS.md and CLAUDE.md at the repo root — workspace
-                and project conventions (gitflow, commit hygiene,
-                architectural shape, contributor workflow).
-              - specs/*.md — per-area contracts and invariants. Read
-                the spec for every area the PR touches before
-                reviewing the corresponding code.
-
-            Review the PR against those documents. The project is the
-            ground truth; this prompt only describes the generic
-            review posture.
-
-            Generic priorities:
-              - Correctness. Bugs, error-handling gaps, mismatched
-                request/response shapes, transport boundary problems.
-              - Documented-invariant compliance. Any code that
-                contradicts a spec invariant or an AGENTS.md rule.
-              - Stale documentation. Spec or AGENTS.md sections that
-                no longer match the code (in either direction —
-                missing updates that should accompany this PR, or
-                references that belong in code that have leaked into
-                the docs).
-              - Public-surface compatibility. Changes to documented
-                public symbols (exported classes, method signatures,
-                response shapes, exception classes, module-level
-                monkey-patch sites) need an explicit version-bump
-                decision. The bump policy is in AGENTS.md.
-              - Branch base + version bumps. The gitflow rules in
-                AGENTS.md govern which branch a PR may target and when
-                version bumps are allowed.
-              - Test coverage for new code paths. Flag specific
-                missing cases, not generic "add more tests" notes.
+            Focus on real issues, ordered by severity:
+              1. Correctness — bugs, error-handling gaps, request /
+                 response shape mismatches, transport-boundary
+                 problems, broken state machines.
+              2. Spec drift — does the change match `AGENTS.md` and
+                 the relevant `specs/*.md`? Flag code that contradicts
+                 a documented invariant, and flag specs that need
+                 updating because the code rightly moved past them.
+                 The architecture rules, file roles, and "where does a
+                 new endpoint go" decisions all live in those docs —
+                 quote them when measuring.
+              3. Downstream contract — changes to the public surface
+                 (exported classes, method signatures, response
+                 shapes, exception classes, monkey-patch sites listed
+                 in the specs) need an explicit version-bump
+                 decision. The bump policy is in AGENTS.md.
+              4. Test coverage — does the test exercise the new path?
+                 Cite specific missing cases. Test conventions (mock
+                 layers, cassette workflow, parametrised harness) are
+                 in `specs/04-testing.md`.
+              5. Gitflow — `AGENTS.md` documents the branch base and
+                 version-bump rules; flag any PR that violates them.
 
             Skip:
               - Style nits any auto-formatter already enforces.
+              - "Consider adding tests" suggestions with no specific
+                missing case.
               - Architectural rewrites for hypothetical future
                 requirements.
-              - Generic "consider adding tests" suggestions with no
-                concrete missing case.
 
             Be terse. Comment only on issues that need action. If the
             PR is clean against the documented conventions, say so in
