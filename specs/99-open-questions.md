@@ -14,15 +14,13 @@ The parametrised `ClientTestCase` harness in `test/metadata_field_properties_tes
 
 **Decision point:** when a test scenario does something inherently async (concurrency, cancellation, owned-vs-injected client lifecycle), it stays as a standalone `async def test_*` — those don't fit the parametrised harness. Document that in `04-testing.md` with worked examples once we have any.
 
-## File-upload sync/async divergence
+## File-upload monkey-patch site
 
-**Status:** preserved as two implementations.
+**Status:** preserved as module-level callable.
 
-`PolyswarmAPI.submit` calls `instance.upload_file(artifact)` (sync `httpx.put`). `PolySwarmAsyncAPI.submit` calls `async_upload_file(self, instance, artifact)` from `polyswarm_api.aio.upload`. The body shape of each is mostly the same — the divergence is the actual upload call.
+`polyswarm_api.aio.upload.async_upload_file(client, upload_url, artifact, attempts=3, **kwargs)` (and the `polyswarm_api.aio.async_upload_file` re-export) is a documented monkey-patch site — downstream code replaces it at runtime for custom credential handling, retry policies, or proxy configuration. The sync mirror at `polyswarm_api.upload.upload_file` (generated from the async source by `scripts/regenerate_sync.py`) shares the same role on the sync surface.
 
-**Action:** consider whether a shared `_upload(artifact)` abstract hook on `PolyswarmAPIBase` could let `submit` / `sandbox_file` / `sandbox_url` live once on the base. Sync `_upload` would call `httpx.put` synchronously; async would call the monkey-patchable helper. Worth the indirection only if multiple upload-flavour methods benefit.
-
-**Decision point:** the `async_upload_file` monkey-patch site is a hard constraint — any refactor must keep it module-level and callable with the existing signature.
+**Decision point:** any refactor must keep the helper module-level and callable with the documented signature. The unasync codegen handles the sync/async split, so `submit` / `sandbox_file` / `sandbox_url` live as one body in `aio/api.py` — no further consolidation needed.
 
 ## `sandbox_providers` executed-request quirk
 

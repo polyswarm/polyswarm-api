@@ -320,10 +320,17 @@ class ArtifactInstance(core.BaseJsonResource, core.Hashable):
         self._benign_assertions = None
         self._valid_assertions = None
 
-    def upload_file(self, artifact, attempts=3):
-        """Upload to the pre-signed S3 URL. Thin shim over ``polyswarm_api.upload.upload_file``."""
+    def upload_file(self, artifact, attempts=3, **kwargs):
+        """Upload to the pre-signed S3 URL.
+
+        Thin shim over ``polyswarm_api.upload.upload_file``. ``**kwargs``
+        is forwarded to the underlying ``httpx.Client.put`` call so the
+        3.x ``upload_file(artifact, headers=…)`` callsites continue to
+        work (kwargs previously went to ``requests.put``; the
+        intersection — ``headers``, ``timeout`` — is unchanged).
+        """
         from polyswarm_api.upload import upload_file as _upload
-        return _upload(self.api.session._client, self.upload_url, artifact, attempts)
+        return _upload(self.api.session._client, self.upload_url, artifact, attempts, **kwargs)
 
     @classmethod
     def exists_hash(cls, api, hash_value, hash_type, require_scan=False):
@@ -1039,10 +1046,17 @@ class SandboxTask(core.BaseJsonResource):
         self.artifact = content['artifact']
         self.sandbox_artifacts = [SandboxArtifact(a, api=api) for a in content.get('sandbox_artifacts', [])]
 
-    def upload_file(self, artifact, attempts=3):
-        """Upload to the pre-signed S3 URL. Thin shim over ``polyswarm_api.upload.upload_file``."""
+    def upload_file(self, artifact, attempts=3, **kwargs):
+        """Upload to the pre-signed S3 URL.
+
+        Thin shim over ``polyswarm_api.upload.upload_file``. ``**kwargs``
+        is forwarded to the underlying ``httpx.Client.put`` call so the
+        3.x ``upload_file(artifact, headers=…)`` callsites continue to
+        work (kwargs previously went to ``requests.put``; the
+        intersection — ``headers``, ``timeout`` — is unchanged).
+        """
         from polyswarm_api.upload import upload_file as _upload
-        return _upload(self.api.session._client, self.upload_url, artifact, attempts)
+        return _upload(self.api.session._client, self.upload_url, artifact, attempts, **kwargs)
 
     @classmethod
     def get(cls, api, **kwargs):

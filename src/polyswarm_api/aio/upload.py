@@ -19,6 +19,7 @@ async def async_upload_file(
     upload_url: str,
     artifact,
     attempts: int = 3,
+    **kwargs,
 ) -> httpx.Response:
     """Upload a file to a pre-signed S3 URL.
 
@@ -27,6 +28,11 @@ async def async_upload_file(
         upload_url: pre-signed S3 URL from the API response.
         artifact: file-like object to upload.
         attempts: number of retry attempts.
+        **kwargs: forwarded to ``client.put`` (e.g. ``headers``,
+            ``timeout``). Downstream callers and monkey-patches that
+            previously passed extra kwargs to ``requests.put`` continue
+            to work; kwargs honoured by ``httpx.Client.put`` are honoured
+            here.
     """
     if not upload_url:
         raise exceptions.InvalidValueException("upload_url must be set to upload a file")
@@ -44,7 +50,7 @@ async def async_upload_file(
             data = b""
         else:
             data = artifact.read()
-        r = await client.put(upload_url, content=data)
+        r = await client.put(upload_url, content=data, **kwargs)
         r.raise_for_status()
     return r
 

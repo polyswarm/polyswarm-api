@@ -436,6 +436,25 @@ async def test_async_no_results_raises():
 
 
 @respx.mock
+async def test_async_no_parser_non_2xx_raises():
+    """Endpoints whose request builder doesn't set a ``result_parser``
+    (e.g. ``notification_webhook_test``) must still raise on non-2xx.
+
+    parse_result was previously gating non-2xx exception mapping on
+    result_parser being set, which silently swallowed server errors for
+    fire-and-forget endpoints. Guard against the regression.
+    """
+    respx.post(f'{BASE_URL}/notification/webhook/test').mock(
+        return_value=httpx.Response(500, json={
+            'status': 'error', 'result': 'something went wrong',
+        }),
+    )
+    async with PolySwarmAsyncAPI(API_KEY, uri=BASE_URL, community='gamma') as api:
+        with pytest.raises(exceptions.RequestException):
+            await api.notification_webhook_test('webhook-123')
+
+
+@respx.mock
 async def test_async_context_manager():
     """Client cleans up correctly when used as an async context manager."""
     respx.get(f'{BASE_URL}/search/hash/sha256').mock(return_value=httpx.Response(200, json={
