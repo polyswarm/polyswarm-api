@@ -36,43 +36,44 @@ jobs:
             PR NUMBER: ${{ github.event.pull_request.number }}
 
             Review this PR against the project's CLAUDE.md / AGENTS.md
-            and the `specs/` directory — both are authoritative on
-            conventions, contracts, and intent.
+            and the `specs/` directory — they are authoritative on
+            conventions, contracts, architecture, and intent. Read the
+            spec for every area the PR touches before reviewing the
+            corresponding code.
 
             Focus on real issues, ordered by severity:
               1. Correctness — bugs, error-handling gaps, request /
-                 response shape mismatches, async/sync boundary
-                 problems (awaiting an async generator, iterating a
-                 coroutine, etc.).
-              2. Spec drift — does the change match specs/*.md? Flag
-                 mismatches or specs that need updates. The shared
-                 sync+async architecture (`PolyswarmAPIBase`) is the
-                 source of truth — new endpoints belong on the base,
-                 not duplicated across `api.py` / `aio/__init__.py`.
-              3. Downstream contract — public method signatures,
-                 response-resource shapes, exception classes, and the
-                 `polyswarm_api.aio.upload.*` module-level callables
-                 are part of the published surface. Breaking changes
-                 need a major version bump.
+                 response shape mismatches, transport-boundary
+                 problems, broken state machines.
+              2. Spec drift — does the change match `AGENTS.md` and
+                 the relevant `specs/*.md`? Flag code that contradicts
+                 a documented invariant, and flag specs that need
+                 updating because the code rightly moved past them.
+                 The architecture rules, file roles, and "where does a
+                 new endpoint go" decisions all live in those docs —
+                 quote them when measuring.
+              3. Downstream contract — changes to the public surface
+                 (exported classes, method signatures, response
+                 shapes, exception classes, monkey-patch sites listed
+                 in the specs) need an explicit version-bump
+                 decision. The bump policy is in AGENTS.md.
               4. Test coverage — does the test exercise the new path?
-                 For endpoint changes, the parametrised
-                 `ClientTestCase` harness should cover both sync and
-                 async paths. New VCR cassettes should follow the
-                 record-on-delete pattern (no hardcoded
-                 `record_mode='none'`).
-              5. Gitflow — feature PRs target `develop`, never
-                 `master`. Version bumps belong to the `develop -->
-                 master` step, not feature PRs.
+                 Cite specific missing cases. Test conventions (mock
+                 layers, cassette workflow, parametrised harness) are
+                 in `specs/04-testing.md`.
+              5. Gitflow — `AGENTS.md` documents the branch base and
+                 version-bump rules; flag any PR that violates them.
 
             Skip:
-              - Style nits that any auto-formatter already enforces.
-              - Suggestions to "consider adding tests" with no specific
+              - Style nits any auto-formatter already enforces.
+              - "Consider adding tests" suggestions with no specific
                 missing case.
               - Architectural rewrites for hypothetical future
                 requirements.
 
             Be terse. Comment only on issues that need action. If the
-            PR is clean, say so in one line and stop.
+            PR is clean against the documented conventions, say so in
+            one line and stop.
 
             Post your review via `gh pr comment`.
 
