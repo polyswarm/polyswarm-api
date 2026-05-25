@@ -35,44 +35,51 @@ jobs:
             REPO: ${{ github.repository }}
             PR NUMBER: ${{ github.event.pull_request.number }}
 
-            Review this PR against the project's CLAUDE.md / AGENTS.md
-            and the `specs/` directory — both are authoritative on
-            conventions, contracts, and intent.
+            The authoritative descriptions of how this project works
+            live in the repo itself. Read them first:
 
-            Focus on real issues, ordered by severity:
-              1. Correctness — bugs, error-handling gaps, request /
-                 response shape mismatches, async/sync boundary
-                 problems (awaiting an async generator, iterating a
-                 coroutine, etc.).
-              2. Spec drift — does the change match specs/*.md? Flag
-                 mismatches or specs that need updates. The shared
-                 sync+async architecture (`PolyswarmAPIBase`) is the
-                 source of truth — new endpoints belong on the base,
-                 not duplicated across `api.py` / `aio/__init__.py`.
-              3. Downstream contract — public method signatures,
-                 response-resource shapes, exception classes, and the
-                 `polyswarm_api.aio.upload.*` module-level callables
-                 are part of the published surface. Breaking changes
-                 need a major version bump.
-              4. Test coverage — does the test exercise the new path?
-                 For endpoint changes, the parametrised
-                 `ClientTestCase` harness should cover both sync and
-                 async paths. New VCR cassettes should follow the
-                 record-on-delete pattern (no hardcoded
-                 `record_mode='none'`).
-              5. Gitflow — feature PRs target `develop`, never
-                 `master`. Version bumps belong to the `develop -->
-                 master` step, not feature PRs.
+              - AGENTS.md and CLAUDE.md at the repo root — workspace
+                and project conventions (gitflow, commit hygiene,
+                architectural shape, contributor workflow).
+              - specs/*.md — per-area contracts and invariants. Read
+                the spec for every area the PR touches before
+                reviewing the corresponding code.
+
+            Review the PR against those documents. The project is the
+            ground truth; this prompt only describes the generic
+            review posture.
+
+            Generic priorities:
+              - Correctness. Bugs, error-handling gaps, mismatched
+                request/response shapes, transport boundary problems.
+              - Documented-invariant compliance. Any code that
+                contradicts a spec invariant or an AGENTS.md rule.
+              - Stale documentation. Spec or AGENTS.md sections that
+                no longer match the code (in either direction —
+                missing updates that should accompany this PR, or
+                references that belong in code that have leaked into
+                the docs).
+              - Public-surface compatibility. Changes to documented
+                public symbols (exported classes, method signatures,
+                response shapes, exception classes, module-level
+                monkey-patch sites) need an explicit version-bump
+                decision. The bump policy is in AGENTS.md.
+              - Branch base + version bumps. The gitflow rules in
+                AGENTS.md govern which branch a PR may target and when
+                version bumps are allowed.
+              - Test coverage for new code paths. Flag specific
+                missing cases, not generic "add more tests" notes.
 
             Skip:
-              - Style nits that any auto-formatter already enforces.
-              - Suggestions to "consider adding tests" with no specific
-                missing case.
+              - Style nits any auto-formatter already enforces.
               - Architectural rewrites for hypothetical future
                 requirements.
+              - Generic "consider adding tests" suggestions with no
+                concrete missing case.
 
             Be terse. Comment only on issues that need action. If the
-            PR is clean, say so in one line and stop.
+            PR is clean against the documented conventions, say so in
+            one line and stop.
 
             Post your review via `gh pr comment`.
 
