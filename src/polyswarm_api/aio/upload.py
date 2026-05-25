@@ -24,15 +24,16 @@ async def async_upload_file(
     """Upload a file to a pre-signed S3 URL.
 
     Args:
-        client: httpx.AsyncClient (typically ``AsyncPolyswarmSession._client``).
+        client: the httpx client owned by the corresponding session
+            (``httpx.AsyncClient`` in this async source; the generated
+            sync mirror takes ``httpx.Client``).
         upload_url: pre-signed S3 URL from the API response.
         artifact: file-like object to upload.
         attempts: number of retry attempts.
         **kwargs: forwarded to ``client.put`` (e.g. ``headers``,
             ``timeout``). Downstream callers and monkey-patches that
             previously passed extra kwargs to ``requests.put`` continue
-            to work; kwargs honoured by ``httpx.Client.put`` are honoured
-            here.
+            to work; kwargs honoured by ``httpx`` are honoured here.
     """
     if not upload_url:
         raise exceptions.InvalidValueException("upload_url must be set to upload a file")

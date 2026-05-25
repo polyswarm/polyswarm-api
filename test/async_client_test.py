@@ -455,6 +455,55 @@ async def test_async_no_parser_non_2xx_raises():
 
 
 @respx.mock
+async def test_async_instance_upload_file():
+    """``LocalArtifact.upload_file()`` is documented as synchronous-always
+    (specs/02-resources.md). It must work even when the owning API
+    client is async — the underlying httpx.AsyncClient can't drive a
+    sync PUT, so the shim falls back to a one-shot httpx.Client.
+
+    This regression test guards against the shim accidentally passing
+    an AsyncClient into the sync upload helper (which would return a
+    coroutine and blow up on `r.raise_for_status()`).
+    """
+    from polyswarm_api import resources
+
+    upload_url = 'https://s3.example.com/upload-target'
+    respx.put(upload_url).mock(return_value=httpx.Response(200))
+
+    api = PolySwarmAsyncAPI(API_KEY, uri=BASE_URL, community='gamma')
+    try:
+        instance = resources.ArtifactInstance(
+            {
+                'id': 1,
+                'sha256': SHA256,
+                'md5': '44d88612fea8a8f36de82e1278abb02f',
+                'sha1': '3395856ce81f2b7382dee72602f798b642f14d8',
+                'mimetype': 'text/plain',
+                'size': 68,
+                'extended_type': '',
+                'first_seen': '2020-01-01T00:00:00',
+                'upload_url': upload_url,
+                'assertions': [],
+                'votes': [],
+                'failed': False,
+                'window_closed': False,
+                'polyscore': 0.0,
+                'result': None,
+                'metadata': [],
+            },
+            api=api,
+        )
+        # Tiny in-memory artifact so the shim doesn't need a real file
+        # on disk.
+        import io as _io
+        artifact = _io.BytesIO(b'eicar')
+        response = instance.upload_file(artifact)
+        assert response.status_code == 200
+    finally:
+        await api.aclose()
+
+
+@respx.mock
 async def test_async_context_manager():
     """Client cleans up correctly when used as an async context manager."""
     respx.get(f'{BASE_URL}/search/hash/sha256').mock(return_value=httpx.Response(200, json={

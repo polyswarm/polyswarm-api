@@ -14,8 +14,10 @@ How resource classes work: the `BaseResource` / `BaseJsonResource` machinery, th
 
 ## Files
 
-- `src/polyswarm_api/core.py` — `BaseResource`, `BaseJsonResource`, `PolyswarmRequest`, `Hashable`, helpers (`is_valid_sha1` / `_sha256` / `_md5`, `parse_isoformat`).
-- `src/polyswarm_api/resources.py` — every per-domain resource class.
+- `src/polyswarm_api/_bases.py` — authoritative home for `BaseResource`, `BaseJsonResource`, `Hashable`, `HttpxResponseAdapter`, and the helpers (`is_valid_sha1` / `_sha256` / `_md5`, `parse_isoformat`, `_normalise_bool_params`, `RequestParamsEncoder`). Hand-written; not unasync-processed so it has a single class identity across the sync and async cores.
+- `src/polyswarm_api/aio/core.py` — `AsyncPolyswarmSession`, `AsyncPolyswarmRequest`. Canonical async transport.
+- `src/polyswarm_api/core.py` — re-exports the bases from `_bases.py` *and* contains the generated sync `PolyswarmSession` / `PolyswarmRequest` (unasync mirror of `aio/core.py`). Callers that did `from polyswarm_api.core import BaseJsonResource` continue to work via the re-export.
+- `src/polyswarm_api/resources.py` — every per-domain resource class. Transport-agnostic.
 
 ## The class hierarchy
 
@@ -147,21 +149,24 @@ class FooBar(core.BaseJsonResource):
     # — combine with endpoint_fmt={'foo_id': foo_id} at the call site
 ```
 
-Then in `_base.py`:
+Then in the canonical async client [`aio/api.py`](../src/polyswarm_api/aio/api.py):
 
 ```python
-class PolyswarmAPIBase:
-    def foobar_get(self, foo_id):
-        return self._single(resources.FooBar.get(self, foo_id=foo_id))
+class PolySwarmAsyncAPI:
+    async def foobar_get(self, foo_id):
+        return await self._single(resources.FooBar.get(self, foo_id=foo_id))
 
-    def foobar_write(self, foo_id, payload):
-        return self._single(resources.FooBar.create(
+    async def foobar_write(self, foo_id, payload):
+        return await self._single(resources.FooBar.create(
             self, foo_id=foo_id, payload=payload,
         ))
 
-    def foobar_list(self):
-        return self._paginate(resources.FooBar.list(self))
+    async def foobar_list(self):
+        async for item in self._paginate(resources.FooBar.list(self)):
+            yield item
 ```
+
+Run `python scripts/regenerate_sync.py` (or rely on the pre-commit hook) to regenerate the sync mirror at `polyswarm_api/api.py`. Commit both the canonical edit and the regenerated file. See [`01-architecture.md`](./01-architecture.md) §"The codegen" for the rename rules and escape hatches.
 
 Tests go under the parametrised `ClientTestCase` harness — see [`04-testing.md`](./04-testing.md).
 

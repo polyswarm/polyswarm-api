@@ -321,16 +321,29 @@ class ArtifactInstance(core.BaseJsonResource, core.Hashable):
         self._valid_assertions = None
 
     def upload_file(self, artifact, attempts=3, **kwargs):
-        """Upload to the pre-signed S3 URL.
+        """Upload to the pre-signed S3 URL — always synchronous.
 
-        Thin shim over ``polyswarm_api.upload.upload_file``. ``**kwargs``
-        is forwarded to the underlying ``httpx.Client.put`` call so the
-        3.x ``upload_file(artifact, headers=…)`` callsites continue to
-        work (kwargs previously went to ``requests.put``; the
-        intersection — ``headers``, ``timeout`` — is unchanged).
+        Thin shim over ``polyswarm_api.upload.upload_file``. Per
+        ``specs/02-resources.md``, this method executes synchronously
+        regardless of whether the owning API client is sync or async.
+
+        - Sync client: reuses the session's ``httpx.Client`` so the
+          connection pool is shared with normal API calls.
+        - Async client: the session's underlying client is an
+          ``httpx.AsyncClient`` which can't drive a sync upload; we
+          open a one-shot ``httpx.Client`` for the PUT and discard it.
+
+        ``**kwargs`` is forwarded to ``client.put`` — the 3.x
+        ``upload_file(artifact, headers=…)`` callsites keep working
+        (kwargs previously went to ``requests.put``; the intersection —
+        ``headers``, ``timeout`` — is unchanged).
         """
         from polyswarm_api.upload import upload_file as _upload
-        return _upload(self.api.session._client, self.upload_url, artifact, attempts, **kwargs)
+        client = self.api.session._client
+        if isinstance(client, httpx.AsyncClient):
+            with httpx.Client() as sync_client:
+                return _upload(sync_client, self.upload_url, artifact, attempts, **kwargs)
+        return _upload(client, self.upload_url, artifact, attempts, **kwargs)
 
     @classmethod
     def exists_hash(cls, api, hash_value, hash_type, require_scan=False):
@@ -1047,16 +1060,29 @@ class SandboxTask(core.BaseJsonResource):
         self.sandbox_artifacts = [SandboxArtifact(a, api=api) for a in content.get('sandbox_artifacts', [])]
 
     def upload_file(self, artifact, attempts=3, **kwargs):
-        """Upload to the pre-signed S3 URL.
+        """Upload to the pre-signed S3 URL — always synchronous.
 
-        Thin shim over ``polyswarm_api.upload.upload_file``. ``**kwargs``
-        is forwarded to the underlying ``httpx.Client.put`` call so the
-        3.x ``upload_file(artifact, headers=…)`` callsites continue to
-        work (kwargs previously went to ``requests.put``; the
-        intersection — ``headers``, ``timeout`` — is unchanged).
+        Thin shim over ``polyswarm_api.upload.upload_file``. Per
+        ``specs/02-resources.md``, this method executes synchronously
+        regardless of whether the owning API client is sync or async.
+
+        - Sync client: reuses the session's ``httpx.Client`` so the
+          connection pool is shared with normal API calls.
+        - Async client: the session's underlying client is an
+          ``httpx.AsyncClient`` which can't drive a sync upload; we
+          open a one-shot ``httpx.Client`` for the PUT and discard it.
+
+        ``**kwargs`` is forwarded to ``client.put`` — the 3.x
+        ``upload_file(artifact, headers=…)`` callsites keep working
+        (kwargs previously went to ``requests.put``; the intersection —
+        ``headers``, ``timeout`` — is unchanged).
         """
         from polyswarm_api.upload import upload_file as _upload
-        return _upload(self.api.session._client, self.upload_url, artifact, attempts, **kwargs)
+        client = self.api.session._client
+        if isinstance(client, httpx.AsyncClient):
+            with httpx.Client() as sync_client:
+                return _upload(sync_client, self.upload_url, artifact, attempts, **kwargs)
+        return _upload(client, self.upload_url, artifact, attempts, **kwargs)
 
     @classmethod
     def get(cls, api, **kwargs):
