@@ -1,20 +1,22 @@
-# Testing — mocking, VCR cassettes, sync+async parametrisation
+# Testing — pure unit, mocked I/O, recorded cassettes
 
 ## Scope
 
-How the test suite is organised, the two mocking layers (`respx`, `vcrpy`), the `ClientTestCase` parametrisation harness that runs each test against both clients, and the workflow for recording and re-recording cassettes against the live e2e stack.
+How the test suite is organised. Three layers: pure unit tests (no HTTP at all — exercising resource builders and `parse_response`), `respx`-mocked I/O tests, and `vcrpy` cassette-replay tests. The `ClientTestCase` parametrisation harness runs the mocked-I/O bodies against both transports.
 
 ## Invariants
 
 1. **Tests must pass against the live e2e stack with VCR off.** VCR is an efficiency cache, not a load-bearing requirement. Don't hardcode `record_mode='none'`. If a test only works against the recorded cassette, that's a test bug.
 2. **Cassette re-recording is delete-driven.** `rm test/vcr/<name>.vcr && pytest …<test>` re-records against the live e2e. `record_mode='once'` (the default) makes this work without flag-flipping.
-3. **One cassette serves both transports.** Sync and async tests targeting the same scenario use the same on-the-wire request shape (because both clients now run on `httpx`). The VCR matcher is configured so cassettes survive `httpx`'s param-ordering differences from the original `requests`-recorded format — see "VCR matcher convention" below.
+3. **One cassette serves both transports.** Sync and async tests targeting the same scenario use the same on-the-wire request shape (because both clients run on `httpx`). The VCR matcher is configured so cassettes survive `httpx`'s param-ordering differences from the original `requests`-recorded format — see "VCR matcher convention" below.
 4. **New endpoint tests use the parametrised `ClientTestCase` harness.** It auto-emits `<Name>Sync` and `<Name>Async` siblings so the same body runs against both clients. Don't write parallel sync / async test bodies for new endpoints.
-5. **The HTTP mocking library follows the transport.** Both clients now use `httpx`, so `respx` is the mocking library. `responses` (which only intercepts `requests`) is no longer in the test surface.
+5. **The HTTP mocking library follows the transport.** Both clients use `httpx`, so `respx` is the mocking library.
+6. **Prefer the pure-unit tier for builder + parse logic.** `PolyswarmRequest` builders are pure data; `parse_response` is a pure function. They're testable without httpx, async, or fixtures. Use this tier for any bug that can be reproduced without network involvement.
 
 ## Files
 
 - `test/conftest.py` — pytest configuration.
+- `test/core_test.py` — pure-unit tests for `parse_response`, `PolyswarmRequest`, and resource builders. No httpx, no fixtures.
 - `test/metadata_field_properties_test.py` — the canonical example of the parametrised `ClientTestCase` harness with `respx`-backed mocking.
 - `test/client_scan_test.py` — sync, VCR-backed integration tests (not yet on the parametrised harness — follow-up work).
 - `test/async_client_test.py` — async, VCR-backed integration tests (not yet on the parametrised harness — follow-up work).
@@ -22,17 +24,19 @@ How the test suite is organised, the two mocking layers (`respx`, `vcrpy`), the 
 - `test/vcr/*.vcr` — recorded cassettes.
 - `test/eicar.yara`, `test/malicious` — fixture files for upload tests.
 
-## Two mocking layers
+## Three test layers
 
-The SDK is tested at two levels:
+The SDK is tested at three levels:
 
 | Layer | Tool | What it covers | When to use |
 |---|---|---|---|
-| **Unit / contract** | `respx` | Direct mocking of the `httpx` transport. Tests don't need network, e2e, or VCR. | New endpoint methods whose request shape and response parsing are independently testable. |
-| **Integration / replay** | `vcrpy` | Records real HTTP exchanges; replays them on subsequent runs. | Tests that need end-to-end correctness against the platform's actual responses (search, submit, hunt). |
-| **Pure** | none | Tests that don't touch HTTP at all. | `jmespath_test.py`, helper logic, model construction. |
+| **Pure unit** | none | Resource-builder shape (`Foo.bar(api, ...)` returns a `PolyswarmRequest` with method/url/params as expected). `parse_response` behaviour (`parse_response(fake_response, request)` populates fields or raises). `jmespath`, helpers. | Anything that can be tested without HTTP. Fast, deterministic, no fixtures. |
+| **Mocked I/O** | `respx` | End-to-end call against a mocked httpx transport. The full pipeline runs (api → session → execute → parse_response → resource constructor), but no real network. | Endpoint behaviour that depends on full round-trip + parsing. |
+| **Cassette replay** | `vcrpy` | Records real HTTP exchanges against the live e2e; replays them on subsequent runs. | Real-server correctness, server-shape regression detection. |
 
-`respx` is preferred for new tests because it's deterministic and fast. VCR is a tool for pinning the contract against the live server.
+The pure-unit tier exists because the 4.0 redesign made it possible: resource builders and `parse_response` are pure functions of their inputs. Use it aggressively — a unit test for "did this builder produce the right URL?" runs in microseconds and doesn't break when the test framework changes.
+
+`respx` is preferred for new endpoint tests at the mocked-I/O tier because it's deterministic and fast. VCR is for pinning the contract against the live server.
 
 ## The parametrised `ClientTestCase` harness
 

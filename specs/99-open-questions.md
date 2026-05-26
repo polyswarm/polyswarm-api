@@ -14,24 +14,16 @@ The parametrised `ClientTestCase` harness in `test/metadata_field_properties_tes
 
 **Decision point:** when a test scenario does something inherently async (concurrency, cancellation, owned-vs-injected client lifecycle), it stays as a standalone `async def test_*` — those don't fit the parametrised harness. Document that in `04-testing.md` with worked examples once we have any.
 
-## File-upload monkey-patch site
-
-**Status:** preserved as module-level callable.
-
-`polyswarm_api.aio.upload.async_upload_file(client, upload_url, artifact, attempts=3, **kwargs)` (and the `polyswarm_api.aio.async_upload_file` re-export) is a documented monkey-patch site — downstream code replaces it at runtime for custom credential handling, retry policies, or proxy configuration. The sync mirror at `polyswarm_api.upload.upload_file` (generated from the async source by `scripts/regenerate_sync.py`) shares the same role on the sync surface.
-
-**Decision point:** any refactor must keep the helper module-level and callable with the documented signature. The unasync codegen handles the sync/async split, so `submit` / `sandbox_file` / `sandbox_url` live as one body in `aio/api.py` — no further consolidation needed.
-
 ## `sandbox_url` finalize-param inconsistency
 
-**Status:** pre-existing behaviour preserved across the PR.
+**Status:** pre-existing behaviour preserved across the 4.0 redesign.
 
 `sandbox_file` and `sandbox_url` both PUT to `{SandboxTask.RESOURCE_ENDPOINT}/instance` to finalize the submission, but they pass the task identifier under different param names:
 
 - `sandbox_file` → `params={"id": str(int(task))}`
 - `sandbox_url` → `params={"sandbox_task_id": str(int(task))}`
 
-Both shapes have shipped this way on develop; the server presumably accepts both (or the `sandbox_url` finalize endpoint variants accept the longer name). No VCR cassette covers the `sandbox_url` finalize path, so we can't confirm from replay alone.
+Both shapes have shipped this way historically; no VCR cassette covers the `sandbox_url` finalize path, so we can't confirm from replay alone which (if either) is wrong.
 
 **Action:** record a cassette against the live e2e for `sandbox_url`'s full flow, then either confirm the divergence is required or reconcile on `id` (matching `sandbox_file`).
 
@@ -43,7 +35,7 @@ Both shapes have shipped this way on develop; the server presumably accepts both
 
 The endpoint returns the executed `PolyswarmRequest` itself so callers can read `.json`. Pre-existing quirk; new code shouldn't pattern after it.
 
-**Action:** decide on a major version whether to convert `sandbox_providers` to return the parsed resource list (breaking change). Not blocking.
+**Action:** decide on a future major version whether to convert `sandbox_providers` to return the parsed resource list (breaking change). Not blocking.
 
 ## Pagination heuristic — `_single` vs `_paginate`
 
@@ -99,6 +91,16 @@ Some endpoint methods are likely legacy (early-API artifacts, replaced by newer 
 
 **Status:** `Authorization: <api-key>` only.
 
-The server may move to OAuth / signed requests / per-request auth tokens in the future. The SDK assumes a single API key for the lifetime of a client instance.
+The server may move to OAuth / signed requests / per-request auth tokens in the future. The SDK assumes a single API key for the lifetime of a session instance.
 
-**Action:** if / when the auth model evolves, design the integration point on `PolyswarmSession` / `AsyncPolyswarmSession` (token refresh hook? credential plugin?) and update `05-downstream-contract.md`.
+**Action:** if / when the auth model evolves, design the integration point on `PolyswarmSession` / `AsyncPolyswarmSession` (token refresh hook? credential plugin? `auth=` constructor parameter?) and update `05-downstream-contract.md`.
+
+## Async cassettes for download / exists methods
+
+**Status:** async cassettes missing for several methods.
+
+The async-side download / exists methods (`download`, `download_id`, `download_archive`, `exists`, `download_sandbox_artifact`) lack VCR cassettes. The mocked-I/O respx tests cover the canonical async paths, but cassette-driven cross-checks against the live e2e aren't recorded.
+
+**Action:** record cassettes via the standard delete-and-rerun-against-e2e workflow when the e2e stack is healthy.
+
+**Decision point:** these are deferred from PR #298 — the e2e was returning 500s for several of these endpoints at record time. Not blocking.

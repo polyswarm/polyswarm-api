@@ -2,11 +2,11 @@
 
 ## Scope
 
-This spec describes what the `polyswarm-api` Python SDK is, what it ships, where it sits relative to the rest of the platform, and how the repository is laid out. Subsequent specs zoom in on a specific area; this one is a map.
+What the `polyswarm-api` Python SDK is, what it ships, where it sits in the platform, and how the repository is laid out. Subsequent specs zoom in on a single area; this one is the map.
 
 ## Invariants
 
-- **The SDK is the published surface.** It's released to PyPI as `polyswarm-api`. Anything reachable from the package's `__init__.py`, the `polyswarm_api.aio` namespace, `polyswarm_api.resources`, or `polyswarm_api.exceptions` is part of the public contract. Breaking changes need a major version bump.
+- **The SDK is the published surface.** Released to PyPI as `polyswarm-api`. Anything reachable from the package's `__init__.py`, the `polyswarm_api.aio` namespace, `polyswarm_api.resources`, or `polyswarm_api.exceptions` is part of the public contract. Breaking changes need a major version bump.
 - **`master` is the release branch.** A version bump on `master` triggers a PyPI release. Feature PRs always target `develop` (see `AGENTS.md` §Gitflow).
 - **The SDK does not run a server.** It's a client. It talks to the platform's REST API.
 
@@ -14,13 +14,12 @@ This spec describes what the `polyswarm-api` Python SDK is, what it ships, where
 
 | Artefact | Description |
 |---|---|
-| `polyswarm_api.PolyswarmAPI` | Synchronous client. The classic surface; what most callers use. |
+| `polyswarm_api.PolyswarmAPI` | Synchronous client. What CLI tools and sync scripts use. |
 | `polyswarm_api.aio.PolySwarmAsyncAPI` | Asynchronous client. Same method surface, `await`-able. |
-| `polyswarm_api.resources` | Per-domain resource classes (`ArtifactInstance`, `LocalArtifact`, `HistoricalHunt`, `LiveYaraRuleset`, `YaraRuleset`, `MetadataFieldProperties`, `LLMPromptConfig`, …). Data wrappers over the server's JSON responses. |
+| `polyswarm_api.PolyswarmSession` / `polyswarm_api.aio.AsyncPolyswarmSession` | Transport classes. Own the underlying `httpx.{,Async}Client`, expose `execute(request)`, `upload_file(url, artifact, …)`, `upload_logo(url, file, ctype, …)`. Subclass and inject to customize transport behaviour. |
+| `polyswarm_api.resources` | Per-domain resource classes (`ArtifactInstance`, `LocalArtifact`, `HistoricalHunt`, `LiveYaraRuleset`, `YaraRuleset`, `MetadataFieldProperties`, `LLMPromptConfig`, …). Wrappers over the server's JSON responses. Builder classmethods (`create` / `get` / `update` / `delete` / `list` / etc.) return `PolyswarmRequest` descriptors. |
+| `polyswarm_api.core.PolyswarmRequest` | Pure description of an HTTP call (method, URL, params, body, parser). Constructed by resource builders; handed to a session for execution. No I/O on the descriptor itself. |
 | `polyswarm_api.exceptions` | Exception hierarchy (`PolyswarmException` → `RequestException`, `NotFoundException`, `FailedInstanceException`, `NoResultsException`, `UsageLimitsExceededException`, `InvalidValueException`, `TimeoutException`). |
-| `polyswarm_api.core` | Lower-level plumbing: `PolyswarmRequest`, `BaseJsonResource`, `HttpxResponseAdapter`. Public for advanced consumers that want to subclass / wrap. (Generated sync mirror of `polyswarm_api.aio.core` + re-exports of the shared bases from `polyswarm_api._bases`.) |
-| `polyswarm_api.aio.upload.async_upload_file` / `async_upload_logo` | Module-level async upload helpers. Downstream consumers monkey-patch these; the call signatures are part of the contract. |
-| `polyswarm_api.upload.upload_file` / `upload_logo` | Generated sync mirrors of the async upload helpers. |
 
 ## Where it sits
 
@@ -46,10 +45,10 @@ This spec describes what the `polyswarm-api` Python SDK is, what it ships, where
 
 The SDK is the only Python surface a consumer needs in order to talk to the platform. It owns:
 
-- HTTP transport (request, retry, auth header injection).
+- HTTP transport (request, retry, auth header injection, off-domain upload with auth stripping).
 - Response shape parsing (JSON → resource objects, error codes → exceptions).
 - Pagination (`has_more` / `offset` / `limit` consumption, transparent next-page fetch).
-- The unified sync+async pattern (see [`01-architecture.md`](./01-architecture.md)).
+- The unified sync+async pattern via async-canonical source + unasync codegen.
 
 The SDK does **not** own:
 
@@ -67,28 +66,34 @@ polyswarm-api/
 ├── .github/
 │   └── workflows/
 │       └── claude-code-review.yml  # automated PR review against specs/ + AGENTS.md
+├── .gitlab-ci.yml                  # test + codegen-staleness CI
+├── .pre-commit-config.yaml         # pre-commit hook for codegen
 ├── pyproject.toml                  # version, deps, [tool.bumpversion]
 ├── scripts/
 │   └── regenerate_sync.py          # unasync codegen driver
 ├── src/polyswarm_api/
 │   ├── __init__.py                 # public exports + __version__
-│   ├── _bases.py                   # hand-written, shared: BaseJsonResource, Hashable,
-│   │                               #   HttpxResponseAdapter, helpers
-│   ├── api.py                      # GENERATED sync PolyswarmAPI (unasync mirror of aio/api.py)
-│   ├── core.py                     # GENERATED sync PolyswarmRequest, PolyswarmSession
-│   │                               #   (unasync mirror of aio/core.py; also re-exports
-│   │                               #   bases from _bases.py for back-compat)
-│   ├── upload.py                   # GENERATED sync upload_file / upload_logo
-│   ├── resources.py                # per-domain data wrappers (transport-agnostic)
-│   ├── settings.py                 # constants (default URI, timeouts, poll frequency)
-│   ├── exceptions.py               # exception hierarchy
+│   ├── core.py                     # HAND-WRITTEN, transport-agnostic:
+│   │                               #   - PolyswarmRequest (dataclass descriptor)
+│   │                               #   - parse_response (pure function)
+│   │                               #   - HttpxResponseAdapter (pure adapter)
+│   │                               #   - BaseResource, BaseJsonResource
+│   │                               #   - Hashable, Hash, hash validators
+│   │                               #   - helpers (parse_isoformat, encoders, normalisers)
+│   ├── resources.py                # HAND-WRITTEN. Per-domain wrappers. Builders
+│   │                               # return PolyswarmRequest descriptors.
+│   ├── exceptions.py               # HAND-WRITTEN. Exception hierarchy.
+│   ├── settings.py                 # HAND-WRITTEN. Default URI, timeouts, etc.
+│   ├── session.py                  # GENERATED from aio/session.py.
+│   │                               #   PolyswarmSession (httpx.Client wrapper).
+│   │                               #   .execute(request), .upload_file, .upload_logo, .close
+│   ├── api.py                      # GENERATED from aio/api.py.
+│   │                               #   PolyswarmAPI (owns a PolyswarmSession,
+│   │                               #   ~80 endpoint methods + carve-outs).
 │   └── aio/
-│       ├── __init__.py             # re-exports PolySwarmAsyncAPI + the transport types
-│       │                           #   and upload monkey-patch sites from the modules below
-│       ├── api.py                  # CANONICAL async PolySwarmAsyncAPI — every endpoint method
-│       ├── core.py                 # CANONICAL AsyncPolyswarmSession, AsyncPolyswarmRequest
-│       └── upload.py               # CANONICAL async_upload_file (monkey-patch site,
-│                                   #   see 05-downstream-contract)
+│       ├── __init__.py             # re-exports PolySwarmAsyncAPI, AsyncPolyswarmSession
+│       ├── session.py              # CANONICAL async. AsyncPolyswarmSession class.
+│       └── api.py                  # CANONICAL async. PolySwarmAsyncAPI class.
 └── test/
     ├── conftest.py
     ├── client_scan_test.py             # sync, VCR-backed integration tests
@@ -98,46 +103,60 @@ polyswarm-api/
     └── vcr/                            # *.vcr cassettes
 ```
 
+Six SDK modules (`core`, `resources`, `exceptions`, `settings`, plus the `session` + `api` pair), where the `session` / `api` pair has a canonical async source under `aio/` and a generated sync mirror at the root. Each file has a single concern.
+
 ## Architectural snapshot
 
-The async client at [`aio/api.py`](../src/polyswarm_api/aio/api.py) is the canonical source. The sync client at [`api.py`](../src/polyswarm_api/api.py) is generated from it by `scripts/regenerate_sync.py` (an `unasync`-driven codegen — `async def` → `def`, `await` removed, `asyncio.sleep` → `time.sleep`, etc.). The generated files carry a `# DO NOT EDIT` header.
+Three layers, two transports.
 
 ```
-              aio/api.py  (canonical)                  api.py     (generated)
-              ─────────────────────                    ──────────────────────
-              class PolySwarmAsyncAPI:                 class PolyswarmAPI:
-                _request_cls = AsyncPolyswarmRequest    _request_cls = PolyswarmRequest
-                                                        (mechanical mirror of the
-                async def metadata_mapping(self):       canonical async source)
-                  return await self._single(...)       def metadata_mapping(self):
-                                                          return self._single(...)
-                async def search(self, ...):
-                  async for x in self._paginate(...):  def search(self, ...):
-                    yield x                              for x in self._paginate(...):
-                                                            yield x
-
-              aio/core.py  (canonical)                 core.py    (generated)
-              ─────────────────────                    ──────────────────────
-              AsyncPolyswarmSession                    PolyswarmSession
-                (httpx.AsyncClient)                      (httpx.Client)
-              AsyncPolyswarmRequest                    PolyswarmRequest
-                (async execute / consume_results)        (sync mirror)
-
-              aio/upload.py (canonical)                upload.py  (generated)
-              ─────────────────────                    ──────────────────────
-              async_upload_file                        upload_file
-              async_upload_logo                        upload_logo
-
-              _bases.py  (hand-written, shared)
-              ────────────────────────────────
-              BaseResource, BaseJsonResource, Hashable, HttpxResponseAdapter,
-              parse_isoformat, is_hex/sha1/md5/sha256, _normalise_bool_params,
-              RequestParamsEncoder.
-              Both sync and async cores import from here so issubclass()
-              checks across modules see a single class identity.
+              ┌───────────────────────────────────────────────────┐
+              │  PURE / SHARED  (hand-written, no I/O)            │
+              │                                                   │
+              │  core.py                                          │
+              │    PolyswarmRequest      (dataclass descriptor)   │
+              │    parse_response        (pure function)          │
+              │    BaseJsonResource      (resource hierarchy)     │
+              │    Hashable, Hash, validators                     │
+              │                                                   │
+              │  resources.py                                     │
+              │    ArtifactInstance, LocalArtifact, …             │
+              │    (classmethods build descriptors)               │
+              │                                                   │
+              │  exceptions.py, settings.py                       │
+              └───────────────────────────────────────────────────┘
+                   ▲                              ▲
+                   │ imports                      │ imports
+                   │                              │
+        ┌──────────┴───────────┐         ┌────────┴───────────┐
+        │  TRANSPORT (async)   │         │  TRANSPORT (sync)  │
+        │  aio/session.py      │ ──┐  ┌─ │  session.py [gen]  │
+        │  AsyncPolyswarm-     │   │  │  │  PolyswarmSession  │
+        │  Session             │   │  │  │  .execute()        │
+        │  .execute()          │   │  │  │  .upload_file()    │
+        │  .upload_file()      │   │  │  │  .upload_logo()    │
+        │  .upload_logo()      │   │  │  │  .close()          │
+        │  .aclose()           │   │  │  │  (httpx.Client)    │
+        │  (httpx.AsyncClient) │   │  │  │                    │
+        └──────────────────────┘   │  │  └────────────────────┘
+                                   │  │
+                       scripts/regenerate_sync.py (unasync)
+                                   │  │
+        ┌──────────────────────┐   │  │  ┌────────────────────┐
+        │  CLIENT (async)      │   │  │  │  CLIENT (sync)     │
+        │  aio/api.py          │ ──┘  └─ │  api.py [generated]│
+        │  PolySwarmAsyncAPI   │         │  PolyswarmAPI      │
+        │  (owns a session,    │         │  (owns a session,  │
+        │  ~80 endpoint methods│         │   ~80 endpoint mtd.│
+        │  + carve-outs)       │         │  + carve-outs)     │
+        └──────────────────────┘         └────────────────────┘
 ```
 
-`PolySwarmAsyncAPI` and `PolyswarmAPI` are **independent classes** mechanically aligned by codegen. There is no shared base class; the historical `PolyswarmAPIBase` is gone. Detailed treatment in [`01-architecture.md`](./01-architecture.md).
+- **Pure layer** has no transport awareness. Both transports import from it. unasync does not process it.
+- **Transport layer** is a single class per transport. Owns the httpx client. Has every HTTP-I/O operation (`execute`, `upload_file`, `upload_logo`). The sync mirror is generated from the canonical async by unasync.
+- **Client layer** owns a session, drives pagination, exposes the endpoint method surface. Sync mirror generated from canonical async.
+
+Customization point: subclass `AsyncPolyswarmSession` (or `PolyswarmSession`), override `execute` / `upload_file` / `upload_logo`, inject via `PolySwarmAsyncAPI(session=MySession(...))`.
 
 ## Specs you should read next
 

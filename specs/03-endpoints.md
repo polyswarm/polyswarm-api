@@ -8,9 +8,9 @@ The full catalogue of methods on the public client surface and which transport h
 
 1. **New endpoints go on [`PolySwarmAsyncAPI`](../src/polyswarm_api/aio/api.py)** as `async def`. The sync mirror is regenerated automatically.
 2. **`_paginate` is for endpoints whose callers iterate.** If callers write `for x in api.foo()` / `async for x in api.foo()`, use `async for item in self._paginate(...): yield item`. If callers consume a single value, use `return await self._single(...)`.
-3. **Multi-step endpoint bodies are fine.** Unlike the prior architecture, the canonical async method can read a `_single` result, branch on it, or chain a second call. unasync mirrors the body to sync mechanically.
+3. **Multi-step endpoint bodies are fine.** The canonical async method can read a `_single` result, branch on it, or chain a second call. unasync mirrors the body to sync mechanically.
 4. **Polling helpers** (`wait_for`, `report_wait_for`) use `await asyncio.sleep(...)` on the canonical side. The rename map translates `asyncio` → `time` in the generated sync mirror, so the sync sleep is `time.sleep(...)`.
-5. **File uploads** call the module-level `async_upload_file` from [`aio/upload.py`](../src/polyswarm_api/aio/upload.py) on the canonical side; unasync renames to `upload_file` from [`upload.py`](../src/polyswarm_api/upload.py) on the sync side.
+5. **File uploads** call `self.session.upload_file(upload_url, artifact, …)` — a method on the session class. The session also exposes `upload_logo(upload_url, file, content_type, …)`. Both strip the session-level `Authorization` header so the PolySwarm API key doesn't leak to the object store.
 
 ## Files
 
@@ -186,7 +186,7 @@ The full catalogue of methods on the public client surface and which transport h
 | `report_wait_for(report_id, timeout=…)` | Same polling shape. |
 | `refresh_engine_cache()` | Mutates `self._engines`. Required before reading the `engines` attribute. |
 | `engines` (property) | **The one escape-hatch site.** Async raises `AttributeError` (Python properties can't await); sync exposes a working cached property installed by `scripts/regenerate_sync.py` post-processing. |
-| `sandbox_providers()` | Returns the executed request itself so callers can read `.json['result'][slug]`. The async version does `return await self._coerce_request(...).execute()`. |
+| `sandbox_providers()` | Returns the executed request itself so callers can read `.json['result'][slug]`. The async version does `return await self.session.execute(resources.SandboxProvider.list(self))`. |
 
 ## Polling helpers — shape
 
@@ -220,25 +220,27 @@ def wait_for(self, scan, timeout=settings.DEFAULT_SCAN_TIMEOUT):
 
 ## File-upload paths
 
-Canonical:
+Canonical (`aio/api.py`):
 
 ```python
 async def submit(self, artifact, ...):
     instance = await self._single(resources.ArtifactInstance.create(self, ...))
-    await async_upload_file(self.session._client, instance.upload_url, artifact)
+    await self.session.upload_file(instance.upload_url, artifact)
     return await self._single(resources.ArtifactInstance.update(self, id=instance.id, ...))
 ```
 
-Generated:
+Generated (`api.py`):
 
 ```python
 def submit(self, artifact, ...):
     instance = self._single(resources.ArtifactInstance.create(self, ...))
-    upload_file(self.session._client, instance.upload_url, artifact)
+    self.session.upload_file(instance.upload_url, artifact)
     return self._single(resources.ArtifactInstance.update(self, id=instance.id, ...))
 ```
 
-`async_upload_file` lives at [`polyswarm_api.aio.upload.async_upload_file`](../src/polyswarm_api/aio/upload.py) and is the documented monkey-patch site for downstream consumers. The generated sync equivalent is [`polyswarm_api.upload.upload_file`](../src/polyswarm_api/upload.py). See [`05-downstream-contract.md`](./05-downstream-contract.md).
+`upload_file` is a method on the session class (`AsyncPolyswarmSession.upload_file` / `PolyswarmSession.upload_file`). Both strip the session-level `Authorization` header so the PolySwarm API key doesn't leak to the pre-signed S3 origin. Downstream consumers customize behaviour by subclassing the session — see [`05-downstream-contract.md`](./05-downstream-contract.md) §"Customizing transport behaviour".
+
+Logo uploads (used by `report_template_logo_upload`) go through the same session method family: `session.upload_logo(upload_url, file, content_type)`.
 
 ## `sandbox_providers` — the executed-request quirk
 
@@ -246,7 +248,7 @@ Pre-existing surface: returns the **executed** request object directly so caller
 
 ```python
 async def sandbox_providers(self):
-    return await self._coerce_request(resources.SandboxProvider.list(self)).execute()
+    return await self.session.execute(resources.SandboxProvider.list(self))
 ```
 
 New code should prefer `_single` / `_paginate` returning a parsed resource. The quirk persists for backward compatibility.
@@ -259,7 +261,7 @@ Question                                  Answer
 Caller iterates the result?               → async for ... yield ... self._paginate
 Caller uses a single value?               → return await self._single
 Polling loop?                             → mirror wait_for's shape on the canonical
-Pre-signed file upload?                   → mirror submit's shape on the canonical
+Pre-signed file upload?                   → call self.session.upload_file(...)
 File: aio/api.py                          (canonical — edit here; regen sync mirror)
 ```
 

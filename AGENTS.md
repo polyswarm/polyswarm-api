@@ -16,10 +16,10 @@ This file points at the right places to read for context, lays out the gitflow /
 | Spec | Scope |
 |---|---|
 | [`specs/00-overview.md`](./specs/00-overview.md) | What this repo ships, where it sits in the platform, repo layout |
-| [`specs/01-architecture.md`](./specs/01-architecture.md) | Async-canonical + unasync codegen, request/response pipeline, `_single` / `_paginate` contract |
-| [`specs/02-resources.md`](./specs/02-resources.md) | `BaseJsonResource`, classmethod builder convention, per-domain resource catalogue |
-| [`specs/03-endpoints.md`](./specs/03-endpoints.md) | Endpoint catalogue: `_single` vs `_paginate`, special methods (polling, uploads, the `engines` escape hatch) |
-| [`specs/04-testing.md`](./specs/04-testing.md) | `responses` / `respx` / VCR conventions, `ClientTestCase` parametrisation, record-on-delete workflow |
+| [`specs/01-architecture.md`](./specs/01-architecture.md) | Three layers + two transports; async-canonical + unasync codegen; pure descriptors; session-as-transport |
+| [`specs/02-resources.md`](./specs/02-resources.md) | `BaseJsonResource`, classmethod builder convention (returns `PolyswarmRequest` descriptors), per-domain catalogue |
+| [`specs/03-endpoints.md`](./specs/03-endpoints.md) | Endpoint catalogue: `_single` vs `_paginate`, special methods (polling, uploads via session, the `engines` escape hatch) |
+| [`specs/04-testing.md`](./specs/04-testing.md) | Three test tiers (pure unit / respx-mocked / VCR), `ClientTestCase` parametrisation, record-on-delete workflow |
 | [`specs/05-downstream-contract.md`](./specs/05-downstream-contract.md) | What the published surface looks like to consumers (the CLI, downstream services), backward-compat invariants |
 | [`specs/99-open-questions.md`](./specs/99-open-questions.md) | Known follow-ups and unresolved questions |
 
@@ -61,22 +61,28 @@ PR #295 was merged directly to `master` and had to be reverted (#296) and re-ope
 
 Detailed treatment is in [`specs/01-architecture.md`](./specs/01-architecture.md). The summary:
 
-- **Async is the source of truth.** [`PolySwarmAsyncAPI`](./src/polyswarm_api/aio/api.py) is hand-written. Every endpoint method, transport hook, and helper lives there as `async def`.
-- **Sync is generated** by `scripts/regenerate_sync.py` (an `unasync`-driven codegen). It produces [`PolyswarmAPI`](./src/polyswarm_api/api.py), [`core.py`](./src/polyswarm_api/core.py), and [`upload.py`](./src/polyswarm_api/upload.py) at the package root from the corresponding files under `aio/`. **Never hand-edit the generated files** — they carry a `# DO NOT EDIT` header and CI rejects stale mirrors.
-- Caller surface unchanged: `from polyswarm_api import PolyswarmAPI` (sync) / `from polyswarm_api.aio import PolySwarmAsyncAPI` (async).
-- Transport-agnostic bases (`BaseJsonResource`, `Hashable`, `HttpxResponseAdapter`, helpers) live in [`_bases.py`](./src/polyswarm_api/_bases.py) — hand-written, *not* unasync-processed. Single class identity across both cores so `issubclass` checks work uniformly.
-- `httpx` is the single HTTP library — sync uses `httpx.Client`, async uses `httpx.AsyncClient`. Both produce `httpx.Response`; the response-parsing layer is the same logic on both sides (unasync mirrors it).
-- Multi-step endpoint bodies (close a handle, branch on state, chain a second call) are written naturally as `async def` on the canonical side. unasync mirrors them mechanically. No carve-out gymnastics required.
-- One escape hatch: the `engines` property. Async raises `AttributeError` (properties can't await); the script patches a working sync property into the generated mirror. Documented in [`specs/01-architecture.md`](./specs/01-architecture.md#the-escape-hatch--engines-property).
+Three layers, two transports.
+
+- **Layer 1 — pure / shared.** [`src/polyswarm_api/core.py`](./src/polyswarm_api/core.py) (hand-written) holds `PolyswarmRequest` (the dataclass descriptor), `parse_response` (the pure parse function), `BaseJsonResource`, `Hashable`, `HttpxResponseAdapter`, and helpers. No I/O. Imported by both transports; not unasync-processed; single class identity across modules. Resources in [`resources.py`](./src/polyswarm_api/resources.py) are also pure — their classmethods build `PolyswarmRequest` descriptors.
+- **Layer 2 — transport.** Hand-written canonical async at [`aio/session.py`](./src/polyswarm_api/aio/session.py); generated sync mirror at [`session.py`](./src/polyswarm_api/session.py). One class per transport (`AsyncPolyswarmSession` / `PolyswarmSession`) owns an httpx client. Three I/O methods: `execute(request)` (the authenticated round-trip), `upload_file(url, artifact, …)`, `upload_logo(url, file, ctype, …)`. The session is the **only** place HTTP I/O happens.
+- **Layer 3 — client.** Hand-written canonical async at [`aio/api.py`](./src/polyswarm_api/aio/api.py); generated sync mirror at [`api.py`](./src/polyswarm_api/api.py). `PolySwarmAsyncAPI` / `PolyswarmAPI` own a session, expose ~80 endpoint methods, drive pagination.
+
+Codegen: [`scripts/regenerate_sync.py`](./scripts/regenerate_sync.py) runs unasync to mirror the canonical async sources to sync. Generated files carry a `# DO NOT EDIT` header; CI rejects stale mirrors.
+
+Customization: subclass `AsyncPolyswarmSession` (or `PolyswarmSession`), override the method you want to change, inject via `PolySwarmAsyncAPI(session=MySession(...))`. No module-level monkey-patch sites.
+
+`httpx` is the single HTTP library — sync uses `httpx.Client`, async uses `httpx.AsyncClient`. Both produce `httpx.Response`; `parse_response` is the same logic on both sides (it's a pure function in `core.py`).
+
+One escape hatch: the `engines` property. Async raises `AttributeError` (properties can't await); the codegen script patches a working sync property into the generated mirror. Documented in [`specs/01-architecture.md`](./specs/01-architecture.md).
 
 ## When adding a new resource
 
 Mirror the existing patterns (`LLMPromptConfig`, `MetadataFieldProperties`, `YaraRuleset`):
 
-1. `class FooBar(core.BaseJsonResource): RESOURCE_ENDPOINT = '/…'`. If the resource's identifier isn't `id`, set `RESOURCE_ID_KEYS = ['your_key']` so the base class routes it into the query string for `GET` / `DELETE` / `PUT`. Resources live in `src/polyswarm_api/resources.py` and are transport-agnostic — only edit there.
+1. `class FooBar(BaseJsonResource): RESOURCE_ENDPOINT = '/…'` in [`resources.py`](./src/polyswarm_api/resources.py). If the resource's identifier isn't `id`, set `RESOURCE_ID_KEYS = ['your_key']` so the base class routes it into the query string for `GET` / `DELETE` / `PUT`. Resources are transport-agnostic — only edit `resources.py`.
 2. Add convenience methods on **[`PolySwarmAsyncAPI`](./src/polyswarm_api/aio/api.py)** (the canonical async source). For a single resource: `return await self._single(resources.FooBar.<builder>(self, …))`. For paginated: `async for item in self._paginate(...): yield item`.
 3. Run `python scripts/regenerate_sync.py` (or rely on the pre-commit hook) to regenerate the sync mirror at `polyswarm_api/api.py`.
-4. Test with the parametrised `ClientTestCase` harness in `test/metadata_field_properties_test.py` — your tests run against both clients automatically. See [`specs/04-testing.md`](./specs/04-testing.md).
+4. Add unit tests for the resource builder (assert the resulting `PolyswarmRequest`'s shape) and `parse_response` behaviour where relevant — no httpx fixtures needed. For end-to-end coverage, add to the parametrised `ClientTestCase` harness in `test/metadata_field_properties_test.py`. See [`specs/04-testing.md`](./specs/04-testing.md).
 5. Update [`specs/03-endpoints.md`](./specs/03-endpoints.md) (and any other relevant spec) in the same PR. Commit both `aio/api.py` and the regenerated `api.py`.
 
 ## VCR cassette workflow

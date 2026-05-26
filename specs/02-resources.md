@@ -2,22 +2,21 @@
 
 ## Scope
 
-How resource classes work: the `BaseResource` / `BaseJsonResource` machinery, the classmethod builder convention (which now returns **unexecuted** `PolyswarmRequest` objects), and the per-domain catalogue. This spec is the place to read before adding a new resource or changing a resource's parsing.
+How resource classes work: the `BaseResource` / `BaseJsonResource` machinery, the classmethod builder convention (which returns `PolyswarmRequest` descriptors), and the per-domain catalogue. This spec is the place to read before adding a new resource or changing a resource's parsing.
 
 ## Invariants
 
-1. **Resource classmethods return UNEXECUTED `PolyswarmRequest` objects.** They are builders — they assemble the URL, params, and JSON body, attach a `result_parser`, and hand back a `PolyswarmRequest` instance. The API client's `_single` / `_paginate` (on `PolyswarmAPI` and `PolySwarmAsyncAPI` respectively) rebuilds the request as the right transport type via `_coerce_request` and calls `.execute()`. This separation of "build" from "execute" is the lynchpin of the sync+async split: the same resource builders feed both clients.
+1. **Resource classmethods return `PolyswarmRequest` descriptors — pure data.** They assemble the URL, params, and JSON body, attach a `result_parser`, and hand back a `PolyswarmRequest` dataclass instance. No I/O happens here. No httpx import. No transport awareness. The API client's session (`session.execute(request)`) is what runs the call.
 2. **One resource class = one domain.** A resource models a single response shape from the server (e.g. `ArtifactInstance`, `HistoricalHunt`, `MetadataFieldProperties`). Don't conflate domains in a single class.
 3. **`RESOURCE_ENDPOINT` is the source of truth for URLs.** Verb-specific endpoint overrides (`_create_endpoint`, etc.) exist but are deprecated — prefer `RESOURCE_ENDPOINT` with optional `endpoint_fmt` for path interpolation. New resources shouldn't override the per-verb hooks.
-4. **Resource methods that issue HTTP calls follow the same pattern as API methods.** `task.download_zip(folder=…)` returns an unexecuted `PolyswarmRequest`; the caller wraps in `self._single(...)` on the API side.
-5. **Public resource class names and `RESOURCE_ENDPOINT` values are part of the contract.** They appear in callers' code (`isinstance(x, resources.ArtifactInstance)`); renames are breaking changes.
+4. **Resource instance methods only build descriptors.** If a resource exposes an instance method that triggers a follow-up HTTP call (e.g. `BundleTask.download_zip(folder=…)`), it returns an unexecuted `PolyswarmRequest`. The caller wraps in `self._single(...)` on the API client side. **Resources do not own session references or call the session themselves.**
+5. **No transport methods on resources.** `LocalArtifact.upload_file` / `SandboxTask.upload_file` / `ReportTemplate.upload_logo` (as inline-execute methods) are gone in 4.0. The session handles uploads: `await api.session.upload_file(instance.upload_url, artifact)`.
+6. **Public resource class names and `RESOURCE_ENDPOINT` values are part of the contract.** They appear in callers' code (`isinstance(x, resources.ArtifactInstance)`); renames are breaking changes.
 
 ## Files
 
-- `src/polyswarm_api/_bases.py` — authoritative home for `BaseResource`, `BaseJsonResource`, `Hashable`, `HttpxResponseAdapter`, and the helpers (`is_valid_sha1` / `_sha256` / `_md5`, `parse_isoformat`, `_normalise_bool_params`, `RequestParamsEncoder`). Hand-written; not unasync-processed so it has a single class identity across the sync and async cores.
-- `src/polyswarm_api/aio/core.py` — `AsyncPolyswarmSession`, `AsyncPolyswarmRequest`. Canonical async transport.
-- `src/polyswarm_api/core.py` — re-exports the bases from `_bases.py` *and* contains the generated sync `PolyswarmSession` / `PolyswarmRequest` (unasync mirror of `aio/core.py`). Callers that did `from polyswarm_api.core import BaseJsonResource` continue to work via the re-export.
-- `src/polyswarm_api/resources.py` — every per-domain resource class. Transport-agnostic.
+- `src/polyswarm_api/core.py` — hand-written, transport-agnostic. Home of `BaseResource`, `BaseJsonResource`, `PolyswarmRequest` (dataclass descriptor), `parse_response` (pure function), `Hashable`, `Hash`, validators, `HttpxResponseAdapter`, helpers. Both transports import from here; not unasync-processed; single class identity across modules.
+- `src/polyswarm_api/resources.py` — every per-domain resource class. Transport-agnostic. Imports only from `core` and `exceptions`.
 
 ## The class hierarchy
 
@@ -25,8 +24,9 @@ How resource classes work: the `BaseResource` / `BaseJsonResource` machinery, th
 BaseResource                          # holds .api, ._content, .parse_result classmethod
 └── BaseJsonResource                  # adds .json, RESOURCE_ENDPOINT, jmespath(), _get(),
                                       # CRUD classmethods (create/get/head/update/delete/list)
-    ├── ArtifactInstance              # /search/instances + .submit, .upload_file, .lookup_uuid
-    ├── LocalArtifact                 # file handle wrapper, .upload_file (S3 PUT), .download
+    ├── ArtifactInstance              # /search/instances + .submit, .lookup_uuid
+    ├── LocalArtifact                 # file handle wrapper (no upload method —
+    │                                 #   callers use api.session.upload_file)
     ├── Engine                        # /engines
     ├── Metadata                      # /search/metadata
     ├── MetadataFieldProperties       # /search/metadata/properties
@@ -51,16 +51,88 @@ BaseResource                          # holds .api, ._content, .parse_result cla
     └── WhoIs, AccountFeatures        # /account/whois, /account/features
 
 Hash                                  # mixin / standalone hash wrapper (Hashable)
+PolyswarmRequest                      # @dataclass — pure description, not a resource
 ```
+
+`PolyswarmRequest` is intentionally NOT a `BaseResource` — it's a separate concept (an HTTP-call description) and lives next to the resource bases in `core.py` because both are foundational.
+
+## `PolyswarmRequest` — the descriptor
+
+A `@dataclass` defined in `core.py`. Pure data. Constructed by resource classmethods. Holds:
+
+**Request inputs** (set at build time):
+
+```python
+method: str
+url: str
+headers: dict | None = None
+params: dict | list[tuple] | None = None
+json: Any = None
+content: bytes | None = None
+stream: bool = False
+result_parser: type | None = None       # BaseJsonResource subclass / LocalArtifact / etc.
+parser_kwargs: dict = field(default_factory=dict)   # extra kwargs forwarded to .parse_result
+```
+
+**Response state** (populated by `session.execute`):
+
+```python
+raw_result: Any = None                  # the httpx.Response
+status_code: int | None = None
+_result: Any = None                     # the parsed value (resource instance / list / status code)
+_paginated: bool = False
+total: int | None = None
+limit: int | None = None
+offset: int | None = None
+order_by: str | None = None
+direction: str | None = None
+has_more: bool | None = None
+json_body: dict | None = None           # the parsed JSON dict
+status: str | None = None               # JSON-body 'status' field
+errors: list | None = None              # JSON-body 'errors' field
+```
+
+Two methods:
+
+- `result(self)` — returns `_result`. If `_paginated`, callers should iterate via the API client's `_consume_results` instead.
+- `to_httpx_kwargs(self) -> dict` — projects the descriptor into a `dict` of kwargs `httpx.{Async,}Client.request()` accepts. Strips `stream` (httpx doesn't take it). Used internally by `session.execute`.
+
+The descriptor has **no** `.execute()`, `.consume_results()`, `.next_page()`, or `.parse_result()` method. Executing is the session's job; parsing is the `parse_response` function's job; pagination orchestration is the API client's job.
+
+## `parse_response` — the pure parse function
+
+Lives in `core.py`. Signature:
+
+```python
+def parse_response(response, request: PolyswarmRequest) -> None:
+    """Read `response`, populate request fields, raise typed exceptions
+    on non-2xx. Pure — no I/O. The caller (typically session.execute) is
+    responsible for attaching `request` as `.result` on any raised
+    exception before re-raising.
+    """
+```
+
+Behaviour:
+
+| Branch | Action |
+|---|---|
+| `request.method == 'HEAD'` | `request._result = response.status_code`; return. |
+| Non-2xx | Extract JSON body into `request.json_body` / `.status` / `.errors`. Dispatch on status code: 404 → `NotFoundException`, 422 → `FailedInstanceException`, 429 → `UsageLimitsExceededException`, else → `RequestException`. Raise. |
+| 2xx, no `result_parser` | Return (fire-and-forget endpoints). |
+| 2xx, `result_parser` is `BaseJsonResource` subclass, status 204 | Raise `NoResultsException`. |
+| 2xx, `BaseJsonResource` parser | Extract JSON. Populate pagination metadata (`_paginated` / `total` / `limit` / `offset` / `has_more`). Find `result` or `results` key in body. Dispatch on `result_parser.parse_result_list` (list) or `.parse_result` (single). |
+| 2xx, non-`BaseJsonResource` parser | Call `result_parser.parse_result(api, response, **parser_kwargs)` directly. Used for file downloads (`LocalArtifact`). |
+
+Testable in isolation: pass a fake response object with `.status_code` / `.json()` / `.headers`; pass a fresh `PolyswarmRequest`; assert fields populated or right exception raised. No httpx, no async, no fixtures.
 
 ## `BaseResource`
 
 Tiny base. Constructor signature: `BaseResource(content, *args, api=None, **kwargs)`. Holds:
 
-- `self.api` — the API client that produced this resource. Resources call back into it (e.g. `task.upload_file(artifact)` uses `self.api.session`).
+- `self.api` — the API client that produced this resource. Resources can call back into it (e.g. `task.api.session.upload_file(task.upload_url, artifact)` if a caller needs the resource's owning api).
 - `self._content` — the raw payload (JSON dict for JSON resources, an HTTP response object for streaming ones).
 
-`@classmethod parse_result(cls, api, content, **kwargs)` is what `PolyswarmRequest.parse_result` invokes on a successful 2xx. The default builds `cls(content, api=api, **kwargs)`.
+`@classmethod parse_result(cls, api, content, **kwargs)` is what `parse_response` invokes on a successful 2xx. The default builds `cls(content, api=api, **kwargs)`.
 
 ## `BaseJsonResource`
 
@@ -68,8 +140,8 @@ Adds:
 
 - `self.json` — alias for `self._content` (the parsed JSON dict).
 - `__int__(self)` — returns `int(self.id)` so resources can be passed wherever an ID int is expected.
-- `jmespath(self, expr)` — apply a JMESPath expression to `self.json`. Returns `None` for missing paths. Lets callers extract nested fields without manual `_get('a.b.c')` chains. See its docstring for examples.
-- `_get(self, path, default=None, content=None)` — dotted-path access with list-index support (`'a.b[0].c'`). Returns `default` on `KeyError` / `IndexError`.
+- `jmespath(self, expr)` — apply a JMESPath expression to `self.json`. Returns `None` for missing paths.
+- `_get(self, path, default=None, content=None)` — dotted-path access with list-index support (`'a.b[0].c'`).
 - `parse_result_list(cls, api, json_data, **kwargs)` — `[cls.parse_result(api, entry, **kwargs) for entry in json_data]`.
 
 ### CRUD classmethods (the builders)
@@ -94,9 +166,9 @@ Each one:
 1. Calls the corresponding `_<verb>_endpoint(api, **kwargs)` to compute the URL.
 2. Calls the corresponding `_<verb>_params(**kwargs)` to compute query string + JSON body.
 3. Calls `_<verb>_headers(api)` for header overrides (defaults to None).
-4. Wraps it all in a `PolyswarmRequest(api, request_params, result_parser=cls)` and **returns it without executing**.
+4. Constructs `PolyswarmRequest(method=…, url=…, headers=…, params=…, json=…, result_parser=cls)` and returns it.
 
-The hook layout (`_<verb>_endpoint`, `_<verb>_params`, `_<verb>_headers`) is preserved for resources that need per-verb URL customisation. New resources shouldn't override them — prefer `RESOURCE_ENDPOINT` with `endpoint_fmt` (see below).
+The hook layout (`_<verb>_endpoint`, `_<verb>_params`, `_<verb>_headers`) is preserved for resources that need per-verb URL customisation. New resources shouldn't override them — prefer `RESOURCE_ENDPOINT` with `endpoint_fmt`.
 
 ### URL construction
 
@@ -132,21 +204,29 @@ def _params(cls, method, *param_keys, endpoint_fmt=None, **kwargs):
 
 Rules:
 
-- `None` values are dropped (matching the `requests` library behaviour the test suite was written against — `httpx` would otherwise send them as empty strings).
+- `None` values are dropped (matching the `requests` library behaviour cassettes were recorded against — `httpx` would otherwise send them as empty strings).
 - Keys named `id` or `*_id` are coerced to `str(int(v))` if possible, else `str(v)`. Server expects string IDs.
-- Booleans are coerced to int (0/1) at the param layer. The HTTP session layer additionally normalises any remaining bool values to `'True'` / `'False'` (capitalised) — see `_normalise_bool_params` in [`01-architecture.md`](./01-architecture.md).
-- `RESOURCE_ID_KEYS` (default `['id']`) lists keys that must go to the query string for `GET` / `DELETE` / `PUT` (which would otherwise put non-list kwargs in the JSON body). For example, `MetadataFieldProperties.RESOURCE_ID_KEYS = ['field_path']`.
+- Booleans are coerced to int (0/1) at the param layer. The session layer additionally normalises any remaining bool values to `'True'` / `'False'` (capitalised) — see `_normalise_bool_params` in [`01-architecture.md`](./01-architecture.md).
+- `RESOURCE_ID_KEYS` (default `['id']`) lists keys that must go to the query string for `GET` / `DELETE` / `PUT`.
 
 ### Adding a new resource
 
 ```python
-class FooBar(core.BaseJsonResource):
+# resources.py
+from .core import BaseJsonResource, Hashable, PolyswarmRequest
+
+class FooBar(BaseJsonResource):
     RESOURCE_ENDPOINT = '/foobar'
     RESOURCE_ID_KEYS = ['foo_id']   # only needed if the identifier isn't 'id'
 
     # Optional: parametrised path
     # RESOURCE_ENDPOINT = '/foobar/{foo_id}'
     # — combine with endpoint_fmt={'foo_id': foo_id} at the call site
+
+    def __init__(self, content, api=None):
+        super().__init__(content, api=api)
+        self.foo_id = content['foo_id']
+        self.name = content.get('name')
 ```
 
 Then in the canonical async client [`aio/api.py`](../src/polyswarm_api/aio/api.py):
@@ -166,7 +246,7 @@ class PolySwarmAsyncAPI:
             yield item
 ```
 
-Run `python scripts/regenerate_sync.py` (or rely on the pre-commit hook) to regenerate the sync mirror at `polyswarm_api/api.py`. Commit both the canonical edit and the regenerated file. See [`01-architecture.md`](./01-architecture.md) §"The codegen" for the rename rules and escape hatches.
+Run `python scripts/regenerate_sync.py` (or rely on the pre-commit hook) to regenerate the sync mirror at `polyswarm_api/api.py`. Commit both the canonical edit and the regenerated file. See [`01-architecture.md`](./01-architecture.md) §"The codegen workflow".
 
 Tests go under the parametrised `ClientTestCase` harness — see [`04-testing.md`](./04-testing.md).
 
@@ -182,21 +262,19 @@ Supported hash types are listed in `Hashable.SUPPORTED_HASH_TYPES` (`sha1`, `sha
 
 Wraps a single scan instance. Carries `id`, `sha256`, `upload_url`, the assertion / detection counts, the scan metadata.
 
-Classmethod builders (each returns an unexecuted `PolyswarmRequest`):
+Classmethod builders (each returns a `PolyswarmRequest` descriptor):
 
 - `exists_hash(api, hash_value, hash_type, require_scan=False)` — HEAD request, returns the status code as the result.
 - `search_hash(api, hash_value, hash_type)` — GET `/search/hash/{hash_type}`.
 - `search_url(api, url)` — GET `/search/url`.
 - `list_scans(api, hash_value)` — GET `/search/instances`.
-- `submit(cls, api, artifact, artifact_name, artifact_type, scan_config=None)` — POST a file upload (multipart).
 - `lookup_uuid(api, scan)` — GET `/instance/{id}`.
 - `rescan(api, hash_value, hash_type, scan_config=None)` — POST.
 - `rescan_id(api, scan, scan_config=None)` — POST.
 - `metadata_rerun(api, hashes, analyses=None, skip_es=None)` — POST.
+- `create(api, …)`, `update(api, …)`, `download(cls, api, hash_value, hash_type, …)`, `download_id(cls, api, instance_id, …)`, `download_archive(cls, api, s3_path, …)`, `download_sandbox_artifact(cls, api, sandbox_task_id, instance_id, …)` — used by `submit`, `download*`, `stream` endpoints.
 
-Instance method:
-
-- `upload_file(self, artifact, attempts=3, **kwargs)` — uploads to the pre-signed S3 URL via `polyswarm_api.upload.upload_file(client, self.upload_url, artifact, …)`. Executed synchronously regardless of whether the API client is sync or async: for a sync owner the session's `httpx.Client` is reused; for an async owner the shim opens a one-shot `httpx.Client` (forwarding `verify` and `timeout` from the api) since `httpx.AsyncClient.put` returns a coroutine and the sync upload helper can't drive it. See [`03-endpoints.md`](./03-endpoints.md) §"File-upload paths".
+**No instance methods** that issue HTTP. Uploading to the pre-signed S3 URL is done via the session: `await api.session.upload_file(instance.upload_url, artifact)` (or `api.session.upload_file(...)` for sync).
 
 ### `LocalArtifact`
 
@@ -206,7 +284,9 @@ A file-system or in-memory artifact prepared for upload. Constructed via:
 - `LocalArtifact.from_handle(api, handle, artifact_name, artifact_type)` — wraps an open file-like.
 - `LocalArtifact.from_content(api, content, artifact_name, artifact_type)` — wraps an in-memory string (URL submissions).
 
-Holds `handle`, `artifact_name`, `artifact_type`, `sha256`, `sha1`, `md5`. The `download_*` classmethods build `PolyswarmRequest`s for `result_parser=LocalArtifact` (non-JSON parsing path).
+Holds `handle`, `artifact_name`, `artifact_type`, `sha256`, `sha1`, `md5`. Also has classmethod builders `download`, `download_id`, `download_archive`, `download_sandbox_artifact` that return `PolyswarmRequest` descriptors (with `result_parser=LocalArtifact` — the non-JSON parsing path).
+
+**No `upload_file` instance method** in 4.0. To upload: `await api.session.upload_file(instance.upload_url, local_artifact)`.
 
 ### `BaseJsonResource` subclasses with custom builders
 
@@ -214,29 +294,22 @@ Several resources add domain-specific classmethods on top of the standard CRUD s
 
 - `IOC` — `iocs_by_hash`, `ioc_search`, `check_known_hosts`, `create_known_good`, `create_known_bad`, `update_known_good`, `delete_known_good`.
 - `LiveYaraRuleset` / `HistoricalHunt` / `YaraRuleset` — standard CRUD plus list/delete-batch variants.
-- `SandboxTask` — `create_file`, `update_file`, `latest`, `my_tasks` for the various sandbox-submission shapes.
+- `SandboxTask` — `create_file`, `update_file`, `latest`, `my_tasks` for the various sandbox-submission shapes. **No `upload_file` instance method** in 4.0.
 - `Sample` — `create` with `endpoint_fmt={'sha256': sha256}` for the URL-parametrised path.
 - `Webhook` — `test(api, webhook_id)` for the test-payload endpoint.
 
-These follow the same convention: build a `PolyswarmRequest`, return unexecuted.
+These follow the same convention: build a `PolyswarmRequest`, return it.
 
 ## Resource-instance methods that issue HTTP
 
-A small set of resources expose instance methods. Two shapes:
-
-**Instance methods that execute inline (synchronous):**
-
-- `LocalArtifact.upload_file(artifact, attempts=3, **kwargs)` — PUTs to the pre-signed S3 URL via the session's `httpx.Client` (or a one-shot sync client if the owning API is async — see the shim in `resources.py`). Returns the `httpx.Response` directly. Not routed through `_single` / `_paginate`.
-- `SandboxTask.upload_file(artifact, attempts=3, **kwargs)` — same shape.
-
-**Instance methods that hand back an unexecuted `PolyswarmRequest`:**
+A handful of resources expose instance methods that hand back unexecuted `PolyswarmRequest` descriptors (for follow-up HTTP calls in multi-step flows):
 
 - `BundleTask.download_zip(folder=None)` — returns `PolyswarmRequest(result_parser=LocalArtifact)`. Caller wraps in `self._single(task.download_zip(…))`.
 - `ReportLLMPostProcessing.download_report(folder=None)` — same shape.
 - `ReportTask.download_report(folder=None)` — same shape.
 - `ReportTemplate.download_logo(folder)` — same shape.
 - `ReportTemplate.delete_logo()` — same shape.
-- `ReportTemplate.upload_logo(logo_file, content_type)` — same shape.
+- `ReportTemplate.upload_logo(logo_file, content_type)` — same shape (builds a descriptor; the actual PUT goes through the API client's authenticated session).
 
 The API method (canonical on [`aio/api.py`](../src/polyswarm_api/aio/api.py), mirrored to sync) drives the multi-step flow:
 
@@ -258,7 +331,7 @@ unasync mirrors the body to sync mechanically — `async def` → `def`, `await`
 
 `LocalArtifact.parse_result(api, response, …)` (the default `parse_result` on `BaseResource`) is invoked on a 2xx response when the `result_parser` is `LocalArtifact` (or any non-`BaseJsonResource` parser). It expects `response.iter_content(chunk_size)` — a `requests.Response`-style streaming API.
 
-`httpx.Response` doesn't have `iter_content`; it has `iter_bytes`. `PolyswarmRequest.execute()` detects this case (`not issubclass(result_parser, BaseJsonResource)`) and wraps the response in `HttpxResponseAdapter` before handing it to the parser. The adapter exposes `iter_content(chunk_size)`, `status_code`, `headers`, `url`, `_content`, and `json()`.
+`httpx.Response` doesn't have `iter_content`; it has `iter_bytes`. `session.execute` detects this case (`not issubclass(result_parser, BaseJsonResource)`) and wraps the response in `HttpxResponseAdapter` before handing it to `parse_response`. The adapter exposes `iter_content(chunk_size)`, `status_code`, `headers`, `url`, `_content`, and `json()`.
 
 This wrap happens identically in sync and async — both transports produce `httpx.Response`, and the adapter is shared (defined in `core.py`).
 
@@ -267,8 +340,32 @@ This wrap happens identically in sync and async — both transports produce `htt
 - `NoResultsException` — HTTP 204 with a typed `result_parser`.
 - `NotFoundException` — HTTP 404, or a JSON-decode failure on a 404.
 - `FailedInstanceException` — HTTP 422.
-- `UsageLimitsExceededException` — HTTP 429 (rate-limited or plan exceeded).
-- `RequestException` — any other non-2xx, plus JSON-decode failures on non-404s.
-- `InvalidValueException` — client-side validation (hash mismatch, missing required field). No HTTP round-trip.
+- `UsageLimitsExceededException` — HTTP 429.
+- `RequestException` — any other non-2xx.
 
-All but `InvalidValueException` carry the originating `PolyswarmRequest` as `exception.result`, so callers can inspect `.status_code`, `.json`, `.request_parameters`.
+Each is raised by `parse_response` (without a `.result` attribute). The session catches them in `execute`, sets `exc.result = request`, and re-raises. Callers downstream read `.result.status_code`, `.result.json_body`, etc.
+
+## Unit-testable in isolation
+
+Because resource builders are pure and `parse_response` is a pure function, both can be unit-tested without httpx, without async, without fixtures:
+
+```python
+# test resource builder
+def test_search_hash_builds_descriptor():
+    api = mock.Mock(uri='https://example.com/v3', community='gamma')
+    req = ArtifactInstance.search_hash(api, 'abc123', 'sha256')
+    assert req.method == 'GET'
+    assert req.url == 'https://example.com/v3/search/hash/sha256'
+    assert req.params == {'hash': 'abc123', 'community': 'gamma'}
+    assert req.result_parser is ArtifactInstance
+
+# test parser
+def test_parse_response_404_raises_NotFoundException():
+    response = FakeResponse(status_code=404, json_body={'result': 'not found', 'status': 'error'})
+    request = PolyswarmRequest(method='GET', url='...')
+    with pytest.raises(NotFoundException):
+        parse_response(response, request)
+    assert request.status_code == 404
+```
+
+These run in microseconds and exercise the parts of the SDK that are most likely to harbor subtle bugs.
