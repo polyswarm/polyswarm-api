@@ -1069,7 +1069,7 @@ class PolyswarmAPI:
                                                                instance_id=instance_id,
                                                                cape_sandbox_task_id=cape_sandbox_task_id,
                                                                triage_sandbox_task_id=triage_sandbox_task_id,
-                                                               communtiy=self.community).result()
+                                                               community=self.community).result()
         return report_task
 
     def llm_report_get(self, report_task_id):
