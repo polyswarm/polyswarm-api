@@ -6,7 +6,7 @@ How resource classes work: the `BaseResource` / `BaseJsonResource` machinery, th
 
 ## Invariants
 
-1. **Resource classmethods return UNEXECUTED `PolyswarmRequest` objects.** They are builders — they assemble the URL, params, and JSON body, attach a `result_parser`, and hand back a `PolyswarmRequest` instance. The API client (`PolyswarmAPIBase._single` / `_paginate`) calls `.execute()`. This is the lynchpin of the sync+async unification.
+1. **Resource classmethods return UNEXECUTED `PolyswarmRequest` objects.** They are builders — they assemble the URL, params, and JSON body, attach a `result_parser`, and hand back a `PolyswarmRequest` instance. The API client's `_single` / `_paginate` (on `PolyswarmAPI` and `PolySwarmAsyncAPI` respectively) rebuilds the request as the right transport type via `_coerce_request` and calls `.execute()`. This separation of "build" from "execute" is the lynchpin of the sync+async split: the same resource builders feed both clients.
 2. **One resource class = one domain.** A resource models a single response shape from the server (e.g. `ArtifactInstance`, `HistoricalHunt`, `MetadataFieldProperties`). Don't conflate domains in a single class.
 3. **`RESOURCE_ENDPOINT` is the source of truth for URLs.** Verb-specific endpoint overrides (`_create_endpoint`, etc.) exist but are deprecated — prefer `RESOURCE_ENDPOINT` with optional `endpoint_fmt` for path interpolation. New resources shouldn't override the per-verb hooks.
 4. **Resource methods that issue HTTP calls follow the same pattern as API methods.** `task.download_zip(folder=…)` returns an unexecuted `PolyswarmRequest`; the caller wraps in `self._single(...)` on the API side.
@@ -174,7 +174,7 @@ Tests go under the parametrised `ClientTestCase` harness — see [`04-testing.md
 
 ### `Hash` / `Hashable`
 
-`Hashable` is a mixin. `Hash.from_hashable(value, hash_type=None)` accepts a `Hash`, an `ArtifactInstance`, a `LocalArtifact`, or a hex string and returns a `Hash` with the right `hash_type` and `hash` attributes. Used everywhere a method takes a `hash_` parameter — see `PolyswarmAPIBase.search`, `.exists`, `.download`, `.rescan`.
+`Hashable` is a mixin. `Hash.from_hashable(value, hash_type=None)` accepts a `Hash`, an `ArtifactInstance`, a `LocalArtifact`, or a hex string and returns a `Hash` with the right `hash_type` and `hash` attributes. Used everywhere a method takes a `hash_` parameter — see `PolySwarmAsyncAPI.search` / `.exists` / `.download` / `.rescan` and the corresponding generated sync methods on `PolyswarmAPI`.
 
 Supported hash types are listed in `Hashable.SUPPORTED_HASH_TYPES` (`sha1`, `sha256`, `md5`). `validate_hash=True` on construction raises `InvalidValueException` on a mismatch.
 
@@ -196,7 +196,7 @@ Classmethod builders (each returns an unexecuted `PolyswarmRequest`):
 
 Instance method:
 
-- `upload_file(self, artifact, attempts=3, **kwargs)` — issues `httpx.put(self.upload_url, content=…)` to the pre-signed S3 URL the server returned. Executed synchronously regardless of whether the API client is sync or async — see [`03-endpoints.md`](./03-endpoints.md) §"File-upload paths".
+- `upload_file(self, artifact, attempts=3, **kwargs)` — uploads to the pre-signed S3 URL via `polyswarm_api.upload.upload_file(client, self.upload_url, artifact, …)`. Executed synchronously regardless of whether the API client is sync or async: for a sync owner the session's `httpx.Client` is reused; for an async owner the shim opens a one-shot `httpx.Client` (forwarding `verify` and `timeout` from the api) since `httpx.AsyncClient.put` returns a coroutine and the sync upload helper can't drive it. See [`03-endpoints.md`](./03-endpoints.md) §"File-upload paths".
 
 ### `LocalArtifact`
 
@@ -222,9 +222,15 @@ These follow the same convention: build a `PolyswarmRequest`, return unexecuted.
 
 ## Resource-instance methods that issue HTTP
 
-A small set of resources expose instance methods that hand back unexecuted requests:
+A small set of resources expose instance methods. Two shapes:
 
-- `LocalArtifact.upload_file(artifact, attempts=3)` — uploads to the pre-signed S3 URL. Executed inline (synchronous `httpx.put`), not via `_single` / `_paginate`. See [`03-endpoints.md`](./03-endpoints.md).
+**Instance methods that execute inline (synchronous):**
+
+- `LocalArtifact.upload_file(artifact, attempts=3, **kwargs)` — PUTs to the pre-signed S3 URL via the session's `httpx.Client` (or a one-shot sync client if the owning API is async — see the shim in `resources.py`). Returns the `httpx.Response` directly. Not routed through `_single` / `_paginate`.
+- `SandboxTask.upload_file(artifact, attempts=3, **kwargs)` — same shape.
+
+**Instance methods that hand back an unexecuted `PolyswarmRequest`:**
+
 - `BundleTask.download_zip(folder=None)` — returns `PolyswarmRequest(result_parser=LocalArtifact)`. Caller wraps in `self._single(task.download_zip(…))`.
 - `ReportLLMPostProcessing.download_report(folder=None)` — same shape.
 - `ReportTask.download_report(folder=None)` — same shape.
@@ -232,13 +238,21 @@ A small set of resources expose instance methods that hand back unexecuted reque
 - `ReportTemplate.delete_logo()` — same shape.
 - `ReportTemplate.upload_logo(logo_file, content_type)` — same shape.
 
-The caller (in `_base.py`'s sync-only carve-outs for upload methods, or anywhere on the base for the rest) does:
+The API method (canonical on [`aio/api.py`](../src/polyswarm_api/aio/api.py), mirrored to sync) drives the multi-step flow:
 
 ```python
-result = self._single(task.download_zip(folder=folder))
-result.handle.close()
-return result
+async def sample_bundle_download(self, id, folder):
+    task = await self._single(resources.BundleTask.get(self, id=id, community=self.community))
+    if task.state == 'PENDING':
+        raise exceptions.InvalidValueException(...)
+    if task.state == 'FAILED':
+        raise exceptions.InvalidValueException(...)
+    result = await self._single(task.download_zip(folder=folder))
+    result.handle.close()
+    return result
 ```
+
+unasync mirrors the body to sync mechanically — `async def` → `def`, `await` removed.
 
 ## Streaming / non-JSON responses
 

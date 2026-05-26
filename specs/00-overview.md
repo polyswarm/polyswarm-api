@@ -18,8 +18,9 @@ This spec describes what the `polyswarm-api` Python SDK is, what it ships, where
 | `polyswarm_api.aio.PolySwarmAsyncAPI` | Asynchronous client. Same method surface, `await`-able. |
 | `polyswarm_api.resources` | Per-domain resource classes (`ArtifactInstance`, `LocalArtifact`, `HistoricalHunt`, `LiveYaraRuleset`, `YaraRuleset`, `MetadataFieldProperties`, `LLMPromptConfig`, …). Data wrappers over the server's JSON responses. |
 | `polyswarm_api.exceptions` | Exception hierarchy (`PolyswarmException` → `RequestException`, `NotFoundException`, `FailedInstanceException`, `NoResultsException`, `UsageLimitsExceededException`, `InvalidValueException`, `TimeoutException`). |
-| `polyswarm_api.core` | Lower-level plumbing: `PolyswarmRequest`, `BaseJsonResource`, `HttpxResponseAdapter`. Public for advanced consumers that want to subclass / wrap. |
-| `polyswarm_api.aio.upload.async_upload_file` | Module-level async upload helper. Downstream consumers monkey-patch this; the call signature is part of the contract. |
+| `polyswarm_api.core` | Lower-level plumbing: `PolyswarmRequest`, `BaseJsonResource`, `HttpxResponseAdapter`. Public for advanced consumers that want to subclass / wrap. (Generated sync mirror of `polyswarm_api.aio.core` + re-exports of the shared bases from `polyswarm_api._bases`.) |
+| `polyswarm_api.aio.upload.async_upload_file` / `async_upload_logo` | Module-level async upload helpers. Downstream consumers monkey-patch these; the call signatures are part of the contract. |
+| `polyswarm_api.upload.upload_file` / `upload_logo` | Generated sync mirrors of the async upload helpers. |
 
 ## Where it sits
 
@@ -32,8 +33,9 @@ This spec describes what the `polyswarm-api` Python SDK is, what it ships, where
          ▼          ▼
    ┌────────────────────────┐
    │   polyswarm-api (this) │   Sync + async HTTP clients, request/response
-   │   PolyswarmAPIBase     │   parsing, retry/auth/pagination logic.
-   └─────────┬──────────────┘
+   │   PolyswarmAPI         │   parsing, retry/auth/pagination logic.
+   │   PolySwarmAsyncAPI    │   Sync mirror is generated from the canonical
+   └─────────┬──────────────┘   async source by scripts/regenerate_sync.py.
              │  httpx (sync + async)
              ▼
    ┌────────────────────────┐
@@ -66,18 +68,27 @@ polyswarm-api/
 │   └── workflows/
 │       └── claude-code-review.yml  # automated PR review against specs/ + AGENTS.md
 ├── pyproject.toml                  # version, deps, [tool.bumpversion]
+├── scripts/
+│   └── regenerate_sync.py          # unasync codegen driver
 ├── src/polyswarm_api/
 │   ├── __init__.py                 # public exports + __version__
-│   ├── _base.py                    # PolyswarmAPIBase — every endpoint method
-│   ├── api.py                      # sync PolyswarmAPI(PolyswarmAPIBase)
-│   ├── core.py                     # PolyswarmRequest, PolyswarmSession, BaseJsonResource, HttpxResponseAdapter
-│   ├── resources.py                # per-domain data wrappers
+│   ├── _bases.py                   # hand-written, shared: BaseJsonResource, Hashable,
+│   │                               #   HttpxResponseAdapter, helpers
+│   ├── api.py                      # GENERATED sync PolyswarmAPI (unasync mirror of aio/api.py)
+│   ├── core.py                     # GENERATED sync PolyswarmRequest, PolyswarmSession
+│   │                               #   (unasync mirror of aio/core.py; also re-exports
+│   │                               #   bases from _bases.py for back-compat)
+│   ├── upload.py                   # GENERATED sync upload_file / upload_logo
+│   ├── resources.py                # per-domain data wrappers (transport-agnostic)
 │   ├── settings.py                 # constants (default URI, timeouts, poll frequency)
 │   ├── exceptions.py               # exception hierarchy
 │   └── aio/
-│       ├── __init__.py             # async PolySwarmAsyncAPI(PolyswarmAPIBase)
-│       ├── core.py                 # AsyncPolyswarmSession, AsyncPolyswarmRequest(PolyswarmRequest)
-│       └── upload.py               # async_upload_file (monkey-patch site, see 05-downstream-contract)
+│       ├── __init__.py             # re-exports PolySwarmAsyncAPI + the transport types
+│       │                           #   and upload monkey-patch sites from the modules below
+│       ├── api.py                  # CANONICAL async PolySwarmAsyncAPI — every endpoint method
+│       ├── core.py                 # CANONICAL AsyncPolyswarmSession, AsyncPolyswarmRequest
+│       └── upload.py               # CANONICAL async_upload_file (monkey-patch site,
+│                                   #   see 05-downstream-contract)
 └── test/
     ├── conftest.py
     ├── client_scan_test.py             # sync, VCR-backed integration tests
@@ -89,28 +100,44 @@ polyswarm-api/
 
 ## Architectural snapshot
 
-Both clients subclass `PolyswarmAPIBase`. Every endpoint method lives **once** on the base. The sync/async difference is contained to three hooks the subclasses override:
+The async client at [`aio/api.py`](../src/polyswarm_api/aio/api.py) is the canonical source. The sync client at [`api.py`](../src/polyswarm_api/api.py) is generated from it by `scripts/regenerate_sync.py` (an `unasync`-driven codegen — `async def` → `def`, `await` removed, `asyncio.sleep` → `time.sleep`, etc.). The generated files carry a `# DO NOT EDIT` header.
 
 ```
-                  PolyswarmAPIBase
-                  ─────────────────
-                  • ~100 endpoint methods
-                  • _coerce_request, _build_request_kwargs (shared)
-                  • _single, _paginate, _sleep   (abstract — overridden by subclasses)
-                          ▲
-                          │
-            ┌─────────────┴─────────────┐
-            │                           │
-   PolyswarmAPI (sync)        PolySwarmAsyncAPI (async)
-   ──────────────────         ─────────────────────────
-   • httpx.Client             • httpx.AsyncClient
-   • sync _single → value     • async _single → coroutine
-   • sync _paginate → gen     • async _paginate → asyncgen
-   • _sleep → time.sleep      • _sleep → asyncio.sleep
-   • wait_for, submit, …      • wait_for, submit, …       (sync/async-specific)
+              aio/api.py  (canonical)                  api.py     (generated)
+              ─────────────────────                    ──────────────────────
+              class PolySwarmAsyncAPI:                 class PolyswarmAPI:
+                _request_cls = AsyncPolyswarmRequest    _request_cls = PolyswarmRequest
+                                                        (mechanical mirror of the
+                async def metadata_mapping(self):       canonical async source)
+                  return await self._single(...)       def metadata_mapping(self):
+                                                          return self._single(...)
+                async def search(self, ...):
+                  async for x in self._paginate(...):  def search(self, ...):
+                    yield x                              for x in self._paginate(...):
+                                                            yield x
+
+              aio/core.py  (canonical)                 core.py    (generated)
+              ─────────────────────                    ──────────────────────
+              AsyncPolyswarmSession                    PolyswarmSession
+                (httpx.AsyncClient)                      (httpx.Client)
+              AsyncPolyswarmRequest                    PolyswarmRequest
+                (async execute / consume_results)        (sync mirror)
+
+              aio/upload.py (canonical)                upload.py  (generated)
+              ─────────────────────                    ──────────────────────
+              async_upload_file                        upload_file
+              async_upload_logo                        upload_logo
+
+              _bases.py  (hand-written, shared)
+              ────────────────────────────────
+              BaseResource, BaseJsonResource, Hashable, HttpxResponseAdapter,
+              parse_isoformat, is_hex/sha1/md5/sha256, _normalise_bool_params,
+              RequestParamsEncoder.
+              Both sync and async cores import from here so issubclass()
+              checks across modules see a single class identity.
 ```
 
-The trick that lets one method body work for both transports: the base method is regular `def`, not `async def`, and it just returns whatever the subclass's hook returned. Detailed treatment in [`01-architecture.md`](./01-architecture.md).
+`PolySwarmAsyncAPI` and `PolyswarmAPI` are **independent classes** mechanically aligned by codegen. There is no shared base class; the historical `PolyswarmAPIBase` is gone. Detailed treatment in [`01-architecture.md`](./01-architecture.md).
 
 ## Specs you should read next
 

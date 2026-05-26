@@ -210,6 +210,14 @@ The sync mirror at `polyswarm_api.upload.upload_file` shares the same patch-site
 
 A consumer that patches these expects the patch site to persist across SDK versions. Breaking that on a minor version bump silently breaks production uploads.
 
+### `async_upload_logo` — preserved-for-compat, not used internally
+
+There's a sibling helper at `polyswarm_api.aio.upload.async_upload_logo(client, upload_url, logo_file, content_type, **kwargs)` (and the `polyswarm_api.aio.async_upload_logo` re-export; sync mirror at `polyswarm_api.upload.upload_logo`). It's part of the documented public surface because earlier versions of the SDK shipped it as a module-level callable. **The SDK itself doesn't call it any more** — `ReportTemplate.upload_logo()` (the resource method) builds an unexecuted `PolyswarmRequest` that goes through the normal authenticated session, not through this module-level helper.
+
+The function is kept because the import surface (`polyswarm_api.aio.async_upload_logo` / `polyswarm_api.aio.upload.async_upload_logo`) was importable on the develop branch and any downstream consumer that monkey-patches it shouldn't break on upgrade. New code should not pattern after it — extend `ReportTemplate.upload_logo()` or use the standard `_single` / `_paginate` flow.
+
+If we ever do a major version that's willing to break the import surface, this function is a candidate for removal.
+
 ## Resource response shapes
 
 The resource classes (`ArtifactInstance`, `HistoricalHunt`, etc.) wrap server JSON. Their attribute names match the JSON keys returned by the server's REST API. Server-side schema changes propagate; the SDK doesn't transform field names.

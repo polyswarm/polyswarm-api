@@ -500,6 +500,61 @@ async def test_async_no_parser_non_2xx_raises():
 
 
 @respx.mock
+async def test_async_report_download_multistep_handle_close():
+    """``report_download`` is one of the multi-statement methods that
+    motivated the codegen architecture: GET the report task → branch on
+    state → second GET to fetch the rendered file → close the local
+    handle. The post-``_single`` logic (``.state == 'PENDING'`` /
+    ``result.handle.close()``) was the regression risk that the legacy
+    polymorphic-return base class silently broke on async.
+
+    This respx-driven test pins the full async flow against the new
+    architecture: state-branch + second download + handle close, with
+    no live e2e required.
+    """
+    import io as _io, tempfile, os
+    from polyswarm_api import resources
+
+    report_id = '42'
+    download_url = 'https://s3.example.com/rendered-report.pdf'
+
+    respx.get(f'{BASE_URL}/reports').mock(return_value=httpx.Response(200, json={
+        'status': 'OK',
+        'result': {
+            'id': report_id,
+            'type': 'scan',
+            'format': 'pdf',
+            'state': 'SUCCEEDED',
+            'community': 'gamma',
+            'created': '2026-01-01T00:00:00',
+            'template_id': None,
+            'template_metadata': {},
+            'sandbox_task_id': None,
+            'instance_id': '24135952517649903',
+            'url': download_url,
+        },
+    }))
+    body = b'%PDF-1.4 minimal'
+    respx.get(download_url).mock(return_value=httpx.Response(
+        200,
+        content=body,
+        headers={'Content-Type': 'application/pdf'},
+    ))
+
+    api = PolySwarmAsyncAPI(API_KEY, uri=BASE_URL, community='gamma')
+    try:
+        with tempfile.TemporaryDirectory() as tmp_dir:
+            result = await api.report_download(report_id, folder=tmp_dir)
+            # post-_single step actually ran: handle is closed, file is on disk
+            assert result.handle.closed
+            written = os.path.join(tmp_dir, result.artifact_name)
+            with open(written, 'rb') as f:
+                assert f.read() == body
+    finally:
+        await api.aclose()
+
+
+@respx.mock
 async def test_async_report_template_logo_upload():
     """ReportTemplate.upload_logo previously passed the file-like via
     httpx ``data=``. Under httpx 0.27, ``data=`` is for Mapping
