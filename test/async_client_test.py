@@ -500,6 +500,100 @@ async def test_async_no_parser_non_2xx_raises():
 
 
 @respx.mock
+async def test_async_upload_helper_strips_session_authorization():
+    """``async_upload_file`` PUTs to a pre-signed S3 URL. The session-
+    level ``Authorization`` header (the PolySwarm API key) must NOT
+    ship to the object store — that would leak the API key to a
+    third-party origin.
+    """
+    import io as _io
+    from polyswarm_api.aio.upload import async_upload_file
+
+    presigned = 'https://s3.example.com/upload-target?sig=abc'
+    put_route = respx.put(presigned).mock(return_value=httpx.Response(200))
+
+    api = PolySwarmAsyncAPI('secret-key-1234', uri=BASE_URL, community='gamma')
+    try:
+        artifact = _io.BytesIO(b'sample-bytes')
+        await async_upload_file(api.session._client, presigned, artifact)
+    finally:
+        await api.aclose()
+
+    assert 'Authorization' not in put_route.calls[-1].request.headers
+
+
+@respx.mock
+async def test_async_download():
+    """Single-step download: GET pre-signed URL, write into folder,
+    close the local handle. Pins the simplest of the multi-statement
+    canonical async methods.
+    """
+    import tempfile, os
+
+    download_url = 'https://artifacts.example.com/eicar.bin'
+    body = b'X5O!P%@AP[4\\PZX54(P^)7CC)7}$EICAR-STANDARD-ANTIVIRUS-TEST-FILE!$H+H*'
+
+    respx.get(
+        f'{BASE_URL}/consumer/download/sha256/{SHA256}',
+    ).mock(return_value=httpx.Response(
+        200,
+        content=body,
+    ))
+
+    api = PolySwarmAsyncAPI(API_KEY, uri=BASE_URL, community='gamma')
+    try:
+        with tempfile.TemporaryDirectory() as tmp_dir:
+            result = await api.download(tmp_dir, SHA256)
+            assert result.handle.closed
+            with open(os.path.join(tmp_dir, SHA256), 'rb') as f:
+                assert f.read() == body
+    finally:
+        await api.aclose()
+
+
+@respx.mock
+async def test_async_sample_bundle_download_multistep():
+    """``sample_bundle_download`` is a multi-step canonical async
+    method: GET bundle task → state branch (PENDING / FAILED raise) →
+    GET zip → close handle. Pins the full happy path against respx.
+    """
+    import tempfile, os
+
+    bundle_id = '99'
+    zip_url = 'https://s3.example.com/bundle.zip?sig=xyz'
+    body = b'PK\x03\x04 fake zip bytes'
+
+    respx.get(f'{BASE_URL}/bundle').mock(return_value=httpx.Response(
+        200,
+        json={
+            'status': 'OK',
+            'result': {
+                'id': bundle_id,
+                'community': 'gamma',
+                'state': 'SUCCEEDED',
+                'created': '2026-01-01T00:00:00',
+                'instance_ids': [1, 2],
+                'filename': 'bundle.zip',
+                'preserve_filenames': False,
+                'url': zip_url,
+            },
+        },
+    ))
+    respx.get(zip_url).mock(return_value=httpx.Response(200, content=body))
+
+    api = PolySwarmAsyncAPI(API_KEY, uri=BASE_URL, community='gamma')
+    try:
+        with tempfile.TemporaryDirectory() as tmp_dir:
+            result = await api.sample_bundle_download(bundle_id, folder=tmp_dir)
+            assert result.handle.closed
+            written = os.path.join(tmp_dir, result.artifact_name)
+            with open(written, 'rb') as f:
+                assert f.read() == body
+    finally:
+        await api.aclose()
+
+
+@respx.mock
 async def test_async_report_download_multistep_handle_close():
     """``report_download`` is one of the multi-statement methods that
     motivated the codegen architecture: GET the report task → branch on

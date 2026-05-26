@@ -22,6 +22,21 @@ The parametrised `ClientTestCase` harness in `test/metadata_field_properties_tes
 
 **Decision point:** any refactor must keep the helper module-level and callable with the documented signature. The unasync codegen handles the sync/async split, so `submit` / `sandbox_file` / `sandbox_url` live as one body in `aio/api.py` — no further consolidation needed.
 
+## `sandbox_url` finalize-param inconsistency
+
+**Status:** pre-existing behaviour preserved across the PR.
+
+`sandbox_file` and `sandbox_url` both PUT to `{SandboxTask.RESOURCE_ENDPOINT}/instance` to finalize the submission, but they pass the task identifier under different param names:
+
+- `sandbox_file` → `params={"id": str(int(task))}`
+- `sandbox_url` → `params={"sandbox_task_id": str(int(task))}`
+
+Both shapes have shipped this way on develop; the server presumably accepts both (or the `sandbox_url` finalize endpoint variants accept the longer name). No VCR cassette covers the `sandbox_url` finalize path, so we can't confirm from replay alone.
+
+**Action:** record a cassette against the live e2e for `sandbox_url`'s full flow, then either confirm the divergence is required or reconcile on `id` (matching `sandbox_file`).
+
+**Decision point:** don't reconcile blindly — there's a real (if small) risk that the URL-sandbox endpoint variant rejects `id`.
+
 ## `sandbox_providers` executed-request quirk
 
 **Status:** preserved for backward compatibility.

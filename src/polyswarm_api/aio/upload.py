@@ -14,6 +14,30 @@ from polyswarm_api import exceptions
 logger = logging.getLogger(__name__)
 
 
+async def _put_without_session_auth(
+    client: httpx.AsyncClient,
+    url: str,
+    *,
+    content,
+    headers=None,
+    **kwargs,
+) -> httpx.Response:
+    """PUT to ``url`` via ``client`` with the client's session-level
+    ``Authorization`` header stripped.
+
+    Pre-signed S3 URLs carry their own auth in the query parameters;
+    shipping the PolySwarm API key as ``Authorization`` would leak it
+    to S3. ``client.put`` merges client + request headers and doesn't
+    honour ``None`` as suppression, so we go through
+    ``client.build_request`` and pop the header off the resulting
+    ``Headers`` before ``client.send``.
+    """
+    req_headers = dict(headers) if headers else {}
+    req = client.build_request("PUT", url, content=content, headers=req_headers, **kwargs)
+    req.headers.pop("Authorization", None)
+    return await client.send(req)
+
+
 async def async_upload_file(
     client: httpx.AsyncClient,
     upload_url: str,
@@ -23,37 +47,46 @@ async def async_upload_file(
 ) -> httpx.Response:
     """Upload a file to a pre-signed S3 URL.
 
+    The session-level ``Authorization`` header (the PolySwarm API key)
+    is stripped from the outgoing PUT — pre-signed URLs handle auth via
+    the query parameters and we don't want to leak the API key to the
+    object store.
+
     Args:
         client: the httpx client owned by the corresponding session
             (``httpx.AsyncClient`` in this async source; the generated
             sync mirror takes ``httpx.Client``).
         upload_url: pre-signed S3 URL from the API response.
         artifact: file-like object to upload.
-        attempts: number of retry attempts.
+        attempts: number of retry attempts on transient HTTP errors.
         **kwargs: forwarded to ``client.put`` (e.g. ``headers``,
-            ``timeout``). Downstream callers and monkey-patches that
-            previously passed extra kwargs to ``requests.put`` continue
-            to work; kwargs honoured by ``httpx`` are honoured here.
+            ``timeout``).
     """
     if not upload_url:
         raise exceptions.InvalidValueException("upload_url must be set to upload a file")
     if not artifact:
         raise exceptions.InvalidValueException("A LocalArtifact must be provided in order to upload")
 
-    r = None
-    while attempts > 0 and not r:
-        attempts -= 1
+    last_exc = None
+    for attempt_no in range(attempts):
         artifact.seek(0, io.SEEK_END)
         length = artifact.tell()
         artifact.seek(0)
         # Empty files use empty bytes to avoid chunked encoding.
-        if not length:
-            data = b""
-        else:
-            data = artifact.read()
-        r = await client.put(upload_url, content=data, **kwargs)
-        r.raise_for_status()
-    return r
+        data = b"" if not length else artifact.read()
+        try:
+            r = await _put_without_session_auth(
+                client, upload_url, content=data, **kwargs,
+            )
+            r.raise_for_status()
+            return r
+        except (httpx.HTTPStatusError, httpx.TransportError) as e:
+            last_exc = e
+            logger.debug(
+                "upload attempt %d/%d failed: %r", attempt_no + 1, attempts, e,
+            )
+    # Exhausted retries — re-raise the last error so callers see it.
+    raise last_exc
 
 
 async def async_upload_logo(
@@ -61,6 +94,7 @@ async def async_upload_logo(
     upload_url: str,
     logo_file,
     content_type: str,
+    attempts: int = 3,
     **kwargs,
 ) -> httpx.Response:
     """Upload a logo image for a report template.
@@ -71,28 +105,40 @@ async def async_upload_logo(
     level callable for the same monkey-patch reasons that
     ``async_upload_file`` is — see ``specs/05-downstream-contract.md``.
 
+    As with ``async_upload_file``, the session-level ``Authorization``
+    header is suppressed on the outbound request.
+
     Args:
         client: the httpx client owned by the corresponding session.
         upload_url: pre-signed URL the logo should be PUT to.
         logo_file: file-like (read into bytes before sending).
         content_type: value for the ``Content-Type`` header on the PUT.
+        attempts: number of retry attempts on transient HTTP errors.
         **kwargs: forwarded to ``client.put`` (e.g. ``timeout``).
     """
     if not upload_url:
         raise exceptions.InvalidValueException("upload_url must be set to upload a file")
 
-    logo_file.seek(0, io.SEEK_END)
-    length = logo_file.tell()
-    logo_file.seek(0)
-    if not length:
-        data = b""
-    else:
-        data = logo_file.read()
-
     headers = kwargs.pop("headers", None) or {}
+    headers = dict(headers)
     headers["Content-Type"] = content_type
 
-    r = await client.put(upload_url, content=data, headers=headers, **kwargs)
-    r.raise_for_status()
-    return r
+    last_exc = None
+    for attempt_no in range(attempts):
+        logo_file.seek(0, io.SEEK_END)
+        length = logo_file.tell()
+        logo_file.seek(0)
+        data = b"" if not length else logo_file.read()
+        try:
+            r = await _put_without_session_auth(
+                client, upload_url, content=data, headers=headers, **kwargs,
+            )
+            r.raise_for_status()
+            return r
+        except (httpx.HTTPStatusError, httpx.TransportError) as e:
+            last_exc = e
+            logger.debug(
+                "logo upload attempt %d/%d failed: %r", attempt_no + 1, attempts, e,
+            )
+    raise last_exc
 

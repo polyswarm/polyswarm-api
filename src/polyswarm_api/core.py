@@ -335,4 +335,5 @@ class PolyswarmRequest(object):
             self.api_instance,
             new_parameters,
             result_parser=self.result_parser,
+            **self.parser_kwargs,
         ).execute()
