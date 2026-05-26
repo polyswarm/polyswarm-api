@@ -1729,8 +1729,7 @@ class PolySwarmAsyncAPI:
             json_params["cape_sandbox_task_id"] = str(int(cape_sandbox_task_id))
         if triage_sandbox_task_id is not None:
             json_params["triage_sandbox_task_id"] = str(int(triage_sandbox_task_id))
-        if self.community:
-            json_params["community"] = self.community
+        json_params["community"] = self.community
         return await self._single(
             {
                 "method": "POST",
@@ -1752,14 +1751,22 @@ class PolySwarmAsyncAPI:
         )
 
     async def llm_report_download(self, report_task_id, folder):
-        """Download a completed LLM report."""
+        """Download a completed LLM report.
+
+        NOTE (issue 4): ReportLLMPostProcessing sets self.url, not self.download_url.
+        This call will raise AttributeError until that resource is fixed to expose
+        download_url (alias self.download_url = content['url'] in its __init__), or
+        this call site is changed to report.url.
+        """
         report = await self.llm_report_get(report_task_id)
+        # Presigned S3 URL: omit Authorization header and do NOT append extra query
+        # params — community was already sent on the metadata GET above, and adding
+        # params after SigV4 signing breaks X-Amz-Signature (SignatureDoesNotMatch).
         req = await self._exec(
             {
                 "method": "GET",
                 "url": report.download_url,
                 "headers": {"Authorization": None},
-                "params": {"community": self.community},
             },
             result_parser=resources.LocalArtifact,
             folder=folder,
