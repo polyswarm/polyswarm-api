@@ -1751,13 +1751,7 @@ class PolySwarmAsyncAPI:
         )
 
     async def llm_report_download(self, report_task_id, folder):
-        """Download a completed LLM report.
-
-        NOTE (issue 4): ReportLLMPostProcessing sets self.url, not self.download_url.
-        This call will raise AttributeError until that resource is fixed to expose
-        download_url (alias self.download_url = content['url'] in its __init__), or
-        this call site is changed to report.url.
-        """
+        """Download a completed LLM report."""
         report = await self.llm_report_get(report_task_id)
         # Presigned S3 URL: omit Authorization header and do NOT append extra query
         # params — community was already sent on the metadata GET above, and adding
@@ -1765,7 +1759,7 @@ class PolySwarmAsyncAPI:
         req = await self._exec(
             {
                 "method": "GET",
-                "url": report.download_url,
+                "url": report.url,
                 "headers": {"Authorization": None},
             },
             result_parser=resources.LocalArtifact,

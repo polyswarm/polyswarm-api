@@ -1,3 +1,4 @@
+import json as _json
 import os
 import shutil
 import tempfile
@@ -413,3 +414,40 @@ class ScanTestCaseV2(TestCase):
         assert {'cape', 'triage'} <= set(result.sandbox.keys())
         assert isinstance(result.tasks, dict)
         assert {'artifact_instance', 'llm_report', 'sandbox_cape', 'sandbox_triage'} <= set(result.tasks.keys())
+
+    @responses.activate
+    def test_llm_report_create_includes_community(self):
+        """Regression: community must always be present in the llm_report_create POST body.
+
+        The prior async code omitted community from the POST body entirely; this test
+        covers the sync path to ensure the same field is present there and that a future
+        refactor on either side cannot silently drop it.
+        """
+        responses.add(
+            responses.POST,
+            f'http://localhost:9696/{self.api_version}/reports/llm',
+            json={
+                'status': 'OK',
+                'result': {
+                    'id': 99,
+                    'community': 'gamma',
+                    'created': '2024-01-01T00:00:00',
+                    'state': 'SUCCEEDED',
+                    'url': 'https://s3.amazonaws.com/bucket/report.pdf',
+                    'report': {},
+                    'instance_id': '12345678901234567',
+                    'cape_sandbox_task_id': None,
+                    'triage_sandbox_task_id': None,
+                },
+            },
+        )
+
+        api = PolyswarmAPI(self.test_api_key, uri=f'http://localhost:9696/{self.api_version}', community='gamma')
+        api.llm_report_create(instance_id='12345678901234567')
+
+        assert len(responses.calls) == 1
+        sent_body = _json.loads(responses.calls[0].request.body)
+        assert 'community' in sent_body, 'community key is missing from llm_report_create POST body'
+        assert sent_body['community'] == 'gamma', (
+            f"Expected community='gamma', got {sent_body.get('community')!r}"
+        )

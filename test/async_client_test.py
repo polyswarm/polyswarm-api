@@ -15,7 +15,6 @@ Run with:
 """
 import json as _json
 import tempfile
-from unittest.mock import patch
 from urllib.parse import urlparse, parse_qs
 
 import pytest
@@ -24,7 +23,7 @@ import respx
 import vcr as vcr_
 
 from polyswarm_api.aio import PolySwarmAsyncAPI
-from polyswarm_api import exceptions, resources
+from polyswarm_api import exceptions
 
 
 # ── VCR setup (mirrors client_scan_test.py, adds match_on for httpx compat) ──
@@ -479,9 +478,8 @@ async def test_llm_report_create_includes_community():
     """Regression for Fix 2: community must always be present in the
     llm_report_create POST body, unconditionally.
 
-    The prior code gated it on ``if self.community:`` — a dead branch because
-    ``__init__`` always falls back to ``settings.DEFAULT_COMMUNITY``.  If a
-    future refactor re-introduces the guard, the server-side community routing
+    The prior async code omitted community from the POST body entirely.
+    If a future change drops the field again, server-side community routing
     silently breaks for any consumer that relies on community-scoped reports.
     """
     INSTANCE_ID = '12345678901234567'
@@ -514,10 +512,6 @@ async def test_llm_report_download_no_community_on_s3_url():
     ``X-Amz-Signature`` and causes ``SignatureDoesNotMatch`` from S3.
     The community is already supplied on the metadata GET (``llm_report_get``);
     the second hop to S3 must be a clean GET with no additional params.
-
-    Note: this test patches ``ReportLLMPostProcessing.download_url`` to work
-    around issue 4 (the resource exposes ``self.url`` but the call site reads
-    ``report.download_url``).  Remove the patch once issue 4 is resolved.
     """
     PRESIGNED_URL = 'https://s3.amazonaws.com/bucket/report.pdf?X-Amz-Signature=abc123'
     REPORT_TASK_ID = '99'
@@ -540,17 +534,8 @@ async def test_llm_report_download_no_community_on_s3_url():
     )
 
     with tempfile.TemporaryDirectory() as tmp_dir:
-        # Patch download_url onto the resource class to work around issue 4
-        # (ReportLLMPostProcessing only sets self.url, not self.download_url).
-        # create=True is required because the attribute doesn't exist yet.
-        with patch.object(
-            resources.ReportLLMPostProcessing,
-            'download_url',
-            new=property(lambda self: self.url),
-            create=True,
-        ):
-            async with PolySwarmAsyncAPI(API_KEY, uri=BASE_URL, community='gamma') as api:
-                await api.llm_report_download(REPORT_TASK_ID, tmp_dir)
+        async with PolySwarmAsyncAPI(API_KEY, uri=BASE_URL, community='gamma') as api:
+            await api.llm_report_download(REPORT_TASK_ID, tmp_dir)
 
     assert s3_route.called, 'S3 presigned URL was never requested'
 
