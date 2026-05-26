@@ -331,7 +331,9 @@ class ArtifactInstance(core.BaseJsonResource, core.Hashable):
           connection pool is shared with normal API calls.
         - Async client: the session's underlying client is an
           ``httpx.AsyncClient`` which can't drive a sync upload; we
-          open a one-shot ``httpx.Client`` for the PUT and discard it.
+          open a one-shot ``httpx.Client`` for the PUT and discard it,
+          forwarding the api's ``verify`` and ``timeout`` so configured
+          TLS / timeout behaviour applies.
 
         ``**kwargs`` is forwarded to ``client.put`` — the 3.x
         ``upload_file(artifact, headers=…)`` callsites keep working
@@ -341,7 +343,10 @@ class ArtifactInstance(core.BaseJsonResource, core.Hashable):
         from polyswarm_api.upload import upload_file as _upload
         client = self.api.session._client
         if isinstance(client, httpx.AsyncClient):
-            with httpx.Client() as sync_client:
+            with httpx.Client(
+                verify=getattr(self.api, 'verify', True),
+                timeout=getattr(self.api, 'timeout', None),
+            ) as sync_client:
                 return _upload(sync_client, self.upload_url, artifact, attempts, **kwargs)
         return _upload(client, self.upload_url, artifact, attempts, **kwargs)
 
@@ -1070,7 +1075,9 @@ class SandboxTask(core.BaseJsonResource):
           connection pool is shared with normal API calls.
         - Async client: the session's underlying client is an
           ``httpx.AsyncClient`` which can't drive a sync upload; we
-          open a one-shot ``httpx.Client`` for the PUT and discard it.
+          open a one-shot ``httpx.Client`` for the PUT and discard it,
+          forwarding the api's ``verify`` and ``timeout`` so configured
+          TLS / timeout behaviour applies.
 
         ``**kwargs`` is forwarded to ``client.put`` — the 3.x
         ``upload_file(artifact, headers=…)`` callsites keep working
@@ -1080,7 +1087,10 @@ class SandboxTask(core.BaseJsonResource):
         from polyswarm_api.upload import upload_file as _upload
         client = self.api.session._client
         if isinstance(client, httpx.AsyncClient):
-            with httpx.Client() as sync_client:
+            with httpx.Client(
+                verify=getattr(self.api, 'verify', True),
+                timeout=getattr(self.api, 'timeout', None),
+            ) as sync_client:
                 return _upload(sync_client, self.upload_url, artifact, attempts, **kwargs)
         return _upload(client, self.upload_url, artifact, attempts, **kwargs)
 

@@ -4,8 +4,4 @@ __release_url__ = 'https://api.github.com/repos/polyswarm/polyswarm-api/releases
 
 from . import api
 from . import exceptions
-
-try:
-    from .aio import PolySwarmAsyncAPI
-except ImportError:
-    pass  # httpx not installed; install polyswarm_api[async] to enable
+from .aio import PolySwarmAsyncAPI

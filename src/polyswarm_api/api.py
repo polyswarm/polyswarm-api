@@ -1513,7 +1513,7 @@ class PolyswarmAPI:
         )
 
     def wait_for(self, scan, timeout=settings.DEFAULT_SCAN_TIMEOUT):
-        """Async poll until scan completes or times out."""
+        """Poll ``lookup(scan)`` until the scan completes or times out."""
         start = time.time()
         while True:
             scan_result = self.lookup(scan)
@@ -1688,7 +1688,7 @@ class PolyswarmAPI:
         return self._coerce_request(resources.SandboxProvider.list(self)).execute()
 
     def report_wait_for(self, report_id, timeout=settings.DEFAULT_REPORT_TIMEOUT):
-        """Async poll until report is ready."""
+        """Poll ``report_get(report_id)`` until the report state leaves PENDING."""
         start = time.time()
         while True:
             report = self.report_get(report_id)

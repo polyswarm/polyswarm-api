@@ -436,6 +436,51 @@ async def test_async_no_results_raises():
 
 
 @respx.mock
+async def test_async_session_drops_none_authorization_header():
+    """``headers={'Authorization': None}`` must actually strip the
+    session-level Authorization header from the outgoing request.
+
+    Used by SDK callsites that hit third-party origins (engines list
+    against an unauthenticated endpoint; pre-signed S3 URLs for archive
+    / bundle / report downloads) — leaking the API key to those origins
+    is a real exposure. requests honoured this; httpx does not natively,
+    so the session implements the suppression manually.
+    """
+    target = 'https://s3.example.com/presigned-target'
+    respx.get(target).mock(return_value=httpx.Response(200))
+
+    api = PolySwarmAsyncAPI('secret-key-1234', uri=BASE_URL, community='gamma')
+    try:
+        await api.session.request('GET', target, headers={'Authorization': None})
+    finally:
+        await api.aclose()
+
+    assert 'Authorization' not in respx.calls[-1].request.headers
+
+
+@respx.mock
+async def test_async_session_keeps_authorization_header_by_default():
+    """Sanity-check the inverse: when no suppression is requested the
+    session-level Authorization header still ships, so the suppression
+    code in the prior test isn't accidentally dropping it for every
+    request.
+    """
+    target = f'{BASE_URL}/search/hash/sha256'
+    respx.get(target).mock(return_value=httpx.Response(
+        200,
+        json={'status': 'OK', 'result': [], 'has_more': False},
+    ))
+
+    api = PolySwarmAsyncAPI('secret-key-1234', uri=BASE_URL, community='gamma')
+    try:
+        _ = [r async for r in api.search(SHA256)]
+    finally:
+        await api.aclose()
+
+    assert respx.calls[-1].request.headers.get('Authorization') == 'secret-key-1234'
+
+
+@respx.mock
 async def test_async_no_parser_non_2xx_raises():
     """Endpoints whose request builder doesn't set a ``result_parser``
     (e.g. ``notification_webhook_test``) must still raise on non-2xx.
