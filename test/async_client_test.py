@@ -446,12 +446,16 @@ async def test_async_session_drops_none_authorization_header():
     is a real exposure. requests honoured this; httpx does not natively,
     so the session implements the suppression manually.
     """
+    from polyswarm_api.core import PolyswarmRequest
+
     target = 'https://s3.example.com/presigned-target'
     respx.get(target).mock(return_value=httpx.Response(200))
 
     api = PolySwarmAsyncAPI('secret-key-1234', uri=BASE_URL, community='gamma')
     try:
-        await api.session.request('GET', target, headers={'Authorization': None})
+        await api.session.execute(PolyswarmRequest(
+            api=api, method='GET', url=target, headers={'Authorization': None},
+        ))
     finally:
         await api.aclose()
 
@@ -501,13 +505,12 @@ async def test_async_no_parser_non_2xx_raises():
 
 @respx.mock
 async def test_async_upload_helper_strips_session_authorization():
-    """``async_upload_file`` PUTs to a pre-signed S3 URL. The session-
+    """``session.upload_file`` PUTs to a pre-signed S3 URL. The session-
     level ``Authorization`` header (the PolySwarm API key) must NOT
     ship to the object store — that would leak the API key to a
     third-party origin.
     """
     import io as _io
-    from polyswarm_api.aio.upload import async_upload_file
 
     presigned = 'https://s3.example.com/upload-target?sig=abc'
     put_route = respx.put(presigned).mock(return_value=httpx.Response(200))
@@ -515,7 +518,7 @@ async def test_async_upload_helper_strips_session_authorization():
     api = PolySwarmAsyncAPI('secret-key-1234', uri=BASE_URL, community='gamma')
     try:
         artifact = _io.BytesIO(b'sample-bytes')
-        await async_upload_file(api.session._client, presigned, artifact)
+        await api.session.upload_file(presigned, artifact)
     finally:
         await api.aclose()
 
@@ -701,15 +704,12 @@ async def test_async_report_template_logo_upload():
 
 
 @respx.mock
-async def test_async_instance_upload_file():
-    """``LocalArtifact.upload_file()`` is documented as synchronous-always
-    (specs/02-resources.md). It must work even when the owning API
-    client is async — the underlying httpx.AsyncClient can't drive a
-    sync PUT, so the shim falls back to a one-shot httpx.Client.
+async def test_async_instance_upload_to_presigned_url():
+    """The 4.0 upload path: ``session.upload_file(url, artifact)``.
 
-    This regression test guards against the shim accidentally passing
-    an AsyncClient into the sync upload helper (which would return a
-    coroutine and blow up on `r.raise_for_status()`).
+    Resources no longer carry an ``upload_file`` instance method — the
+    transport is the session. Confirms a presigned PUT against an async
+    api routes through the async client correctly.
     """
     from polyswarm_api import resources
 
@@ -739,11 +739,9 @@ async def test_async_instance_upload_file():
             },
             api=api,
         )
-        # Tiny in-memory artifact so the shim doesn't need a real file
-        # on disk.
         import io as _io
         artifact = _io.BytesIO(b'eicar')
-        response = instance.upload_file(artifact)
+        response = await api.session.upload_file(instance.upload_url, artifact)
         assert response.status_code == 200
     finally:
         await api.aclose()

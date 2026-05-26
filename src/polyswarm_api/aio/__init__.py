@@ -1,23 +1,23 @@
 """Async PolySwarm API client package.
 
-Re-exports the async client from :mod:`polyswarm_api.aio.api`. The
-package layout mirrors the sync side: the class lives in ``aio/api.py``,
+Re-exports the async client and session. The package layout mirrors
+the sync side: classes live in ``aio/api.py`` and ``aio/session.py``,
 not in ``__init__.py``.
 
-The other re-exports below preserve the import surface that the
-develop-branch ``aio/__init__.py`` exposed before the codegen split, so
-downstream callers (and monkey-patches) that imported any of these from
-``polyswarm_api.aio`` keep working without change.
+The 4.0 surface:
+
+- ``PolySwarmAsyncAPI`` — the async client.
+- ``AsyncPolyswarmSession`` — the async transport. Subclass + inject
+  via ``PolySwarmAsyncAPI(session=…)`` to customize HTTP behaviour.
+
+See ``specs/05-downstream-contract.md`` for the contract and migration
+notes from 3.x.
 """
 
 from polyswarm_api.aio.api import PolySwarmAsyncAPI
-from polyswarm_api.aio.core import AsyncPolyswarmRequest, AsyncPolyswarmSession
-from polyswarm_api.aio.upload import async_upload_file, async_upload_logo
+from polyswarm_api.aio.session import AsyncPolyswarmSession
 
 __all__ = [
     "PolySwarmAsyncAPI",
-    "AsyncPolyswarmRequest",
     "AsyncPolyswarmSession",
-    "async_upload_file",
-    "async_upload_logo",
 ]

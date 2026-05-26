@@ -17,9 +17,9 @@ import logging
 import time
 
 from polyswarm_api import exceptions, resources, settings
+from polyswarm_api.core import PolyswarmRequest
 
-from .core import AsyncPolyswarmRequest, AsyncPolyswarmSession
-from .upload import async_upload_file
+from .session import AsyncPolyswarmSession
 
 logger = logging.getLogger(__name__)
 
@@ -37,15 +37,15 @@ class PolySwarmAsyncAPI:
     ``async for``.
     """
 
-    _request_cls = AsyncPolyswarmRequest
-
     def __init__(
         self,
-        key: str,
+        key: str | None = None,
         uri: str | None = None,
         community: str | None = None,
         timeout: float | None = None,
         verify: bool = True,
+        *,
+        session: AsyncPolyswarmSession | None = None,
         **httpx_kwargs,
     ):
         key_masked = '******' + (key[-4:] if key and len(key) > 16 else '')
@@ -58,13 +58,23 @@ class PolySwarmAsyncAPI:
         self.timeout = timeout or settings.DEFAULT_HTTP_TIMEOUT
         self.verify = verify
         self._engines = None
-        self.session = AsyncPolyswarmSession(
-            key,
-            retries=settings.DEFAULT_RETRIES,
-            verify=verify,
-            timeout=self.timeout,
-            **httpx_kwargs,
-        )
+        # Either accept a pre-built session (customization point) or
+        # build the default from ``key``. Passing both is ambiguous.
+        if session is not None:
+            if httpx_kwargs:
+                raise exceptions.InvalidValueException(
+                    'session= and httpx_kwargs are mutually exclusive — '
+                    'configure the session directly.',
+                )
+            self.session = session
+        else:
+            self.session = AsyncPolyswarmSession(
+                key,
+                retries=settings.DEFAULT_RETRIES,
+                verify=verify,
+                timeout=self.timeout,
+                **httpx_kwargs,
+            )
 
     def __repr__(self):
         clsname = f'{type(self).__module__}.{type(self).__name__}'
@@ -83,42 +93,52 @@ class PolySwarmAsyncAPI:
 
     # ── Transport hooks ─────────────────────────────────────────────
     #
-    # ``_single`` / ``_paginate`` accept either an unexecuted
-    # ``AsyncPolyswarmRequest`` returned by a resource classmethod or
-    # a request-parameters dict (legacy / inline endpoint bodies).
+    # ``_single`` / ``_paginate`` accept either a ``PolyswarmRequest``
+    # descriptor returned by a resource classmethod or a
+    # request-parameters dict (inline endpoint bodies).
 
-    def _coerce_request(self, request, result_parser=None, parser_kwargs=None):
-        """Normalise the ``_single`` / ``_paginate`` input into an
-        ``AsyncPolyswarmRequest`` (sync mirror: ``PolyswarmRequest``).
+    def _to_request(self, request, result_parser=None, parser_kwargs=None):
+        """Coerce ``request`` into a ``PolyswarmRequest`` descriptor.
 
-        ``request`` is one of:
-
-        * a request-parameters ``dict`` (legacy / inline endpoint bodies);
-        * a request object exposing ``request_parameters`` /
-          ``result_parser`` / ``parser_kwargs`` — typically returned by
-          resource classmethods. We rebuild it on the subclass's
-          ``_request_cls`` so the right transport is used.
+        A ``dict`` is treated as request-parameters ({method, url, params,
+        json, headers, data, files, ...}); anything else is assumed to
+        already be a descriptor (and is returned untouched).
         """
-        parser_kwargs = parser_kwargs or {}
-        if isinstance(request, dict):
-            return self._request_cls(
-                self, request, result_parser=result_parser, **parser_kwargs,
+        if isinstance(request, PolyswarmRequest):
+            return request
+        if not isinstance(request, dict):
+            raise exceptions.InvalidValueException(
+                f'expected dict or PolyswarmRequest, got {type(request).__name__}',
             )
-        return self._request_cls(
-            self,
-            request.request_parameters,
-            result_parser=request.result_parser,
-            **request.parser_kwargs,
+        rp = dict(request)
+        method = rp.pop('method')
+        url = rp.pop('url')
+        rp.pop('stream', None)  # legacy key; httpx doesn't accept it
+        return PolyswarmRequest(
+            api=self,
+            method=method,
+            url=url,
+            params=rp.pop('params', None),
+            json=rp.pop('json', None),
+            headers=rp.pop('headers', None),
+            content=rp.pop('content', None),
+            data=rp.pop('data', None),
+            files=rp.pop('files', None),
+            timeout=rp.pop('timeout', None),
+            result_parser=result_parser,
+            parser_kwargs=parser_kwargs or {},
         )
 
     async def _single(self, request, result_parser=None, **kwargs):
-        req = await self._coerce_request(request, result_parser, kwargs).execute()
-        return req.result()
+        req = await self.session.execute(self._to_request(request, result_parser, kwargs))
+        if req._paginated:
+            return self._consume_results(req)
+        return req._result
 
     async def _paginate(self, request, result_parser=None, **kwargs):
-        req = await self._coerce_request(request, result_parser, kwargs).execute()
+        req = await self.session.execute(self._to_request(request, result_parser, kwargs))
         if req._paginated:
-            async for item in req.consume_results():
+            async for item in self._consume_results(req):
                 yield item
         else:
             result = req._result
@@ -128,14 +148,51 @@ class PolySwarmAsyncAPI:
             elif result is not None:
                 yield result
 
+    async def _consume_results(self, request):
+        while True:
+            try:
+                for item in request._result:
+                    yield item
+            except TypeError:
+                yield request._result
+                return
+            if not request.has_more:
+                return
+            request = await self._next_page(request)
+
+    async def _next_page(self, request):
+        """Build the next-page descriptor by cloning ``request`` with
+        updated ``params['offset' | 'limit']`` and clearing response
+        state, then dispatch it through the session.
+        """
+        params = request.params
+        if params is None:
+            params = {}
+        if isinstance(params, dict):
+            new_params = dict(params)
+            new_params['offset'] = request.offset
+            new_params['limit'] = request.limit
+        else:
+            new_params = [p for p in params if p[0] != 'offset' and p[0] != 'limit']
+            new_params.extend([('offset', request.offset), ('limit', request.limit)])
+        next_req = PolyswarmRequest(
+            api=request.api,
+            method=request.method,
+            url=request.url,
+            params=new_params,
+            json=request.json,
+            headers=request.headers,
+            content=request.content,
+            data=request.data,
+            files=request.files,
+            timeout=request.timeout,
+            result_parser=request.result_parser,
+            parser_kwargs=request.parser_kwargs,
+        )
+        return await self.session.execute(next_req)
+
     async def _sleep(self, seconds):
         await asyncio.sleep(seconds)
-
-    async def _exec(self, request_parameters, result_parser=None, **kwargs):
-        """Build and execute an ``AsyncPolyswarmRequest`` (legacy helper)."""
-        return await AsyncPolyswarmRequest(
-            self, request_parameters, result_parser=result_parser, **kwargs,
-        ).execute()
 
     # ── Engines ──────────────────────────────────────────────────
 
@@ -1199,9 +1256,7 @@ class PolySwarmAsyncAPI:
             )
 
             # Upload file to S3
-            await async_upload_file(
-                self.session._client, instance.upload_url, artifact
-            )
+            await self.session.upload_file(instance.upload_url, artifact)
 
             # Finalize — id goes in URL params, community in JSON body (mirrors sync update())
             return await self._single(
@@ -1282,7 +1337,7 @@ class PolySwarmAsyncAPI:
         )
 
         # Upload to S3
-        await async_upload_file(self.session._client, task.upload_url, artifact)
+        await self.session.upload_file(task.upload_url, artifact)
 
         # Finalize
         return await self._single(
@@ -1348,7 +1403,7 @@ class PolySwarmAsyncAPI:
             result_parser=resources.SandboxTask,
         )
 
-        await async_upload_file(self.session._client, task.upload_url, local)
+        await self.session.upload_file(task.upload_url, local)
 
         return await self._single(
             {
@@ -1362,12 +1417,13 @@ class PolySwarmAsyncAPI:
     async def sandbox_providers(self):
         """List sandboxes available in polyswarm.
 
-        Mirrors the sync shape: returns an executed request whose ``.json``
-        carries the providers-by-slug envelope. Caller reads
-        ``(await api.sandbox_providers()).json``.
+        Returns the executed ``PolyswarmRequest`` itself so callers can
+        read ``.json_body`` (the providers-by-slug envelope). Pre-existing
+        quirk preserved for backward compatibility; see
+        ``specs/99-open-questions.md``.
         """
         logger.info('Listing sandbox names')
-        return await self._coerce_request(resources.SandboxProvider.list(self)).execute()
+        return await self.session.execute(resources.SandboxProvider.list(self))
 
     async def report_wait_for(self, report_id, timeout=settings.DEFAULT_REPORT_TIMEOUT):
         """Poll ``report_get(report_id)`` until the report state leaves PENDING."""

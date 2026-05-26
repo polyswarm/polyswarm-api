@@ -2,7 +2,6 @@ import logging
 import os
 import io
 import functools
-import httpx
 from enum import Enum
 from hashlib import sha256 as _sha256, sha1 as _sha1, md5 as _md5
 from urllib.parse import urlparse
@@ -159,14 +158,12 @@ class IOC(core.BaseJsonResource):
     def iocs_by_hash(cls, api, hash_value, hash_type, hide_known_good=False, beta=False):
         path = 'ioc-beta' if beta else 'ioc'
         return core.PolyswarmRequest(
-            api,
-            {
-                'method': 'GET',
-                'url': f'{api.uri}/{path}/{hash_type}/{hash_value}',
-                'params': {
-                    'hide_known_good': hide_known_good,
-                    'community': api.community,
-                },
+            api=api,
+            method='GET',
+            url=f'{api.uri}/{path}/{hash_type}/{hash_value}',
+            params={
+                'hide_known_good': hide_known_good,
+                'community': api.community,
             },
             result_parser=cls,
         )
@@ -183,78 +180,55 @@ class IOC(core.BaseJsonResource):
         if imphash is not None:
             params['imphash'] = imphash
         return core.PolyswarmRequest(
-            api,
-            {
-                'method': 'GET',
-                'url': f'{api.uri}/ioc/search',
-                'params': params
-            },
+            api=api,
+            method='GET',
+            url=f'{api.uri}/ioc/search',
+            params=params,
             result_parser=cls,
         )
 
     @classmethod
     def check_known_hosts(cls, api, ips, domains):
         return core.PolyswarmRequest(
-            api,
-            {
-                'method': 'GET',
-                'url': f'{api.uri}/ioc/known',
-                'params': {
-                    'ip': ips,
-                    'domain': domains
-                }
-            },
+            api=api,
+            method='GET',
+            url=f'{api.uri}/ioc/known',
+            params={'ip': ips, 'domain': domains},
             result_parser=cls,
         )
 
     @classmethod
     def create_known_good(cls, api, type, host, source):
         return core.PolyswarmRequest(
-            api,
-            {
-                'method': 'POST',
-                'url': f'{api.uri}/ioc/known',
-                'json': {
-                    'type': type,
-                    'host': host,
-                    'source': source,
-                    'good': True
-                }
-            },
+            api=api,
+            method='POST',
+            url=f'{api.uri}/ioc/known',
+            json={'type': type, 'host': host, 'source': source, 'good': True},
             result_parser=cls,
         )
 
     @classmethod
     def create_known_bad(cls, api, type, host, source):
         return core.PolyswarmRequest(
-            api,
-            {
-                'method': 'POST',
-                'url': f'{api.uri}/ioc/known',
-                'json': {
-                    'type': type,
-                    'host': host,
-                    'source': source,
-                    'good': False
-                }
-            },
+            api=api,
+            method='POST',
+            url=f'{api.uri}/ioc/known',
+            json={'type': type, 'host': host, 'source': source, 'good': False},
             result_parser=cls,
         )
 
     @classmethod
     def update_known_good(cls, api, id, type, host, source, good):
         return core.PolyswarmRequest(
-            api,
-            {
-                'method': 'PUT',
-                'url': f'{api.uri}/ioc/known',
-                'json': {
-                    'id': id,
-                    'type': type,
-                    'host': host,
-                    'source': source,
-                    'good': good
-                }
+            api=api,
+            method='PUT',
+            url=f'{api.uri}/ioc/known',
+            json={
+                'id': id,
+                'type': type,
+                'host': host,
+                'source': source,
+                'good': good,
             },
             result_parser=cls,
         )
@@ -262,14 +236,10 @@ class IOC(core.BaseJsonResource):
     @classmethod
     def delete_known_good(cls, api, id):
         return core.PolyswarmRequest(
-            api,
-            {
-                'method': 'DELETE',
-                'url': f'{api.uri}/ioc/known',
-                'params': {
-                    'id': id
-                }
-            },
+            api=api,
+            method='DELETE',
+            url=f'{api.uri}/ioc/known',
+            params={'id': id},
             result_parser=cls,
         )
 
@@ -320,171 +290,111 @@ class ArtifactInstance(core.BaseJsonResource, core.Hashable):
         self._benign_assertions = None
         self._valid_assertions = None
 
-    def upload_file(self, artifact, attempts=3, **kwargs):
-        """Upload to the pre-signed S3 URL — always synchronous.
-
-        Thin shim over ``polyswarm_api.upload.upload_file``. Per
-        ``specs/02-resources.md``, this method executes synchronously
-        regardless of whether the owning API client is sync or async.
-
-        - Sync client: reuses the session's ``httpx.Client`` so the
-          connection pool is shared with normal API calls.
-        - Async client: the session's underlying client is an
-          ``httpx.AsyncClient`` which can't drive a sync upload; we
-          open a one-shot ``httpx.Client`` for the PUT and discard it,
-          forwarding the api's ``verify`` and ``timeout`` so configured
-          TLS / timeout behaviour applies.
-
-        ``**kwargs`` is forwarded to ``client.put`` — the 3.x
-        ``upload_file(artifact, headers=…)`` callsites keep working
-        (kwargs previously went to ``requests.put``; the intersection —
-        ``headers``, ``timeout`` — is unchanged).
-        """
-        from polyswarm_api.upload import upload_file as _upload
-        client = self.api.session._client
-        if isinstance(client, httpx.AsyncClient):
-            with httpx.Client(
-                verify=getattr(self.api, 'verify', True),
-                timeout=getattr(self.api, 'timeout', None),
-            ) as sync_client:
-                return _upload(sync_client, self.upload_url, artifact, attempts, **kwargs)
-        return _upload(client, self.upload_url, artifact, attempts, **kwargs)
-
     @classmethod
     def exists_hash(cls, api, hash_value, hash_type, require_scan=False):
         return core.PolyswarmRequest(
-            api,
-            {
-                'method': 'HEAD',
-                'url': f'{api.uri}/search/hash/{hash_type}',
-                'params': {
-                    'hash': hash_value,
-                    'community': api.community,
-                    'require_scan': str(require_scan).lower(),
-                },
+            api=api,
+            method='HEAD',
+            url=f'{api.uri}/search/hash/{hash_type}',
+            params={
+                'hash': hash_value,
+                'community': api.community,
+                'require_scan': str(require_scan).lower(),
             },
         )
 
     @classmethod
     def search_hash(cls, api, hash_value, hash_type):
         return core.PolyswarmRequest(
-            api,
-            {
-                'method': 'GET',
-                'url': f'{api.uri}/search/hash/{hash_type}',
-                'params': {
-                    'hash': hash_value,
-                    'community': api.community,
-                },
-            },
+            api=api,
+            method='GET',
+            url=f'{api.uri}/search/hash/{hash_type}',
+            params={'hash': hash_value, 'community': api.community},
             result_parser=cls,
         )
 
     @classmethod
     def search_url(cls, api, url):
         return core.PolyswarmRequest(
-            api,
-            {
-                'method': 'GET',
-                'url': f'{api.uri}/search/url',
-                'params': {
-                    'url': url,
-                    'community': api.community,
-                },
-            },
+            api=api,
+            method='GET',
+            url=f'{api.uri}/search/url',
+            params={'url': url, 'community': api.community},
             result_parser=cls,
         )
 
     @classmethod
     def list_scans(cls, api, hash_value):
         return core.PolyswarmRequest(
-            api,
-            {
-                'method': 'GET',
-                'url': f'{api.uri}/search/instances',
-                'params': {
-                    'hash': hash_value,
-                    'community': api.community,
-                },
-            },
+            api=api,
+            method='GET',
+            url=f'{api.uri}/search/instances',
+            params={'hash': hash_value, 'community': api.community},
             result_parser=cls,
         )
 
     @classmethod
     def submit(cls, api, artifact, artifact_name, artifact_type, scan_config=None):
-        parameters = {
-            'method': 'POST',
-            'url': f'{api.uri}/consumer/submission/{api.community}',
-            'files': {
-                'file': (artifact_name, artifact),
-            },
-            # very oddly, when included in files parameter this errors out
-            'data': {
-                'artifact-type': artifact_type,
-            }
-        }
+        # very oddly, when included in files parameter this errors out
+        data = {'artifact-type': artifact_type}
         if scan_config:
-            parameters['data']['scan-config'] = scan_config
+            data['scan-config'] = scan_config
         return core.PolyswarmRequest(
-            api,
-            parameters,
+            api=api,
+            method='POST',
+            url=f'{api.uri}/consumer/submission/{api.community}',
+            files={'file': (artifact_name, artifact)},
+            data=data,
             result_parser=cls,
         )
 
     @classmethod
     def rescan(cls, api, hash_value, hash_type, scan_config=None):
-        parameters = {
-            'method': 'POST',
-            'url': f'{api.uri}/consumer/submission/{api.community}/rescan/{hash_type}/{hash_value}',
-            'data': {'community': api.community}
-        }
+        data = {'community': api.community}
         if scan_config:
-            parameters['data']['scan-config'] = scan_config
+            data['scan-config'] = scan_config
         return core.PolyswarmRequest(
-            api,
-            parameters,
+            api=api,
+            method='POST',
+            url=f'{api.uri}/consumer/submission/{api.community}/rescan/{hash_type}/{hash_value}',
+            data=data,
             result_parser=cls,
         )
 
     @classmethod
     def rescan_id(cls, api, submission_id, scan_config=None):
-        parameters = {
-            'method': 'POST',
-            'url': f'{api.uri}/consumer/submission/{api.community}/rescan/{int(submission_id)}',
-        }
+        data = None
         if scan_config:
-            parameters.setdefault('data', {})['scan-config'] = scan_config
+            data = {'scan-config': scan_config}
         return core.PolyswarmRequest(
-            api,
-            parameters,
+            api=api,
+            method='POST',
+            url=f'{api.uri}/consumer/submission/{api.community}/rescan/{int(submission_id)}',
+            data=data,
             result_parser=cls,
         )
 
     @classmethod
     def lookup_uuid(cls, api, submission_id):
         return core.PolyswarmRequest(
-            api,
-            {
-                'method': 'GET',
-                'url': f'{api.uri}/consumer/submission/{api.community}/{int(submission_id)}',
-            },
+            api=api,
+            method='GET',
+            url=f'{api.uri}/consumer/submission/{api.community}/{int(submission_id)}',
             result_parser=cls,
         )
 
     @classmethod
     def metadata_rerun(cls, api, hashes, analyses=None, skip_es=None):
-        parameters = {
-            'method': 'POST',
-            'url': f'{api.uri}/consumer/metadata',
-            'json': {'hashes': hashes},
-        }
+        body = {'hashes': hashes}
         if analyses:
-            parameters['json']['analyses'] = analyses
+            body['analyses'] = analyses
         if skip_es:
-            parameters['json']['skip_es'] = skip_es
+            body['skip_es'] = skip_es
         return core.PolyswarmRequest(
-            api,
-            parameters,
+            api=api,
+            method='POST',
+            url=f'{api.uri}/consumer/metadata',
+            json=body,
             result_parser=cls,
         )
 
@@ -659,66 +569,66 @@ class LocalArtifact(core.BaseResource, core.Hashable):
     @classmethod
     def download(cls, api, hash_value, hash_type, handle=None, folder=None, artifact_name=None):
         return core.PolyswarmRequest(
-            api,
-            {
-                'method': 'GET',
-                'url': f'{api.uri}/consumer/download/{hash_type}/{hash_value}',
-                'stream': True,
-                'params': { 'community': api.community },
-            },
+            api=api,
+            method='GET',
+            url=f'{api.uri}/consumer/download/{hash_type}/{hash_value}',
+            params={'community': api.community},
             result_parser=cls,
-            handle=handle,
-            folder=folder,
-            artifact_name=artifact_name,
+            parser_kwargs={
+                'handle': handle,
+                'folder': folder,
+                'artifact_name': artifact_name,
+            },
         )
 
     @classmethod
     def download_id(cls, api, instance_id, handle=None, folder=None, artifact_name=None):
         return core.PolyswarmRequest(
-            api,
-            {
-                'method': 'GET',
-                'url': f'{api.uri}/instance/download',
-                'stream': True,
-                'params': { 'instance_id': instance_id, 'community': api.community },
-            },
+            api=api,
+            method='GET',
+            url=f'{api.uri}/instance/download',
+            params={'instance_id': instance_id, 'community': api.community},
             result_parser=cls,
-            handle=handle,
-            folder=folder,
-            artifact_name=artifact_name,
+            parser_kwargs={
+                'handle': handle,
+                'folder': folder,
+                'artifact_name': artifact_name,
+            },
         )
 
     @classmethod
     def download_sandbox_artifact(cls, api, sandbox_task_id, instance_id, handle=None, folder=None, artifact_name=None):
         return core.PolyswarmRequest(
-            api,
-            {
-                'method': 'GET',
-                'url': f'{api.uri}/sandbox/sandboxtask/instance',
-                'stream': True,
-                'params': { 'id': sandbox_task_id, 'instance_id': instance_id, 'community': api.community },
+            api=api,
+            method='GET',
+            url=f'{api.uri}/sandbox/sandboxtask/instance',
+            params={
+                'id': sandbox_task_id,
+                'instance_id': instance_id,
+                'community': api.community,
             },
             result_parser=cls,
-            handle=handle,
-            folder=folder,
-            artifact_name=artifact_name,
+            parser_kwargs={
+                'handle': handle,
+                'folder': folder,
+                'artifact_name': artifact_name,
+            },
         )
 
     @classmethod
     def download_archive(cls, api, u, handle=None, folder=None, artifact_name=None):
         """ This method is special, in that it is simply for downloading from S3 """
         return core.PolyswarmRequest(
-            api,
-            {
-                'method': 'GET',
-                'url': u,
-                'stream': True,
-                'headers': {'Authorization': None}
-            },
+            api=api,
+            method='GET',
+            url=u,
+            headers={'Authorization': None},
             result_parser=cls,
-            handle=handle,
-            folder=folder,
-            artifact_name=artifact_name,
+            parser_kwargs={
+                'handle': handle,
+                'folder': folder,
+                'artifact_name': artifact_name,
+            },
         )
 
     # Inspired by
@@ -1064,36 +974,6 @@ class SandboxTask(core.BaseJsonResource):
         self.artifact = content['artifact']
         self.sandbox_artifacts = [SandboxArtifact(a, api=api) for a in content.get('sandbox_artifacts', [])]
 
-    def upload_file(self, artifact, attempts=3, **kwargs):
-        """Upload to the pre-signed S3 URL — always synchronous.
-
-        Thin shim over ``polyswarm_api.upload.upload_file``. Per
-        ``specs/02-resources.md``, this method executes synchronously
-        regardless of whether the owning API client is sync or async.
-
-        - Sync client: reuses the session's ``httpx.Client`` so the
-          connection pool is shared with normal API calls.
-        - Async client: the session's underlying client is an
-          ``httpx.AsyncClient`` which can't drive a sync upload; we
-          open a one-shot ``httpx.Client`` for the PUT and discard it,
-          forwarding the api's ``verify`` and ``timeout`` so configured
-          TLS / timeout behaviour applies.
-
-        ``**kwargs`` is forwarded to ``client.put`` — the 3.x
-        ``upload_file(artifact, headers=…)`` callsites keep working
-        (kwargs previously went to ``requests.put``; the intersection —
-        ``headers``, ``timeout`` — is unchanged).
-        """
-        from polyswarm_api.upload import upload_file as _upload
-        client = self.api.session._client
-        if isinstance(client, httpx.AsyncClient):
-            with httpx.Client(
-                verify=getattr(self.api, 'verify', True),
-                timeout=getattr(self.api, 'timeout', None),
-            ) as sync_client:
-                return _upload(sync_client, self.upload_url, artifact, attempts, **kwargs)
-        return _upload(client, self.upload_url, artifact, attempts, **kwargs)
-
     @classmethod
     def get(cls, api, **kwargs):
         return super().get(api, community=api.community, **kwargs)
@@ -1101,16 +981,24 @@ class SandboxTask(core.BaseJsonResource):
     @classmethod
     def latest(cls, api, **kwargs):
         params, _ = cls._get_params(community=api.community, **kwargs)
-        url = cls._endpoint(api) + '/latest'
-        parameters = {'method': 'GET', 'url': url, 'params': params}
-        return core.PolyswarmRequest(api, parameters, result_parser=cls)
+        return core.PolyswarmRequest(
+            api=api,
+            method='GET',
+            url=cls._endpoint(api) + '/latest',
+            params=params,
+            result_parser=cls,
+        )
 
     @classmethod
     def my_tasks(cls, api, **kwargs):
         params, _ = cls._get_params(community=api.community, **kwargs)
-        url = cls._endpoint(api) + '/my-tasks'
-        parameters = {'method': 'GET', 'url': url, 'params': params}
-        return core.PolyswarmRequest(api, parameters, result_parser=cls)
+        return core.PolyswarmRequest(
+            api=api,
+            method='GET',
+            url=cls._endpoint(api) + '/my-tasks',
+            params=params,
+            result_parser=cls,
+        )
 
     @classmethod
     def create_file(cls, api, **kwargs):
@@ -1197,15 +1085,12 @@ class BundleTask(core.BaseJsonResource):
         if self.state == 'FAILED':
             raise exceptions.InvalidValueException("Bundle is in FAILED state, won't be generated")
         return core.PolyswarmRequest(
-            self.api,
-            {
-                'method': 'GET',
-                'url': self.url,
-                'stream': True,
-                'headers': {'Authorization': None}
-            },
+            api=self.api,
+            method='GET',
+            url=self.url,
+            headers={'Authorization': None},
             result_parser=LocalArtifact,
-            folder=folder,
+            parser_kwargs={'folder': folder},
         )
 
 class ReportTask(core.BaseJsonResource):
@@ -1232,15 +1117,12 @@ class ReportTask(core.BaseJsonResource):
         if self.state == 'FAILED':
             raise exceptions.InvalidValueException("Report is in FAILED state, won't be generated")
         return core.PolyswarmRequest(
-            self.api,
-            {
-                'method': 'GET',
-                'url': self.url,
-                'stream': True,
-                'headers': {'Authorization': None}
-            },
+            api=self.api,
+            method='GET',
+            url=self.url,
+            headers={'Authorization': None},
             result_parser=LocalArtifact,
-            folder=folder,
+            parser_kwargs={'folder': folder},
         )
 
 
@@ -1266,15 +1148,12 @@ class ReportLLMPostProcessing(core.BaseJsonResource):
         if self.state == 'FAILED':
             raise exceptions.InvalidValueException("Report is in FAILED state, won't be generated")
         return core.PolyswarmRequest(
-            self.api,
-            {
-                'method': 'GET',
-                'url': self.url,
-                'stream': True,
-                'headers': {'Authorization': None}
-            },
+            api=self.api,
+            method='GET',
+            url=self.url,
+            headers={'Authorization': None},
             result_parser=LocalArtifact,
-            folder=folder,
+            parser_kwargs={'folder': folder},
         )
 
 class ReportTemplate(core.BaseJsonResource):
@@ -1299,22 +1178,18 @@ class ReportTemplate(core.BaseJsonResource):
 
     def download_logo(self, folder):
         return core.PolyswarmRequest(
-            self.api,
-            {
-                'method': 'GET',
-                'url': self.logo_url,
-            },
+            api=self.api,
+            method='GET',
+            url=self.logo_url,
             result_parser=LocalArtifact,
-            folder=folder,
+            parser_kwargs={'folder': folder},
         )
 
     def delete_logo(self):
         return core.PolyswarmRequest(
-            self.api,
-            {
-                'method': 'DELETE',
-                'url': self.logo_url,
-            },
+            api=self.api,
+            method='DELETE',
+            url=self.logo_url,
         )
 
     def upload_logo(self, logo_file, content_tpe):
@@ -1331,13 +1206,11 @@ class ReportTemplate(core.BaseJsonResource):
         # concrete body the transport can send verbatim.
         content = logo_file.read()
         return core.PolyswarmRequest(
-            self.api,
-            {
-                'method': 'PUT',
-                'url': f'{self.api.uri}/reports/templates/logo?id={self.id}',
-                'content': content,
-                'headers': {'Content-Type': content_tpe},
-            },
+            api=self.api,
+            method='PUT',
+            url=f'{self.api.uri}/reports/templates/logo?id={self.id}',
+            content=content,
+            headers={'Content-Type': content_tpe},
             result_parser=self.__class__,
         )
 
@@ -1423,10 +1296,8 @@ class Webhook(core.BaseJsonResource):
         # updated so non-2xx still raises ``RequestException`` even
         # without a parser.
         return core.PolyswarmRequest(
-            api,
-            {
-                'method': 'POST',
-                'url': f'{api.uri}{cls.RESOURCE_ENDPOINT}/test',
-                'params': {'id': webhook_id},
-            },
+            api=api,
+            method='POST',
+            url=f'{api.uri}{cls.RESOURCE_ENDPOINT}/test',
+            params={'id': webhook_id},
         )
