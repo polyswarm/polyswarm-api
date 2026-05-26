@@ -47,6 +47,7 @@ REPLACEMENTS = {
     # asyncio primitives mapped to their sync analogues
     "aclose":                "close",
     "async_upload_file":     "upload_file",
+    "async_upload_logo":     "upload_logo",
     # Rewrite `asyncio` → `time` at the identifier level.
     # ``import asyncio`` → ``import time``; ``asyncio.sleep(s)`` →
     # ``time.sleep(s)``. unasync tokenises before rewriting so string

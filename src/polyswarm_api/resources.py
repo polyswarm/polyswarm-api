@@ -1325,18 +1325,20 @@ class ReportTemplate(core.BaseJsonResource):
         logo_file.seek(0)
         if not length:
             raise exceptions.InvalidValueException('Empty file')
-        # r = requests.put(self.upload_url, data=logo_file, **kwargs)
-        # r.raise_for_status()
-        # return r
+        # httpx ``data=`` is for Mapping form-encoded bodies. A raw
+        # file-like / bytes payload goes through ``content=``. Read the
+        # file into bytes here so the PolyswarmRequest carries a
+        # concrete body the transport can send verbatim.
+        content = logo_file.read()
         return core.PolyswarmRequest(
             self.api,
             {
                 'method': 'PUT',
                 'url': f'{self.api.uri}/reports/templates/logo?id={self.id}',
-                'data': logo_file,
-                'headers': {'Content-Type': content_tpe}
+                'content': content,
+                'headers': {'Content-Type': content_tpe},
             },
-            result_parser=self.__class__
+            result_parser=self.__class__,
         )
 
 

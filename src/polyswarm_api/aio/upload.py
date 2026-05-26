@@ -55,3 +55,44 @@ async def async_upload_file(
         r.raise_for_status()
     return r
 
+
+async def async_upload_logo(
+    client: httpx.AsyncClient,
+    upload_url: str,
+    logo_file,
+    content_type: str,
+    **kwargs,
+) -> httpx.Response:
+    """Upload a logo image for a report template.
+
+    Companion to ``async_upload_file`` for the report-template logo
+    endpoint, where the request body is the image bytes and the
+    ``Content-Type`` header carries the MIME type. Kept as a module-
+    level callable for the same monkey-patch reasons that
+    ``async_upload_file`` is — see ``specs/05-downstream-contract.md``.
+
+    Args:
+        client: the httpx client owned by the corresponding session.
+        upload_url: pre-signed URL the logo should be PUT to.
+        logo_file: file-like (read into bytes before sending).
+        content_type: value for the ``Content-Type`` header on the PUT.
+        **kwargs: forwarded to ``client.put`` (e.g. ``timeout``).
+    """
+    if not upload_url:
+        raise exceptions.InvalidValueException("upload_url must be set to upload a file")
+
+    logo_file.seek(0, io.SEEK_END)
+    length = logo_file.tell()
+    logo_file.seek(0)
+    if not length:
+        data = b""
+    else:
+        data = logo_file.read()
+
+    headers = kwargs.pop("headers", None) or {}
+    headers["Content-Type"] = content_type
+
+    r = await client.put(upload_url, content=data, headers=headers, **kwargs)
+    r.raise_for_status()
+    return r
+

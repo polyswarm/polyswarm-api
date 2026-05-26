@@ -500,6 +500,58 @@ async def test_async_no_parser_non_2xx_raises():
 
 
 @respx.mock
+async def test_async_report_template_logo_upload():
+    """ReportTemplate.upload_logo previously passed the file-like via
+    httpx ``data=``. Under httpx 0.27, ``data=`` is for Mapping
+    form-encoded bodies; a raw byte payload must go through
+    ``content=``. The fix reads the file into bytes and uses
+    ``content=`` so the outbound PUT body is non-empty.
+
+    Asserts the PUT actually carries the file bytes — the bot review
+    flagged this as untested.
+    """
+    import io as _io
+    from polyswarm_api import resources
+
+    template_id = 'tpl-1'
+    template_payload = {
+        'id': template_id,
+        'created': '2026-01-01T00:00:00',
+        'template_name': 'test',
+        'includes': None,
+        'primary_color': None,
+        'footer_text': None,
+        'last_page_text': None,
+        'is_default': False,
+        'logo_content_length': None,
+        'logo_content_type': None,
+        'logo_height': None,
+        'logo_width': None,
+    }
+    respx.get(f'{BASE_URL}/reports/templates').mock(return_value=httpx.Response(
+        200, json={'status': 'OK', 'result': template_payload},
+    ))
+    upload_route = respx.put(f'{BASE_URL}/reports/templates/logo').mock(
+        return_value=httpx.Response(
+            200, json={'status': 'OK', 'result': template_payload},
+        ),
+    )
+
+    api = PolySwarmAsyncAPI(API_KEY, uri=BASE_URL, community='gamma')
+    try:
+        logo_bytes = b'fake-png-bytes-for-test'
+        await api.report_template_logo_upload(
+            template_id, _io.BytesIO(logo_bytes), content_type='image/png',
+        )
+    finally:
+        await api.aclose()
+
+    put_request = upload_route.calls[-1].request
+    assert put_request.content == logo_bytes
+    assert put_request.headers.get('Content-Type') == 'image/png'
+
+
+@respx.mock
 async def test_async_instance_upload_file():
     """``LocalArtifact.upload_file()`` is documented as synchronous-always
     (specs/02-resources.md). It must work even when the owning API
