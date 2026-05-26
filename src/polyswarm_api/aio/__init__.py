@@ -1729,6 +1729,8 @@ class PolySwarmAsyncAPI:
             json_params["cape_sandbox_task_id"] = str(int(cape_sandbox_task_id))
         if triage_sandbox_task_id is not None:
             json_params["triage_sandbox_task_id"] = str(int(triage_sandbox_task_id))
+        if self.community:
+            json_params["community"] = self.community
         return await self._single(
             {
                 "method": "POST",
@@ -1757,6 +1759,7 @@ class PolySwarmAsyncAPI:
                 "method": "GET",
                 "url": report.download_url,
                 "headers": {"Authorization": None},
+                "params": {"community": self.community},
             },
             result_parser=resources.LocalArtifact,
             folder=folder,
