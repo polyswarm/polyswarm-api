@@ -13,14 +13,14 @@ interactions:
       host:
       - localhost:9696
       user-agent:
-      - polyswarm_api/3.18.0 (x86_64-Linux-CPython-3.12.13)
+      - polyswarm_api/3.21.0 (x86_64-Linux-CPython-3.14.2)
     method: GET
     uri: http://localhost:9696/v3/search/metadata/query?query=artifact.sha256%3A275a021bbfb6489e54d471899f7db9d1663fc695ec2fe2a2c4538aabf651fd0f&community=gamma
   response:
     body:
-      string: '{"has_more":false,"limit":50,"result":[{"artifact":{"created":"2026-04-27T23:02:39.274669+00:00","id":"78143489475060742","md5":"44d88612fea8a8f36de82e1278abb02f","sha1":"3395856ce81f2b7382dee72602f798b642f14140","sha256":"275a021bbfb6489e54d471899f7db9d1663fc695ec2fe2a2c4538aabf651fd0f"},"exiftool":{"filesize":"68
-        bytes","filetype":"TXT","filetypeextension":"txt","mimetype":"text/plain"},"extension":"txt","hash":{"md5":"44d88612fea8a8f36de82e1278abb02f","sha1":"3395856ce81f2b7382dee72602f798b642f14140","sha256":"275a021bbfb6489e54d471899f7db9d1663fc695ec2fe2a2c4538aabf651fd0f","sha3_256":"8b4c4e204a8a039198e292d2291f4c451d80e4c38bf0cc04ad3841fea8755bd8","sha3_512":"a20290c6ebf01dc5182bb57718250f61ab11b418466714632a7d1474a02849641f7b78e4093e19ad12fdbedbe02f3bec4ca3ec3235557e82ab5ac02d061e7007","sha512":"cc805d5fab1fd71a4ab352a9c533e65fb2d5b885518f4e565e68847223b8e6b85cb48f3afad842726d99239c9e36505c64b0dc9a061d9e507d833277ada336ab","ssdeep":"3:a+JraNvsgzsVqSwHq9:tJuOgzsko","tlsh":"41a022003b0eee2ba20b00200032e8b00808020e2ce00a3820a020b8c83308803ec228"},"meta_community":"_public","modified":"2026-04-27T23:03:11.183588+00:00","polyunite":{"labels":["nonmalware"],"malware_family":"EICAR"},"scan":{"countries":[""],"detections":{"benign":0,"malicious":1,"total":1},"filename":["malicious"],"first_scan":{"artifact_instance_id":"11848027701299295","assertions":{"engine-eicar":{"assertion":"malicious","metadata":{"malware_family":"EICAR"}}},"created":"2026-04-27T23:02:39.274669+00:00","detections":{"benign":0,"malicious":1,"total":1},"filename":"malicious","votes":{"arbiter-eicar":{"metadata":{"malware_family":"EICAR"},"vote":"malicious"}}},"first_seen":"2026-04-27T23:02:39.274669+00:00","last_seen":"2026-04-27T23:02:39.274669+00:00","latest_scan":{"artifact_instance_id":"11848027701299295","assertions":{"engine-eicar":{"assertion":"malicious","metadata":{"malware_family":"EICAR"}}},"created":"2026-04-27T23:02:39.274669+00:00","detections":{"benign":0,"malicious":1,"total":1},"filename":"malicious","votes":{"arbiter-eicar":{"metadata":{"malware_family":"EICAR"},"vote":"malicious"}}},"mimetype":{"extended":"EICAR
-        virus test files","mime":"text/plain"}},"updated":{"exiftool":"2026-04-27T23:02:40.087131+00:00","hash":"2026-04-27T23:02:39.995795+00:00","polyunite":"2026-04-27T23:03:11.183588+00:00"}}],"status":"OK"}
+      string: '{"has_more":false,"limit":2,"result":[{"artifact":{"created":"2026-05-27T00:51:33.805717+00:00","id":"52281540330484615","md5":"44d88612fea8a8f36de82e1278abb02f","sha1":"3395856ce81f2b7382dee72602f798b642f14140","sha256":"275a021bbfb6489e54d471899f7db9d1663fc695ec2fe2a2c4538aabf651fd0f"},"exiftool":{"filesize":"68
+        bytes","filetype":"TXT","filetypeextension":"txt","mimetype":"text/plain"},"extension":"txt","hash":{"md5":"44d88612fea8a8f36de82e1278abb02f","sha1":"3395856ce81f2b7382dee72602f798b642f14140","sha256":"275a021bbfb6489e54d471899f7db9d1663fc695ec2fe2a2c4538aabf651fd0f","sha3_256":"8b4c4e204a8a039198e292d2291f4c451d80e4c38bf0cc04ad3841fea8755bd8","sha3_512":"a20290c6ebf01dc5182bb57718250f61ab11b418466714632a7d1474a02849641f7b78e4093e19ad12fdbedbe02f3bec4ca3ec3235557e82ab5ac02d061e7007","sha512":"cc805d5fab1fd71a4ab352a9c533e65fb2d5b885518f4e565e68847223b8e6b85cb48f3afad842726d99239c9e36505c64b0dc9a061d9e507d833277ada336ab","ssdeep":"3:a+JraNvsgzsVqSwHq9:tJuOgzsko","tlsh":"41a022003b0eee2ba20b00200032e8b00808020e2ce00a3820a020b8c83308803ec228"},"meta_community":"_public","modified":"2026-05-27T01:35:55.641583+00:00","polyunite":{"labels":["nonmalware"],"malware_family":"EICAR"},"scan":{"countries":[""],"detections":{"benign":0,"malicious":1,"total":1},"filename":["malicious"],"first_scan":{"artifact_instance_id":"83874296183172838","assertions":{"engine-eicar":{"assertion":"malicious","metadata":{"malware_family":"EICAR"}}},"created":"2026-05-27T00:51:33.805717+00:00","detections":{"benign":0,"malicious":1,"total":1},"filename":"malicious","votes":{"arbiter-eicar":{"metadata":{"malware_family":"EICAR"},"vote":"malicious"}}},"first_seen":"2026-05-27T00:51:33.805717+00:00","last_seen":"2026-05-27T01:35:06.499803+00:00","latest_scan":{"artifact_instance_id":"27995277149174446","assertions":{"engine-eicar":{"assertion":"malicious","metadata":{"malware_family":"EICAR"}}},"created":"2026-05-27T01:35:06.499803+00:00","detections":{"benign":0,"malicious":1,"total":1},"filename":"malicious","votes":{"arbiter-eicar":{"metadata":{"malware_family":"EICAR"},"vote":"malicious"}}},"mimetype":{"extended":"EICAR
+        virus test files","mime":"text/plain"}},"updated":{"exiftool":"2026-05-27T01:35:31.962972+00:00","hash":"2026-05-27T01:35:31.873099+00:00","polyunite":"2026-05-27T01:35:55.641583+00:00"}}],"status":"OK"}
 
         '
     headers:
@@ -31,11 +31,11 @@ interactions:
       Connection:
       - keep-alive
       Content-Length:
-      - '2344'
+      - '2343'
       Content-Type:
       - application/json
       Date:
-      - Mon, 27 Apr 2026 23:59:20 GMT
+      - Wed, 27 May 2026 01:38:06 GMT
       Server:
       - gunicorn
       X-Billing-ID:

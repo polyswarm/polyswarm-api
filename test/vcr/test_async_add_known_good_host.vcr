@@ -22,7 +22,7 @@ interactions:
     uri: http://localhost:9696/v3/ioc/known
   response:
     body:
-      string: '{"result":{"good":true,"host":"polyswarm.network","id":1,"source":"test","type":"domain"},"status":"OK"}
+      string: '{"result":{"good":true,"host":"polyswarm.network","id":5,"source":"test","type":"domain"},"status":"OK"}
 
         '
     headers:
@@ -37,7 +37,7 @@ interactions:
       Content-Type:
       - application/json
       Date:
-      - Wed, 27 May 2026 00:51:35 GMT
+      - Wed, 27 May 2026 01:38:06 GMT
       Server:
       - gunicorn
       X-Billing-ID:

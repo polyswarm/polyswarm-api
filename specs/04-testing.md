@@ -124,6 +124,8 @@ The async tests use `pytest-asyncio` in `asyncio_mode = "auto"` (configured in `
 
 For tests that are inherently async (concurrency, cancellation, owned-vs-injected-client lifecycle), use `async def test_*` directly with `@pytest.mark.asyncio` (or auto mode) — the parametrised harness is for endpoint-level coverage, not lifecycle coverage.
 
+**`_AsyncToSync` is respx-only.** The harness builds the `PolySwarmAsyncAPI` once in `setUp` (where its `httpx.AsyncClient` is constructed without an active event loop) and drives every subsequent test call via `asyncio.run(...)`. respx intercepts at the httpx transport layer, so it survives the fresh event loop per call. **A live HTTP integration test cannot reuse this harness** — `httpx.AsyncClient`'s connection pool is tied to the loop it was built against, and `asyncio.run` builds a new loop per call. If you reach for the harness for non-respx integration coverage, expect either RuntimeError (loop closed) or per-call connection churn. Add the integration test as a standalone `async def test_*` instead.
+
 ## VCR cassette workflow
 
 `vcrpy` records each HTTP request/response pair on the first run and replays on subsequent runs. The cassette file (`test/vcr/<test_name>.vcr`) is checked in.

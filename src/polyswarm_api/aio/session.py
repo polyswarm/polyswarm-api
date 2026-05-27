@@ -6,8 +6,8 @@ The canonical version of this file lives at
 ``scripts/regenerate_sync.py``. Edit only the canonical (async) file.
 
 The session is the **only** place HTTP I/O happens in this SDK. It
-owns an httpx client (async ``httpx.AsyncClient`` here; sync
-``httpx.Client`` on the generated mirror) and exposes two I/O methods:
+owns an httpx client (``AsyncClient`` on the async transport;
+``Client`` on the sync transport) and exposes two I/O methods:
 
 - ``execute(request)`` — the authenticated round-trip. Sends the
   ``PolyswarmRequest`` descriptor, attaches the raw response,
@@ -40,9 +40,9 @@ logger = logging.getLogger(__name__)
 
 
 class AsyncPolyswarmSession:
-    """The transport — owns one httpx client (``AsyncClient`` here;
-    ``Client`` on the generated sync mirror) and exposes every HTTP-I/O
-    operation the SDK performs.
+    """The transport — owns one httpx client (``AsyncClient`` on the
+    async transport; ``Client`` on the sync transport) and exposes
+    every HTTP-I/O operation the SDK performs.
     """
 
     def __init__(

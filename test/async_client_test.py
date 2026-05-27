@@ -704,6 +704,46 @@ async def test_async_report_template_logo_upload():
 
 
 @respx.mock
+async def test_async_report_template_logo_delete():
+    """``report_template_logo_delete`` is a two-step flow: GET the
+    template, then DELETE the logo. The cassette suite covers it but
+    isn't refreshed; this respx test pins the wire shape so any drift
+    in ``ReportTemplate.delete_logo()`` (wrong URL, missing id param,
+    wrong method) fails fast.
+    """
+    template_id = 'tpl-1'
+    template_payload = {
+        'id': template_id,
+        'created': '2026-01-01T00:00:00',
+        'template_name': 'test',
+        'includes': None,
+        'primary_color': None,
+        'footer_text': None,
+        'last_page_text': None,
+        'is_default': False,
+        'logo_content_length': None,
+        'logo_content_type': None,
+        'logo_height': None,
+        'logo_width': None,
+    }
+    respx.get(f'{BASE_URL}/reports/templates').mock(return_value=httpx.Response(
+        200, json={'status': 'OK', 'result': template_payload},
+    ))
+    delete_route = respx.delete(f'{BASE_URL}/reports/templates/logo').mock(
+        return_value=httpx.Response(200, json={'status': 'OK', 'result': None}),
+    )
+
+    api = PolySwarmAsyncAPI(API_KEY, uri=BASE_URL, community='gamma')
+    try:
+        await api.report_template_logo_delete(template_id)
+    finally:
+        await api.aclose()
+
+    delete_request = delete_route.calls[-1].request
+    assert delete_request.url.params.get('id') == template_id
+
+
+@respx.mock
 async def test_async_instance_upload_to_presigned_url():
     """The 4.0 upload path: ``session.upload_file(url, artifact)``.
 

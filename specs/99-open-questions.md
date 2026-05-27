@@ -95,25 +95,38 @@ The server may move to OAuth / signed requests / per-request auth tokens in the 
 
 **Action:** if / when the auth model evolves, design the integration point on `PolyswarmSession` / `AsyncPolyswarmSession` (token refresh hook? credential plugin? `auth=` constructor parameter?) and update `05-downstream-contract.md`.
 
+## Streaming downloads — `HttpxResponseAdapter` fully buffers
+
+**Status:** download responses buffer the entire body before chunking.
+
+`core.py::HttpxResponseAdapter.__init__` reads `response.content` (the full body, eagerly) and then `iter_content(chunk_size)` slices that in-memory buffer. The session also goes through `client.request(...)` / `client.send(req)`, never `client.stream(...)`. So every download endpoint — `download`, `download_to_handle`, `download_archive`, `download_sandbox_artifact`, `download_zip` (bundle), `download_report` (report / LLM-report), `download_logo`, and the `stream` archive feed — spikes memory proportional to the artifact size before the destination file sees the first byte. Pre-4.0 (`requests`-backed) streamed straight from the socket.
+
+This is a regression in memory profile but not in correctness — small artifacts behave identically, and the bytes ultimately reach the destination handle.
+
+**Action:** refactor the session to detect streaming parsers (`request.result_parser is not None and not issubclass(request.result_parser, BaseJsonResource)`), open the response via `await self._client.stream(method, url, **kwargs)` as an async context manager, wrap it in an async-aware adapter whose `iter_content` yields from `response.aiter_bytes(chunk_size)`, and close the response after `parse_response` finishes. The sync mirror gets the same shape via unasync rewrites of `aiter_bytes` → `iter_bytes`, `async with` → `with`, `aclose` → `close`.
+
+**Decision point:** the refactor crosses the sync/async boundary because `LocalArtifact.__init__` is currently sync-only and calls `iter_content` synchronously. Either keep the sync `iter_content` path (with the adapter caching chunks lazily) or split `LocalArtifact.parse_result` into an async-aware variant. Either is non-trivial; documenting + deferring is the right call for the 4.0 release.
+
 ## Cassettes that need an e2e refresh
 
-**Status:** 25 cassettes stale; e2e missing the data they assert against.
+**Status:** 24 cassettes stale; tests are non-hermetic against the live e2e.
 
-In the most recent delete-and-rerun pass, 22 of 47 cassettes regenerated cleanly against the local e2e. The remaining 25 stay pinned at their pre-existing recordings because the live e2e currently:
+After two delete-and-rerun passes, 23 of 47 cassettes regenerate cleanly. The remaining 24 fail because the corresponding tests aren't hermetic — they assume specific pre-existing e2e state that can't be reproduced without admin-level fixture priming. Concretely:
 
-- returns 500 on `/v3/search/metadata/query`, `/v3/ioc/search`, `/v3/artifact/metadata/list` (server bugs at record time);
-- returns 400 "Bad JSON" on `/v3/artifact/metadata` POST;
-- has no test ioc with `id=1` (breaks `update_known_good_host`, `delete_known_good_host`);
-- has no sandbox tasks (breaks the `sandbox_*_list` / `_latest` / `_submit` tests);
-- has no historical hunt to look up (breaks `historical_results`);
-- has no EICAR-prefab sample (breaks `rescans`, `hash_search`, `iocs_by_hash`);
-- has an empty stream feed (breaks `stream`);
-- has a different ruleset count than the cassette expects (`rules`).
+- **Hard-coded primary keys.** `update_known_good_host(1)` / `delete_known_good_host(1)` assume an IOC at id=1. The e2e's auto-increment counter has moved past 1 across prior runs, and there's no way to force a specific id from the SDK side.
+- **Order-coupled state assertions.** `test_add_known_good_host` asserts the response, but successive runs leave IOCs in the e2e; on the second run the POST returns 400 "IOC with that host already exists" instead of the expected resource shape.
+- **Count assertions on shared resources.** `test_rules` does `assert len(rules) == 1` after one `ruleset_create`. The e2e accumulates rulesets across runs; cleanup is blocked when a ruleset has an active live hunt (`Can not delete a ruleset with an active live hunt`).
+- **Missing fixture artifacts.** Sandbox tests (`sandboxtask_submit`, `sandboxtask_latest`, `sandboxtask_list`) assume a sandbox task exists. `historical_results` assumes a historical hunt exists. `live` reads `livescan_id` from a fresh `LiveYaraRuleset`, which the e2e doesn't assign synchronously.
+- **Eventual-consistency assertions.** `iocs_by_hash` and `search_by_ioc` call `tool_metadata_create` then immediately query the IOC index. The e2e accepts the create (200) but the index doesn't return results in the same request cycle.
+- **Surviving server bugs.** POST `/v3/artifact/metadata` returns 400 "Bad JSON" (sync `iocs_by_hash`), GET `/v3/artifact/metadata/list` returns 500 (`tool_metadata`).
 
-These tests still pass via cassette replay; they're only stuck on the *re-record* path until the e2e data is primed or the server-side 500s are fixed.
+The 24 cassettes are stale-but-passing under VCR replay. They captured a known good state of the e2e during the original recording session.
 
-**Action:** prime the local e2e with the expected test data (EICAR artifact, ioc id=1, sample sandbox task, sample historical hunt, etc.), confirm the failing server endpoints return 2xx, then delete the stale cassettes and rerun the affected tests. Until then, the cassette suite is the only working representation of the contract for these endpoints.
+**Affected cassettes** (sync + async pairs where present): `*_add_known_good_host`, `*_check_known_host`, `*_delete_known_good_host`, `*_update_known_good_host`, `*_historical_results`, `*_iocs_by_hash`, `*_live`, `*_rules`, `*_sandboxtask_latest`, `*_sandboxtask_list`, `*_sandboxtask_submit`, `*_search_by_ioc`, `*_tool_metadata`.
 
-**Affected cassettes** (sync + async pairs where present): `*_check_known_host`, `*_delete_known_good_host`, `*_update_known_good_host`, `*_hash_search`, `*_historical_results`, `*_iocs_by_hash`, `*_live`, `*_metadata_search`, `*_rescans`, `*_rules`, `*_sample` (async-only is fine), `*_sandboxtask_latest`, `*_sandboxtask_list`, `*_sandboxtask_submit`, `*_search_by_ioc`, `*_stream`, `*_tool_metadata`.
+**Action:**
+1. **Test refactor (preferred).** Make each test hermetic — capture the IOC id returned by `add_known_good_host` and feed it back into the update/delete calls instead of hard-coding `1`; capture the ruleset count *before* `ruleset_create` and assert relative growth; provision sandbox/historical fixtures via SDK calls inside the test.
+2. **E2e fixture priming.** Provide an admin endpoint or migration that seeds a known initial state (IOC id=1, sample sandbox task, sample historical hunt) and resets between test sessions.
+3. **Fix the surviving 400 / 500 on the metadata endpoints.**
 
-**Decision point:** not blocking. The invariant "tests must pass against the live e2e stack with VCR off" remains aspirational until the e2e data + server-side issues are resolved.
+**Decision point:** not blocking the SDK rewrite. The cassette replay path is the only representation of the contract for these endpoints today. The invariant "tests must pass against the live e2e stack with VCR off" remains aspirational until either the tests are refactored or the e2e priming work is done.

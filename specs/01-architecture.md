@@ -42,7 +42,7 @@ Hand-written. No I/O. Three sub-concerns:
 
 **Resource bases**: `BaseResource`, `BaseJsonResource`. The latter has classmethod builders (`create` / `get` / `head` / `update` / `delete` / `list`) that each return a `PolyswarmRequest` descriptor. Per-domain resources in `resources.py` inherit from `BaseJsonResource` and may add custom classmethods (`ArtifactInstance.search_hash`, `IOC.iocs_by_hash`, etc.) — all returning descriptors.
 
-**Helpers**: `HttpxResponseAdapter` (wraps `httpx.Response` to expose `iter_content`, used by non-JSON resource parsers), `Hashable` + `Hash` + `is_valid_sha1/sha256/md5`, `parse_isoformat`, `_normalise_bool_params`, `RequestParamsEncoder`.
+**Helpers**: `HttpxResponseAdapter` (wraps `httpx.Response` to expose `iter_content`, used by non-JSON resource parsers — note: currently buffers the full body before chunking, see [`99-open-questions.md`](./99-open-questions.md) §"Streaming downloads"), `Hashable` + `Hash` + `is_valid_sha1/sha256/md5`, `parse_isoformat`, `_normalise_bool_params`, `RequestParamsEncoder`.
 
 ### Layer 2 — transport (`session.py` / `aio/session.py`)
 
@@ -283,7 +283,7 @@ Pre-commit catches forgotten regeneration; CI gates on it too.
 
 ## Why this shape
 
-The 3.x architecture had `PolyswarmAPIBase` + polymorphic `_single` (one body, two return types depending on subclass) — clever, but multi-statement bodies silently broke on async. The intermediate codegen architecture (PR #298) fixed that with unasync but still mixed *description*, *execution*, and *parsing* in one `PolyswarmRequest` class with a `_coerce_request` rebuild step on the client.
+The 3.x architecture had `PolyswarmAPIBase` + polymorphic `_single` (one body, two return types depending on subclass) — clever, but multi-statement bodies silently broke on async. An intermediate redesign introduced async-canonical + unasync codegen, which fixed the async breakage but still mixed *description*, *execution*, and *parsing* in one `PolyswarmRequest` class with a `_coerce_request` rebuild step on the client.
 
 4.0 finishes the direction:
 

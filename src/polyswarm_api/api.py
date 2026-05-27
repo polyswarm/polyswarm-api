@@ -215,14 +215,7 @@ class PolyswarmAPI:
     def refresh_engine_cache(self):
         """Refresh the cached engine listing."""
         engine_list = []
-        for engine in self._paginate(
-            {
-                "method": "GET",
-                "url": f"{self.uri}{resources.Engine.RESOURCE_ENDPOINT}/list",
-                "headers": {"Authorization": None},
-            },
-            result_parser=resources.Engine,
-        ):
+        for engine in self._paginate(resources.Engine.list(self)):
             engine_list.append(engine)
         if not engine_list:
             raise exceptions.InvalidValueException("Received empty engines listing")
