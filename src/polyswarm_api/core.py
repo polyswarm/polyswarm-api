@@ -166,6 +166,16 @@ class PolyswarmRequest:
     direction: Optional[str] = None
     has_more: Optional[bool] = None
 
+    # Snapshot of the input ``json`` taken at construction so cloning the
+    # descriptor (e.g. for pagination) doesn't accidentally re-send the
+    # parsed *response* body as the next request's body. ``parse_response``
+    # overwrites ``self.json`` with the response body for legacy compat;
+    # ``_input_json`` preserves the original send-body.
+    _input_json: Any = dataclasses.field(default=None, init=False, repr=False)
+
+    def __post_init__(self):
+        self._input_json = self.json
+
     # ── Projections ────────────────────────────────────────────────
 
     def to_httpx_kwargs(self) -> dict:
@@ -242,9 +252,11 @@ def parse_response(response, request: 'PolyswarmRequest') -> 'PolyswarmRequest':
     beyond ``.status_code`` / ``.json()`` / ``.headers``.
 
     Returns the (now-populated) request for chaining. Raises a typed
-    ``PolyswarmException`` subclass on non-2xx; the caller (the
-    session) attaches ``.result = request`` to the exception before
-    re-raising.
+    ``RequestException`` subclass on non-2xx; the exception carries
+    ``.request = request`` (set by ``RequestException.__init__``), so
+    callers can read ``exc.request.status_code`` / ``exc.request.json``
+    / etc. The session does not catch and rewrap — attachment happens
+    at construction time.
     """
     request.raw_result = response
     request.status_code = response.status_code

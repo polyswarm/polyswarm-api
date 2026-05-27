@@ -16,7 +16,7 @@ What the `polyswarm-api` Python SDK is, what it ships, where it sits in the plat
 |---|---|
 | `polyswarm_api.PolyswarmAPI` | Synchronous client. What CLI tools and sync scripts use. |
 | `polyswarm_api.aio.PolySwarmAsyncAPI` | Asynchronous client. Same method surface, `await`-able. |
-| `polyswarm_api.PolyswarmSession` / `polyswarm_api.aio.AsyncPolyswarmSession` | Transport classes. Own the underlying `httpx.{,Async}Client`, expose `execute(request)`, `upload_file(url, artifact, …)`, `upload_logo(url, file, ctype, …)`. Subclass and inject to customize transport behaviour. |
+| `polyswarm_api.PolyswarmSession` / `polyswarm_api.aio.AsyncPolyswarmSession` | Transport classes. Own the underlying `httpx.{,Async}Client`, expose `execute(request)` and `upload_file(url, artifact, …)`. Subclass and inject to customize transport behaviour. |
 | `polyswarm_api.resources` | Per-domain resource classes (`ArtifactInstance`, `LocalArtifact`, `HistoricalHunt`, `LiveYaraRuleset`, `YaraRuleset`, `MetadataFieldProperties`, `LLMPromptConfig`, …). Wrappers over the server's JSON responses. Builder classmethods (`create` / `get` / `update` / `delete` / `list` / etc.) return `PolyswarmRequest` descriptors. |
 | `polyswarm_api.core.PolyswarmRequest` | Pure description of an HTTP call (method, URL, params, body, parser). Constructed by resource builders; handed to a session for execution. No I/O on the descriptor itself. |
 | `polyswarm_api.exceptions` | Exception hierarchy (`PolyswarmException` → `RequestException`, `NotFoundException`, `FailedInstanceException`, `NoResultsException`, `UsageLimitsExceededException`, `InvalidValueException`, `TimeoutException`). |
@@ -86,7 +86,7 @@ polyswarm-api/
 │   ├── settings.py                 # HAND-WRITTEN. Default URI, timeouts, etc.
 │   ├── session.py                  # GENERATED from aio/session.py.
 │   │                               #   PolyswarmSession (httpx.Client wrapper).
-│   │                               #   .execute(request), .upload_file, .upload_logo, .close
+│   │                               #   .execute(request), .upload_file, .close
 │   ├── api.py                      # GENERATED from aio/api.py.
 │   │                               #   PolyswarmAPI (owns a PolyswarmSession,
 │   │                               #   ~80 endpoint methods + carve-outs).
@@ -134,8 +134,7 @@ Three layers, two transports.
         │  AsyncPolyswarm-     │   │  │  │  PolyswarmSession  │
         │  Session             │   │  │  │  .execute()        │
         │  .execute()          │   │  │  │  .upload_file()    │
-        │  .upload_file()      │   │  │  │  .upload_logo()    │
-        │  .upload_logo()      │   │  │  │  .close()          │
+        │  .upload_file()      │   │  │  │  .close()          │
         │  .aclose()           │   │  │  │  (httpx.Client)    │
         │  (httpx.AsyncClient) │   │  │  │                    │
         └──────────────────────┘   │  │  └────────────────────┘
@@ -153,10 +152,10 @@ Three layers, two transports.
 ```
 
 - **Pure layer** has no transport awareness. Both transports import from it. unasync does not process it.
-- **Transport layer** is a single class per transport. Owns the httpx client. Has every HTTP-I/O operation (`execute`, `upload_file`, `upload_logo`). The sync mirror is generated from the canonical async by unasync.
+- **Transport layer** is a single class per transport. Owns the httpx client. Has every HTTP-I/O operation (`execute`, `upload_file`). The sync mirror is generated from the canonical async by unasync.
 - **Client layer** owns a session, drives pagination, exposes the endpoint method surface. Sync mirror generated from canonical async.
 
-Customization point: subclass `AsyncPolyswarmSession` (or `PolyswarmSession`), override `execute` / `upload_file` / `upload_logo`, inject via `PolySwarmAsyncAPI(session=MySession(...))`.
+Customization point: subclass `AsyncPolyswarmSession` (or `PolyswarmSession`), override `execute` / `upload_file`, inject via `PolySwarmAsyncAPI(session=MySession(...))`.
 
 ## Specs you should read next
 

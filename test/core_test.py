@@ -124,6 +124,21 @@ class TestPolyswarmRequest:
                                content=b'raw-bytes')
         assert req.to_httpx_kwargs()['content'] == b'raw-bytes'
 
+    def test_input_json_is_snapshotted_at_construction(self):
+        # `parse_response` overwrites `.json` with the response body
+        # (legacy 3.x semantics). `_next_page` clones the descriptor
+        # for pagination — it must use the original send-body snapshot,
+        # not the post-execute `.json`, or the next-page GET would
+        # ship the previous page's response body as a request body.
+        original_body = {'send': 'me'}
+        req = PolyswarmRequest(api=_FakeApi(), method='POST', url='u',
+                               json=original_body)
+        assert req._input_json == original_body
+        # Simulate parse_response overwriting .json with the response.
+        req.json = {'result': [], 'has_more': False}
+        # _input_json is unaffected.
+        assert req._input_json == original_body
+
 
 # ── parse_response — happy paths ───────────────────────────────────
 

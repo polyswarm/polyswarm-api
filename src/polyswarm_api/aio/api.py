@@ -164,6 +164,12 @@ class PolySwarmAsyncAPI:
         """Build the next-page descriptor by cloning ``request`` with
         updated ``params['offset' | 'limit']`` and clearing response
         state, then dispatch it through the session.
+
+        Uses ``request._input_json`` (the snapshot taken in
+        ``__post_init__``) rather than ``request.json`` — the latter
+        has been overwritten by ``parse_response`` with the parsed
+        response body, and re-sending that as the next request's
+        body would be wrong.
         """
         params = request.params
         if params is None:
@@ -180,7 +186,7 @@ class PolySwarmAsyncAPI:
             method=request.method,
             url=request.url,
             params=new_params,
-            json=request.json,
+            json=request._input_json,
             headers=request.headers,
             content=request.content,
             data=request.data,

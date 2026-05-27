@@ -1192,7 +1192,7 @@ class ReportTemplate(core.BaseJsonResource):
             url=self.logo_url,
         )
 
-    def upload_logo(self, logo_file, content_tpe):
+    def upload_logo(self, logo_file, content_type):
         if not logo_file:
             raise exceptions.InvalidValueException('A local file must be provided in order to upload')
         logo_file.seek(0, io.SEEK_END)
@@ -1210,7 +1210,7 @@ class ReportTemplate(core.BaseJsonResource):
             method='PUT',
             url=f'{self.api.uri}/reports/templates/logo?id={self.id}',
             content=content,
-            headers={'Content-Type': content_tpe},
+            headers={'Content-Type': content_type},
             result_parser=self.__class__,
         )
 
