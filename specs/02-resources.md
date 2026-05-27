@@ -63,22 +63,29 @@ A `@dataclass` defined in `core.py`. Pure data. Constructed by resource classmet
 **Request inputs** (set at build time):
 
 ```python
+api: Any                                # the api client (used by parse_response
+                                        # to attach .api on parsed resources;
+                                        # the descriptor never calls back into it)
 method: str
 url: str
-headers: dict | None = None
-params: dict | list[tuple] | None = None
-json: Any = None
+params: Any = None                      # dict or list of (k, v) tuples
+json: Any = None                        # JSON body for the request
+headers: Mapping[str, Any] | None = None
 content: bytes | None = None
-stream: bool = False
+data: Any = None                        # form-encoded body (httpx 'data=')
+files: Any = None                       # multipart upload (httpx 'files=')
+timeout: float | None = None
 result_parser: type | None = None       # BaseJsonResource subclass / LocalArtifact / etc.
 parser_kwargs: dict = field(default_factory=dict)   # extra kwargs forwarded to .parse_result
 ```
 
-**Response state** (populated by `session.execute`):
+**Response state** (populated by `session.execute` via `parse_response`):
 
 ```python
-raw_result: Any = None                  # the httpx.Response
+raw_result: Any = None                  # the httpx.Response (or HttpxResponseAdapter)
 status_code: int | None = None
+status: Any = None                      # JSON-body 'status' field
+errors: Any = None                      # JSON-body 'errors' field
 _result: Any = None                     # the parsed value (resource instance / list / status code)
 _paginated: bool = False
 total: int | None = None
@@ -87,28 +94,40 @@ offset: int | None = None
 order_by: str | None = None
 direction: str | None = None
 has_more: bool | None = None
-json_body: dict | None = None           # the parsed JSON dict
-status: str | None = None               # JSON-body 'status' field
-errors: list | None = None              # JSON-body 'errors' field
 ```
+
+**Note on `json`**: the `json` field is overloaded. At build time it holds the
+JSON body to send. After execution, `parse_response` overwrites it with the
+parsed response body (legacy 3.x semantics). Callers read `request.json['result']`,
+`request.json['has_more']`, etc. There is no separate `.json_body` field.
 
 Two methods:
 
-- `result(self)` — returns `_result`. If `_paginated`, callers should iterate via the API client's `_consume_results` instead.
-- `to_httpx_kwargs(self) -> dict` — projects the descriptor into a `dict` of kwargs `httpx.{Async,}Client.request()` accepts. Strips `stream` (httpx doesn't take it). Used internally by `session.execute`.
+- `to_httpx_kwargs(self) -> dict` — projects the descriptor into a `dict` of kwargs
+  `httpx.{Async,}Client.request()` accepts. Omits None-valued fields. Used internally
+  by `session.execute`.
+- `suppressed_headers(self) -> set[str]` — names of headers the caller marked
+  with value `None` (the "drop this session-level header" sentinel). The session
+  honours these by building the request via `build_request` and popping the names
+  before sending. Used to strip `Authorization` when hitting pre-signed S3 URLs.
 
-The descriptor has **no** `.execute()`, `.consume_results()`, `.next_page()`, or `.parse_result()` method. Executing is the session's job; parsing is the `parse_response` function's job; pagination orchestration is the API client's job.
+The descriptor has **no** `.execute()`, `.consume_results()`, `.next_page()`, or
+`.parse_result()` method. Executing is the session's job; parsing is the
+`parse_response` function's job; pagination orchestration is the API client's
+job.
 
 ## `parse_response` — the pure parse function
 
 Lives in `core.py`. Signature:
 
 ```python
-def parse_response(response, request: PolyswarmRequest) -> None:
+def parse_response(response, request: PolyswarmRequest) -> PolyswarmRequest:
     """Read `response`, populate request fields, raise typed exceptions
-    on non-2xx. Pure — no I/O. The caller (typically session.execute) is
-    responsible for attaching `request` as `.result` on any raised
-    exception before re-raising.
+    on non-2xx. Pure — no I/O.
+
+    Typed exceptions (`RequestException` and subclasses) carry
+    `.request = request` (set in the exception constructor) so callers
+    can inspect the descriptor that triggered them.
     """
 ```
 
@@ -117,7 +136,7 @@ Behaviour:
 | Branch | Action |
 |---|---|
 | `request.method == 'HEAD'` | `request._result = response.status_code`; return. |
-| Non-2xx | Extract JSON body into `request.json_body` / `.status` / `.errors`. Dispatch on status code: 404 → `NotFoundException`, 422 → `FailedInstanceException`, 429 → `UsageLimitsExceededException`, else → `RequestException`. Raise. |
+| Non-2xx | Extract JSON body into `request.json` / `.status` / `.errors`. Dispatch on status code: 404 → `NotFoundException`, 422 → `FailedInstanceException`, 429 → `UsageLimitsExceededException`, else → `RequestException`. Raise. |
 | 2xx, no `result_parser` | Return (fire-and-forget endpoints). |
 | 2xx, `result_parser` is `BaseJsonResource` subclass, status 204 | Raise `NoResultsException`. |
 | 2xx, `BaseJsonResource` parser | Extract JSON. Populate pagination metadata (`_paginated` / `total` / `limit` / `offset` / `has_more`). Find `result` or `results` key in body. Dispatch on `result_parser.parse_result_list` (list) or `.parse_result` (single). |
@@ -343,7 +362,7 @@ This wrap happens identically in sync and async — both transports produce `htt
 - `UsageLimitsExceededException` — HTTP 429.
 - `RequestException` — any other non-2xx.
 
-Each is raised by `parse_response` (without a `.result` attribute). The session catches them in `execute`, sets `exc.result = request`, and re-raises. Callers downstream read `.result.status_code`, `.result.json_body`, etc.
+Each is raised by `parse_response`. `RequestException.__init__` attaches the descriptor as `.request`, so callers downstream read `exc.request.status_code`, `exc.request.json`, etc. The session does not catch and rewrap — attachment happens at construction time.
 
 ## Unit-testable in isolation
 
@@ -361,11 +380,14 @@ def test_search_hash_builds_descriptor():
 
 # test parser
 def test_parse_response_404_raises_NotFoundException():
-    response = FakeResponse(status_code=404, json_body={'result': 'not found', 'status': 'error'})
-    request = PolyswarmRequest(method='GET', url='...')
-    with pytest.raises(NotFoundException):
+    response = FakeResponse(status_code=404, body={'result': 'not found', 'status': 'error'})
+    request = PolyswarmRequest(api=api, method='GET', url='...')
+    with pytest.raises(NotFoundException) as ei:
         parse_response(response, request)
     assert request.status_code == 404
+    assert ei.value.request is request
 ```
+
+See `test/core_test.py` for the actual implementation of these tests.
 
 These run in microseconds and exercise the parts of the SDK that are most likely to harbor subtle bugs.

@@ -1,9 +1,10 @@
 """PolySwarm API client.
 
-The async version lives here; the sync mirror at
-``polyswarm_api.api`` is generated from this file by
-``scripts/regenerate_sync.py``. Edit only the async source — the sync
-side is mechanically derived.
+The canonical version of this file lives at
+``polyswarm_api/aio/api.py``; the sync mirror at
+``polyswarm_api/api.py`` is generated from it by
+``scripts/regenerate_sync.py``. Edit only the canonical (async) file —
+the sync side is mechanically derived.
 
 Public surface::
 
@@ -29,12 +30,11 @@ __all__ = ["PolySwarmAsyncAPI"]
 class PolySwarmAsyncAPI:
     """Interface to the PolySwarm API.
 
-    The hand-written async client lives at ``polyswarm_api.aio`` and
-    uses ``httpx.AsyncClient``. The synchronous mirror at
-    ``polyswarm_api`` is generated from it and uses ``httpx.Client``.
-    Both expose the same method names and return shapes — sync callers
-    receive values / iterators directly; async callers ``await`` /
-    ``async for``.
+    The canonical client lives at ``polyswarm_api.aio`` (async, uses
+    ``httpx.AsyncClient``); the sync mirror at ``polyswarm_api`` is
+    generated from it and uses ``httpx.Client``. Both expose the same
+    method names and return shapes — sync callers receive values /
+    iterators directly; async callers ``await`` / ``async for``.
     """
 
     def __init__(
@@ -190,9 +190,6 @@ class PolySwarmAsyncAPI:
             parser_kwargs=request.parser_kwargs,
         )
         return await self.session.execute(next_req)
-
-    async def _sleep(self, seconds):
-        await asyncio.sleep(seconds)
 
     # ── Engines ──────────────────────────────────────────────────
 

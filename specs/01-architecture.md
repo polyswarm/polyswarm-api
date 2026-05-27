@@ -8,7 +8,7 @@ How a call flows from the user's code through the SDK to the server and back. Co
 
 1. **Description is transport-agnostic.** `PolyswarmRequest` is a dataclass — no `execute`, no `await`, no httpx in its method body. Resource classmethods construct one and hand it back. Importing `polyswarm_api.core` or `polyswarm_api.resources` does not touch the network.
 2. **Parsing is a pure function.** `parse_response(response, request)` reads an httpx response and populates the request's response-state fields (or raises a typed exception). No I/O. Testable in isolation against fake response objects.
-3. **The session is the transport.** Exactly one class per transport (`AsyncPolyswarmSession` / `PolyswarmSession`) owns an httpx client and exposes every HTTP-I/O operation the SDK does: `execute(request)`, `upload_file(url, artifact, …)`, `upload_logo(url, file, ctype, …)`. No other module reads or writes HTTP.
+3. **The session is the transport.** Exactly one class per transport (`AsyncPolyswarmSession` / `PolyswarmSession`) owns an httpx client and exposes every HTTP-I/O operation the SDK does: `execute(request)` and `upload_file(url, artifact, …)`. No other module reads or writes HTTP.
 4. **Async is the source of truth; sync is generated.** Hand-written async sources live under `src/polyswarm_api/aio/`. `scripts/regenerate_sync.py` runs unasync to mirror them to `src/polyswarm_api/{session,api,…}.py`. Generated files carry a `# DO NOT EDIT` header and CI rejects stale mirrors.
 5. **The client owns the session and drives pagination.** `PolySwarmAsyncAPI` / `PolyswarmAPI` hold a session, expose ~80 endpoint methods + a small set of carve-outs, and orchestrate pagination through the session.
 6. **Customization is via session injection.** Subclass `AsyncPolyswarmSession` / `PolyswarmSession`, override the relevant method, pass via `PolySwarmAsyncAPI(session=…)`. There are no module-level monkey-patch sites.
@@ -53,17 +53,14 @@ class AsyncPolyswarmSession:
     async def execute(self, request: PolyswarmRequest) -> PolyswarmRequest:
         """Normal authenticated round-trip. Sends via the owned
         httpx.AsyncClient, calls parse_response, populates the request
-        with the response state, returns it. Attaches the request to
-        any raised exception as ``.result`` (per spec 05 contract)."""
+        with the response state, returns it. Typed exceptions raised
+        by parse_response already carry ``.request = request`` (set in
+        the exception constructor); the session re-raises them as-is."""
 
     async def upload_file(self, upload_url, artifact, attempts=3, **kwargs):
         """PUT a file to a pre-signed URL. Strips the session-level
         Authorization header so the PolySwarm API key doesn't leak to
         the object store. Retries on transient HTTP errors."""
-
-    async def upload_logo(self, upload_url, logo_file, content_type, attempts=3, **kwargs):
-        """PUT a logo image with Content-Type set. Same auth-strip +
-        retry semantics as upload_file."""
 
     async def aclose(self): ...
 ```
@@ -194,8 +191,8 @@ Per-instance scope, type-checked, IDE-discoverable. No global module mutation.
 
 Common customization targets:
 - `execute` — instrument every authenticated call (timing, tracing, custom retries).
-- `upload_file` / `upload_logo` — custom S3 credentials, retry policy, proxy configuration.
-- `_put_off_domain` (the shared helper) — change the auth-strip behaviour.
+- `upload_file` — custom S3 credentials, retry policy, proxy configuration.
+- `_put_off_domain` (the shared helper) — change the auth-strip behaviour applied to pre-signed-URL PUTs.
 - `__init__` — replace the underlying `httpx.{Async,}Client` with a custom one (alternate transport, mock, etc.).
 
 The api client's constructor accepts either `key=` (builds the default session) or `session=` (uses the pre-built one). Not both.
@@ -205,19 +202,20 @@ The api client's constructor accepts either `key=` (builds the default session) 
 `session.execute(request)`:
 
 1. `request.to_httpx_kwargs()` projects the descriptor into a kwargs dict httpx accepts.
-2. Extract any `Authorization: None`-style suppression from headers.
+2. Extract any `Authorization: None`-style suppression from headers via `request.suppressed_headers()`.
 3. Either `client.request(method, url, **kwargs)` (no suppression) or `client.build_request(...)` + pop suppressed headers + `client.send(req)`.
 4. Wrap the response in `HttpxResponseAdapter` if the parser expects `iter_content` (file downloads).
-5. Call `parse_response(adapted_response, request)`.
-6. Catch any `PolyswarmException`, set `exc.result = request`, re-raise.
+5. Call `parse_response(adapted_response, request)`. Typed exceptions raised inside `parse_response` already carry `.request = request` (set by `RequestException.__init__`); the session re-raises them as-is.
 
 `parse_response(response, request)`:
 
 - HEAD: `request._result = response.status_code`; return.
-- Non-2xx: extract JSON body into `request.json_body` / `request.status` / `request.errors`; dispatch on status code to typed exception class (`NotFoundException`, `FailedInstanceException`, `UsageLimitsExceededException`, `RequestException`); raise.
+- Non-2xx: extract JSON body into `request.json` / `request.status` / `request.errors`; dispatch on status code to typed exception class (`NotFoundException`, `FailedInstanceException`, `UsageLimitsExceededException`, `RequestException`); raise.
 - 2xx without `result_parser`: return (fire-and-forget endpoints like `notification_webhook_test`).
 - 2xx with `BaseJsonResource` parser: extract JSON, populate pagination metadata (`total`, `limit`, `offset`, `has_more`, `_paginated`), dispatch on `result_parser.parse_result_list` (list) or `.parse_result` (single).
 - 2xx with non-`BaseJsonResource` parser: pass `(api, response)` directly to `result_parser.parse_result` (used for `LocalArtifact` file downloads).
+
+After parsing, `request.json` holds the parsed response body — legacy semantics that overload the same field name as the send-body kwarg (which the response body overwrites). Callers read `request.json['result']` etc.
 
 ## Pagination
 
@@ -265,9 +263,11 @@ Every HTTP-level error maps to a subclass of `PolyswarmException`:
 - Client-side validation failures (bad hash, missing kwarg) → `InvalidValueException`
 - Polling timeouts → `TimeoutException`
 
-Each exception (except `InvalidValueException` and `TimeoutException`) carries `.result = the PolyswarmRequest` that triggered it. Callers can read `.result.status_code`, `.result.json_body`, `.result.errors`, etc.
+Each `RequestException` subclass carries `.request = the PolyswarmRequest` that triggered it (set by `RequestException.__init__`). Callers can read `.request.status_code`, `.request.json`, `.request.errors`, etc.
 
-The session sets `exc.result = request` inside `execute` before re-raising, so the contract is honoured exactly once at the I/O boundary. `parse_response` itself raises bare exceptions (without a `.result`); the session is the place that attaches the descriptor.
+`InvalidValueException` and `TimeoutException` are client-side validation / polling failures and don't carry a request descriptor.
+
+Attachment happens at exception-construction time (inside `parse_response`) — the session does not catch and rewrap. So `exc.request` is set whether the exception bubbles up from `parse_response` directly or via `session.execute`.
 
 ## Adding a new endpoint
 

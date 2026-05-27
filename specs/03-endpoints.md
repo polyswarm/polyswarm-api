@@ -10,7 +10,7 @@ The full catalogue of methods on the public client surface and which transport h
 2. **`_paginate` is for endpoints whose callers iterate.** If callers write `for x in api.foo()` / `async for x in api.foo()`, use `async for item in self._paginate(...): yield item`. If callers consume a single value, use `return await self._single(...)`.
 3. **Multi-step endpoint bodies are fine.** The canonical async method can read a `_single` result, branch on it, or chain a second call. unasync mirrors the body to sync mechanically.
 4. **Polling helpers** (`wait_for`, `report_wait_for`) use `await asyncio.sleep(...)` on the canonical side. The rename map translates `asyncio` → `time` in the generated sync mirror, so the sync sleep is `time.sleep(...)`.
-5. **File uploads** call `self.session.upload_file(upload_url, artifact, …)` — a method on the session class. The session also exposes `upload_logo(upload_url, file, content_type, …)`. Both strip the session-level `Authorization` header so the PolySwarm API key doesn't leak to the object store.
+5. **File uploads to pre-signed S3 URLs** call `self.session.upload_file(upload_url, artifact, …)`. This is the only off-domain HTTP path; it strips the session-level `Authorization` header so the PolySwarm API key doesn't leak to the object store. Logo uploads to the PolySwarm endpoint stay on the auth'd path (`session.execute`).
 
 ## Files
 
@@ -77,6 +77,7 @@ The full catalogue of methods on the public client surface and which transport h
 | `ruleset_delete(ruleset_id)` | `YaraRuleset.delete` |
 | `tag_link_get(sha256)` | `TagLink.get` |
 | `tag_link_update(sha256, tags=None, families=None, emerging=None, remove=False)` | `TagLink.update` |
+| `tag_link_list(tags=None, families=None, or_tags=None, or_families=None)` | `TagLink.list` — returns a single page (uses `_single`, not `_paginate`); the server's `/tags/link/list` endpoint already encodes the filter set in the query string. |
 | `tag_create(name)` / `tag_get(name)` / `tag_delete(name)` | `Tag.{create,get,delete}` |
 | `family_create(name)` / `family_get(name)` / `family_delete(name)` / `family_update(family_name, emerging=True)` | `MalwareFamily.{create,get,delete,update}` |
 
@@ -161,7 +162,6 @@ The full catalogue of methods on the public client surface and which transport h
 | `historical_list(since=None)` | `HistoricalHunt.list` |
 | `historical_results(hunt=None, …)` | `HistoricalHuntResultList.get` |
 | `ruleset_list()` | `YaraRuleset.list` |
-| `tag_link_list(tags=None, families=None, or_tags=None, or_families=None)` | `TagLink.list` |
 | `tag_list()` | `Tag.list` |
 | `family_list()` | `MalwareFamily.list` |
 | `assertions_list(engine_id)` | `AssertionsJob.list` |
@@ -240,7 +240,7 @@ def submit(self, artifact, ...):
 
 `upload_file` is a method on the session class (`AsyncPolyswarmSession.upload_file` / `PolyswarmSession.upload_file`). Both strip the session-level `Authorization` header so the PolySwarm API key doesn't leak to the pre-signed S3 origin. Downstream consumers customize behaviour by subclassing the session — see [`05-downstream-contract.md`](./05-downstream-contract.md) §"Customizing transport behaviour".
 
-Logo uploads (used by `report_template_logo_upload`) go through the same session method family: `session.upload_logo(upload_url, file, content_type)`.
+**Report-template logo upload is different**: `report_template_logo_upload` PUTs to the PolySwarm endpoint `/reports/templates/logo`, which is authenticated, *not* a pre-signed S3 URL. It builds a normal `PolyswarmRequest` descriptor via `ReportTemplate.upload_logo(...)` and dispatches it through `session.execute` like any other endpoint — the API key must ride along on the request. There is no `session.upload_logo` method.
 
 ## `sandbox_providers` — the executed-request quirk
 

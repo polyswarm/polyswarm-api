@@ -75,7 +75,6 @@ class AsyncPolyswarmSession:
                  timeout=…, **httpx_kwargs): ...
     async def execute(self, request: PolyswarmRequest) -> PolyswarmRequest: ...
     async def upload_file(self, upload_url, artifact, attempts=3, **kwargs) -> httpx.Response: ...
-    async def upload_logo(self, upload_url, logo_file, content_type, attempts=3, **kwargs) -> httpx.Response: ...
     async def aclose(self): ...
 ```
 
@@ -88,7 +87,6 @@ class PolyswarmSession:
     def __init__(self, key, retries=…, …, **httpx_kwargs): ...
     def execute(self, request: PolyswarmRequest) -> PolyswarmRequest: ...
     def upload_file(self, upload_url, artifact, attempts=3, **kwargs) -> httpx.Response: ...
-    def upload_logo(self, upload_url, logo_file, content_type, attempts=3, **kwargs) -> httpx.Response: ...
     def close(self): ...
 ```
 
@@ -99,16 +97,24 @@ Power-user surface — for callers that want to construct or inspect requests di
 ```python
 @dataclass
 class PolyswarmRequest:
+    api: Any                                 # api client (used by parse_response
+                                             # to attach .api on parsed resources)
     method: str
     url: str
-    headers: dict | None = None
-    params: dict | list | None = None
-    json: Any = None
-    content: bytes | None = None
-    stream: bool = False
+    params: Any = None                       # dict or list of (k, v) tuples
+    json: Any = None                         # request body initially; OVERWRITTEN by
+                                             # the parsed response body after execution
+    headers: Mapping[str, Any] | None = None # value `None` on a header = "drop this
+                                             # session-level header on this request"
+    content: bytes | None = None             # raw byte body (httpx 'content=')
+    data: Any = None                         # form-encoded body (httpx 'data=')
+    files: Any = None                        # multipart upload (httpx 'files=')
+    timeout: float | None = None
     result_parser: type | None = None
     parser_kwargs: dict = ...
-    # plus response-state fields populated by Session.execute
+    # plus response-state fields populated by Session.execute via parse_response:
+    # raw_result, status_code, status, errors, _result, _paginated, total, limit,
+    # offset, order_by, direction, has_more.
 
 def parse_response(response, request: PolyswarmRequest) -> None: ...
 
@@ -170,7 +176,9 @@ class InvalidValueException(PolyswarmException): ...
 class TimeoutException(PolyswarmException): ...
 ```
 
-Each exception (except `InvalidValueException` and `TimeoutException`) carries a `.result` attribute holding the originating `PolyswarmRequest`. Callers can read `.result.status_code`, `.result.json_body`, `.result.request_parameters` (the request kwargs that built the call), etc. The session attaches `.result` to any exception raised by `parse_response` before re-raising.
+Each `RequestException` subclass carries a `.request` attribute holding the originating `PolyswarmRequest` (set by `RequestException.__init__`). Callers can read `exc.request.status_code`, `exc.request.json` (the parsed response body after execution), `exc.request.request_parameters` (the request kwargs that built the call), etc. `InvalidValueException` and `TimeoutException` are client-side errors and don't carry a request descriptor.
+
+Attachment happens at exception-construction time inside `parse_response` — `session.execute` does not catch and rewrap.
 
 ## Constructor signatures (stable)
 
@@ -228,16 +236,17 @@ Per-instance. Type-checked. IDE-discoverable. No global module mutation.
 |---|---|
 | `execute(request)` | Add tracing / metrics around every authenticated call. Custom retry on `RequestException`. Request mutation before send (extra headers, alternate routing). |
 | `upload_file(upload_url, artifact, …)` | Custom S3 credentials. Alternate object-store backend. Proxy configuration for the upload endpoint specifically. |
-| `upload_logo(upload_url, logo_file, content_type, …)` | Same as upload_file but for logo PUTs. |
+| `_put_off_domain(url, content=…, headers=…)` | Change the auth-strip behaviour applied to pre-signed-URL PUTs. |
 | `__init__(...)` | Inject a custom `httpx.{,Async}Client` (alternate transport, mock, etc.). |
 
 The session is the only place HTTP I/O happens. Anything you want to alter at the wire level can be done by overriding the relevant method.
 
 ### What the session methods do
 
-- `execute(request: PolyswarmRequest) -> PolyswarmRequest` — Sends the request via the owned httpx client, applies `Authorization: None` suppression for callers that asked for it, parses the response onto the request, attaches the request to any raised exception as `.result`, returns the request.
-- `upload_file(upload_url, artifact, attempts=3, **kwargs)` — PUTs the artifact bytes to the pre-signed URL. Strips the session-level `Authorization` header so the PolySwarm API key doesn't leak. Retries on `httpx.HTTPStatusError` / `httpx.TransportError`. Returns the final `httpx.Response`. `**kwargs` is forwarded to `client.put`.
-- `upload_logo(upload_url, logo_file, content_type, attempts=3, **kwargs)` — Same shape as `upload_file` with `Content-Type` header set.
+- `execute(request: PolyswarmRequest) -> PolyswarmRequest` — Sends the request via the owned httpx client, applies `Authorization: None` suppression for callers that asked for it, parses the response onto the request, returns the request. Typed exceptions raised by `parse_response` already carry `.request = request` (set in the exception constructor); the session re-raises them as-is.
+- `upload_file(upload_url, artifact, attempts=3, **kwargs)` — PUTs the artifact bytes to the pre-signed URL. Strips the session-level `Authorization` header (via `_put_off_domain`) so the PolySwarm API key doesn't leak. Retries on `httpx.HTTPStatusError` / `httpx.TransportError`. Returns the final `httpx.Response`. `**kwargs` is forwarded to the underlying PUT.
+
+The report-template logo upload does **not** go through a dedicated session method — it PUTs to the auth'd PolySwarm endpoint `/reports/templates/logo` and rides on `session.execute` like any other endpoint. The API key must accompany the request.
 
 ## Resource response shapes
 
@@ -286,9 +295,9 @@ Migrating from 3.x to 4.0, callers retain:
 
 ### Required code changes
 
-- **File-upload module-level callables removed.** `polyswarm_api.aio.upload.async_upload_file` / `async_upload_logo` (and the bare-module aliases) are gone. The 3.x monkey-patch pattern doesn't carry forward. Customization is via subclassing `AsyncPolyswarmSession` and overriding `upload_file` / `upload_logo`.
+- **File-upload module-level callables removed.** `polyswarm_api.aio.upload.async_upload_file` / `async_upload_logo` (and the bare-module aliases) are gone. The 3.x monkey-patch pattern doesn't carry forward. Customization is via subclassing `AsyncPolyswarmSession` and overriding `upload_file`.
 - **Resource-instance upload methods removed.** `LocalArtifact.upload_file(artifact)`, `SandboxTask.upload_file(artifact)` are gone. Replace with `await api.session.upload_file(instance.upload_url, artifact)`.
-- **`PolyswarmRequest` constructor changed.** Was `PolyswarmRequest(api, request_dict, result_parser=cls, **kwargs)` in 3.x; is `PolyswarmRequest(method='…', url='…', params=…, headers=…, json=…, result_parser=cls, parser_kwargs={…})` in 4.0 — a `@dataclass`.
+- **`PolyswarmRequest` constructor changed.** Was `PolyswarmRequest(api, request_dict, result_parser=cls, **kwargs)` in 3.x; is `PolyswarmRequest(api=api, method='…', url='…', params=…, headers=…, json=…, result_parser=cls, parser_kwargs={…})` in 4.0 — a `@dataclass`. All fields are keyword-only by convention (positional construction still works but isn't recommended).
 - **`PolyswarmRequest.execute()`, `.consume_results()`, `.next_page()`, `.parse_result()` removed.** These were instance methods on the executor-and-descriptor mashup of 3.x. In 4.0, descriptors are pure data; execution lives on the session. Replace `req.execute()` with `session.execute(req)`. Pagination is driven by the API client; downstream code rarely needs to touch it directly.
 - **`polyswarm_api.core.PolyswarmSession` moved to `polyswarm_api.session.PolyswarmSession`.** Update imports. Same for `polyswarm_api.aio.core.AsyncPolyswarmSession` → `polyswarm_api.aio.session.AsyncPolyswarmSession`.
 - **No more `AsyncPolyswarmRequest` subclass.** The descriptor (`PolyswarmRequest`) is transport-agnostic. Code that imported `AsyncPolyswarmRequest` from `polyswarm_api.aio.core` switches to `PolyswarmRequest` from `polyswarm_api.core`.
@@ -357,13 +366,16 @@ result = req.result()
 from polyswarm_api.core import PolyswarmRequest
 
 req = PolyswarmRequest(
+    api=api,
     method='GET',
     url=f'{api.uri}/custom',
     params={'foo': 'bar'},
     result_parser=MyCustomResource,
 )
 await api.session.execute(req)
-result = req.result()
+result = req._result          # the parsed resource (or list);
+                              # for paginated responses iterate via
+                              # api._paginate / api._consume_results
 ```
 
 ## Versioning
