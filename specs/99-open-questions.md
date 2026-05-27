@@ -95,12 +95,25 @@ The server may move to OAuth / signed requests / per-request auth tokens in the 
 
 **Action:** if / when the auth model evolves, design the integration point on `PolyswarmSession` / `AsyncPolyswarmSession` (token refresh hook? credential plugin? `auth=` constructor parameter?) and update `05-downstream-contract.md`.
 
-## Async cassettes for download / exists methods
+## Cassettes that need an e2e refresh
 
-**Status:** async cassettes missing for several methods.
+**Status:** 25 cassettes stale; e2e missing the data they assert against.
 
-The async-side download / exists methods (`download`, `download_id`, `download_archive`, `exists`, `download_sandbox_artifact`) lack VCR cassettes. The mocked-I/O respx tests cover the canonical async paths, but cassette-driven cross-checks against the live e2e aren't recorded.
+In the most recent delete-and-rerun pass, 22 of 47 cassettes regenerated cleanly against the local e2e. The remaining 25 stay pinned at their pre-existing recordings because the live e2e currently:
 
-**Action:** record cassettes via the standard delete-and-rerun-against-e2e workflow when the e2e stack is healthy.
+- returns 500 on `/v3/search/metadata/query`, `/v3/ioc/search`, `/v3/artifact/metadata/list` (server bugs at record time);
+- returns 400 "Bad JSON" on `/v3/artifact/metadata` POST;
+- has no test ioc with `id=1` (breaks `update_known_good_host`, `delete_known_good_host`);
+- has no sandbox tasks (breaks the `sandbox_*_list` / `_latest` / `_submit` tests);
+- has no historical hunt to look up (breaks `historical_results`);
+- has no EICAR-prefab sample (breaks `rescans`, `hash_search`, `iocs_by_hash`);
+- has an empty stream feed (breaks `stream`);
+- has a different ruleset count than the cassette expects (`rules`).
 
-**Decision point:** these are deferred from PR #298 — the e2e was returning 500s for several of these endpoints at record time. Not blocking.
+These tests still pass via cassette replay; they're only stuck on the *re-record* path until the e2e data is primed or the server-side 500s are fixed.
+
+**Action:** prime the local e2e with the expected test data (EICAR artifact, ioc id=1, sample sandbox task, sample historical hunt, etc.), confirm the failing server endpoints return 2xx, then delete the stale cassettes and rerun the affected tests. Until then, the cassette suite is the only working representation of the contract for these endpoints.
+
+**Affected cassettes** (sync + async pairs where present): `*_check_known_host`, `*_delete_known_good_host`, `*_update_known_good_host`, `*_hash_search`, `*_historical_results`, `*_iocs_by_hash`, `*_live`, `*_metadata_search`, `*_rescans`, `*_rules`, `*_sample` (async-only is fine), `*_sandboxtask_latest`, `*_sandboxtask_list`, `*_sandboxtask_submit`, `*_search_by_ioc`, `*_stream`, `*_tool_metadata`.
+
+**Decision point:** not blocking. The invariant "tests must pass against the live e2e stack with VCR off" remains aspirational until the e2e data + server-side issues are resolved.

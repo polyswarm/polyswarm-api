@@ -1,6 +1,6 @@
 interactions:
 - request:
-    body: '{"id":"1","type":"ip","host":"1.2.3.4","source":"test","good":1}'
+    body: '{"id":1,"type":"ip","host":"1.2.3.4","source":"test","good":true}'
     headers:
       accept:
       - '*/*'
@@ -11,18 +11,18 @@ interactions:
       connection:
       - keep-alive
       content-length:
-      - '64'
+      - '65'
       content-type:
       - application/json
       host:
       - localhost:9696
       user-agent:
-      - polyswarm_api/3.18.0 (x86_64-Linux-CPython-3.12.13)
+      - polyswarm_api/3.21.0 (x86_64-Linux-CPython-3.14.2)
     method: PUT
     uri: http://localhost:9696/v3/ioc/known
   response:
     body:
-      string: '{"result":{"good":1,"host":"1.2.3.4","id":1,"source":"test","type":"ip"},"status":"OK"}
+      string: '{"result":{"good":true,"host":"1.2.3.4","id":1,"source":"test","type":"ip"},"status":"OK"}
 
         '
     headers:
@@ -33,11 +33,11 @@ interactions:
       Connection:
       - keep-alive
       Content-Length:
-      - '88'
+      - '91'
       Content-Type:
       - application/json
       Date:
-      - Mon, 27 Apr 2026 23:59:21 GMT
+      - Wed, 27 May 2026 00:51:35 GMT
       Server:
       - gunicorn
       X-Billing-ID:

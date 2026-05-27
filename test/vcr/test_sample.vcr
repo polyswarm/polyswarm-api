@@ -1,26 +1,32 @@
 interactions:
 - request:
-    body: '{"community": "gamma"}'
+    body: '{"community":"gamma"}'
     headers:
-      Accept:
+      accept:
       - '*/*'
-      Accept-Encoding:
-      - gzip, deflate, zstd
-      Authorization:
+      accept-encoding:
+      - gzip, deflate
+      authorization:
       - '11111111111111111111111111111111'
-      Connection:
+      connection:
       - keep-alive
-      Content-Length:
-      - '22'
-      Content-Type:
+      content-length:
+      - '21'
+      content-type:
       - application/json
-      User-Agent:
-      - polyswarm_api/3.19.1 (x86_64-Linux-CPython-3.14.2)
+      host:
+      - localhost:9696
+      user-agent:
+      - polyswarm_api/3.21.0 (x86_64-Linux-CPython-3.14.2)
     method: POST
     uri: http://localhost:9696/v3/sample/275a021bbfb6489e54d471899f7db9d1663fc695ec2fe2a2c4538aabf651fd0f
   response:
     body:
-      string: '{"result":{"artifact_instance":{},"llm_report_task":{},"metadata":{},"sandbox":{"cape":{},"triage":{}},"tasks":{"artifact_instance":{"rendered_id":null,"requested_id":null,"requested_status":null},"llm_report":{"rendered_id":null,"requested_id":null,"requested_status":null},"metadata":{"rendered_id":null,"requested_id":null,"requested_status":null},"sandbox_cape":{"rendered_id":null,"requested_id":null,"requested_status":null},"sandbox_triage":{"rendered_id":null,"requested_id":null,"requested_status":null}}},"status":"OK"}
+      string: '{"result":{"artifact_instance":{"artifact_id":"83874296183172838","assertions":[{"author":"557809787211911","author_name":"engine-eicar","bid":"1000000000000000000","engine":{"description":"webhook-microengine-description","name":"engine-eicar"},"mask":true,"metadata":{"malware_family":"EICAR","product":"eicar","scanner":{"environment":{"architecture":"x86_64","operating_system":"Linux"}}},"verdict":true}],"bounty_state":2,"community":"gamma","country":"","created":"2026-05-27T00:51:33.805717+00:00","detections":null,"expiration_window":null,"expire_at":null,"extended_type":"EICAR
+        virus test files","failed":false,"filename":"malicious","first_seen":"2026-05-27T00:51:33.805717+00:00","id":"83874296183172838","last_scanned":null,"last_seen":null,"md5":"44d88612fea8a8f36de82e1278abb02f","metadata":[{"created":"2026-05-27T00:51:36.358432+00:00","tool":"exiftool","tool_metadata":{"directory":"/tmp","exiftoolversion":12.76,"fileaccessdate":"2026:05:27
+        00:51:35+00:00","fileinodechangedate":"2026:05:27 00:51:35+00:00","filemodifydate":"2026:05:27
+        00:51:35+00:00","filename":"tmpdgc_1sih","filepermissions":"-rw-r--r--","filesize":"68
+        bytes","filetype":"TXT","filetypeextension":"txt","linecount":1,"mimeencoding":"us-ascii","mimetype":"text/plain","newlines":"(none)","sourcefile":"/tmp/tmpdgc_1sih","wordcount":1},"updated":"2026-05-27T00:51:36.358432+00:00"},{"created":"2026-05-27T00:51:35.402256+00:00","tool":"hash","tool_metadata":{"md5":"44d88612fea8a8f36de82e1278abb02f","sha1":"3395856ce81f2b7382dee72602f798b642f14140","sha256":"275a021bbfb6489e54d471899f7db9d1663fc695ec2fe2a2c4538aabf651fd0f","sha3_256":"8b4c4e204a8a039198e292d2291f4c451d80e4c38bf0cc04ad3841fea8755bd8","sha3_512":"a20290c6ebf01dc5182bb57718250f61ab11b418466714632a7d1474a02849641f7b78e4093e19ad12fdbedbe02f3bec4ca3ec3235557e82ab5ac02d061e7007","sha512":"cc805d5fab1fd71a4ab352a9c533e65fb2d5b885518f4e565e68847223b8e6b85cb48f3afad842726d99239c9e36505c64b0dc9a061d9e507d833277ada336ab","ssdeep":"3:a+JraNvsgzsVqSwHq9:tJuOgzsko","tlsh":"41a022003b0eee2ba20b00200032e8b00808020e2ce00a3820a020b8c83308803ec228"},"updated":"2026-05-27T00:51:35.402256+00:00"}],"mimetype":"text/plain","permalink":"https://polyswarm.network/scan/results/file/275a021bbfb6489e54d471899f7db9d1663fc695ec2fe2a2c4538aabf651fd0f/83874296183172838","polyscore":null,"result":null,"sha1":"3395856ce81f2b7382dee72602f798b642f14140","sha256":"275a021bbfb6489e54d471899f7db9d1663fc695ec2fe2a2c4538aabf651fd0f","size":68,"type":"FILE","upload_url":"http://minio:9000/artifact-index/instances/18/50/29/18502981-36f3-4d48-9cf6-97ce4b444bc9?X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Credential=AKIAIOSFODNN7EXAMPLE%2F20260527%2Fus-east-1%2Fs3%2Faws4_request&X-Amz-Date=20260527T005133Z&X-Amz-Expires=300&X-Amz-SignedHeaders=host&X-Amz-Signature=e309740b59b6074a00295dfc94163e538ff775058a9b04df737f417f44c263f9","votes":[],"window_closed":false},"llm_report_task":{},"metadata":{},"sandbox":{"cape":{},"triage":{}},"tasks":{"artifact_instance":{"rendered_id":"83874296183172838","requested_id":"83874296183172838","requested_status":"RUNNING"},"llm_report":{"rendered_id":null,"requested_id":null,"requested_status":"WAITING_FOR_OTHER_TASKS"},"metadata":{"rendered_id":null,"requested_id":null,"requested_status":"NOT_TRIGGERED"},"sandbox_cape":{"rendered_id":null,"requested_id":null,"requested_status":"NOT_TRIGGERED"},"sandbox_triage":{"rendered_id":null,"requested_id":null,"requested_status":"NOT_TRIGGERED"}}},"status":"OK"}
 
         '
     headers:
@@ -31,11 +37,11 @@ interactions:
       Connection:
       - keep-alive
       Content-Length:
-      - '530'
+      - '3478'
       Content-Type:
       - application/json
       Date:
-      - Wed, 06 May 2026 16:35:56 GMT
+      - Wed, 27 May 2026 00:51:43 GMT
       Server:
       - gunicorn
       X-Billing-ID:
