@@ -33,7 +33,7 @@ interactions:
       Content-Type:
       - application/json
       Date:
-      - Thu, 28 May 2026 22:57:35 GMT
+      - Thu, 28 May 2026 23:28:14 GMT
       Server:
       - gunicorn
       X-Billing-ID:
@@ -64,7 +64,7 @@ interactions:
     uri: http://localhost:9696/v3/ioc/known
   response:
     body:
-      string: '{"result":{"good":true,"host":"polyswarm.network","id":53,"source":"test","type":"domain"},"status":"OK"}
+      string: '{"result":{"good":true,"host":"polyswarm.network","id":69,"source":"test","type":"domain"},"status":"OK"}
 
         '
     headers:
@@ -79,7 +79,7 @@ interactions:
       Content-Type:
       - application/json
       Date:
-      - Thu, 28 May 2026 22:57:36 GMT
+      - Thu, 28 May 2026 23:28:14 GMT
       Server:
       - gunicorn
       X-Billing-ID:
@@ -103,10 +103,10 @@ interactions:
       user-agent:
       - polyswarm_api/3.21.0 (x86_64-Linux-CPython-3.14.2)
     method: DELETE
-    uri: http://localhost:9696/v3/ioc/known?id=53
+    uri: http://localhost:9696/v3/ioc/known?id=69
   response:
     body:
-      string: '{"result":{"good":true,"host":"polyswarm.network","id":53,"source":"test","type":"domain"},"status":"OK"}
+      string: '{"result":{"good":true,"host":"polyswarm.network","id":69,"source":"test","type":"domain"},"status":"OK"}
 
         '
     headers:
@@ -121,7 +121,7 @@ interactions:
       Content-Type:
       - application/json
       Date:
-      - Thu, 28 May 2026 22:57:36 GMT
+      - Thu, 28 May 2026 23:28:14 GMT
       Server:
       - gunicorn
       X-Billing-ID:

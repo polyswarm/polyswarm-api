@@ -33,7 +33,7 @@ interactions:
     uri: http://localhost:9696/v3/hunt/historical
   response:
     body:
-      string: '{"result":{"account_number":"111","archives_in_flight":0,"archives_scanned":0,"archives_total":0,"communities":["gamma"],"created":"2026-05-28T22:57:19.784764+00:00","failed_max_retries":0,"failed_other":0,"id":"12863790342371375","progress":null,"results_csv_uri":null,"ruleset_name":null,"status":"PENDING","summary":null,"user_account_number":"111","yara":"rule
+      string: '{"result":{"account_number":"111","archives_in_flight":0,"archives_scanned":0,"archives_total":0,"communities":["gamma"],"created":"2026-05-28T23:27:53.046233+00:00","failed_max_retries":0,"failed_other":0,"id":"76925773488960959","progress":null,"results_csv_uri":null,"ruleset_name":null,"status":"PENDING","summary":null,"user_account_number":"111","yara":"rule
         eicar_av_test {\n    /*\n       Per standard, match only if entire file is
         EICAR string plus optional trailing whitespace.\n       The raw EICAR string
         to be matched is:\n       X5O!P%@AP[4\\PZX54(P^)7CC)7}$EICAR-STANDARD-ANTIVIRUS-TEST-FILE!$H+H*\n    */\n\n    meta:\n        description
@@ -61,7 +61,7 @@ interactions:
       Content-Type:
       - application/json
       Date:
-      - Thu, 28 May 2026 22:57:19 GMT
+      - Thu, 28 May 2026 23:27:53 GMT
       Server:
       - gunicorn
       X-Billing-ID:
@@ -85,7 +85,7 @@ interactions:
       user-agent:
       - polyswarm_api/3.21.0 (x86_64-Linux-CPython-3.14.2)
     method: GET
-    uri: http://localhost:9696/v3/hunt/historical/results/list?id=12863790342371375&community=gamma
+    uri: http://localhost:9696/v3/hunt/historical/results/list?id=76925773488960959&community=gamma
   response:
     body:
       string: ''
@@ -99,7 +99,7 @@ interactions:
       Content-Type:
       - text/html; charset=utf-8
       Date:
-      - Thu, 28 May 2026 22:57:19 GMT
+      - Thu, 28 May 2026 23:27:53 GMT
       Server:
       - gunicorn
     status:
@@ -125,10 +125,10 @@ interactions:
       user-agent:
       - polyswarm_api/3.21.0 (x86_64-Linux-CPython-3.14.2)
     method: DELETE
-    uri: http://localhost:9696/v3/hunt/historical?id=12863790342371375
+    uri: http://localhost:9696/v3/hunt/historical?id=76925773488960959
   response:
     body:
-      string: '{"result":{"account_number":"111","archives_in_flight":0,"archives_scanned":0,"archives_total":0,"communities":["gamma"],"created":"2026-05-28T22:57:19.784764+00:00","failed_max_retries":0,"failed_other":0,"id":"12863790342371375","progress":null,"results_csv_uri":null,"ruleset_name":null,"status":"DELETING","summary":null,"user_account_number":"111","yara":"rule
+      string: '{"result":{"account_number":"111","archives_in_flight":0,"archives_scanned":0,"archives_total":0,"communities":["gamma"],"created":"2026-05-28T23:27:53.046233+00:00","failed_max_retries":0,"failed_other":0,"id":"76925773488960959","progress":null,"results_csv_uri":null,"ruleset_name":null,"status":"DELETING","summary":null,"user_account_number":"111","yara":"rule
         eicar_av_test {\n    /*\n       Per standard, match only if entire file is
         EICAR string plus optional trailing whitespace.\n       The raw EICAR string
         to be matched is:\n       X5O!P%@AP[4\\PZX54(P^)7CC)7}$EICAR-STANDARD-ANTIVIRUS-TEST-FILE!$H+H*\n    */\n\n    meta:\n        description
@@ -156,7 +156,7 @@ interactions:
       Content-Type:
       - application/json
       Date:
-      - Thu, 28 May 2026 22:57:19 GMT
+      - Thu, 28 May 2026 23:27:53 GMT
       Server:
       - gunicorn
       X-Billing-ID:

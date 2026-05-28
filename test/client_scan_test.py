@@ -380,57 +380,63 @@ class ScanTestCaseV2(TestCase):
         assert tools.get('test_tool_1') == {'key': 'value'}
         assert tools.get('test_tool_2') == {'key2': 'value2'}
 
-    @pytest.mark.skip(
-        reason='Upstream artifact-index bug: iocs_by_hash returns empty '
-               'ips/ttps even when cape_sandbox_v2 metadata with '
-               'extracted_c2_ips is attached to the instance (visible via '
-               '/v3/search/hash/sha256). The memoize cache is fine — direct '
-               'in-process calls to get_fields_with_tag(IP_IOC) return all 17 '
-               'tagged paths and extract_iocs() with the same tool_metadata '
-               'shape returns the IP correctly. Something between the HTTP '
-               'view and that function differs (likely last_scanned_instance '
-               'resolution returning a different instance than the one '
-               'carrying the cape_sandbox_v2 blob). Filed as a separate '
-               'upstream follow-up.',
-    )
     @vcr.use_cassette()
     def test_iocs_by_hash(self):
         api = PolyswarmAPI(self.test_api_key, uri=f'http://localhost:9696/{self.api_version}', community='gamma')
         # Provision: submit + attach cape_sandbox_v2 metadata to the just-
-        # created instance. The metadata structure is the form the IOC view's
-        # field-path lookup expects (cape_sandbox_v2.extracted_c2_ips →
-        # ['1.2.3.4']) — no double-nested wrapper.
+        # created instance. The IP must be (a) globally-routable so
+        # filter_known_good_iocs doesn't drop it as private/reserved, and
+        # (b) NOT in the ioc_known table or its app.ioc_cache (the view
+        # filters known-good IPs out of the response). 9.42.0.1 — public
+        # (IBM netblock) and not used by any other SDK test.
+        ioc_ip = '9.42.0.1'
         instance = api.submit('test/malicious')
         api.tool_metadata_create(instance.id, 'cape_sandbox_v2', {
-            'extracted_c2_ips': ['1.2.3.4'],
-            'extracted_c2_urls': ['www.virus.com'],
+            'extracted_c2_ips': [ioc_ip],
+            'extracted_c2_urls': ['www.virus-example.test'],
             'ttp': ['T1081', 'T1060', 'T1069'],
         })
 
-        iocs = list(api.iocs_by_hash(
-            'sha256', '275a021bbfb6489e54d471899f7db9d1663fc695ec2fe2a2c4538aabf651fd0f',
-        ))
-        assert iocs[0].json['ips'] == ['1.2.3.4']
-        assert iocs[0].json['ttps'] == ['T1081', 'T1060', 'T1069']
+        # persist_external_metadata + ES update runs async via Celery; ~30s
+        # under suite load. Poll the IOC view until the ioc_ip surfaces.
+        sha = '275a021bbfb6489e54d471899f7db9d1663fc695ec2fe2a2c4538aabf651fd0f'
+        ips, ttps = [], []
+        for _ in range(60):
+            iocs = list(api.iocs_by_hash('sha256', sha))
+            if iocs:
+                ips = iocs[0].json.get('ips') or []
+                ttps = iocs[0].json.get('ttps') or []
+                if ioc_ip in ips:
+                    break
+            time.sleep(1)
+        assert ioc_ip in ips
+        assert set(['T1081', 'T1060', 'T1069']) <= set(ttps)
 
-    @pytest.mark.skip(
-        reason='Upstream artifact-index bug: search_by_ioc(ip=…) returns no '
-               'results even when cape_sandbox_v2 metadata carrying that IP '
-               'is attached to an instance. Likely shares the last_scanned_'
-               'instance resolution issue with iocs_by_hash. Filed as a '
-               'separate upstream follow-up.',
-    )
     @vcr.use_cassette()
     def test_search_by_ioc(self):
         api = PolyswarmAPI(self.test_api_key, uri=f'http://localhost:9696/{self.api_version}', community='gamma')
+        # Fixed public IP (see test_iocs_by_hash for the rationale). Use a
+        # different one from test_iocs_by_hash so the two tests can't see
+        # each other's IPs in cross-cache state.
+        ioc_ip = '9.42.0.2'
         instance = api.submit('test/malicious')
         api.tool_metadata_create(instance.id, 'cape_sandbox_v2', {
-            'extracted_c2_ips': ['1.2.3.4'],
-            'extracted_c2_urls': ['www.virus.com'],
+            'extracted_c2_ips': [ioc_ip],
+            'extracted_c2_urls': ['www.virus-example.test'],
             'ttp': ['T1081', 'T1060', 'T1069'],
         })
-        iocs = list(api.search_by_ioc(ip='1.2.3.4'))
-        assert iocs[0].json == '275a021bbfb6489e54d471899f7db9d1663fc695ec2fe2a2c4538aabf651fd0f'
+        sha = '275a021bbfb6489e54d471899f7db9d1663fc695ec2fe2a2c4538aabf651fd0f'
+        iocs = []
+        for _ in range(60):
+            try:
+                iocs = list(api.search_by_ioc(ip=ioc_ip))
+                if iocs:
+                    break
+            except exceptions.NoResultsException:
+                pass
+            time.sleep(1)
+        assert iocs
+        assert iocs[0].json == sha
 
     @vcr.use_cassette()
     def test_add_known_good_host(self):

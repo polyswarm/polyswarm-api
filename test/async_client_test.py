@@ -134,46 +134,54 @@ class TestAsyncScanCase:
 
     # ── IOCs ──────────────────────────────────────────────────────────────────
 
-    @pytest.mark.skip(
-        reason='Upstream artifact-index bug. The memoize cache is fine — '
-               'direct in-process calls to get_fields_with_tag(IP_IOC) return '
-               'all 17 tagged paths and extract_iocs() with the same '
-               'tool_metadata shape returns the IP correctly. Something '
-               'between the HTTP view and that function differs (likely '
-               'last_scanned_instance resolution returning a different '
-               'instance than the one carrying the cape_sandbox_v2 blob). '
-               'Filed as a separate upstream follow-up.',
-    )
     @vcr.use_cassette()
     async def test_async_iocs_by_hash(self):
+        # Fixed public IP — see the sync test for the known-good-cache
+        # rationale. A different value from test_async_search_by_ioc so the
+        # two tests don't share cross-cache state.
+        ioc_ip = '9.42.0.3'
         async with self._api() as api:
             instance = await api.submit('test/malicious')
             await api.tool_metadata_create(
                 instance.id, 'cape_sandbox_v2', {
-                    'extracted_c2_ips': ['1.2.3.4'],
-                    'extracted_c2_urls': ['www.virus.com'],
+                    'extracted_c2_ips': [ioc_ip],
+                    'extracted_c2_urls': ['www.virus-example.test'],
                     'ttp': ['T1081', 'T1060', 'T1069'],
                 })
-            iocs = [r async for r in api.iocs_by_hash('sha256', SHA256)]
-        assert iocs[0].json['ips'] == ['1.2.3.4']
-        assert iocs[0].json['ttps'] == ['T1081', 'T1060', 'T1069']
+            # persist_external_metadata is async; ~30s under load.
+            ips, ttps = [], []
+            for _ in range(60):
+                iocs = [r async for r in api.iocs_by_hash('sha256', SHA256)]
+                if iocs:
+                    ips = iocs[0].json.get('ips') or []
+                    ttps = iocs[0].json.get('ttps') or []
+                    if ioc_ip in ips:
+                        break
+                await asyncio.sleep(1)
+        assert ioc_ip in ips
+        assert set(['T1081', 'T1060', 'T1069']) <= set(ttps)
 
-    @pytest.mark.skip(
-        reason='Upstream artifact-index bug. Likely shares the last_scanned_'
-               'instance resolution issue with iocs_by_hash. Filed as a '
-               'separate upstream follow-up.',
-    )
     @vcr.use_cassette()
     async def test_async_search_by_ioc(self):
+        ioc_ip = '9.42.0.4'
         async with self._api() as api:
             instance = await api.submit('test/malicious')
             await api.tool_metadata_create(
                 instance.id, 'cape_sandbox_v2', {
-                    'extracted_c2_ips': ['1.2.3.4'],
-                    'extracted_c2_urls': ['www.virus.com'],
+                    'extracted_c2_ips': [ioc_ip],
+                    'extracted_c2_urls': ['www.virus-example.test'],
                     'ttp': ['T1081', 'T1060', 'T1069'],
                 })
-            iocs = [r async for r in api.search_by_ioc(ip='1.2.3.4')]
+            iocs = []
+            for _ in range(60):
+                try:
+                    iocs = [r async for r in api.search_by_ioc(ip=ioc_ip)]
+                    if iocs:
+                        break
+                except exceptions.NoResultsException:
+                    pass
+                await asyncio.sleep(1)
+        assert iocs
         assert iocs[0].json == SHA256
 
     # ── Known Hosts ───────────────────────────────────────────────────────────

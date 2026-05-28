@@ -109,9 +109,9 @@ This is a regression in memory profile but not in correctness — small artifact
 
 ## Tests blocked on upstream artifact-index issues
 
-**Status:** 4 unique tests (8 cassettes including sync+async pairs) currently skip with `@pytest.mark.skip` referencing specific upstream issues. All other endpoint tests are now hermetic — they provision their own state via SDK calls in setUp and run cleanly against a freshly-provisioned `make reset-database` e2e.
+**Status:** 2 unique tests (4 cassettes including sync+async pairs) currently skip with `@pytest.mark.skip` — both environment-dependent (need sandbox workers / microengine cluster locally), not upstream bugs. Every other endpoint test is hermetic and self-provisions via SDK calls against a freshly-provisioned `make reset-database` e2e.
 
-### ✅ Fixed by upstream PR artifact-index #1877: `tool_metadata` round-trip
+### ✅ Fixed by upstream artifact-index PR #1877: `tool_metadata` round-trip
 
 The previous 500 on `GET /v3/artifact/metadata/list` was two stacked bugs in `views/v3/artifact.py::MetadataListView`:
 
@@ -120,32 +120,28 @@ The previous 500 on `GET /v3/artifact/metadata/list` was two stacked bugs in `vi
 
 Both fixed in artifact-index #1877. SDK side: `test_tool_metadata` (sync + async) is un-skipped and self-provisioning via `submit() → tool_metadata_create() → poll tool_metadata_list()`.
 
-### 1. `iocs_by_hash` / `search_by_ioc` (sync + async) — IOC views don't surface posted metadata
+### ✅ Resolved: `iocs_by_hash` / `search_by_ioc` un-skipped
 
-After `tool_metadata_create(instance.id, 'cape_sandbox_v2', {'extracted_c2_ips': ['1.2.3.4'], ...})`, the metadata IS attached to the instance (confirmed by `GET /v3/search/hash/sha256?hash=…` returning the cape_sandbox_v2 blob in the `metadata` list). But `GET /v3/ioc/sha256/<hash>` returns empty `ips`/`ttps`, and `GET /v3/ioc/search?ip=1.2.3.4` returns no results.
+Earlier diagnosis (last_scanned_instance pointing at the wrong sibling) turned out to be wrong. The real causes were two non-bug behaviours that just needed test-side adjustments:
 
-Verified locally that the obvious suspects are NOT the cause:
+- **`filter_known_good_iocs` drops "known-good" IPs.** The original test used `1.2.3.4`, which is in the `ioc_known` table from neighbouring known-host tests (and survives via the `ioc_cache` even after the row is deleted from the DB, because cache invalidation is async via `long_running.reload_ioc_cache.apply_async`). Filtered as expected — that's correct security behaviour. Switching the test IP to `9.42.0.1`/`9.42.0.2`/`9.42.0.3`/`9.42.0.4` (public IBM netblock, never marked known-good) avoids the filter.
+- **`persist_external_metadata` lag.** The Celery task that writes `cape_sandbox_v2` metadata into the ArtifactInstance graph takes ~30s under suite load (single Celery worker, queue contention from the sandbox / metadata / persist queues all converging). The original poll was 15s. Bumped to 60s.
 
-- **Memoize cache.** Direct in-process calls to `get_fields_with_tag(FieldTag.IP_IOC)` after a `bust_field_properties_cache()` return all 17 tagged paths including `cape_sandbox_v2.extracted_c2_ips`. The seed (779 rows) is loaded and `tags.contains(['ip-ioc'])` works correctly.
-- **`extract_iocs` walk.** Running `extract_iocs([{metadata: [{tool: 'cape_sandbox_v2', tool_metadata: {extracted_c2_ips: ['1.2.3.4']}}]}])` inline returns `ips=['1.2.3.4']` as expected.
+Both tests now self-provision and pass cleanly. Cassettes recorded with the fixed IPs replay deterministically.
 
-So the bug is somewhere between the HTTP view's input shape and `extract_iocs`. Most likely candidate: in `views/v3/ioc.py::get_by_hash`, when there's no `SandboxTaskSearchHash` entry, the fallback path is `ArtifactInstance.search_by_hash(...).first().last_scanned_instance.number` — that resolution may return a *different* instance than the one carrying the freshly-attached `cape_sandbox_v2` metadata. The serialized response then has metadata from a sibling instance (which has no `cape_sandbox_v2`), so `extract_iocs` correctly finds nothing.
-
-Filed as separate upstream artifact-index follow-up (distinct from PR #1877).
-
-### 2. `sandboxtask_latest` (sync + async) — `SandboxTaskSearchHash` only populates on SUCCEEDED tasks
+### 1. `sandboxtask_latest` (sync + async) — `SandboxTaskSearchHash` only populates on SUCCEEDED tasks
 
 [`artifact_index/services/sandbox.py::update_sandbox_search`](https://github.com/polyswarm/artifact-index/blob/master/src/artifact_index/services/sandbox.py) only writes to `SandboxTaskSearchHash` when `task.status == 'SUCCEEDED'`. On a fresh e2e without active cape/triage workers, queued tasks stay PENDING forever, so `latest` returns 404 "No tasks found".
 
 This is environment, not bug — but it does mean the test can't be hermetic without a worker stub. The sync `sandboxtask_list` IS hermetic and passes: it queries `SandboxTask` directly, no SearchHash dependency.
 
-### 3. `live` (sync + async) — requires the bounty / microengine pipeline
+### 2. `live` (sync + async) — requires the bounty / microengine pipeline
 
-`live_start` returns a `LiveYaraRuleset` with `livescan_id=None` because the local e2e has no microengines processing submissions. The lifecycle calls (`ruleset_create`, `live_start`, `live_stop`) all return 200, but the feed never receives results and `livescan_id` doesn't get assigned. Same shape as #2 — environment, not bug.
+`live_start` returns a `LiveYaraRuleset` with `livescan_id=None` because the local e2e has no microengines processing submissions. The lifecycle calls (`ruleset_create`, `live_start`, `live_stop`) all return 200, but the feed never receives results and `livescan_id` doesn't get assigned. Same shape as #1 — environment, not bug.
 
-## What works (the other 36 cassettes)
+## What works (the other 42 cassettes)
 
-After the test refactor — provision-via-SDK-in-setUp, capture-returned-ids, structural rather than count assertions — every endpoint test outside the four upstream-blocked groups above regenerates cleanly against `make reset-database` + the provisioning script. The cassettes get re-recorded on every `rm test/vcr/*.vcr && pytest test/`. Subsequent runs replay deterministically because each test is its own self-contained transaction against the e2e.
+After the test refactor — provision-via-SDK in the test body, captured-returned-ids, structural rather than count assertions, deterministic test inputs (fixed IPs to avoid VCR-replay mismatch) — every endpoint test outside the two environment-dependent groups above regenerates cleanly against `make reset-database` + the provisioning script. The cassettes get re-recorded on every `rm test/vcr/*.vcr && pytest test/`. Subsequent runs replay deterministically because each test is its own self-contained transaction against the e2e.
 
 The pattern (see `test/client_scan_test.py` / `test/async_client_test.py`):
 
