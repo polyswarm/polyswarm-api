@@ -22,7 +22,7 @@ interactions:
     uri: http://localhost:9696/v3/instance
   response:
     body:
-      string: '{"result":{"artifact_id":"58134521924996568","assertions":[],"bounty_state":0,"community":"gamma","country":"","created":"2026-05-28T22:29:29.077680+00:00","detections":null,"expiration_window":null,"expire_at":null,"extended_type":null,"failed":false,"filename":"malicious","first_seen":"2026-05-28T22:29:29.077680+00:00","id":"58134521924996568","last_scanned":null,"last_seen":null,"md5":null,"metadata":[],"mimetype":null,"permalink":"https://polyswarm.network/scan/results/file/None/58134521924996568","polyscore":null,"result":null,"sha1":null,"sha256":null,"size":null,"type":"FILE","upload_url":"http://minio:9000/artifact-index/instances/15/7f/60/157f60a5-2ad9-4757-aa66-479608315a13?X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Credential=AKIAIOSFODNN7EXAMPLE%2F20260528%2Fus-east-1%2Fs3%2Faws4_request&X-Amz-Date=20260528T222929Z&X-Amz-Expires=300&X-Amz-SignedHeaders=host&X-Amz-Signature=6bf79a021f63c6f3c95cbb278d82829072e87d40c9b6f9ed7a7a5ae6402c1f48","votes":[],"window_closed":false},"status":"OK"}
+      string: '{"result":{"artifact_id":"15750835439274295","assertions":[],"bounty_state":0,"community":"gamma","country":"","created":"2026-05-28T22:57:37.668423+00:00","detections":null,"expiration_window":null,"expire_at":null,"extended_type":null,"failed":false,"filename":"malicious","first_seen":"2026-05-28T22:57:37.668423+00:00","id":"15750835439274295","last_scanned":null,"last_seen":null,"md5":null,"metadata":[],"mimetype":null,"permalink":"https://polyswarm.network/scan/results/file/None/15750835439274295","polyscore":null,"result":null,"sha1":null,"sha256":null,"size":null,"type":"FILE","upload_url":"http://minio:9000/artifact-index/instances/51/1f/6c/511f6c36-a8a9-4be8-9c22-2001a84efa46?X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Credential=AKIAIOSFODNN7EXAMPLE%2F20260528%2Fus-east-1%2Fs3%2Faws4_request&X-Amz-Date=20260528T225737Z&X-Amz-Expires=300&X-Amz-SignedHeaders=host&X-Amz-Signature=9ffb726ebbf3766a2e86364ba204820f3a810a6125c1ef089b839631572b5f16","votes":[],"window_closed":false},"status":"OK"}
 
         '
     headers:
@@ -37,7 +37,7 @@ interactions:
       Content-Type:
       - application/json
       Date:
-      - Thu, 28 May 2026 22:29:29 GMT
+      - Thu, 28 May 2026 22:57:37 GMT
       Server:
       - gunicorn
       X-Billing-ID:
@@ -61,7 +61,7 @@ interactions:
       user-agent:
       - polyswarm_api/3.21.0 (x86_64-Linux-CPython-3.14.2)
     method: PUT
-    uri: http://minio:9000/artifact-index/instances/15/7f/60/157f60a5-2ad9-4757-aa66-479608315a13?X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Credential=AKIAIOSFODNN7EXAMPLE%2F20260528%2Fus-east-1%2Fs3%2Faws4_request&X-Amz-Date=20260528T222929Z&X-Amz-Expires=300&X-Amz-SignedHeaders=host&X-Amz-Signature=6bf79a021f63c6f3c95cbb278d82829072e87d40c9b6f9ed7a7a5ae6402c1f48
+    uri: http://minio:9000/artifact-index/instances/51/1f/6c/511f6c36-a8a9-4be8-9c22-2001a84efa46?X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Credential=AKIAIOSFODNN7EXAMPLE%2F20260528%2Fus-east-1%2Fs3%2Faws4_request&X-Amz-Date=20260528T225737Z&X-Amz-Expires=300&X-Amz-SignedHeaders=host&X-Amz-Signature=9ffb726ebbf3766a2e86364ba204820f3a810a6125c1ef089b839631572b5f16
   response:
     body:
       string: ''
@@ -71,7 +71,7 @@ interactions:
       Content-Length:
       - '0'
       Date:
-      - Thu, 28 May 2026 22:29:29 GMT
+      - Thu, 28 May 2026 22:57:37 GMT
       ETag:
       - '"44d88612fea8a8f36de82e1278abb02f"'
       Server:
@@ -84,7 +84,7 @@ interactions:
       X-Amz-Id-2:
       - dd9025bab4ad464b049177c95eb6ebf374d3b3fd1af9251148b658df7ac2e3e8
       X-Amz-Request-Id:
-      - 18B3DB4574175B99
+      - 18B3DCCE9BDEFE68
       X-Content-Type-Options:
       - nosniff
       X-Ratelimit-Limit:
@@ -118,10 +118,10 @@ interactions:
       user-agent:
       - polyswarm_api/3.21.0 (x86_64-Linux-CPython-3.14.2)
     method: PUT
-    uri: http://localhost:9696/v3/instance?id=58134521924996568
+    uri: http://localhost:9696/v3/instance?id=15750835439274295
   response:
     body:
-      string: '{"result":{"artifact_id":"58134521924996568","assertions":[],"bounty_state":0,"community":"gamma","country":"","created":"2026-05-28T22:29:29.077680+00:00","detections":null,"expiration_window":null,"expire_at":null,"extended_type":null,"failed":false,"filename":"malicious","first_seen":"2026-05-28T22:29:29.077680+00:00","id":"58134521924996568","last_scanned":null,"last_seen":null,"md5":null,"metadata":[],"mimetype":null,"permalink":"https://polyswarm.network/scan/results/file/None/58134521924996568","polyscore":null,"result":null,"sha1":null,"sha256":null,"size":null,"type":"FILE","upload_url":"http://minio:9000/artifact-index/instances/15/7f/60/157f60a5-2ad9-4757-aa66-479608315a13?X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Credential=AKIAIOSFODNN7EXAMPLE%2F20260528%2Fus-east-1%2Fs3%2Faws4_request&X-Amz-Date=20260528T222929Z&X-Amz-Expires=300&X-Amz-SignedHeaders=host&X-Amz-Signature=6bf79a021f63c6f3c95cbb278d82829072e87d40c9b6f9ed7a7a5ae6402c1f48","votes":[],"window_closed":false},"status":"OK"}
+      string: '{"result":{"artifact_id":"15750835439274295","assertions":[],"bounty_state":0,"community":"gamma","country":"","created":"2026-05-28T22:57:37.668423+00:00","detections":null,"expiration_window":null,"expire_at":null,"extended_type":null,"failed":false,"filename":"malicious","first_seen":"2026-05-28T22:57:37.668423+00:00","id":"15750835439274295","last_scanned":null,"last_seen":null,"md5":null,"metadata":[],"mimetype":null,"permalink":"https://polyswarm.network/scan/results/file/None/15750835439274295","polyscore":null,"result":null,"sha1":null,"sha256":null,"size":null,"type":"FILE","upload_url":"http://minio:9000/artifact-index/instances/51/1f/6c/511f6c36-a8a9-4be8-9c22-2001a84efa46?X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Credential=AKIAIOSFODNN7EXAMPLE%2F20260528%2Fus-east-1%2Fs3%2Faws4_request&X-Amz-Date=20260528T225737Z&X-Amz-Expires=300&X-Amz-SignedHeaders=host&X-Amz-Signature=9ffb726ebbf3766a2e86364ba204820f3a810a6125c1ef089b839631572b5f16","votes":[],"window_closed":false},"status":"OK"}
 
         '
     headers:
@@ -136,7 +136,7 @@ interactions:
       Content-Type:
       - application/json
       Date:
-      - Thu, 28 May 2026 22:29:29 GMT
+      - Thu, 28 May 2026 22:57:37 GMT
       Server:
       - gunicorn
       X-Billing-ID:
@@ -167,8 +167,8 @@ interactions:
     uri: http://localhost:9696/v3/consumer/submission/gamma/rescan/sha256/275a021bbfb6489e54d471899f7db9d1663fc695ec2fe2a2c4538aabf651fd0f
   response:
     body:
-      string: '{"result":{"artifact_id":"26837255179463088","assertions":[],"bounty_state":1,"community":"gamma","country":"","created":"2026-05-28T22:29:29.197631+00:00","detections":null,"expiration_window":null,"expire_at":null,"extended_type":"EICAR
-        virus test files","failed":false,"filename":"malicious","first_seen":"2026-05-28T22:02:30.495744+00:00","id":"26837255179463088","last_scanned":null,"last_seen":null,"md5":"44d88612fea8a8f36de82e1278abb02f","metadata":[],"mimetype":"text/plain","permalink":"https://polyswarm.network/scan/results/file/275a021bbfb6489e54d471899f7db9d1663fc695ec2fe2a2c4538aabf651fd0f/26837255179463088","polyscore":null,"result":null,"sha1":"3395856ce81f2b7382dee72602f798b642f14140","sha256":"275a021bbfb6489e54d471899f7db9d1663fc695ec2fe2a2c4538aabf651fd0f","size":68,"type":"FILE","upload_url":null,"votes":[],"window_closed":false},"status":"OK"}
+      string: '{"result":{"artifact_id":"26516232657767488","assertions":[],"bounty_state":1,"community":"gamma","country":"","created":"2026-05-28T22:57:37.804531+00:00","detections":null,"expiration_window":null,"expire_at":null,"extended_type":"EICAR
+        virus test files","failed":false,"filename":"malicious","first_seen":"2026-05-28T22:02:30.495744+00:00","id":"26516232657767488","last_scanned":null,"last_seen":null,"md5":"44d88612fea8a8f36de82e1278abb02f","metadata":[],"mimetype":"text/plain","permalink":"https://polyswarm.network/scan/results/file/275a021bbfb6489e54d471899f7db9d1663fc695ec2fe2a2c4538aabf651fd0f/26516232657767488","polyscore":null,"result":null,"sha1":"3395856ce81f2b7382dee72602f798b642f14140","sha256":"275a021bbfb6489e54d471899f7db9d1663fc695ec2fe2a2c4538aabf651fd0f","size":68,"type":"FILE","upload_url":null,"votes":[],"window_closed":false},"status":"OK"}
 
         '
     headers:
@@ -183,7 +183,7 @@ interactions:
       Content-Type:
       - application/json
       Date:
-      - Thu, 28 May 2026 22:29:29 GMT
+      - Thu, 28 May 2026 22:57:37 GMT
       Server:
       - gunicorn
       X-Billing-ID:
@@ -209,11 +209,11 @@ interactions:
       user-agent:
       - polyswarm_api/3.21.0 (x86_64-Linux-CPython-3.14.2)
     method: POST
-    uri: http://localhost:9696/v3/consumer/submission/gamma/rescan/26837255179463088
+    uri: http://localhost:9696/v3/consumer/submission/gamma/rescan/26516232657767488
   response:
     body:
-      string: '{"result":{"artifact_id":"94230063071517526","assertions":[],"bounty_state":1,"community":"gamma","country":"","created":"2026-05-28T22:29:29.275206+00:00","detections":null,"expiration_window":null,"expire_at":null,"extended_type":"EICAR
-        virus test files","failed":false,"filename":"malicious","first_seen":"2026-05-28T22:02:30.495744+00:00","id":"94230063071517526","last_scanned":null,"last_seen":null,"md5":"44d88612fea8a8f36de82e1278abb02f","metadata":[],"mimetype":"text/plain","permalink":"https://polyswarm.network/scan/results/file/275a021bbfb6489e54d471899f7db9d1663fc695ec2fe2a2c4538aabf651fd0f/94230063071517526","polyscore":null,"result":null,"sha1":"3395856ce81f2b7382dee72602f798b642f14140","sha256":"275a021bbfb6489e54d471899f7db9d1663fc695ec2fe2a2c4538aabf651fd0f","size":68,"type":"FILE","upload_url":null,"votes":[],"window_closed":false},"status":"OK"}
+      string: '{"result":{"artifact_id":"6153131212691688","assertions":[],"bounty_state":1,"community":"gamma","country":"","created":"2026-05-28T22:57:38.003477+00:00","detections":null,"expiration_window":null,"expire_at":null,"extended_type":"EICAR
+        virus test files","failed":false,"filename":"malicious","first_seen":"2026-05-28T22:02:30.495744+00:00","id":"6153131212691688","last_scanned":null,"last_seen":null,"md5":"44d88612fea8a8f36de82e1278abb02f","metadata":[],"mimetype":"text/plain","permalink":"https://polyswarm.network/scan/results/file/275a021bbfb6489e54d471899f7db9d1663fc695ec2fe2a2c4538aabf651fd0f/6153131212691688","polyscore":null,"result":null,"sha1":"3395856ce81f2b7382dee72602f798b642f14140","sha256":"275a021bbfb6489e54d471899f7db9d1663fc695ec2fe2a2c4538aabf651fd0f","size":68,"type":"FILE","upload_url":null,"votes":[],"window_closed":false},"status":"OK"}
 
         '
     headers:
@@ -224,11 +224,11 @@ interactions:
       Connection:
       - keep-alive
       Content-Length:
-      - '873'
+      - '870'
       Content-Type:
       - application/json
       Date:
-      - Thu, 28 May 2026 22:29:29 GMT
+      - Thu, 28 May 2026 22:57:38 GMT
       Server:
       - gunicorn
       X-Billing-ID:

@@ -135,13 +135,14 @@ class TestAsyncScanCase:
     # ── IOCs ──────────────────────────────────────────────────────────────────
 
     @pytest.mark.skip(
-        reason='Upstream bug: iocs_by_hash returns empty ips/ttps even when '
-               'cape_sandbox_v2 metadata with extracted_c2_ips is attached to '
-               'the instance (visible via /v3/search/hash/sha256). Likely '
-               'either a stale get_fields_with_tag memoize (6h cache loaded '
-               'from a pre-seed empty table) or the extract_iocs walk dropping '
-               'the cape_sandbox_v2 root. Filed as an upstream artifact-index '
-               'follow-up. Cassette captures the legacy passing state.',
+        reason='Upstream artifact-index bug. The memoize cache is fine — '
+               'direct in-process calls to get_fields_with_tag(IP_IOC) return '
+               'all 17 tagged paths and extract_iocs() with the same '
+               'tool_metadata shape returns the IP correctly. Something '
+               'between the HTTP view and that function differs (likely '
+               'last_scanned_instance resolution returning a different '
+               'instance than the one carrying the cape_sandbox_v2 blob). '
+               'Filed as a separate upstream follow-up.',
     )
     @vcr.use_cassette()
     async def test_async_iocs_by_hash(self):
@@ -158,10 +159,9 @@ class TestAsyncScanCase:
         assert iocs[0].json['ttps'] == ['T1081', 'T1060', 'T1069']
 
     @pytest.mark.skip(
-        reason='Upstream bug: same root cause as test_async_iocs_by_hash. The '
-               'IOC ES index is not picking up POST /v3/artifact/metadata '
-               'writes (or the field-tag lookup is empty), so the search '
-               'returns no matches. Filed as upstream artifact-index follow-up.',
+        reason='Upstream artifact-index bug. Likely shares the last_scanned_'
+               'instance resolution issue with iocs_by_hash. Filed as a '
+               'separate upstream follow-up.',
     )
     @vcr.use_cassette()
     async def test_async_search_by_ioc(self):
@@ -437,21 +437,25 @@ class TestAsyncScanCase:
 
     # ── Tool Metadata ─────────────────────────────────────────────────────────
 
-    @pytest.mark.skip(
-        reason='Upstream bug: GET /v3/artifact/metadata/list 500s (logged via '
-               'the middleware catch-all as "Something went wrong"). The POST '
-               'half works (tool_metadata_create returns 200) but the list '
-               'path is unusable. Filed as an upstream artifact-index '
-               'follow-up. Cassette captures the legacy passing state.',
-    )
     @vcr.use_cassette()
     async def test_async_tool_metadata(self):
         async with self._api() as api:
             instance = await api.submit('test/malicious')
             await api.tool_metadata_create(instance.id, 'test_tool_1', {'key': 'value'})
             await api.tool_metadata_create(instance.id, 'test_tool_2', {'key2': 'value2'})
-            metadata = [r async for r in api.tool_metadata_list(instance.id)]
-        tools = {m.json['tool']: m.json['tool_metadata'] for m in metadata}
+            # persist_external_metadata runs asynchronously via Celery; poll
+            # the list endpoint until both tools land. The Celery roundtrip
+            # can take ~5s when the queue is busy from neighbouring tests.
+            tools = {}
+            for _ in range(30):
+                try:
+                    metadata = [r async for r in api.tool_metadata_list(instance.id)]
+                    tools = {m.json['tool']: m.json['tool_metadata'] for m in metadata}
+                    if 'test_tool_1' in tools and 'test_tool_2' in tools:
+                        break
+                except exceptions.NoResultsException:
+                    pass
+                await asyncio.sleep(1)
         assert tools.get('test_tool_1') == {'key': 'value'}
         assert tools.get('test_tool_2') == {'key2': 'value2'}
 

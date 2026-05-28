@@ -109,34 +109,39 @@ This is a regression in memory profile but not in correctness — small artifact
 
 ## Tests blocked on upstream artifact-index issues
 
-**Status:** 5 unique tests (10 cassettes including sync+async pairs) currently skip with `@pytest.mark.skip` referencing specific upstream issues. All other endpoint tests are now hermetic — they provision their own state via SDK calls in setUp and run cleanly against a freshly-provisioned `make reset-database` e2e.
+**Status:** 4 unique tests (8 cassettes including sync+async pairs) currently skip with `@pytest.mark.skip` referencing specific upstream issues. All other endpoint tests are now hermetic — they provision their own state via SDK calls in setUp and run cleanly against a freshly-provisioned `make reset-database` e2e.
 
-### 1. `tool_metadata` (sync + async) — `GET /v3/artifact/metadata/list` 500s
+### ✅ Fixed by upstream PR artifact-index #1877: `tool_metadata` round-trip
 
-The POST half (`tool_metadata_create`) works (200) and writes a `Metadata` row plus queues `persist_external_metadata` via Celery. The GET (`tool_metadata_list?instance_id=X`) returns 500 "Something went wrong" — that string is the catch-all in [`artifact_index/views/v3/utils/decorators.py`](https://github.com/polyswarm/artifact-index/blob/master/src/artifact_index/views/v3/utils/decorators.py) middleware. The actual exception is `logger.exception`-ed but only visible in the artifact-index console.
+The previous 500 on `GET /v3/artifact/metadata/list` was two stacked bugs in `views/v3/artifact.py::MetadataListView`:
 
-Reproducible via curl: `POST /v3/artifact/metadata` 200, then `GET /v3/artifact/metadata/list?instance_id=<id>` 500. Filed as upstream artifact-index follow-up.
+1. The view used `app.session_ro.query(...)` directly instead of `utils.db.ro_session()`. The RO session has `autobegin=False`, so executing the query without an explicit transaction raised `InvalidRequestError("Autobegin is disabled on this Session…")` and the middleware mapped it to 500.
+2. `instance_id` arrived as a string but the column is BIGINT, so once #1 was fixed Postgres raised `operator does not exist: bigint = character varying`.
 
-### 2. `iocs_by_hash` / `search_by_ioc` (sync + async) — IOC views don't surface posted metadata
+Both fixed in artifact-index #1877. SDK side: `test_tool_metadata` (sync + async) is un-skipped and self-provisioning via `submit() → tool_metadata_create() → poll tool_metadata_list()`.
+
+### 1. `iocs_by_hash` / `search_by_ioc` (sync + async) — IOC views don't surface posted metadata
 
 After `tool_metadata_create(instance.id, 'cape_sandbox_v2', {'extracted_c2_ips': ['1.2.3.4'], ...})`, the metadata IS attached to the instance (confirmed by `GET /v3/search/hash/sha256?hash=…` returning the cape_sandbox_v2 blob in the `metadata` list). But `GET /v3/ioc/sha256/<hash>` returns empty `ips`/`ttps`, and `GET /v3/ioc/search?ip=1.2.3.4` returns no results.
 
-Two likely root causes under investigation (both upstream):
+Verified locally that the obvious suspects are NOT the cause:
 
-- **Stale memoize cache.** `get_fields_with_tag(FieldTag.IP_IOC)` is `@app.cache.memoize`d with `AI_CACHE_LIFETIME = 6h`. If artifact-index started before the `metadata_field_properties` seed loaded (or the cache entry was set when the table was empty), the memoize serves an empty list for 6 hours. The PR-1870 cache-bust hook fires on CRUD writes but not on the direct-DB `sync-metadata-fields` loader that provisioning calls.
-- **`extract_iocs` walk drops the cape_sandbox_v2 root.** The field path tagged `ip-ioc` in the seed is `cape_sandbox_v2.extracted_c2_ips`, but the metadata blob is shaped `{tool: 'cape_sandbox_v2', tool_metadata: {extracted_c2_ips: [...]}}`. The view wraps as `{metadata['tool']: metadata['tool_metadata']}` = `{cape_sandbox_v2: {extracted_c2_ips: [...]}}` then walks `cape_sandbox_v2.extracted_c2_ips`, which SHOULD find the IPs — but doesn't in practice.
+- **Memoize cache.** Direct in-process calls to `get_fields_with_tag(FieldTag.IP_IOC)` after a `bust_field_properties_cache()` return all 17 tagged paths including `cape_sandbox_v2.extracted_c2_ips`. The seed (779 rows) is loaded and `tags.contains(['ip-ioc'])` works correctly.
+- **`extract_iocs` walk.** Running `extract_iocs([{metadata: [{tool: 'cape_sandbox_v2', tool_metadata: {extracted_c2_ips: ['1.2.3.4']}}]}])` inline returns `ips=['1.2.3.4']` as expected.
 
-Filed as upstream artifact-index follow-up. Restarting artifact-index after a fresh provision may rule out (a).
+So the bug is somewhere between the HTTP view's input shape and `extract_iocs`. Most likely candidate: in `views/v3/ioc.py::get_by_hash`, when there's no `SandboxTaskSearchHash` entry, the fallback path is `ArtifactInstance.search_by_hash(...).first().last_scanned_instance.number` — that resolution may return a *different* instance than the one carrying the freshly-attached `cape_sandbox_v2` metadata. The serialized response then has metadata from a sibling instance (which has no `cape_sandbox_v2`), so `extract_iocs` correctly finds nothing.
 
-### 3. `sandboxtask_latest` (sync + async) — `SandboxTaskSearchHash` only populates on SUCCEEDED tasks
+Filed as separate upstream artifact-index follow-up (distinct from PR #1877).
+
+### 2. `sandboxtask_latest` (sync + async) — `SandboxTaskSearchHash` only populates on SUCCEEDED tasks
 
 [`artifact_index/services/sandbox.py::update_sandbox_search`](https://github.com/polyswarm/artifact-index/blob/master/src/artifact_index/services/sandbox.py) only writes to `SandboxTaskSearchHash` when `task.status == 'SUCCEEDED'`. On a fresh e2e without active cape/triage workers, queued tasks stay PENDING forever, so `latest` returns 404 "No tasks found".
 
 This is environment, not bug — but it does mean the test can't be hermetic without a worker stub. The sync `sandboxtask_list` IS hermetic and passes: it queries `SandboxTask` directly, no SearchHash dependency.
 
-### 4. `live` (sync + async) — requires the bounty / microengine pipeline
+### 3. `live` (sync + async) — requires the bounty / microengine pipeline
 
-`live_start` returns a `LiveYaraRuleset` with `livescan_id=None` because the local e2e has no microengines processing submissions. The lifecycle calls (`ruleset_create`, `live_start`, `live_stop`) all return 200, but the feed never receives results and `livescan_id` doesn't get assigned. Same shape as #3 — environment, not bug.
+`live_start` returns a `LiveYaraRuleset` with `livescan_id=None` because the local e2e has no microengines processing submissions. The lifecycle calls (`ruleset_create`, `live_start`, `live_stop`) all return 200, but the feed never receives results and `livescan_id` doesn't get assigned. Same shape as #2 — environment, not bug.
 
 ## What works (the other 36 cassettes)
 

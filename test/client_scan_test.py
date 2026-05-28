@@ -357,34 +357,41 @@ class ScanTestCaseV2(TestCase):
             pass
         assert rule.id not in remaining_ids
 
-    @pytest.mark.skip(
-        reason='Upstream bug: GET /v3/artifact/metadata/list 500s (logged as '
-               '"Something went wrong" via the middleware catch-all in '
-               'artifact_index/views/v3/utils/decorators.py). The POST half '
-               'works (tool_metadata_create returns 200) but the list path is '
-               'unusable. Filed as an upstream artifact-index follow-up. The '
-               'cassette captures the legacy passing state for replay.',
-    )
     @vcr.use_cassette()
     def test_tool_metadata(self):
         api = PolyswarmAPI(self.test_api_key, uri=f'http://localhost:9696/{self.api_version}', community='gamma')
+        # Provision: submit so we have a real instance to attach metadata to,
+        # then post two tool_metadata blobs.
         instance = api.submit('test/malicious')
         api.tool_metadata_create(instance.id, 'test_tool_1', {'key': 'value'})
         api.tool_metadata_create(instance.id, 'test_tool_2', {'key2': 'value2'})
-        metadata = list(api.tool_metadata_list(instance.id))
-        tools = {m.json['tool']: m.json['tool_metadata'] for m in metadata}
+        # persist_external_metadata runs asynchronously via Celery; poll the
+        # list endpoint until both tools land. The Celery roundtrip can take
+        # ~5s when the queue is busy from neighbouring tests.
+        for _ in range(30):
+            try:
+                metadata = list(api.tool_metadata_list(instance.id))
+                tools = {m.json['tool']: m.json['tool_metadata'] for m in metadata}
+                if 'test_tool_1' in tools and 'test_tool_2' in tools:
+                    break
+            except exceptions.NoResultsException:
+                pass
+            time.sleep(1)
         assert tools.get('test_tool_1') == {'key': 'value'}
         assert tools.get('test_tool_2') == {'key2': 'value2'}
 
     @pytest.mark.skip(
-        reason='Upstream bug: iocs_by_hash returns empty ips/ttps even when '
-               'cape_sandbox_v2 metadata with extracted_c2_ips is attached to '
-               'the instance (visible via /v3/search/hash/sha256). Two likely '
-               'causes under investigation: (a) the get_fields_with_tag '
-               'memoize is serving an empty list cached from a pre-seed '
-               'startup of artifact-index (6h AI_CACHE_LIFETIME), or (b) the '
-               'extract_iocs walk in ioc.py drops the cape_sandbox_v2 root. '
-               'Filed as an upstream artifact-index follow-up.',
+        reason='Upstream artifact-index bug: iocs_by_hash returns empty '
+               'ips/ttps even when cape_sandbox_v2 metadata with '
+               'extracted_c2_ips is attached to the instance (visible via '
+               '/v3/search/hash/sha256). The memoize cache is fine — direct '
+               'in-process calls to get_fields_with_tag(IP_IOC) return all 17 '
+               'tagged paths and extract_iocs() with the same tool_metadata '
+               'shape returns the IP correctly. Something between the HTTP '
+               'view and that function differs (likely last_scanned_instance '
+               'resolution returning a different instance than the one '
+               'carrying the cape_sandbox_v2 blob). Filed as a separate '
+               'upstream follow-up.',
     )
     @vcr.use_cassette()
     def test_iocs_by_hash(self):
@@ -407,11 +414,11 @@ class ScanTestCaseV2(TestCase):
         assert iocs[0].json['ttps'] == ['T1081', 'T1060', 'T1069']
 
     @pytest.mark.skip(
-        reason='Upstream bug: search_by_ioc(ip=…) returns no results even when '
-               'cape_sandbox_v2 metadata carrying that IP is attached to an '
-               'instance. Same root cause as test_iocs_by_hash — the IOC ES '
-               'index is not picking up POST /v3/artifact/metadata writes. '
-               'Filed as an upstream artifact-index follow-up.',
+        reason='Upstream artifact-index bug: search_by_ioc(ip=…) returns no '
+               'results even when cape_sandbox_v2 metadata carrying that IP '
+               'is attached to an instance. Likely shares the last_scanned_'
+               'instance resolution issue with iocs_by_hash. Filed as a '
+               'separate upstream follow-up.',
     )
     @vcr.use_cassette()
     def test_search_by_ioc(self):

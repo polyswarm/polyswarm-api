@@ -22,7 +22,7 @@ interactions:
     uri: http://localhost:9696/v3/instance
   response:
     body:
-      string: '{"result":{"artifact_id":"16616131603906860","assertions":[],"bounty_state":0,"community":"gamma","country":"","created":"2026-05-28T22:29:28.890758+00:00","detections":null,"expiration_window":null,"expire_at":null,"extended_type":null,"failed":false,"filename":"malicious","first_seen":"2026-05-28T22:29:28.890758+00:00","id":"16616131603906860","last_scanned":null,"last_seen":null,"md5":null,"metadata":[],"mimetype":null,"permalink":"https://polyswarm.network/scan/results/file/None/16616131603906860","polyscore":null,"result":null,"sha1":null,"sha256":null,"size":null,"type":"FILE","upload_url":"http://minio:9000/artifact-index/instances/0c/5e/0c/0c5e0c33-a6f5-4d69-bdcf-4cd924e87665?X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Credential=AKIAIOSFODNN7EXAMPLE%2F20260528%2Fus-east-1%2Fs3%2Faws4_request&X-Amz-Date=20260528T222928Z&X-Amz-Expires=300&X-Amz-SignedHeaders=host&X-Amz-Signature=8fd8916b135e293298b52a1e965baba0cf08b70f9ba85f71d3fec4b4addea267","votes":[],"window_closed":false},"status":"OK"}
+      string: '{"result":{"artifact_id":"93368227507219489","assertions":[],"bounty_state":0,"community":"gamma","country":"","created":"2026-05-28T22:57:37.514696+00:00","detections":null,"expiration_window":null,"expire_at":null,"extended_type":null,"failed":false,"filename":"malicious","first_seen":"2026-05-28T22:57:37.514696+00:00","id":"93368227507219489","last_scanned":null,"last_seen":null,"md5":null,"metadata":[],"mimetype":null,"permalink":"https://polyswarm.network/scan/results/file/None/93368227507219489","polyscore":null,"result":null,"sha1":null,"sha256":null,"size":null,"type":"FILE","upload_url":"http://minio:9000/artifact-index/instances/fa/96/9d/fa969d5c-bc0f-4ab0-a716-5993976b3103?X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Credential=AKIAIOSFODNN7EXAMPLE%2F20260528%2Fus-east-1%2Fs3%2Faws4_request&X-Amz-Date=20260528T225737Z&X-Amz-Expires=300&X-Amz-SignedHeaders=host&X-Amz-Signature=ff8eba07ca2c3db1537e618c3d0f213116574ad970a799b927c4f7f4b51fd091","votes":[],"window_closed":false},"status":"OK"}
 
         '
     headers:
@@ -37,7 +37,7 @@ interactions:
       Content-Type:
       - application/json
       Date:
-      - Thu, 28 May 2026 22:29:28 GMT
+      - Thu, 28 May 2026 22:57:37 GMT
       Server:
       - gunicorn
       X-Billing-ID:
@@ -61,7 +61,7 @@ interactions:
       user-agent:
       - polyswarm_api/3.21.0 (x86_64-Linux-CPython-3.14.2)
     method: PUT
-    uri: http://minio:9000/artifact-index/instances/0c/5e/0c/0c5e0c33-a6f5-4d69-bdcf-4cd924e87665?X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Credential=AKIAIOSFODNN7EXAMPLE%2F20260528%2Fus-east-1%2Fs3%2Faws4_request&X-Amz-Date=20260528T222928Z&X-Amz-Expires=300&X-Amz-SignedHeaders=host&X-Amz-Signature=8fd8916b135e293298b52a1e965baba0cf08b70f9ba85f71d3fec4b4addea267
+    uri: http://minio:9000/artifact-index/instances/fa/96/9d/fa969d5c-bc0f-4ab0-a716-5993976b3103?X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Credential=AKIAIOSFODNN7EXAMPLE%2F20260528%2Fus-east-1%2Fs3%2Faws4_request&X-Amz-Date=20260528T225737Z&X-Amz-Expires=300&X-Amz-SignedHeaders=host&X-Amz-Signature=ff8eba07ca2c3db1537e618c3d0f213116574ad970a799b927c4f7f4b51fd091
   response:
     body:
       string: ''
@@ -71,7 +71,7 @@ interactions:
       Content-Length:
       - '0'
       Date:
-      - Thu, 28 May 2026 22:29:28 GMT
+      - Thu, 28 May 2026 22:57:37 GMT
       ETag:
       - '"44d88612fea8a8f36de82e1278abb02f"'
       Server:
@@ -84,7 +84,7 @@ interactions:
       X-Amz-Id-2:
       - dd9025bab4ad464b049177c95eb6ebf374d3b3fd1af9251148b658df7ac2e3e8
       X-Amz-Request-Id:
-      - 18B3DB4568E4DC5E
+      - 18B3DCCE92A57A4A
       X-Content-Type-Options:
       - nosniff
       X-Ratelimit-Limit:
@@ -118,10 +118,10 @@ interactions:
       user-agent:
       - polyswarm_api/3.21.0 (x86_64-Linux-CPython-3.14.2)
     method: PUT
-    uri: http://localhost:9696/v3/instance?id=16616131603906860
+    uri: http://localhost:9696/v3/instance?id=93368227507219489
   response:
     body:
-      string: '{"result":{"artifact_id":"16616131603906860","assertions":[],"bounty_state":0,"community":"gamma","country":"","created":"2026-05-28T22:29:28.890758+00:00","detections":null,"expiration_window":null,"expire_at":null,"extended_type":null,"failed":false,"filename":"malicious","first_seen":"2026-05-28T22:29:28.890758+00:00","id":"16616131603906860","last_scanned":null,"last_seen":null,"md5":null,"metadata":[],"mimetype":null,"permalink":"https://polyswarm.network/scan/results/file/None/16616131603906860","polyscore":null,"result":null,"sha1":null,"sha256":null,"size":null,"type":"FILE","upload_url":"http://minio:9000/artifact-index/instances/0c/5e/0c/0c5e0c33-a6f5-4d69-bdcf-4cd924e87665?X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Credential=AKIAIOSFODNN7EXAMPLE%2F20260528%2Fus-east-1%2Fs3%2Faws4_request&X-Amz-Date=20260528T222928Z&X-Amz-Expires=300&X-Amz-SignedHeaders=host&X-Amz-Signature=8fd8916b135e293298b52a1e965baba0cf08b70f9ba85f71d3fec4b4addea267","votes":[],"window_closed":false},"status":"OK"}
+      string: '{"result":{"artifact_id":"93368227507219489","assertions":[],"bounty_state":0,"community":"gamma","country":"","created":"2026-05-28T22:57:37.514696+00:00","detections":null,"expiration_window":null,"expire_at":null,"extended_type":null,"failed":false,"filename":"malicious","first_seen":"2026-05-28T22:57:37.514696+00:00","id":"93368227507219489","last_scanned":null,"last_seen":null,"md5":null,"metadata":[],"mimetype":null,"permalink":"https://polyswarm.network/scan/results/file/None/93368227507219489","polyscore":null,"result":null,"sha1":null,"sha256":null,"size":null,"type":"FILE","upload_url":"http://minio:9000/artifact-index/instances/fa/96/9d/fa969d5c-bc0f-4ab0-a716-5993976b3103?X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Credential=AKIAIOSFODNN7EXAMPLE%2F20260528%2Fus-east-1%2Fs3%2Faws4_request&X-Amz-Date=20260528T225737Z&X-Amz-Expires=300&X-Amz-SignedHeaders=host&X-Amz-Signature=ff8eba07ca2c3db1537e618c3d0f213116574ad970a799b927c4f7f4b51fd091","votes":[],"window_closed":false},"status":"OK"}
 
         '
     headers:
@@ -136,7 +136,7 @@ interactions:
       Content-Type:
       - application/json
       Date:
-      - Thu, 28 May 2026 22:29:28 GMT
+      - Thu, 28 May 2026 22:57:37 GMT
       Server:
       - gunicorn
       X-Billing-ID:
@@ -163,9 +163,9 @@ interactions:
     uri: http://localhost:9696/v3/search/metadata/query?query=artifact.sha256%3A275a021bbfb6489e54d471899f7db9d1663fc695ec2fe2a2c4538aabf651fd0f&community=gamma
   response:
     body:
-      string: '{"has_more":false,"limit":2,"result":[{"artifact":{"created":"2026-05-28T22:02:30.495744+00:00","id":"33328684169623378","md5":"44d88612fea8a8f36de82e1278abb02f","sha1":"3395856ce81f2b7382dee72602f798b642f14140","sha256":"275a021bbfb6489e54d471899f7db9d1663fc695ec2fe2a2c4538aabf651fd0f"},"exiftool":{"filesize":"68
-        bytes","filetype":"TXT","filetypeextension":"txt","mimetype":"text/plain"},"extension":"txt","hash":{"md5":"44d88612fea8a8f36de82e1278abb02f","sha1":"3395856ce81f2b7382dee72602f798b642f14140","sha256":"275a021bbfb6489e54d471899f7db9d1663fc695ec2fe2a2c4538aabf651fd0f","sha3_256":"8b4c4e204a8a039198e292d2291f4c451d80e4c38bf0cc04ad3841fea8755bd8","sha3_512":"a20290c6ebf01dc5182bb57718250f61ab11b418466714632a7d1474a02849641f7b78e4093e19ad12fdbedbe02f3bec4ca3ec3235557e82ab5ac02d061e7007","sha512":"cc805d5fab1fd71a4ab352a9c533e65fb2d5b885518f4e565e68847223b8e6b85cb48f3afad842726d99239c9e36505c64b0dc9a061d9e507d833277ada336ab","ssdeep":"3:a+JraNvsgzsVqSwHq9:tJuOgzsko","tlsh":"41a022003b0eee2ba20b00200032e8b00808020e2ce00a3820a020b8c83308803ec228"},"meta_community":"_public","modified":"2026-05-28T22:28:31.681633+00:00","polyunite":{"labels":["nonmalware"],"malware_family":"EICAR"},"scan":{"countries":[""],"detections":{"benign":0,"malicious":1,"total":1},"filename":["malicious"],"first_scan":{"artifact_instance_id":"55030496550361405","assertions":{"engine-eicar":{"assertion":"malicious","metadata":{"malware_family":"EICAR"}}},"created":"2026-05-28T22:02:30.495744+00:00","detections":{"benign":0,"malicious":1,"total":1},"filename":"malicious","votes":{"arbiter-eicar":{"metadata":{"malware_family":"EICAR"},"vote":"malicious"}}},"first_seen":"2026-05-28T22:02:30.495744+00:00","last_seen":"2026-05-28T22:28:01.451500+00:00","latest_scan":{"artifact_instance_id":"26836835328810608","assertions":{"engine-eicar":{"assertion":"malicious","metadata":{"malware_family":"EICAR"}}},"created":"2026-05-28T22:28:01.451500+00:00","detections":{"benign":0,"malicious":1,"total":1},"filename":"malicious","votes":{"arbiter-eicar":{"metadata":{"malware_family":"EICAR"},"vote":"malicious"}}},"mimetype":{"extended":"EICAR
-        virus test files","mime":"text/plain"}},"updated":{"exiftool":"2026-05-28T22:28:01.803962+00:00","hash":"2026-05-28T22:28:01.769983+00:00","polyunite":"2026-05-28T22:28:31.681633+00:00"}}],"status":"OK"}
+      string: '{"has_more":false,"limit":2,"result":[{"artifact":{"created":"2026-05-28T22:02:30.495744+00:00","id":"33328684169623378","md5":"44d88612fea8a8f36de82e1278abb02f","sha1":"3395856ce81f2b7382dee72602f798b642f14140","sha256":"275a021bbfb6489e54d471899f7db9d1663fc695ec2fe2a2c4538aabf651fd0f","size":68},"exiftool":{"filesize":"68
+        bytes","filetype":"TXT","filetypeextension":"txt","mimetype":"text/plain"},"extension":"txt","hash":{"md5":"44d88612fea8a8f36de82e1278abb02f","sha1":"3395856ce81f2b7382dee72602f798b642f14140","sha256":"275a021bbfb6489e54d471899f7db9d1663fc695ec2fe2a2c4538aabf651fd0f","sha3_256":"8b4c4e204a8a039198e292d2291f4c451d80e4c38bf0cc04ad3841fea8755bd8","sha3_512":"a20290c6ebf01dc5182bb57718250f61ab11b418466714632a7d1474a02849641f7b78e4093e19ad12fdbedbe02f3bec4ca3ec3235557e82ab5ac02d061e7007","sha512":"cc805d5fab1fd71a4ab352a9c533e65fb2d5b885518f4e565e68847223b8e6b85cb48f3afad842726d99239c9e36505c64b0dc9a061d9e507d833277ada336ab","ssdeep":"3:a+JraNvsgzsVqSwHq9:tJuOgzsko","tlsh":"41a022003b0eee2ba20b00200032e8b00808020e2ce00a3820a020b8c83308803ec228"},"meta_community":"_public","modified":"2026-05-28T22:56:49.244726+00:00","polyunite":{"labels":["nonmalware"],"malware_family":"EICAR"},"scan":{"countries":[""],"detections":{"benign":0,"malicious":1,"total":1},"filename":["malicious"],"first_scan":{"artifact_instance_id":"55030496550361405","assertions":{"engine-eicar":{"assertion":"malicious","metadata":{"malware_family":"EICAR"}}},"created":"2026-05-28T22:02:30.495744+00:00","detections":{"benign":0,"malicious":1,"total":1},"filename":"malicious","votes":{"arbiter-eicar":{"metadata":{"malware_family":"EICAR"},"vote":"malicious"}}},"first_seen":"2026-05-28T22:02:30.495744+00:00","last_seen":"2026-05-28T22:56:18.990403+00:00","latest_scan":{"artifact_instance_id":"94098133474776517","assertions":{"engine-eicar":{"assertion":"malicious","metadata":{"malware_family":"EICAR"}}},"created":"2026-05-28T22:56:18.990403+00:00","detections":{"benign":0,"malicious":1,"total":1},"filename":"malicious","votes":{"arbiter-eicar":{"metadata":{"malware_family":"EICAR"},"vote":"malicious"}}},"mimetype":{"extended":"EICAR
+        virus test files","mime":"text/plain"}},"updated":{"exiftool":"2026-05-28T22:56:19.240803+00:00","hash":"2026-05-28T22:56:19.224493+00:00","polyunite":"2026-05-28T22:56:49.244726+00:00"}}],"status":"OK"}
 
         '
     headers:
@@ -176,11 +176,11 @@ interactions:
       Connection:
       - keep-alive
       Content-Length:
-      - '2343'
+      - '2353'
       Content-Type:
       - application/json
       Date:
-      - Thu, 28 May 2026 22:29:28 GMT
+      - Thu, 28 May 2026 22:57:37 GMT
       Server:
       - gunicorn
       X-Billing-ID:

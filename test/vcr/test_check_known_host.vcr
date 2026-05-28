@@ -18,7 +18,7 @@ interactions:
     uri: http://localhost:9696/v3/ioc/known?ip=1.2.3.4
   response:
     body:
-      string: '{"result":[{"good":true,"host":"1.2.3.4","id":32,"source":"test","type":"ip"}],"status":"OK"}
+      string: '{"result":[],"status":"OK"}
 
         '
     headers:
@@ -29,11 +29,11 @@ interactions:
       Connection:
       - keep-alive
       Content-Length:
-      - '94'
+      - '28'
       Content-Type:
       - application/json
       Date:
-      - Thu, 28 May 2026 22:29:27 GMT
+      - Thu, 28 May 2026 22:57:36 GMT
       Server:
       - gunicorn
       X-Billing-ID:
@@ -41,46 +41,6 @@ interactions:
     status:
       code: 200
       message: OK
-- request:
-    body: ''
-    headers:
-      accept:
-      - '*/*'
-      accept-encoding:
-      - gzip, deflate
-      authorization:
-      - '11111111111111111111111111111111'
-      connection:
-      - keep-alive
-      host:
-      - localhost:9696
-      user-agent:
-      - polyswarm_api/3.21.0 (x86_64-Linux-CPython-3.14.2)
-    method: DELETE
-    uri: http://localhost:9696/v3/ioc/known?id=32
-  response:
-    body:
-      string: '{"errors":null,"result":"Could not find requested ioc (32).","status":"error"}
-
-        '
-    headers:
-      Access-Control-Allow-Origin:
-      - '*'
-      Access-Control-Expose-Headers:
-      - Authorization
-      Connection:
-      - keep-alive
-      Content-Length:
-      - '79'
-      Content-Type:
-      - application/json
-      Date:
-      - Thu, 28 May 2026 22:29:27 GMT
-      Server:
-      - gunicorn
-    status:
-      code: 404
-      message: NOT FOUND
 - request:
     body: '{"type":"ip","host":"1.2.3.4","source":"test","good":true}'
     headers:
@@ -104,7 +64,7 @@ interactions:
     uri: http://localhost:9696/v3/ioc/known
   response:
     body:
-      string: '{"result":{"good":true,"host":"1.2.3.4","id":38,"source":"test","type":"ip"},"status":"OK"}
+      string: '{"result":{"good":true,"host":"1.2.3.4","id":54,"source":"test","type":"ip"},"status":"OK"}
 
         '
     headers:
@@ -119,7 +79,7 @@ interactions:
       Content-Type:
       - application/json
       Date:
-      - Thu, 28 May 2026 22:29:27 GMT
+      - Thu, 28 May 2026 22:57:36 GMT
       Server:
       - gunicorn
       X-Billing-ID:
@@ -146,7 +106,7 @@ interactions:
     uri: http://localhost:9696/v3/ioc/known?ip=1.2.3.4
   response:
     body:
-      string: '{"result":[{"good":true,"host":"1.2.3.4","id":32,"source":"test","type":"ip"}],"status":"OK"}
+      string: '{"result":[{"good":true,"host":"1.2.3.4","id":54,"source":"test","type":"ip"}],"status":"OK"}
 
         '
     headers:
@@ -161,7 +121,7 @@ interactions:
       Content-Type:
       - application/json
       Date:
-      - Thu, 28 May 2026 22:29:27 GMT
+      - Thu, 28 May 2026 22:57:36 GMT
       Server:
       - gunicorn
       X-Billing-ID:
@@ -185,10 +145,10 @@ interactions:
       user-agent:
       - polyswarm_api/3.21.0 (x86_64-Linux-CPython-3.14.2)
     method: DELETE
-    uri: http://localhost:9696/v3/ioc/known?id=38
+    uri: http://localhost:9696/v3/ioc/known?id=54
   response:
     body:
-      string: '{"result":{"good":true,"host":"1.2.3.4","id":38,"source":"test","type":"ip"},"status":"OK"}
+      string: '{"result":{"good":true,"host":"1.2.3.4","id":54,"source":"test","type":"ip"},"status":"OK"}
 
         '
     headers:
@@ -203,7 +163,7 @@ interactions:
       Content-Type:
       - application/json
       Date:
-      - Thu, 28 May 2026 22:29:27 GMT
+      - Thu, 28 May 2026 22:57:36 GMT
       Server:
       - gunicorn
       X-Billing-ID:
