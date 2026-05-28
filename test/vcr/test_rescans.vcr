@@ -1,5 +1,150 @@
 interactions:
 - request:
+    body: '{"artifact_name":"malicious","artifact_type":"FILE","community":"gamma"}'
+    headers:
+      accept:
+      - '*/*'
+      accept-encoding:
+      - gzip, deflate
+      authorization:
+      - '11111111111111111111111111111111'
+      connection:
+      - keep-alive
+      content-length:
+      - '72'
+      content-type:
+      - application/json
+      host:
+      - localhost:9696
+      user-agent:
+      - polyswarm_api/3.21.0 (x86_64-Linux-CPython-3.14.2)
+    method: POST
+    uri: http://localhost:9696/v3/instance
+  response:
+    body:
+      string: '{"result":{"artifact_id":"58134521924996568","assertions":[],"bounty_state":0,"community":"gamma","country":"","created":"2026-05-28T22:29:29.077680+00:00","detections":null,"expiration_window":null,"expire_at":null,"extended_type":null,"failed":false,"filename":"malicious","first_seen":"2026-05-28T22:29:29.077680+00:00","id":"58134521924996568","last_scanned":null,"last_seen":null,"md5":null,"metadata":[],"mimetype":null,"permalink":"https://polyswarm.network/scan/results/file/None/58134521924996568","polyscore":null,"result":null,"sha1":null,"sha256":null,"size":null,"type":"FILE","upload_url":"http://minio:9000/artifact-index/instances/15/7f/60/157f60a5-2ad9-4757-aa66-479608315a13?X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Credential=AKIAIOSFODNN7EXAMPLE%2F20260528%2Fus-east-1%2Fs3%2Faws4_request&X-Amz-Date=20260528T222929Z&X-Amz-Expires=300&X-Amz-SignedHeaders=host&X-Amz-Signature=6bf79a021f63c6f3c95cbb278d82829072e87d40c9b6f9ed7a7a5ae6402c1f48","votes":[],"window_closed":false},"status":"OK"}
+
+        '
+    headers:
+      Access-Control-Allow-Origin:
+      - '*'
+      Access-Control-Expose-Headers:
+      - Authorization
+      Connection:
+      - keep-alive
+      Content-Length:
+      - '1009'
+      Content-Type:
+      - application/json
+      Date:
+      - Thu, 28 May 2026 22:29:29 GMT
+      Server:
+      - gunicorn
+      X-Billing-ID:
+      - '111'
+    status:
+      code: 200
+      message: OK
+- request:
+    body: X5O!P%@AP[4\PZX54(P^)7CC)7}$EICAR-STANDARD-ANTIVIRUS-TEST-FILE!$H+H*
+    headers:
+      accept:
+      - '*/*'
+      accept-encoding:
+      - gzip, deflate
+      connection:
+      - keep-alive
+      content-length:
+      - '68'
+      host:
+      - minio:9000
+      user-agent:
+      - polyswarm_api/3.21.0 (x86_64-Linux-CPython-3.14.2)
+    method: PUT
+    uri: http://minio:9000/artifact-index/instances/15/7f/60/157f60a5-2ad9-4757-aa66-479608315a13?X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Credential=AKIAIOSFODNN7EXAMPLE%2F20260528%2Fus-east-1%2Fs3%2Faws4_request&X-Amz-Date=20260528T222929Z&X-Amz-Expires=300&X-Amz-SignedHeaders=host&X-Amz-Signature=6bf79a021f63c6f3c95cbb278d82829072e87d40c9b6f9ed7a7a5ae6402c1f48
+  response:
+    body:
+      string: ''
+    headers:
+      Accept-Ranges:
+      - bytes
+      Content-Length:
+      - '0'
+      Date:
+      - Thu, 28 May 2026 22:29:29 GMT
+      ETag:
+      - '"44d88612fea8a8f36de82e1278abb02f"'
+      Server:
+      - MinIO
+      Strict-Transport-Security:
+      - max-age=31536000; includeSubDomains
+      Vary:
+      - Origin
+      - Accept-Encoding
+      X-Amz-Id-2:
+      - dd9025bab4ad464b049177c95eb6ebf374d3b3fd1af9251148b658df7ac2e3e8
+      X-Amz-Request-Id:
+      - 18B3DB4574175B99
+      X-Content-Type-Options:
+      - nosniff
+      X-Ratelimit-Limit:
+      - '16315'
+      X-Ratelimit-Remaining:
+      - '16315'
+      X-Xss-Protection:
+      - 1; mode=block
+      x-amz-expiration:
+      - expiry-date="Sat, 30 May 2026 00:00:00 GMT", rule-id="expiration-artifact-index_0-instances"
+    status:
+      code: 200
+      message: OK
+- request:
+    body: '{"community":"gamma"}'
+    headers:
+      accept:
+      - '*/*'
+      accept-encoding:
+      - gzip, deflate
+      authorization:
+      - '11111111111111111111111111111111'
+      connection:
+      - keep-alive
+      content-length:
+      - '21'
+      content-type:
+      - application/json
+      host:
+      - localhost:9696
+      user-agent:
+      - polyswarm_api/3.21.0 (x86_64-Linux-CPython-3.14.2)
+    method: PUT
+    uri: http://localhost:9696/v3/instance?id=58134521924996568
+  response:
+    body:
+      string: '{"result":{"artifact_id":"58134521924996568","assertions":[],"bounty_state":0,"community":"gamma","country":"","created":"2026-05-28T22:29:29.077680+00:00","detections":null,"expiration_window":null,"expire_at":null,"extended_type":null,"failed":false,"filename":"malicious","first_seen":"2026-05-28T22:29:29.077680+00:00","id":"58134521924996568","last_scanned":null,"last_seen":null,"md5":null,"metadata":[],"mimetype":null,"permalink":"https://polyswarm.network/scan/results/file/None/58134521924996568","polyscore":null,"result":null,"sha1":null,"sha256":null,"size":null,"type":"FILE","upload_url":"http://minio:9000/artifact-index/instances/15/7f/60/157f60a5-2ad9-4757-aa66-479608315a13?X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Credential=AKIAIOSFODNN7EXAMPLE%2F20260528%2Fus-east-1%2Fs3%2Faws4_request&X-Amz-Date=20260528T222929Z&X-Amz-Expires=300&X-Amz-SignedHeaders=host&X-Amz-Signature=6bf79a021f63c6f3c95cbb278d82829072e87d40c9b6f9ed7a7a5ae6402c1f48","votes":[],"window_closed":false},"status":"OK"}
+
+        '
+    headers:
+      Access-Control-Allow-Origin:
+      - '*'
+      Access-Control-Expose-Headers:
+      - Authorization
+      Connection:
+      - keep-alive
+      Content-Length:
+      - '1009'
+      Content-Type:
+      - application/json
+      Date:
+      - Thu, 28 May 2026 22:29:29 GMT
+      Server:
+      - gunicorn
+      X-Billing-ID:
+      - '111'
+    status:
+      code: 200
+      message: OK
+- request:
     body: community=gamma
     headers:
       accept:
@@ -22,8 +167,8 @@ interactions:
     uri: http://localhost:9696/v3/consumer/submission/gamma/rescan/sha256/275a021bbfb6489e54d471899f7db9d1663fc695ec2fe2a2c4538aabf651fd0f
   response:
     body:
-      string: '{"result":{"artifact_id":"82000553665273664","assertions":[],"bounty_state":1,"community":"gamma","country":"","created":"2026-05-27T01:38:13.237469+00:00","detections":null,"expiration_window":null,"expire_at":null,"extended_type":"EICAR
-        virus test files","failed":false,"filename":"malicious","first_seen":"2026-05-27T00:51:33.805717+00:00","id":"82000553665273664","last_scanned":null,"last_seen":null,"md5":"44d88612fea8a8f36de82e1278abb02f","metadata":[],"mimetype":"text/plain","permalink":"https://polyswarm.network/scan/results/file/275a021bbfb6489e54d471899f7db9d1663fc695ec2fe2a2c4538aabf651fd0f/82000553665273664","polyscore":null,"result":null,"sha1":"3395856ce81f2b7382dee72602f798b642f14140","sha256":"275a021bbfb6489e54d471899f7db9d1663fc695ec2fe2a2c4538aabf651fd0f","size":68,"type":"FILE","upload_url":null,"votes":[],"window_closed":false},"status":"OK"}
+      string: '{"result":{"artifact_id":"26837255179463088","assertions":[],"bounty_state":1,"community":"gamma","country":"","created":"2026-05-28T22:29:29.197631+00:00","detections":null,"expiration_window":null,"expire_at":null,"extended_type":"EICAR
+        virus test files","failed":false,"filename":"malicious","first_seen":"2026-05-28T22:02:30.495744+00:00","id":"26837255179463088","last_scanned":null,"last_seen":null,"md5":"44d88612fea8a8f36de82e1278abb02f","metadata":[],"mimetype":"text/plain","permalink":"https://polyswarm.network/scan/results/file/275a021bbfb6489e54d471899f7db9d1663fc695ec2fe2a2c4538aabf651fd0f/26837255179463088","polyscore":null,"result":null,"sha1":"3395856ce81f2b7382dee72602f798b642f14140","sha256":"275a021bbfb6489e54d471899f7db9d1663fc695ec2fe2a2c4538aabf651fd0f","size":68,"type":"FILE","upload_url":null,"votes":[],"window_closed":false},"status":"OK"}
 
         '
     headers:
@@ -38,7 +183,7 @@ interactions:
       Content-Type:
       - application/json
       Date:
-      - Wed, 27 May 2026 01:38:13 GMT
+      - Thu, 28 May 2026 22:29:29 GMT
       Server:
       - gunicorn
       X-Billing-ID:
@@ -64,11 +209,11 @@ interactions:
       user-agent:
       - polyswarm_api/3.21.0 (x86_64-Linux-CPython-3.14.2)
     method: POST
-    uri: http://localhost:9696/v3/consumer/submission/gamma/rescan/82000553665273664
+    uri: http://localhost:9696/v3/consumer/submission/gamma/rescan/26837255179463088
   response:
     body:
-      string: '{"result":{"artifact_id":"42280925753373114","assertions":[],"bounty_state":1,"community":"gamma","country":"","created":"2026-05-27T01:38:13.661651+00:00","detections":null,"expiration_window":null,"expire_at":null,"extended_type":"EICAR
-        virus test files","failed":false,"filename":"malicious","first_seen":"2026-05-27T00:51:33.805717+00:00","id":"42280925753373114","last_scanned":null,"last_seen":null,"md5":"44d88612fea8a8f36de82e1278abb02f","metadata":[],"mimetype":"text/plain","permalink":"https://polyswarm.network/scan/results/file/275a021bbfb6489e54d471899f7db9d1663fc695ec2fe2a2c4538aabf651fd0f/42280925753373114","polyscore":null,"result":null,"sha1":"3395856ce81f2b7382dee72602f798b642f14140","sha256":"275a021bbfb6489e54d471899f7db9d1663fc695ec2fe2a2c4538aabf651fd0f","size":68,"type":"FILE","upload_url":null,"votes":[],"window_closed":false},"status":"OK"}
+      string: '{"result":{"artifact_id":"94230063071517526","assertions":[],"bounty_state":1,"community":"gamma","country":"","created":"2026-05-28T22:29:29.275206+00:00","detections":null,"expiration_window":null,"expire_at":null,"extended_type":"EICAR
+        virus test files","failed":false,"filename":"malicious","first_seen":"2026-05-28T22:02:30.495744+00:00","id":"94230063071517526","last_scanned":null,"last_seen":null,"md5":"44d88612fea8a8f36de82e1278abb02f","metadata":[],"mimetype":"text/plain","permalink":"https://polyswarm.network/scan/results/file/275a021bbfb6489e54d471899f7db9d1663fc695ec2fe2a2c4538aabf651fd0f/94230063071517526","polyscore":null,"result":null,"sha1":"3395856ce81f2b7382dee72602f798b642f14140","sha256":"275a021bbfb6489e54d471899f7db9d1663fc695ec2fe2a2c4538aabf651fd0f","size":68,"type":"FILE","upload_url":null,"votes":[],"window_closed":false},"status":"OK"}
 
         '
     headers:
@@ -83,7 +228,7 @@ interactions:
       Content-Type:
       - application/json
       Date:
-      - Wed, 27 May 2026 01:38:13 GMT
+      - Thu, 28 May 2026 22:29:29 GMT
       Server:
       - gunicorn
       X-Billing-ID:

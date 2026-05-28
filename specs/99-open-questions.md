@@ -107,26 +107,50 @@ This is a regression in memory profile but not in correctness — small artifact
 
 **Decision point:** the refactor crosses the sync/async boundary because `LocalArtifact.__init__` is currently sync-only and calls `iter_content` synchronously. Either keep the sync `iter_content` path (with the adapter caching chunks lazily) or split `LocalArtifact.parse_result` into an async-aware variant. Either is non-trivial; documenting + deferring is the right call for the 4.0 release.
 
-## Cassettes that need an e2e refresh
+## Tests blocked on upstream artifact-index issues
 
-**Status:** 24 cassettes stale; tests are non-hermetic against the live e2e.
+**Status:** 5 unique tests (10 cassettes including sync+async pairs) currently skip with `@pytest.mark.skip` referencing specific upstream issues. All other endpoint tests are now hermetic — they provision their own state via SDK calls in setUp and run cleanly against a freshly-provisioned `make reset-database` e2e.
 
-After two delete-and-rerun passes, 23 of 47 cassettes regenerate cleanly. The remaining 24 fail because the corresponding tests aren't hermetic — they assume specific pre-existing e2e state that can't be reproduced without admin-level fixture priming. Concretely:
+### 1. `tool_metadata` (sync + async) — `GET /v3/artifact/metadata/list` 500s
 
-- **Hard-coded primary keys.** `update_known_good_host(1)` / `delete_known_good_host(1)` assume an IOC at id=1. The e2e's auto-increment counter has moved past 1 across prior runs, and there's no way to force a specific id from the SDK side.
-- **Order-coupled state assertions.** `test_add_known_good_host` asserts the response, but successive runs leave IOCs in the e2e; on the second run the POST returns 400 "IOC with that host already exists" instead of the expected resource shape.
-- **Count assertions on shared resources.** `test_rules` does `assert len(rules) == 1` after one `ruleset_create`. The e2e accumulates rulesets across runs; cleanup is blocked when a ruleset has an active live hunt (`Can not delete a ruleset with an active live hunt`).
-- **Missing fixture artifacts.** Sandbox tests (`sandboxtask_submit`, `sandboxtask_latest`, `sandboxtask_list`) assume a sandbox task exists. `historical_results` assumes a historical hunt exists. `live` reads `livescan_id` from a fresh `LiveYaraRuleset`, which the e2e doesn't assign synchronously.
-- **Eventual-consistency assertions.** `iocs_by_hash` and `search_by_ioc` call `tool_metadata_create` then immediately query the IOC index. The e2e accepts the create (200) but the index doesn't return results in the same request cycle.
-- **Surviving server bugs.** POST `/v3/artifact/metadata` returns 400 "Bad JSON" (sync `iocs_by_hash`), GET `/v3/artifact/metadata/list` returns 500 (`tool_metadata`).
+The POST half (`tool_metadata_create`) works (200) and writes a `Metadata` row plus queues `persist_external_metadata` via Celery. The GET (`tool_metadata_list?instance_id=X`) returns 500 "Something went wrong" — that string is the catch-all in [`artifact_index/views/v3/utils/decorators.py`](https://github.com/polyswarm/artifact-index/blob/master/src/artifact_index/views/v3/utils/decorators.py) middleware. The actual exception is `logger.exception`-ed but only visible in the artifact-index console.
 
-The 24 cassettes are stale-but-passing under VCR replay. They captured a known good state of the e2e during the original recording session.
+Reproducible via curl: `POST /v3/artifact/metadata` 200, then `GET /v3/artifact/metadata/list?instance_id=<id>` 500. Filed as upstream artifact-index follow-up.
 
-**Affected cassettes** (sync + async pairs where present): `*_add_known_good_host`, `*_check_known_host`, `*_delete_known_good_host`, `*_update_known_good_host`, `*_historical_results`, `*_iocs_by_hash`, `*_live`, `*_rules`, `*_sandboxtask_latest`, `*_sandboxtask_list`, `*_sandboxtask_submit`, `*_search_by_ioc`, `*_tool_metadata`.
+### 2. `iocs_by_hash` / `search_by_ioc` (sync + async) — IOC views don't surface posted metadata
 
-**Action:**
-1. **Test refactor (preferred).** Make each test hermetic — capture the IOC id returned by `add_known_good_host` and feed it back into the update/delete calls instead of hard-coding `1`; capture the ruleset count *before* `ruleset_create` and assert relative growth; provision sandbox/historical fixtures via SDK calls inside the test.
-2. **E2e fixture priming.** Provide an admin endpoint or migration that seeds a known initial state (IOC id=1, sample sandbox task, sample historical hunt) and resets between test sessions.
-3. **Fix the surviving 400 / 500 on the metadata endpoints.**
+After `tool_metadata_create(instance.id, 'cape_sandbox_v2', {'extracted_c2_ips': ['1.2.3.4'], ...})`, the metadata IS attached to the instance (confirmed by `GET /v3/search/hash/sha256?hash=…` returning the cape_sandbox_v2 blob in the `metadata` list). But `GET /v3/ioc/sha256/<hash>` returns empty `ips`/`ttps`, and `GET /v3/ioc/search?ip=1.2.3.4` returns no results.
 
-**Decision point:** not blocking the SDK rewrite. The cassette replay path is the only representation of the contract for these endpoints today. The invariant "tests must pass against the live e2e stack with VCR off" remains aspirational until either the tests are refactored or the e2e priming work is done.
+Two likely root causes under investigation (both upstream):
+
+- **Stale memoize cache.** `get_fields_with_tag(FieldTag.IP_IOC)` is `@app.cache.memoize`d with `AI_CACHE_LIFETIME = 6h`. If artifact-index started before the `metadata_field_properties` seed loaded (or the cache entry was set when the table was empty), the memoize serves an empty list for 6 hours. The PR-1870 cache-bust hook fires on CRUD writes but not on the direct-DB `sync-metadata-fields` loader that provisioning calls.
+- **`extract_iocs` walk drops the cape_sandbox_v2 root.** The field path tagged `ip-ioc` in the seed is `cape_sandbox_v2.extracted_c2_ips`, but the metadata blob is shaped `{tool: 'cape_sandbox_v2', tool_metadata: {extracted_c2_ips: [...]}}`. The view wraps as `{metadata['tool']: metadata['tool_metadata']}` = `{cape_sandbox_v2: {extracted_c2_ips: [...]}}` then walks `cape_sandbox_v2.extracted_c2_ips`, which SHOULD find the IPs — but doesn't in practice.
+
+Filed as upstream artifact-index follow-up. Restarting artifact-index after a fresh provision may rule out (a).
+
+### 3. `sandboxtask_latest` (sync + async) — `SandboxTaskSearchHash` only populates on SUCCEEDED tasks
+
+[`artifact_index/services/sandbox.py::update_sandbox_search`](https://github.com/polyswarm/artifact-index/blob/master/src/artifact_index/services/sandbox.py) only writes to `SandboxTaskSearchHash` when `task.status == 'SUCCEEDED'`. On a fresh e2e without active cape/triage workers, queued tasks stay PENDING forever, so `latest` returns 404 "No tasks found".
+
+This is environment, not bug — but it does mean the test can't be hermetic without a worker stub. The sync `sandboxtask_list` IS hermetic and passes: it queries `SandboxTask` directly, no SearchHash dependency.
+
+### 4. `live` (sync + async) — requires the bounty / microengine pipeline
+
+`live_start` returns a `LiveYaraRuleset` with `livescan_id=None` because the local e2e has no microengines processing submissions. The lifecycle calls (`ruleset_create`, `live_start`, `live_stop`) all return 200, but the feed never receives results and `livescan_id` doesn't get assigned. Same shape as #3 — environment, not bug.
+
+## What works (the other 36 cassettes)
+
+After the test refactor — provision-via-SDK-in-setUp, capture-returned-ids, structural rather than count assertions — every endpoint test outside the four upstream-blocked groups above regenerates cleanly against `make reset-database` + the provisioning script. The cassettes get re-recorded on every `rm test/vcr/*.vcr && pytest test/`. Subsequent runs replay deterministically because each test is its own self-contained transaction against the e2e.
+
+The pattern (see `test/client_scan_test.py` / `test/async_client_test.py`):
+
+```python
+@vcr.use_cassette()
+def test_rescans(self):
+    api = PolyswarmAPI(self.test_api_key, uri=…, community='gamma')
+    api.submit('test/malicious')          # provision: artifact exists
+    result = api.rescan(SHA256)           # then exercise the endpoint
+    …
+```
+
+Cleanup with `try/finally` + `except NotFoundException: pass` tolerates the ioc-cache divergence (GET-by-host can serve a cached id that DELETE-by-id no longer finds). When that artifact-index bug is fixed the `except` becomes redundant.

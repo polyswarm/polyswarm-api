@@ -1,6 +1,6 @@
 interactions:
 - request:
-    body: ''
+    body: '{"artifact_name":"malicious","artifact_type":"FILE","community":"gamma"}'
     headers:
       accept:
       - '*/*'
@@ -10,15 +10,19 @@ interactions:
       - '11111111111111111111111111111111'
       connection:
       - keep-alive
+      content-length:
+      - '72'
+      content-type:
+      - application/json
       host:
       - localhost:9696
       user-agent:
       - polyswarm_api/3.21.0 (x86_64-Linux-CPython-3.14.2)
-    method: GET
-    uri: http://localhost:9696/v3/consumer/download/stream?since=2880
+    method: POST
+    uri: http://localhost:9696/v3/instance
   response:
     body:
-      string: '{"has_more":true,"limit":2,"offset":"gAAAAABqFksGvlMGpaKORSjM2xtBXle_HtGVLrMr52vdlhCTJWYSBSxrqqPuEfe46BJNot2ag_OmfENesj3loXplDsxOmeBasg==","result":[{"community":null,"created":"2026-05-27T01:35:26.307254+00:00","id":"60073824685841255","uri":"http://minio:9000/artifact-index/archives/43/bf/d3/43bfd39846fbc79cd596ae5e13dd1872567bda892d8620c1e62e6973ed5dd4cffffab14eced69e4bcb124ede819d79973da342ba536bbe0bb528a084a3f6c3ed8f0ca2c4?response-content-disposition=attachment%3Bfilename%3D60073824685841255.tar.gz&response-content-type=application%2Foctet-stream&X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Credential=AKIAIOSFODNN7EXAMPLE%2F20260527%2Fus-east-1%2Fs3%2Faws4_request&X-Amz-Date=20260527T013814Z&X-Amz-Expires=3600&X-Amz-SignedHeaders=host&X-Amz-Signature=feea7c27158270e9e7f0a1dc78a9610d3a69e867d88dc67394b963d4ea701906"},{"community":null,"created":"2026-05-27T01:34:56.805152+00:00","id":"40431854072654104","uri":"http://minio:9000/artifact-index/archives/49/c3/e9/49c3e9beea6eda2d1c1c768c76d317669e82b5ea6654aae8f1248159d692efbd929026a15c685a6950bc5e1daef8d9e7f91ca928f8d1e403ac8c9e481349ef638fd4ec68?response-content-disposition=attachment%3Bfilename%3D40431854072654104.tar.gz&response-content-type=application%2Foctet-stream&X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Credential=AKIAIOSFODNN7EXAMPLE%2F20260527%2Fus-east-1%2Fs3%2Faws4_request&X-Amz-Date=20260527T013814Z&X-Amz-Expires=3600&X-Amz-SignedHeaders=host&X-Amz-Signature=9dee051ae0d71f585fd8336e456a1572161e6032849faae6c8c50ecde8468f76"}],"status":"OK"}
+      string: '{"result":{"artifact_id":"95414870006911616","assertions":[],"bounty_state":0,"community":"gamma","country":"","created":"2026-05-28T22:29:59.561291+00:00","detections":null,"expiration_window":null,"expire_at":null,"extended_type":null,"failed":false,"filename":"malicious","first_seen":"2026-05-28T22:29:59.561291+00:00","id":"95414870006911616","last_scanned":null,"last_seen":null,"md5":null,"metadata":[],"mimetype":null,"permalink":"https://polyswarm.network/scan/results/file/None/95414870006911616","polyscore":null,"result":null,"sha1":null,"sha256":null,"size":null,"type":"FILE","upload_url":"http://minio:9000/artifact-index/instances/66/01/1e/66011eef-8a94-4992-8990-a5b1b3d02cd7?X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Credential=AKIAIOSFODNN7EXAMPLE%2F20260528%2Fus-east-1%2Fs3%2Faws4_request&X-Amz-Date=20260528T222959Z&X-Amz-Expires=300&X-Amz-SignedHeaders=host&X-Amz-Signature=cb31ee1daed0f4004f30a34788dfde243f85f10f6ae0f8c809f374871e68d86d","votes":[],"window_closed":false},"status":"OK"}
 
         '
     headers:
@@ -29,11 +33,110 @@ interactions:
       Connection:
       - keep-alive
       Content-Length:
-      - '1523'
+      - '1009'
       Content-Type:
       - application/json
       Date:
-      - Wed, 27 May 2026 01:38:14 GMT
+      - Thu, 28 May 2026 22:29:59 GMT
+      Server:
+      - gunicorn
+      X-Billing-ID:
+      - '111'
+    status:
+      code: 200
+      message: OK
+- request:
+    body: X5O!P%@AP[4\PZX54(P^)7CC)7}$EICAR-STANDARD-ANTIVIRUS-TEST-FILE!$H+H*
+    headers:
+      accept:
+      - '*/*'
+      accept-encoding:
+      - gzip, deflate
+      connection:
+      - keep-alive
+      content-length:
+      - '68'
+      host:
+      - minio:9000
+      user-agent:
+      - polyswarm_api/3.21.0 (x86_64-Linux-CPython-3.14.2)
+    method: PUT
+    uri: http://minio:9000/artifact-index/instances/66/01/1e/66011eef-8a94-4992-8990-a5b1b3d02cd7?X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Credential=AKIAIOSFODNN7EXAMPLE%2F20260528%2Fus-east-1%2Fs3%2Faws4_request&X-Amz-Date=20260528T222959Z&X-Amz-Expires=300&X-Amz-SignedHeaders=host&X-Amz-Signature=cb31ee1daed0f4004f30a34788dfde243f85f10f6ae0f8c809f374871e68d86d
+  response:
+    body:
+      string: ''
+    headers:
+      Accept-Ranges:
+      - bytes
+      Content-Length:
+      - '0'
+      Date:
+      - Thu, 28 May 2026 22:29:59 GMT
+      ETag:
+      - '"44d88612fea8a8f36de82e1278abb02f"'
+      Server:
+      - MinIO
+      Strict-Transport-Security:
+      - max-age=31536000; includeSubDomains
+      Vary:
+      - Origin
+      - Accept-Encoding
+      X-Amz-Id-2:
+      - dd9025bab4ad464b049177c95eb6ebf374d3b3fd1af9251148b658df7ac2e3e8
+      X-Amz-Request-Id:
+      - 18B3DB4C8D0B5F00
+      X-Content-Type-Options:
+      - nosniff
+      X-Ratelimit-Limit:
+      - '16315'
+      X-Ratelimit-Remaining:
+      - '16315'
+      X-Xss-Protection:
+      - 1; mode=block
+      x-amz-expiration:
+      - expiry-date="Sat, 30 May 2026 00:00:00 GMT", rule-id="expiration-artifact-index_0-instances"
+    status:
+      code: 200
+      message: OK
+- request:
+    body: '{"community":"gamma"}'
+    headers:
+      accept:
+      - '*/*'
+      accept-encoding:
+      - gzip, deflate
+      authorization:
+      - '11111111111111111111111111111111'
+      connection:
+      - keep-alive
+      content-length:
+      - '21'
+      content-type:
+      - application/json
+      host:
+      - localhost:9696
+      user-agent:
+      - polyswarm_api/3.21.0 (x86_64-Linux-CPython-3.14.2)
+    method: PUT
+    uri: http://localhost:9696/v3/instance?id=95414870006911616
+  response:
+    body:
+      string: '{"result":{"artifact_id":"95414870006911616","assertions":[],"bounty_state":0,"community":"gamma","country":"","created":"2026-05-28T22:29:59.561291+00:00","detections":null,"expiration_window":null,"expire_at":null,"extended_type":null,"failed":false,"filename":"malicious","first_seen":"2026-05-28T22:29:59.561291+00:00","id":"95414870006911616","last_scanned":null,"last_seen":null,"md5":null,"metadata":[],"mimetype":null,"permalink":"https://polyswarm.network/scan/results/file/None/95414870006911616","polyscore":null,"result":null,"sha1":null,"sha256":null,"size":null,"type":"FILE","upload_url":"http://minio:9000/artifact-index/instances/66/01/1e/66011eef-8a94-4992-8990-a5b1b3d02cd7?X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Credential=AKIAIOSFODNN7EXAMPLE%2F20260528%2Fus-east-1%2Fs3%2Faws4_request&X-Amz-Date=20260528T222959Z&X-Amz-Expires=300&X-Amz-SignedHeaders=host&X-Amz-Signature=cb31ee1daed0f4004f30a34788dfde243f85f10f6ae0f8c809f374871e68d86d","votes":[],"window_closed":false},"status":"OK"}
+
+        '
+    headers:
+      Access-Control-Allow-Origin:
+      - '*'
+      Access-Control-Expose-Headers:
+      - Authorization
+      Connection:
+      - keep-alive
+      Content-Length:
+      - '1009'
+      Content-Type:
+      - application/json
+      Date:
+      - Thu, 28 May 2026 22:29:59 GMT
       Server:
       - gunicorn
       X-Billing-ID:
@@ -57,10 +160,598 @@ interactions:
       user-agent:
       - polyswarm_api/3.21.0 (x86_64-Linux-CPython-3.14.2)
     method: GET
-    uri: http://localhost:9696/v3/consumer/download/stream?since=2880&offset=gAAAAABqFksGvlMGpaKORSjM2xtBXle_HtGVLrMr52vdlhCTJWYSBSxrqqPuEfe46BJNot2ag_OmfENesj3loXplDsxOmeBasg%3D%3D&limit=2
+    uri: http://localhost:9696/v3/consumer/download/stream?since=2880
   response:
     body:
-      string: '{"has_more":false,"limit":2,"result":[{"community":null,"created":"2026-05-27T00:51:44.737097+00:00","id":"26093644693041670","uri":"http://minio:9000/artifact-index/archives/dc/a0/e4/dca0e406145088b88d29fe9612e2ad57ab056ce1cbef55b488d5952b1aed3feb05c3e9cea45e3488da9e0f0e4223a89da2ef0e33c1f7e20cdfd4048c6620c7e337ee2b73?response-content-disposition=attachment%3Bfilename%3D26093644693041670.tar.gz&response-content-type=application%2Foctet-stream&X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Credential=AKIAIOSFODNN7EXAMPLE%2F20260527%2Fus-east-1%2Fs3%2Faws4_request&X-Amz-Date=20260527T013815Z&X-Amz-Expires=3600&X-Amz-SignedHeaders=host&X-Amz-Signature=0a379a8c06f794df6b93d02d58e10a4c2cc77113a5b2d7a47428d969d80a76c0"}],"status":"OK"}
+      string: '{"has_more":true,"limit":2,"offset":"gAAAAABqGMHnYaEXp0DvnUbQ4SfRcj5_mhX-nx7HgZ2pl-eIN4WZ4rzObCuY10tJXPEZggsBsQg4B36WxncSwy6pKdlJDEKydQ==","result":[{"community":null,"created":"2026-05-28T22:29:21.665762+00:00","id":"26164025574851315","uri":"http://minio:9000/artifact-index/archives/02/c3/14/02c314461f629c7a8c0a6db566ebd4b226fe13667c656bfdfc2e15e3a8bfe6967f62f4b8862d2528ff9a129511ccec1d36288246116f39b83c973130e28a728131345402?response-content-disposition=attachment%3Bfilename%3D26164025574851315.tar.gz&response-content-type=application%2Foctet-stream&X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Credential=AKIAIOSFODNN7EXAMPLE%2F20260528%2Fus-east-1%2Fs3%2Faws4_request&X-Amz-Date=20260528T222959Z&X-Amz-Expires=3600&X-Amz-SignedHeaders=host&X-Amz-Signature=3895a2eb4a9b51ded86681c60e2797cdb959e4f9068e614200d4e64f8f366817"},{"community":null,"created":"2026-05-28T22:29:19.577422+00:00","id":"50049009148408333","uri":"http://minio:9000/artifact-index/archives/db/16/9c/db169c41ac79d8d265ea591b621374ef1345995303a306d4b0cd918f8578ee885b8eb63f4e4a11c183c67d1efe9db732a1f916e8e69f6074d27845921ff4d45c5c64ab88?response-content-disposition=attachment%3Bfilename%3D50049009148408333.tar.gz&response-content-type=application%2Foctet-stream&X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Credential=AKIAIOSFODNN7EXAMPLE%2F20260528%2Fus-east-1%2Fs3%2Faws4_request&X-Amz-Date=20260528T222959Z&X-Amz-Expires=3600&X-Amz-SignedHeaders=host&X-Amz-Signature=dbbb8b5ec551ec36313b86e28c248b5b6855795189137b911d2d87fa51eeaa84"}],"status":"OK"}
+
+        '
+    headers:
+      Access-Control-Allow-Origin:
+      - '*'
+      Access-Control-Expose-Headers:
+      - Authorization
+      Connection:
+      - keep-alive
+      Content-Length:
+      - '1523'
+      Content-Type:
+      - application/json
+      Date:
+      - Thu, 28 May 2026 22:29:59 GMT
+      Server:
+      - gunicorn
+      X-Billing-ID:
+      - '111'
+    status:
+      code: 200
+      message: OK
+- request:
+    body: ''
+    headers:
+      accept:
+      - '*/*'
+      accept-encoding:
+      - gzip, deflate
+      authorization:
+      - '11111111111111111111111111111111'
+      connection:
+      - keep-alive
+      host:
+      - localhost:9696
+      user-agent:
+      - polyswarm_api/3.21.0 (x86_64-Linux-CPython-3.14.2)
+    method: GET
+    uri: http://localhost:9696/v3/consumer/download/stream?since=2880&offset=gAAAAABqGMHnYaEXp0DvnUbQ4SfRcj5_mhX-nx7HgZ2pl-eIN4WZ4rzObCuY10tJXPEZggsBsQg4B36WxncSwy6pKdlJDEKydQ%3D%3D&limit=2
+  response:
+    body:
+      string: '{"has_more":true,"limit":2,"offset":"gAAAAABqGMHn3xZIcd2nH1XwuX7svNimZrkKO8j5EpmuzzRcynBaH-rQpUP0oASOgfWmS2NJ4SHAaziXTCQ1nLAOE6jc6I_yeA==","result":[{"community":null,"created":"2026-05-28T22:29:19.228321+00:00","id":"21414998017660733","uri":"http://minio:9000/artifact-index/archives/94/72/57/9472575a333a17e50db6cd2efaeabfa459bac60b5e4d7615da4ba2ea4b7d51f8dcd8ca107a1374a539f472e8e2e84acd0045fe7e65e54d2b67c3046edf5f3b9571e11569?response-content-disposition=attachment%3Bfilename%3D21414998017660733.tar.gz&response-content-type=application%2Foctet-stream&X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Credential=AKIAIOSFODNN7EXAMPLE%2F20260528%2Fus-east-1%2Fs3%2Faws4_request&X-Amz-Date=20260528T222959Z&X-Amz-Expires=3600&X-Amz-SignedHeaders=host&X-Amz-Signature=03a4560d02fbbecf6fa763473a093701bdee51c3a5b03b5574cbbacf137c81e2"},{"community":null,"created":"2026-05-28T22:28:00.636589+00:00","id":"79933134584165250","uri":"http://minio:9000/artifact-index/archives/d4/fa/58/d4fa587f39a3a3f177beeeb40cf188300dfde41e6d388749ba3729f12fa6e8bb8c61cbd268563f74f270b1e4deeeefde9f75442e88b3a943df60bd479e656807582a902d?response-content-disposition=attachment%3Bfilename%3D79933134584165250.tar.gz&response-content-type=application%2Foctet-stream&X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Credential=AKIAIOSFODNN7EXAMPLE%2F20260528%2Fus-east-1%2Fs3%2Faws4_request&X-Amz-Date=20260528T222959Z&X-Amz-Expires=3600&X-Amz-SignedHeaders=host&X-Amz-Signature=314fd26d9fa8c2bc7cb7ab2185b24b3c083a735ce6ce22f4eb81480f5da8c7c8"}],"status":"OK"}
+
+        '
+    headers:
+      Access-Control-Allow-Origin:
+      - '*'
+      Access-Control-Expose-Headers:
+      - Authorization
+      Connection:
+      - keep-alive
+      Content-Length:
+      - '1523'
+      Content-Type:
+      - application/json
+      Date:
+      - Thu, 28 May 2026 22:29:59 GMT
+      Server:
+      - gunicorn
+      X-Billing-ID:
+      - '111'
+    status:
+      code: 200
+      message: OK
+- request:
+    body: ''
+    headers:
+      accept:
+      - '*/*'
+      accept-encoding:
+      - gzip, deflate
+      authorization:
+      - '11111111111111111111111111111111'
+      connection:
+      - keep-alive
+      host:
+      - localhost:9696
+      user-agent:
+      - polyswarm_api/3.21.0 (x86_64-Linux-CPython-3.14.2)
+    method: GET
+    uri: http://localhost:9696/v3/consumer/download/stream?since=2880&offset=gAAAAABqGMHn3xZIcd2nH1XwuX7svNimZrkKO8j5EpmuzzRcynBaH-rQpUP0oASOgfWmS2NJ4SHAaziXTCQ1nLAOE6jc6I_yeA%3D%3D&limit=2
+  response:
+    body:
+      string: '{"has_more":true,"limit":2,"offset":"gAAAAABqGMHntl1BZVUX7EjPeJvBa1Mc6xsBMlNzkh7r0t3g2e62xXtnfH4zlEByom0WtmdRaHX-wa3wevkTCatwurbXuexo0w==","result":[{"community":null,"created":"2026-05-28T22:27:24.990926+00:00","id":"45173232368548467","uri":"http://minio:9000/artifact-index/archives/bd/96/cd/bd96cd3054b1ffcab39633754fd6fbab450dcb6f8b0969e535af1410e4f3e0ea574abe1a4ced07f9bcf158da8c8d4dd316ac9fa8ed6e18b0bd33953899ec3add451dc42e?response-content-disposition=attachment%3Bfilename%3D45173232368548467.tar.gz&response-content-type=application%2Foctet-stream&X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Credential=AKIAIOSFODNN7EXAMPLE%2F20260528%2Fus-east-1%2Fs3%2Faws4_request&X-Amz-Date=20260528T222959Z&X-Amz-Expires=3600&X-Amz-SignedHeaders=host&X-Amz-Signature=cd686d4750f006fc3b8827784409a4aee8a19de4f46aacc3b16a5db7bf8a3637"},{"community":null,"created":"2026-05-28T22:27:24.400545+00:00","id":"39410747619595536","uri":"http://minio:9000/artifact-index/archives/9a/a5/cb/9aa5cbf647d621a4deb73a191b486ccc3499b39c2c1e6fa86b3b620676e34e05ba0547a3b86696dc7349c9bbe5aa1e623ce38caf8e4530d4bfdd77db0186c136ad289298?response-content-disposition=attachment%3Bfilename%3D39410747619595536.tar.gz&response-content-type=application%2Foctet-stream&X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Credential=AKIAIOSFODNN7EXAMPLE%2F20260528%2Fus-east-1%2Fs3%2Faws4_request&X-Amz-Date=20260528T222959Z&X-Amz-Expires=3600&X-Amz-SignedHeaders=host&X-Amz-Signature=aced3288b9aa1fb66569831f7bf553fda11394f6a79359fc029b8ad55df6be18"}],"status":"OK"}
+
+        '
+    headers:
+      Access-Control-Allow-Origin:
+      - '*'
+      Access-Control-Expose-Headers:
+      - Authorization
+      Connection:
+      - keep-alive
+      Content-Length:
+      - '1523'
+      Content-Type:
+      - application/json
+      Date:
+      - Thu, 28 May 2026 22:29:59 GMT
+      Server:
+      - gunicorn
+      X-Billing-ID:
+      - '111'
+    status:
+      code: 200
+      message: OK
+- request:
+    body: ''
+    headers:
+      accept:
+      - '*/*'
+      accept-encoding:
+      - gzip, deflate
+      authorization:
+      - '11111111111111111111111111111111'
+      connection:
+      - keep-alive
+      host:
+      - localhost:9696
+      user-agent:
+      - polyswarm_api/3.21.0 (x86_64-Linux-CPython-3.14.2)
+    method: GET
+    uri: http://localhost:9696/v3/consumer/download/stream?since=2880&offset=gAAAAABqGMHntl1BZVUX7EjPeJvBa1Mc6xsBMlNzkh7r0t3g2e62xXtnfH4zlEByom0WtmdRaHX-wa3wevkTCatwurbXuexo0w%3D%3D&limit=2
+  response:
+    body:
+      string: '{"has_more":true,"limit":2,"offset":"gAAAAABqGMHn-itAHT4VjkqMIl5XdrmUCPr5f4fiwHm9xBXTaq8OriBe01ZFIToWl7PGNTTwAGrhofs4v1x4VykesVvK1HTaUg==","result":[{"community":null,"created":"2026-05-28T22:26:30.944743+00:00","id":"29330736411007618","uri":"http://minio:9000/artifact-index/archives/bb/d3/50/bbd350579cd5928e82e19a115fdd7f0273cebae424bb605e5dc75f1fb73c6bf914dde670041017f6135281677bba4010756a69774ef33a2594c6db60bb9f91910f2a6c29?response-content-disposition=attachment%3Bfilename%3D29330736411007618.tar.gz&response-content-type=application%2Foctet-stream&X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Credential=AKIAIOSFODNN7EXAMPLE%2F20260528%2Fus-east-1%2Fs3%2Faws4_request&X-Amz-Date=20260528T222959Z&X-Amz-Expires=3600&X-Amz-SignedHeaders=host&X-Amz-Signature=aa228f8771037af59032e3bbd311392d49c448fab96ed5cd4904efe931776507"},{"community":null,"created":"2026-05-28T22:26:28.833842+00:00","id":"27925693533625748","uri":"http://minio:9000/artifact-index/archives/1f/5f/46/1f5f46d431171155318fd29df77ef0b7fed20cf7bf40f29c5f014fdac35b198270436e09b29ce14f9bd48812a926ddb4ecb89cfdf7e47a5afc0e37a5101594c7099fbcae?response-content-disposition=attachment%3Bfilename%3D27925693533625748.tar.gz&response-content-type=application%2Foctet-stream&X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Credential=AKIAIOSFODNN7EXAMPLE%2F20260528%2Fus-east-1%2Fs3%2Faws4_request&X-Amz-Date=20260528T222959Z&X-Amz-Expires=3600&X-Amz-SignedHeaders=host&X-Amz-Signature=b89c66875d9851918f8599ac23361dd0a81d09deab4faefd910e08421912da98"}],"status":"OK"}
+
+        '
+    headers:
+      Access-Control-Allow-Origin:
+      - '*'
+      Access-Control-Expose-Headers:
+      - Authorization
+      Connection:
+      - keep-alive
+      Content-Length:
+      - '1523'
+      Content-Type:
+      - application/json
+      Date:
+      - Thu, 28 May 2026 22:29:59 GMT
+      Server:
+      - gunicorn
+      X-Billing-ID:
+      - '111'
+    status:
+      code: 200
+      message: OK
+- request:
+    body: ''
+    headers:
+      accept:
+      - '*/*'
+      accept-encoding:
+      - gzip, deflate
+      authorization:
+      - '11111111111111111111111111111111'
+      connection:
+      - keep-alive
+      host:
+      - localhost:9696
+      user-agent:
+      - polyswarm_api/3.21.0 (x86_64-Linux-CPython-3.14.2)
+    method: GET
+    uri: http://localhost:9696/v3/consumer/download/stream?since=2880&offset=gAAAAABqGMHn-itAHT4VjkqMIl5XdrmUCPr5f4fiwHm9xBXTaq8OriBe01ZFIToWl7PGNTTwAGrhofs4v1x4VykesVvK1HTaUg%3D%3D&limit=2
+  response:
+    body:
+      string: '{"has_more":true,"limit":2,"offset":"gAAAAABqGMHnKGHOJdyyX_qzDbWiTXeXc662BubjvXrkvi8E-o9D4pgzJ1r0d91etxlOf7aAcqdcTeCUCWTAuL1Xb-8oupJPDg==","result":[{"community":null,"created":"2026-05-28T22:26:28.713652+00:00","id":"56933528743116287","uri":"http://minio:9000/artifact-index/archives/1e/ee/58/1eee58c077471172ff6c6dffdbd8e7702f9a0809af92fc99e4546ce6e95bd853063ddc21941bf18d78f83f95678fb6d229542e49ee2d8a6e323f6dd5dd56f10242ee7f0b?response-content-disposition=attachment%3Bfilename%3D56933528743116287.tar.gz&response-content-type=application%2Foctet-stream&X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Credential=AKIAIOSFODNN7EXAMPLE%2F20260528%2Fus-east-1%2Fs3%2Faws4_request&X-Amz-Date=20260528T222959Z&X-Amz-Expires=3600&X-Amz-SignedHeaders=host&X-Amz-Signature=823d3d2179ab8dd749bfa1f2163e8741f17f00ebd5edbc01d70a9b63dfc5041c"},{"community":null,"created":"2026-05-28T22:25:30.685516+00:00","id":"67678789452482353","uri":"http://minio:9000/artifact-index/archives/02/79/79/027979abcb47f1cbaacb5068504e8a5e2a99c5add7e081f59887638346dc4944d8ff0900b072449b7c9771df938e89d3d5046783441f352a80c87095166c48a12b4e2bb2?response-content-disposition=attachment%3Bfilename%3D67678789452482353.tar.gz&response-content-type=application%2Foctet-stream&X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Credential=AKIAIOSFODNN7EXAMPLE%2F20260528%2Fus-east-1%2Fs3%2Faws4_request&X-Amz-Date=20260528T222959Z&X-Amz-Expires=3600&X-Amz-SignedHeaders=host&X-Amz-Signature=b8eac05f4a3982a6f3e1afb65571390666b352d7e2421e037d2379b0fe098ac5"}],"status":"OK"}
+
+        '
+    headers:
+      Access-Control-Allow-Origin:
+      - '*'
+      Access-Control-Expose-Headers:
+      - Authorization
+      Connection:
+      - keep-alive
+      Content-Length:
+      - '1523'
+      Content-Type:
+      - application/json
+      Date:
+      - Thu, 28 May 2026 22:29:59 GMT
+      Server:
+      - gunicorn
+      X-Billing-ID:
+      - '111'
+    status:
+      code: 200
+      message: OK
+- request:
+    body: ''
+    headers:
+      accept:
+      - '*/*'
+      accept-encoding:
+      - gzip, deflate
+      authorization:
+      - '11111111111111111111111111111111'
+      connection:
+      - keep-alive
+      host:
+      - localhost:9696
+      user-agent:
+      - polyswarm_api/3.21.0 (x86_64-Linux-CPython-3.14.2)
+    method: GET
+    uri: http://localhost:9696/v3/consumer/download/stream?since=2880&offset=gAAAAABqGMHnKGHOJdyyX_qzDbWiTXeXc662BubjvXrkvi8E-o9D4pgzJ1r0d91etxlOf7aAcqdcTeCUCWTAuL1Xb-8oupJPDg%3D%3D&limit=2
+  response:
+    body:
+      string: '{"has_more":true,"limit":2,"offset":"gAAAAABqGMHoJGoFrBdezpOz4V-uzVhOqc7QyDAAPYZe43LSUGHHrK1MEDtqSHv1EmSiSzPSW4tWsO-d9T2IIqYLb-qtiOO3mg==","result":[{"community":null,"created":"2026-05-28T22:25:30.140025+00:00","id":"68889559468808354","uri":"http://minio:9000/artifact-index/archives/8c/d9/d1/8cd9d1ecbcd77cc220b95241f6f349ba4041be435f83892eea4617fa78438949b272ffc4ce507310c1272a79d76e0affe48368a73e14c96de125e697d288c5799481022f?response-content-disposition=attachment%3Bfilename%3D68889559468808354.tar.gz&response-content-type=application%2Foctet-stream&X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Credential=AKIAIOSFODNN7EXAMPLE%2F20260528%2Fus-east-1%2Fs3%2Faws4_request&X-Amz-Date=20260528T223000Z&X-Amz-Expires=3600&X-Amz-SignedHeaders=host&X-Amz-Signature=7f864eb32d933a45edaa51d970a4bfeb123b9c5a28b8416f2892dd9c792e5f6d"},{"community":null,"created":"2026-05-28T22:25:28.640000+00:00","id":"35660326605492600","uri":"http://minio:9000/artifact-index/archives/cc/de/c9/ccdec9d8bbe35312ce7de8b41926205ad82af17777be023e725ffa1e5b293beddce66b70eac21b5593fe731cc0101ecf51927937e4111b76618171e912d9d60690f25c06?response-content-disposition=attachment%3Bfilename%3D35660326605492600.tar.gz&response-content-type=application%2Foctet-stream&X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Credential=AKIAIOSFODNN7EXAMPLE%2F20260528%2Fus-east-1%2Fs3%2Faws4_request&X-Amz-Date=20260528T223000Z&X-Amz-Expires=3600&X-Amz-SignedHeaders=host&X-Amz-Signature=3b9d87a5609bfde6fb37fdf05d6d85613b5402b064325c0ed85528209482b0ec"}],"status":"OK"}
+
+        '
+    headers:
+      Access-Control-Allow-Origin:
+      - '*'
+      Access-Control-Expose-Headers:
+      - Authorization
+      Connection:
+      - keep-alive
+      Content-Length:
+      - '1523'
+      Content-Type:
+      - application/json
+      Date:
+      - Thu, 28 May 2026 22:30:00 GMT
+      Server:
+      - gunicorn
+      X-Billing-ID:
+      - '111'
+    status:
+      code: 200
+      message: OK
+- request:
+    body: ''
+    headers:
+      accept:
+      - '*/*'
+      accept-encoding:
+      - gzip, deflate
+      authorization:
+      - '11111111111111111111111111111111'
+      connection:
+      - keep-alive
+      host:
+      - localhost:9696
+      user-agent:
+      - polyswarm_api/3.21.0 (x86_64-Linux-CPython-3.14.2)
+    method: GET
+    uri: http://localhost:9696/v3/consumer/download/stream?since=2880&offset=gAAAAABqGMHoJGoFrBdezpOz4V-uzVhOqc7QyDAAPYZe43LSUGHHrK1MEDtqSHv1EmSiSzPSW4tWsO-d9T2IIqYLb-qtiOO3mg%3D%3D&limit=2
+  response:
+    body:
+      string: '{"has_more":true,"limit":2,"offset":"gAAAAABqGMHo3fQC7_zikqMWA0FRfyQbYmJcqZaiuz740_yWV-6ClVIA47dGV1J8SbEVOkLfhO2CNaNd6yi41sam9IxgWD7ZEQ==","result":[{"community":null,"created":"2026-05-28T22:24:43.796756+00:00","id":"52080154974839769","uri":"http://minio:9000/artifact-index/archives/b5/1f/86/b51f86003dbb279f073e21a19a3fb906b655a745e18f4957f5158ba7a884abeea64ffc32193e1c196f4e2401b8bc5fdf38be6d1f2996c391da4cda4a5873d98c50c1c88b?response-content-disposition=attachment%3Bfilename%3D52080154974839769.tar.gz&response-content-type=application%2Foctet-stream&X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Credential=AKIAIOSFODNN7EXAMPLE%2F20260528%2Fus-east-1%2Fs3%2Faws4_request&X-Amz-Date=20260528T223000Z&X-Amz-Expires=3600&X-Amz-SignedHeaders=host&X-Amz-Signature=77047f16cde04e61f7262a355fa15649a509ef4d373f7f593c60d2a2d31a4f64"},{"community":null,"created":"2026-05-28T22:24:41.536462+00:00","id":"13638655709222733","uri":"http://minio:9000/artifact-index/archives/39/10/e4/3910e4a90e299a30f8f6a06631702d9aa4cdc51f189cb8b8676a21c591ad2391583fa68b828183d99a8220db1bdfbf1b23f477ef9223d7b0f73be3b4d0a25bfb00245739?response-content-disposition=attachment%3Bfilename%3D13638655709222733.tar.gz&response-content-type=application%2Foctet-stream&X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Credential=AKIAIOSFODNN7EXAMPLE%2F20260528%2Fus-east-1%2Fs3%2Faws4_request&X-Amz-Date=20260528T223000Z&X-Amz-Expires=3600&X-Amz-SignedHeaders=host&X-Amz-Signature=d1c7228ef22d452b49cad101ddf7c9f221227e42ce4472cbd6c63cf72535dc8c"}],"status":"OK"}
+
+        '
+    headers:
+      Access-Control-Allow-Origin:
+      - '*'
+      Access-Control-Expose-Headers:
+      - Authorization
+      Connection:
+      - keep-alive
+      Content-Length:
+      - '1523'
+      Content-Type:
+      - application/json
+      Date:
+      - Thu, 28 May 2026 22:30:00 GMT
+      Server:
+      - gunicorn
+      X-Billing-ID:
+      - '111'
+    status:
+      code: 200
+      message: OK
+- request:
+    body: ''
+    headers:
+      accept:
+      - '*/*'
+      accept-encoding:
+      - gzip, deflate
+      authorization:
+      - '11111111111111111111111111111111'
+      connection:
+      - keep-alive
+      host:
+      - localhost:9696
+      user-agent:
+      - polyswarm_api/3.21.0 (x86_64-Linux-CPython-3.14.2)
+    method: GET
+    uri: http://localhost:9696/v3/consumer/download/stream?since=2880&offset=gAAAAABqGMHo3fQC7_zikqMWA0FRfyQbYmJcqZaiuz740_yWV-6ClVIA47dGV1J8SbEVOkLfhO2CNaNd6yi41sam9IxgWD7ZEQ%3D%3D&limit=2
+  response:
+    body:
+      string: '{"has_more":true,"limit":2,"offset":"gAAAAABqGMHo45bjshObK4bFsq_mOLqV1KZbmkC-3X1OlCeXHHYGkxieBf6aolX9QZSf3bjF4LvaqrMPiIip8N7kWcRjb_yv2Q==","result":[{"community":null,"created":"2026-05-28T22:24:41.256427+00:00","id":"23501783510964081","uri":"http://minio:9000/artifact-index/archives/9e/eb/55/9eeb559a8669e4875f540000c1920c9c5bbec39cce118f096c486832d80880c92016223a96e90b797ab67cf44bf765d4cd000142b4cd009fcd3bd934be966b6a139bf27b?response-content-disposition=attachment%3Bfilename%3D23501783510964081.tar.gz&response-content-type=application%2Foctet-stream&X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Credential=AKIAIOSFODNN7EXAMPLE%2F20260528%2Fus-east-1%2Fs3%2Faws4_request&X-Amz-Date=20260528T223000Z&X-Amz-Expires=3600&X-Amz-SignedHeaders=host&X-Amz-Signature=5a24cffdd0cb034c8b7c0b30116ea4116ffeb80ffdb1006f5f24d2a614014d1c"},{"community":null,"created":"2026-05-28T22:23:02.216442+00:00","id":"24908665935827696","uri":"http://minio:9000/artifact-index/archives/e8/fd/9c/e8fd9c4314ff4b15419fec43fcd5573fe3740fb209055753da9758e7ed4bc86c181c652870fff28f2279a704530499516991bbb1beb3a19833cdde478289a0a8f2c2c62e?response-content-disposition=attachment%3Bfilename%3D24908665935827696.tar.gz&response-content-type=application%2Foctet-stream&X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Credential=AKIAIOSFODNN7EXAMPLE%2F20260528%2Fus-east-1%2Fs3%2Faws4_request&X-Amz-Date=20260528T223000Z&X-Amz-Expires=3600&X-Amz-SignedHeaders=host&X-Amz-Signature=d0d2d7bb10f1bb4c43d5d6879982520f2ddc4c8755898557adce379aef358b37"}],"status":"OK"}
+
+        '
+    headers:
+      Access-Control-Allow-Origin:
+      - '*'
+      Access-Control-Expose-Headers:
+      - Authorization
+      Connection:
+      - keep-alive
+      Content-Length:
+      - '1523'
+      Content-Type:
+      - application/json
+      Date:
+      - Thu, 28 May 2026 22:30:00 GMT
+      Server:
+      - gunicorn
+      X-Billing-ID:
+      - '111'
+    status:
+      code: 200
+      message: OK
+- request:
+    body: ''
+    headers:
+      accept:
+      - '*/*'
+      accept-encoding:
+      - gzip, deflate
+      authorization:
+      - '11111111111111111111111111111111'
+      connection:
+      - keep-alive
+      host:
+      - localhost:9696
+      user-agent:
+      - polyswarm_api/3.21.0 (x86_64-Linux-CPython-3.14.2)
+    method: GET
+    uri: http://localhost:9696/v3/consumer/download/stream?since=2880&offset=gAAAAABqGMHo45bjshObK4bFsq_mOLqV1KZbmkC-3X1OlCeXHHYGkxieBf6aolX9QZSf3bjF4LvaqrMPiIip8N7kWcRjb_yv2Q%3D%3D&limit=2
+  response:
+    body:
+      string: '{"has_more":true,"limit":2,"offset":"gAAAAABqGMHozMRCOHmuduJLMsnVau6RkOONXZQ4rszuGpCX5G6dbOwr-73EvEwKrm-qs4NQAwyaWM9UZfwtioYbqooLS6EUOg==","result":[{"community":null,"created":"2026-05-28T22:23:00.777494+00:00","id":"36421259098134470","uri":"http://minio:9000/artifact-index/archives/b3/a1/ee/b3a1eecde46fc1ed517971a87b54ca2e98cd4f2108ff5578f14b5e5c3e8991d4f5229fc93e02d8665899f96120bfc9c41b49069918ed537239084139d355b6b0139ec581?response-content-disposition=attachment%3Bfilename%3D36421259098134470.tar.gz&response-content-type=application%2Foctet-stream&X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Credential=AKIAIOSFODNN7EXAMPLE%2F20260528%2Fus-east-1%2Fs3%2Faws4_request&X-Amz-Date=20260528T223000Z&X-Amz-Expires=3600&X-Amz-SignedHeaders=host&X-Amz-Signature=e43549263aa666b023e778d750de50cfea05fc1a3938c0cd67dad1a6196d1890"},{"community":null,"created":"2026-05-28T22:23:00.259166+00:00","id":"79315197077777090","uri":"http://minio:9000/artifact-index/archives/6c/2e/ee/6c2eee64e47d59d3d4118f7840860a61a7dd4693a53ad079677a177ddfddfa410f49f8071a254def9e98ce0dacdfe289fcf254f16b07386d2a89b21f9d31ff463c6e5843?response-content-disposition=attachment%3Bfilename%3D79315197077777090.tar.gz&response-content-type=application%2Foctet-stream&X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Credential=AKIAIOSFODNN7EXAMPLE%2F20260528%2Fus-east-1%2Fs3%2Faws4_request&X-Amz-Date=20260528T223000Z&X-Amz-Expires=3600&X-Amz-SignedHeaders=host&X-Amz-Signature=bb4b5bdfa4898da82942fc3c8eeee2f7b526690c6b14f2e6746896ced3973fb8"}],"status":"OK"}
+
+        '
+    headers:
+      Access-Control-Allow-Origin:
+      - '*'
+      Access-Control-Expose-Headers:
+      - Authorization
+      Connection:
+      - keep-alive
+      Content-Length:
+      - '1523'
+      Content-Type:
+      - application/json
+      Date:
+      - Thu, 28 May 2026 22:30:00 GMT
+      Server:
+      - gunicorn
+      X-Billing-ID:
+      - '111'
+    status:
+      code: 200
+      message: OK
+- request:
+    body: ''
+    headers:
+      accept:
+      - '*/*'
+      accept-encoding:
+      - gzip, deflate
+      authorization:
+      - '11111111111111111111111111111111'
+      connection:
+      - keep-alive
+      host:
+      - localhost:9696
+      user-agent:
+      - polyswarm_api/3.21.0 (x86_64-Linux-CPython-3.14.2)
+    method: GET
+    uri: http://localhost:9696/v3/consumer/download/stream?since=2880&offset=gAAAAABqGMHozMRCOHmuduJLMsnVau6RkOONXZQ4rszuGpCX5G6dbOwr-73EvEwKrm-qs4NQAwyaWM9UZfwtioYbqooLS6EUOg%3D%3D&limit=2
+  response:
+    body:
+      string: '{"has_more":true,"limit":2,"offset":"gAAAAABqGMHorjZryUcJPko-cP3Q4QFsKQtNi1wppzgdgg_CVGzGUwIoDdwzzpyNU4BniOu8AB0Ppy3C1Q08pthgCthP2069-A==","result":[{"community":null,"created":"2026-05-28T22:22:38.679916+00:00","id":"42969830251434264","uri":"http://minio:9000/artifact-index/archives/0f/ce/99/0fce99cf0f7bb3ae21f7f0c3614cec71659e42cf2d3e312af44a8db7ae30ac4ed9c20c7482dbfaca4a6fdc7bf404e981e5bd34c799ca87fc162111e05a2099d4246d57fe?response-content-disposition=attachment%3Bfilename%3D42969830251434264.tar.gz&response-content-type=application%2Foctet-stream&X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Credential=AKIAIOSFODNN7EXAMPLE%2F20260528%2Fus-east-1%2Fs3%2Faws4_request&X-Amz-Date=20260528T223000Z&X-Amz-Expires=3600&X-Amz-SignedHeaders=host&X-Amz-Signature=039b889f7446857ea7ed0d3c7b7149152c7b974a9e3d2ec630a7fe3e13bb7656"},{"community":null,"created":"2026-05-28T22:22:37.530218+00:00","id":"2501817873963188","uri":"http://minio:9000/artifact-index/archives/6e/54/7c/6e547c74114c41422009640721fd765cd9839a65090b99b795c1ab973fd6736d19077755ba147e9236a4d3fa667c8e5ee461e3f879add4dbafe4618433c3fe9915fa01a6?response-content-disposition=attachment%3Bfilename%3D2501817873963188.tar.gz&response-content-type=application%2Foctet-stream&X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Credential=AKIAIOSFODNN7EXAMPLE%2F20260528%2Fus-east-1%2Fs3%2Faws4_request&X-Amz-Date=20260528T223000Z&X-Amz-Expires=3600&X-Amz-SignedHeaders=host&X-Amz-Signature=31b2501773da2d46bc1df6c3761bff7f2384dc1c7e3ccb375e29d74f3d7fa7f3"}],"status":"OK"}
+
+        '
+    headers:
+      Access-Control-Allow-Origin:
+      - '*'
+      Access-Control-Expose-Headers:
+      - Authorization
+      Connection:
+      - keep-alive
+      Content-Length:
+      - '1521'
+      Content-Type:
+      - application/json
+      Date:
+      - Thu, 28 May 2026 22:30:00 GMT
+      Server:
+      - gunicorn
+      X-Billing-ID:
+      - '111'
+    status:
+      code: 200
+      message: OK
+- request:
+    body: ''
+    headers:
+      accept:
+      - '*/*'
+      accept-encoding:
+      - gzip, deflate
+      authorization:
+      - '11111111111111111111111111111111'
+      connection:
+      - keep-alive
+      host:
+      - localhost:9696
+      user-agent:
+      - polyswarm_api/3.21.0 (x86_64-Linux-CPython-3.14.2)
+    method: GET
+    uri: http://localhost:9696/v3/consumer/download/stream?since=2880&offset=gAAAAABqGMHorjZryUcJPko-cP3Q4QFsKQtNi1wppzgdgg_CVGzGUwIoDdwzzpyNU4BniOu8AB0Ppy3C1Q08pthgCthP2069-A%3D%3D&limit=2
+  response:
+    body:
+      string: '{"has_more":true,"limit":2,"offset":"gAAAAABqGMHoMrroysujIXKLf5avWhBtHan2Knxc8r-xvMgoAbZrVOIicS_3yVJ_ChNfJyxUEilqlTfiXdyL87-Ek7X6RRhJFA==","result":[{"community":null,"created":"2026-05-28T22:22:37.360320+00:00","id":"40985869962698527","uri":"http://minio:9000/artifact-index/archives/18/16/68/1816684774f1f3c615d877f4b4589d91976e39500b85e8c2b5f60e8a638dfd467292824ccaf60f10a9a60ed25856f17f89f2322a2d0ab4c1bdc501bc93a8b7e864ca9a94?response-content-disposition=attachment%3Bfilename%3D40985869962698527.tar.gz&response-content-type=application%2Foctet-stream&X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Credential=AKIAIOSFODNN7EXAMPLE%2F20260528%2Fus-east-1%2Fs3%2Faws4_request&X-Amz-Date=20260528T223000Z&X-Amz-Expires=3600&X-Amz-SignedHeaders=host&X-Amz-Signature=29f5ed2fc14a44931f6f17110861f308a0bbb162dc8f45e2b681e10900397828"},{"community":null,"created":"2026-05-28T22:18:23.325343+00:00","id":"77751958317370508","uri":"http://minio:9000/artifact-index/archives/56/03/f4/5603f435396ad99d8c6e6195a6af51376092b9e6e1b688ca467dae910ec8a19ce951112f3565a22a9b71cd3ac6ea6872b18ac645229bb1c9595f900dbb62db27067c21da?response-content-disposition=attachment%3Bfilename%3D77751958317370508.tar.gz&response-content-type=application%2Foctet-stream&X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Credential=AKIAIOSFODNN7EXAMPLE%2F20260528%2Fus-east-1%2Fs3%2Faws4_request&X-Amz-Date=20260528T223000Z&X-Amz-Expires=3600&X-Amz-SignedHeaders=host&X-Amz-Signature=553623c1108a9c54be12aa2f0c97c54b35d90cc563bd2018d37808557937accc"}],"status":"OK"}
+
+        '
+    headers:
+      Access-Control-Allow-Origin:
+      - '*'
+      Access-Control-Expose-Headers:
+      - Authorization
+      Connection:
+      - keep-alive
+      Content-Length:
+      - '1523'
+      Content-Type:
+      - application/json
+      Date:
+      - Thu, 28 May 2026 22:30:00 GMT
+      Server:
+      - gunicorn
+      X-Billing-ID:
+      - '111'
+    status:
+      code: 200
+      message: OK
+- request:
+    body: ''
+    headers:
+      accept:
+      - '*/*'
+      accept-encoding:
+      - gzip, deflate
+      authorization:
+      - '11111111111111111111111111111111'
+      connection:
+      - keep-alive
+      host:
+      - localhost:9696
+      user-agent:
+      - polyswarm_api/3.21.0 (x86_64-Linux-CPython-3.14.2)
+    method: GET
+    uri: http://localhost:9696/v3/consumer/download/stream?since=2880&offset=gAAAAABqGMHoMrroysujIXKLf5avWhBtHan2Knxc8r-xvMgoAbZrVOIicS_3yVJ_ChNfJyxUEilqlTfiXdyL87-Ek7X6RRhJFA%3D%3D&limit=2
+  response:
+    body:
+      string: '{"has_more":true,"limit":2,"offset":"gAAAAABqGMHoUROj44HGto_OYTWzeklbUwnnrMCbazFl_qYKXFEiscnCx7nNyJNpUYxelNhXkuwipDdifyuDtDiUuRDRWWFGDA==","result":[{"community":null,"created":"2026-05-28T22:18:22.997113+00:00","id":"77817592137424063","uri":"http://minio:9000/artifact-index/archives/d3/04/f4/d304f46c3c65f7162050443cff31c6cffb5f074cb5eaf9b39179c2eae0fa5e6b837710ed2712963b177d98968d5ead24348ad89bea192b4b664eca820c2c598811528972?response-content-disposition=attachment%3Bfilename%3D77817592137424063.tar.gz&response-content-type=application%2Foctet-stream&X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Credential=AKIAIOSFODNN7EXAMPLE%2F20260528%2Fus-east-1%2Fs3%2Faws4_request&X-Amz-Date=20260528T223000Z&X-Amz-Expires=3600&X-Amz-SignedHeaders=host&X-Amz-Signature=6d7472db8e739eed5176eb3171c59954a78fd54009049903ddd44e8c9d75461c"},{"community":null,"created":"2026-05-28T22:18:22.234093+00:00","id":"88999645651477316","uri":"http://minio:9000/artifact-index/archives/f6/b9/ae/f6b9aeec426c89eab69cf112cbcf89de33ba2691c51798f252730f17d8de22c9b882bdc902300fa8c21e93b50f2badad2ec5fbc50233d0badc7901ffba288962d2c21898?response-content-disposition=attachment%3Bfilename%3D88999645651477316.tar.gz&response-content-type=application%2Foctet-stream&X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Credential=AKIAIOSFODNN7EXAMPLE%2F20260528%2Fus-east-1%2Fs3%2Faws4_request&X-Amz-Date=20260528T223000Z&X-Amz-Expires=3600&X-Amz-SignedHeaders=host&X-Amz-Signature=dfeb73fc70bcc8d4e975681afb800cee305df2da8a1e8344ddb0aa82dcf036c5"}],"status":"OK"}
+
+        '
+    headers:
+      Access-Control-Allow-Origin:
+      - '*'
+      Access-Control-Expose-Headers:
+      - Authorization
+      Connection:
+      - keep-alive
+      Content-Length:
+      - '1523'
+      Content-Type:
+      - application/json
+      Date:
+      - Thu, 28 May 2026 22:30:00 GMT
+      Server:
+      - gunicorn
+      X-Billing-ID:
+      - '111'
+    status:
+      code: 200
+      message: OK
+- request:
+    body: ''
+    headers:
+      accept:
+      - '*/*'
+      accept-encoding:
+      - gzip, deflate
+      authorization:
+      - '11111111111111111111111111111111'
+      connection:
+      - keep-alive
+      host:
+      - localhost:9696
+      user-agent:
+      - polyswarm_api/3.21.0 (x86_64-Linux-CPython-3.14.2)
+    method: GET
+    uri: http://localhost:9696/v3/consumer/download/stream?since=2880&offset=gAAAAABqGMHoUROj44HGto_OYTWzeklbUwnnrMCbazFl_qYKXFEiscnCx7nNyJNpUYxelNhXkuwipDdifyuDtDiUuRDRWWFGDA%3D%3D&limit=2
+  response:
+    body:
+      string: '{"has_more":true,"limit":2,"offset":"gAAAAABqGMHow8lmAESKOq_kR23ayF9lyzBl5iVIsnaU3SVJVnfojEHkytgWNRyQZvpyn2uILHk3BjVVjGNSzCFOFodmGz50Og==","result":[{"community":null,"created":"2026-05-28T22:18:02.554113+00:00","id":"46386215246029733","uri":"http://minio:9000/artifact-index/archives/43/8a/57/438a57069e361819436ae36e5ec8e8428df008dd967ce77e1d99176b2f2f83abe49c832966d91aa478726bb9e4a3434423088f8944a74e3d1e3cda65eeab2821d009c074?response-content-disposition=attachment%3Bfilename%3D46386215246029733.tar.gz&response-content-type=application%2Foctet-stream&X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Credential=AKIAIOSFODNN7EXAMPLE%2F20260528%2Fus-east-1%2Fs3%2Faws4_request&X-Amz-Date=20260528T223000Z&X-Amz-Expires=3600&X-Amz-SignedHeaders=host&X-Amz-Signature=aea5a0d87735a5e43d2cb2634668bd3873377a86465fee57623feea37598baf0"},{"community":null,"created":"2026-05-28T22:18:01.692859+00:00","id":"21472200194138319","uri":"http://minio:9000/artifact-index/archives/db/d3/d3/dbd3d354c816badf47873f4f8423573dcdf70fa9ade7fbbef933d6b71bc88a8643583332d47de43426cdd3b997ddc9f0ba4d0ed93e2fe84d11e3d4ed9c6abd4a21deebbc?response-content-disposition=attachment%3Bfilename%3D21472200194138319.tar.gz&response-content-type=application%2Foctet-stream&X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Credential=AKIAIOSFODNN7EXAMPLE%2F20260528%2Fus-east-1%2Fs3%2Faws4_request&X-Amz-Date=20260528T223000Z&X-Amz-Expires=3600&X-Amz-SignedHeaders=host&X-Amz-Signature=154c47bdb408cb31d101037d781efa08635a5e095f3c2c50e18c3f40842dcaa8"}],"status":"OK"}
+
+        '
+    headers:
+      Access-Control-Allow-Origin:
+      - '*'
+      Access-Control-Expose-Headers:
+      - Authorization
+      Connection:
+      - keep-alive
+      Content-Length:
+      - '1523'
+      Content-Type:
+      - application/json
+      Date:
+      - Thu, 28 May 2026 22:30:00 GMT
+      Server:
+      - gunicorn
+      X-Billing-ID:
+      - '111'
+    status:
+      code: 200
+      message: OK
+- request:
+    body: ''
+    headers:
+      accept:
+      - '*/*'
+      accept-encoding:
+      - gzip, deflate
+      authorization:
+      - '11111111111111111111111111111111'
+      connection:
+      - keep-alive
+      host:
+      - localhost:9696
+      user-agent:
+      - polyswarm_api/3.21.0 (x86_64-Linux-CPython-3.14.2)
+    method: GET
+    uri: http://localhost:9696/v3/consumer/download/stream?since=2880&offset=gAAAAABqGMHow8lmAESKOq_kR23ayF9lyzBl5iVIsnaU3SVJVnfojEHkytgWNRyQZvpyn2uILHk3BjVVjGNSzCFOFodmGz50Og%3D%3D&limit=2
+  response:
+    body:
+      string: '{"has_more":true,"limit":2,"offset":"gAAAAABqGMHoW2UFbJraFCaw-4pJqXU-UfPXGvwW1OtPUHF-geAsqCGlJLVwd018C8Y_dAjf8-PLb9K9hRHNhJ7VlxveTaEgNA==","result":[{"community":null,"created":"2026-05-28T22:18:01.308251+00:00","id":"67899028034401650","uri":"http://minio:9000/artifact-index/archives/91/f0/ae/91f0ae7cf68dc6fc0793c713761dbb2742427c2160e088ba21312bca54d0c98df28d4cec04d1f67cfe5d330f5a30e9d700935fcc8d0edcddb0b439f7909f3c338e953396?response-content-disposition=attachment%3Bfilename%3D67899028034401650.tar.gz&response-content-type=application%2Foctet-stream&X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Credential=AKIAIOSFODNN7EXAMPLE%2F20260528%2Fus-east-1%2Fs3%2Faws4_request&X-Amz-Date=20260528T223000Z&X-Amz-Expires=3600&X-Amz-SignedHeaders=host&X-Amz-Signature=a98258c0ef662b76cbe762a186642aed3ab25b5ee53a065dc43e4e07cc666d08"},{"community":null,"created":"2026-05-28T22:10:33.256792+00:00","id":"95779723026638254","uri":"http://minio:9000/artifact-index/archives/93/d1/68/93d1686f3dc3cb5369656e9055ad19b479dc94c0940eef3c6bc56dfe9d1636dc1c0f479c7f0f5ec2ddc115afd6fb78dcaf6147d91c5444b5733e5fa18e438e5c03a8c4c5?response-content-disposition=attachment%3Bfilename%3D95779723026638254.tar.gz&response-content-type=application%2Foctet-stream&X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Credential=AKIAIOSFODNN7EXAMPLE%2F20260528%2Fus-east-1%2Fs3%2Faws4_request&X-Amz-Date=20260528T223000Z&X-Amz-Expires=3600&X-Amz-SignedHeaders=host&X-Amz-Signature=f18836c8be5263c2ffd9c161559806eb248afa032454b1c56e4eb648356ea9f3"}],"status":"OK"}
+
+        '
+    headers:
+      Access-Control-Allow-Origin:
+      - '*'
+      Access-Control-Expose-Headers:
+      - Authorization
+      Connection:
+      - keep-alive
+      Content-Length:
+      - '1523'
+      Content-Type:
+      - application/json
+      Date:
+      - Thu, 28 May 2026 22:30:00 GMT
+      Server:
+      - gunicorn
+      X-Billing-ID:
+      - '111'
+    status:
+      code: 200
+      message: OK
+- request:
+    body: ''
+    headers:
+      accept:
+      - '*/*'
+      accept-encoding:
+      - gzip, deflate
+      authorization:
+      - '11111111111111111111111111111111'
+      connection:
+      - keep-alive
+      host:
+      - localhost:9696
+      user-agent:
+      - polyswarm_api/3.21.0 (x86_64-Linux-CPython-3.14.2)
+    method: GET
+    uri: http://localhost:9696/v3/consumer/download/stream?since=2880&offset=gAAAAABqGMHoW2UFbJraFCaw-4pJqXU-UfPXGvwW1OtPUHF-geAsqCGlJLVwd018C8Y_dAjf8-PLb9K9hRHNhJ7VlxveTaEgNA%3D%3D&limit=2
+  response:
+    body:
+      string: '{"has_more":false,"limit":2,"result":[{"community":null,"created":"2026-05-28T22:02:37.987598+00:00","id":"15553115417098512","uri":"http://minio:9000/artifact-index/archives/3d/96/9c/3d969cd76ce73d66d534d00362a14f764ace222afc8d62714c314d9ff92c6d297093d6c6cb68f9a6539eba2432ca92ec1b1d8d1adc1148e34d79dfb12d63ba082401054a?response-content-disposition=attachment%3Bfilename%3D15553115417098512.tar.gz&response-content-type=application%2Foctet-stream&X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Credential=AKIAIOSFODNN7EXAMPLE%2F20260528%2Fus-east-1%2Fs3%2Faws4_request&X-Amz-Date=20260528T223000Z&X-Amz-Expires=3600&X-Amz-SignedHeaders=host&X-Amz-Signature=7cc4d61675eef098699b70d573542de242677a90a4c879ae367b730cdacd7625"}],"status":"OK"}
 
         '
     headers:
@@ -75,7 +766,7 @@ interactions:
       Content-Type:
       - application/json
       Date:
-      - Wed, 27 May 2026 01:38:15 GMT
+      - Thu, 28 May 2026 22:30:00 GMT
       Server:
       - gunicorn
       X-Billing-ID:
@@ -97,31 +788,31 @@ interactions:
       user-agent:
       - polyswarm_api/3.21.0 (x86_64-Linux-CPython-3.14.2)
     method: GET
-    uri: http://minio:9000/artifact-index/archives/43/bf/d3/43bfd39846fbc79cd596ae5e13dd1872567bda892d8620c1e62e6973ed5dd4cffffab14eced69e4bcb124ede819d79973da342ba536bbe0bb528a084a3f6c3ed8f0ca2c4?response-content-disposition=attachment%3Bfilename%3D60073824685841255.tar.gz&response-content-type=application%2Foctet-stream&X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Credential=AKIAIOSFODNN7EXAMPLE%2F20260527%2Fus-east-1%2Fs3%2Faws4_request&X-Amz-Date=20260527T013814Z&X-Amz-Expires=3600&X-Amz-SignedHeaders=host&X-Amz-Signature=feea7c27158270e9e7f0a1dc78a9610d3a69e867d88dc67394b963d4ea701906
+    uri: http://minio:9000/artifact-index/archives/02/c3/14/02c314461f629c7a8c0a6db566ebd4b226fe13667c656bfdfc2e15e3a8bfe6967f62f4b8862d2528ff9a129511ccec1d36288246116f39b83c973130e28a728131345402?response-content-disposition=attachment%3Bfilename%3D26164025574851315.tar.gz&response-content-type=application%2Foctet-stream&X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Credential=AKIAIOSFODNN7EXAMPLE%2F20260528%2Fus-east-1%2Fs3%2Faws4_request&X-Amz-Date=20260528T222959Z&X-Amz-Expires=3600&X-Amz-SignedHeaders=host&X-Amz-Signature=3895a2eb4a9b51ded86681c60e2797cdb959e4f9068e614200d4e64f8f366817
   response:
     body:
       string: !!binary |
-        H4sIAHxKFmoC/+3XQUvDQBCG4Zz9FS1UsErSnd2ZTHIQGtpKA1JDG6WoCAF78NBLW6EX/7upPVgE
-        FZEEa7/nsiEbyGGZvCToBJ1uVqyHs+JxtvAqYbY+W41x/H69uU/GkvUaa68Gz8tVsShf7x0mGzXm
-        q6f57JxU44hFJQwcOyeiRx78//NnZ9iSoygmIYlcRfMfbuedVGh3fUOGPRJrhFlIy28BkdnMv6lz
-        /pfF/MvnvtvfU1O5ambH3SS74/vsdip8kj20tddr60trkPaSsT/Jk1E/Gff9ZJSnN+n4euLng0nu
-        X6SXg2ZreDY8xRTtrwD9R/8/9l+07H+I/h8AVTVONYrKRBOFWtX8/6z/ZrON/qP/gP6j/3X3v0wC
-        +n8YwrBMP9uYWSW2SvRH/v8Z/Uf/AQAAAAAAAADg114BTCR9VwAoAAA=
+        H4sIAOHBGGoC/+3VzUrDQBSG4Vl7FS1UsErSMzNn/hZCQ1tJQGpooxQVIWAWLrJpK3TjvRvtQkHU
+        hbS09ns2JySBwITDG/fiXj8vV2lVPlZzsRG09t0k0vxx/XZfkpJKtFZiC54Xy3LefF4cJuVb9fKp
+        rs6l883ZOx10bELzR9gdCfj3LCuj2Wlib5W0lja0/3a979IZ+Xm+k8RCGkVWMjlWzf5Lklq0aJv7
+        vyjrH9/77fmempmrdn7cT/I7vs9vZ4ZP8oeuGwy67qUzygbJJJoWyXiYTIZRMi6ym2xyPY2K0bSI
+        LrLLUbuTnqWn2KL9FaP/6P+X/vum/xb9PwDe2KCtssYFCopD2JH+G/Qf/Qf0H/3fev8tMfp/IDQF
+        DsqR95Z9M/SO9F9b9B/9BwAAAAAAAACAv3oF/IxzegAoAAA=
     headers:
       Accept-Ranges:
       - bytes
       Content-Disposition:
-      - attachment;filename=60073824685841255.tar.gz
+      - attachment;filename=26164025574851315.tar.gz
       Content-Length:
-      - '326'
+      - '320'
       Content-Type:
       - application/octet-stream
       Date:
-      - Wed, 27 May 2026 01:38:15 GMT
+      - Thu, 28 May 2026 22:30:00 GMT
       ETag:
-      - '"536bbe0bb528a084a3f6c3ed8f0ca2c4"'
+      - '"116f39b83c973130e28a728131345402"'
       Last-Modified:
-      - Wed, 27 May 2026 01:35:56 GMT
+      - Thu, 28 May 2026 22:29:53 GMT
       Server:
       - MinIO
       Strict-Transport-Security:
@@ -132,17 +823,17 @@ interactions:
       X-Amz-Id-2:
       - dd9025bab4ad464b049177c95eb6ebf374d3b3fd1af9251148b658df7ac2e3e8
       X-Amz-Request-Id:
-      - 18B348695737FAD6
+      - 18B3DB4CC3DB3DF1
       X-Content-Type-Options:
       - nosniff
       X-Ratelimit-Limit:
-      - '13851'
+      - '16315'
       X-Ratelimit-Remaining:
-      - '13851'
+      - '16315'
       X-Xss-Protection:
       - 1; mode=block
       x-amz-expiration:
-      - expiry-date="Tue, 24 Nov 2026 00:00:00 GMT", rule-id="expiration-artifact-index_0-archives"
+      - expiry-date="Wed, 25 Nov 2026 00:00:00 GMT", rule-id="expiration-artifact-index_0-archives"
     status:
       code: 200
       message: OK

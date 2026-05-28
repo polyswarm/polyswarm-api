@@ -1,35 +1,89 @@
 interactions:
 - request:
-    body: null
+    body: '{"type":"domain","host":"polyswarm.network","source":"test","good":true}'
     headers:
-      Accept:
+      accept:
       - '*/*'
-      Accept-Encoding:
+      accept-encoding:
       - gzip, deflate
-      Authorization:
+      authorization:
       - '11111111111111111111111111111111'
-      Connection:
+      connection:
       - keep-alive
-      Content-Length:
-      - '0'
-      User-Agent:
-      - polyswarm-api/3.0.0 (x86_64-Linux-CPython-3.9.10)
-    method: DELETE
-    uri: http://localhost:9696/v3/ioc/known?id=1
+      content-length:
+      - '72'
+      content-type:
+      - application/json
+      host:
+      - localhost:9696
+      user-agent:
+      - polyswarm_api/3.21.0 (x86_64-Linux-CPython-3.14.2)
+    method: POST
+    uri: http://localhost:9696/v3/ioc/known
   response:
     body:
-      string: '{"result":{"good":true,"host":"polyswarm.network","id":1,"source":"test","type":"domain"},"status":"OK"}
+      string: '{"result":{"good":true,"host":"polyswarm.network","id":39,"source":"test","type":"domain"},"status":"OK"}
 
         '
     headers:
+      Access-Control-Allow-Origin:
+      - '*'
+      Access-Control-Expose-Headers:
+      - Authorization
       Connection:
-      - Keep-Alive
+      - keep-alive
       Content-Length:
-      - '105'
+      - '106'
       Content-Type:
       - application/json
+      Date:
+      - Thu, 28 May 2026 22:29:27 GMT
+      Server:
+      - gunicorn
       X-Billing-ID:
-      - '1'
+      - '111'
+    status:
+      code: 200
+      message: OK
+- request:
+    body: ''
+    headers:
+      accept:
+      - '*/*'
+      accept-encoding:
+      - gzip, deflate
+      authorization:
+      - '11111111111111111111111111111111'
+      connection:
+      - keep-alive
+      host:
+      - localhost:9696
+      user-agent:
+      - polyswarm_api/3.21.0 (x86_64-Linux-CPython-3.14.2)
+    method: DELETE
+    uri: http://localhost:9696/v3/ioc/known?id=39
+  response:
+    body:
+      string: '{"result":{"good":true,"host":"polyswarm.network","id":39,"source":"test","type":"domain"},"status":"OK"}
+
+        '
+    headers:
+      Access-Control-Allow-Origin:
+      - '*'
+      Access-Control-Expose-Headers:
+      - Authorization
+      Connection:
+      - keep-alive
+      Content-Length:
+      - '106'
+      Content-Type:
+      - application/json
+      Date:
+      - Thu, 28 May 2026 22:29:27 GMT
+      Server:
+      - gunicorn
+      X-Billing-ID:
+      - '111'
     status:
       code: 200
       message: OK

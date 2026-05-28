@@ -1,5 +1,47 @@
 interactions:
 - request:
+    body: ''
+    headers:
+      accept:
+      - '*/*'
+      accept-encoding:
+      - gzip, deflate
+      authorization:
+      - '11111111111111111111111111111111'
+      connection:
+      - keep-alive
+      host:
+      - localhost:9696
+      user-agent:
+      - polyswarm_api/3.21.0 (x86_64-Linux-CPython-3.14.2)
+    method: GET
+    uri: http://localhost:9696/v3/ioc/known?domain=polyswarm.network
+  response:
+    body:
+      string: '{"result":[],"status":"OK"}
+
+        '
+    headers:
+      Access-Control-Allow-Origin:
+      - '*'
+      Access-Control-Expose-Headers:
+      - Authorization
+      Connection:
+      - keep-alive
+      Content-Length:
+      - '28'
+      Content-Type:
+      - application/json
+      Date:
+      - Thu, 28 May 2026 22:29:27 GMT
+      Server:
+      - gunicorn
+      X-Billing-ID:
+      - '111'
+    status:
+      code: 200
+      message: OK
+- request:
     body: '{"type":"domain","host":"polyswarm.network","source":"test","good":true}'
     headers:
       accept:
@@ -22,7 +64,7 @@ interactions:
     uri: http://localhost:9696/v3/ioc/known
   response:
     body:
-      string: '{"result":{"good":true,"host":"polyswarm.network","id":2,"source":"test","type":"domain"},"status":"OK"}
+      string: '{"result":{"good":true,"host":"polyswarm.network","id":37,"source":"test","type":"domain"},"status":"OK"}
 
         '
     headers:
@@ -33,11 +75,53 @@ interactions:
       Connection:
       - keep-alive
       Content-Length:
-      - '105'
+      - '106'
       Content-Type:
       - application/json
       Date:
-      - Wed, 27 May 2026 00:51:39 GMT
+      - Thu, 28 May 2026 22:29:27 GMT
+      Server:
+      - gunicorn
+      X-Billing-ID:
+      - '111'
+    status:
+      code: 200
+      message: OK
+- request:
+    body: ''
+    headers:
+      accept:
+      - '*/*'
+      accept-encoding:
+      - gzip, deflate
+      authorization:
+      - '11111111111111111111111111111111'
+      connection:
+      - keep-alive
+      host:
+      - localhost:9696
+      user-agent:
+      - polyswarm_api/3.21.0 (x86_64-Linux-CPython-3.14.2)
+    method: DELETE
+    uri: http://localhost:9696/v3/ioc/known?id=37
+  response:
+    body:
+      string: '{"result":{"good":true,"host":"polyswarm.network","id":37,"source":"test","type":"domain"},"status":"OK"}
+
+        '
+    headers:
+      Access-Control-Allow-Origin:
+      - '*'
+      Access-Control-Expose-Headers:
+      - Authorization
+      Connection:
+      - keep-alive
+      Content-Length:
+      - '106'
+      Content-Type:
+      - application/json
+      Date:
+      - Thu, 28 May 2026 22:29:27 GMT
       Server:
       - gunicorn
       X-Billing-ID:
