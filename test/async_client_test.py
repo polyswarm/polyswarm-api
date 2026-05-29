@@ -15,6 +15,11 @@ Run with:
     pytest test/async_client_test.py -v
 """
 import asyncio
+import hashlib
+import os
+import tempfile
+from contextlib import contextmanager
+
 import pytest
 import httpx
 import respx
@@ -22,6 +27,22 @@ import vcr as vcr_
 
 from polyswarm_api.aio import PolySwarmAsyncAPI
 from polyswarm_api import exceptions
+
+
+@contextmanager
+def _unique_artifact(content):
+    """Write deterministic, test-unique bytes to a temp file and yield its
+    path. The reverse IOC search keys off the ES metadata doc, which is built
+    from the search row's last_scanned_instance and is overwritten by a real
+    sandbox task — so a fresh sha (no sandbox task, sole instance) is required
+    for a mock cape_sandbox_v2 to survive in it. Fixed content keeps the sha256
+    (and the cassette) stable across runs.
+    """
+    with tempfile.TemporaryDirectory() as tmp_dir:
+        path = os.path.join(tmp_dir, 'artifact')
+        with open(path, 'wb') as fh:
+            fh.write(content)
+        yield path
 
 
 async def _dispatch_sandbox(api, instance_id, sandbox_slug, vm_slug, network_enabled,
@@ -157,19 +178,21 @@ class TestAsyncScanCase:
 
     @vcr.use_cassette()
     async def test_async_iocs_by_hash(self):
-        # Fixed public IP — see the sync test for the known-good-cache
-        # rationale. A different value from test_async_search_by_ioc so the
-        # two tests don't share cross-cache state.
+        # Forward IOC lookup via artificial cape_sandbox_v2 metadata on the
+        # shared EICAR fixture — see the sync test_iocs_by_hash for the full
+        # rationale (forward view needs a SandboxTaskSearchHash row, seeded
+        # only for EICAR; no live sandbox required; public IP survives
+        # filter_known_good_iocs; distinct IP from test_async_search_by_ioc).
         ioc_ip = '9.42.0.3'
         async with self._api() as api:
             instance = await api.submit('test/malicious')
             await api.tool_metadata_create(
                 instance.id, 'cape_sandbox_v2', {
                     'extracted_c2_ips': [ioc_ip],
-                    'extracted_c2_urls': ['www.virus-example.test'],
+                    'extracted_c2_urls': ['www.mock-ioc.test'],
                     'ttp': ['T1081', 'T1060', 'T1069'],
                 })
-            # persist_external_metadata is async; ~30s under load.
+            # persist_external_metadata is async via Celery.
             ips, ttps = [], []
             for _ in range(60):
                 iocs = [r async for r in api.iocs_by_hash('sha256', SHA256)]
@@ -182,34 +205,37 @@ class TestAsyncScanCase:
         assert ioc_ip in ips
         assert set(['T1081', 'T1060', 'T1069']) <= set(ttps)
 
-    @pytest.mark.skip(
-        reason="Reverse IOC search (/v3/search/ioc?ip=) does not populate on this "
-               "e2e even after 90s, while the forward lookup (iocs_by_hash) does "
-               "in ~28s — the reverse-search index lacks a working indexer in the "
-               "local container stack (see sync test_search_by_ioc).",
-    )
     @vcr.use_cassette()
     async def test_async_search_by_ioc(self):
-        ioc_ip = '9.42.0.4'
+        # Reverse IOC search via the artificial cape_sandbox_v2 trick on a UNIQUE
+        # artifact (the reverse/ES view overwrites cape_sandbox_v2 for an
+        # EICAR-style sha that has a real sandbox task, and the submit response
+        # has sha256=None for a fresh artifact) — see the sync test_search_by_ioc
+        # for the full rationale. Distinct IP from the forward test.
+        ioc_ip = '9.42.0.7'
+        content = b'polyswarm-sdk async search_by_ioc fixture\n'
+        sha = hashlib.sha256(content).hexdigest()
         async with self._api() as api:
-            instance = await api.submit('test/malicious')
+            with _unique_artifact(content) as fpath:
+                instance = await api.submit(fpath)
             await api.tool_metadata_create(
                 instance.id, 'cape_sandbox_v2', {
                     'extracted_c2_ips': [ioc_ip],
-                    'extracted_c2_urls': ['www.virus-example.test'],
+                    'extracted_c2_urls': ['www.mock-ioc.test'],
                     'ttp': ['T1081', 'T1060', 'T1069'],
                 })
+            # persist_external_metadata (Celery) + the 5s ES flush; poll until
+            # OUR sha resolves (not merely any result).
             iocs = []
-            for _ in range(60):
+            for _ in range(90):
                 try:
                     iocs = [r async for r in api.search_by_ioc(ip=ioc_ip)]
-                    if iocs:
+                    if sha in [i.json for i in iocs]:
                         break
                 except exceptions.NoResultsException:
                     pass
                 await asyncio.sleep(1)
-        assert iocs
-        assert iocs[0].json == SHA256
+        assert sha in [i.json for i in iocs]
 
     # ── Known Hosts ───────────────────────────────────────────────────────────
 

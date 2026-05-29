@@ -1,3 +1,4 @@
+import hashlib
 import os
 import shutil
 import tempfile
@@ -468,22 +469,27 @@ class ScanTestCaseV2(TestCase):
     @vcr.use_cassette()
     def test_iocs_by_hash(self):
         api = PolyswarmAPI(self.test_api_key, uri=f'http://localhost:9696/{self.api_version}', community='gamma')
-        # Provision: submit + attach cape_sandbox_v2 metadata to the just-
-        # created instance. The IP must be (a) globally-routable so
-        # filter_known_good_iocs doesn't drop it as private/reserved, and
-        # (b) NOT in the ioc_known table or its app.ioc_cache (the view
-        # filters known-good IPs out of the response). 9.42.0.1 — public
-        # (IBM netblock) and not used by any other SDK test.
+        # Forward IOC lookup: /v3/ioc-beta/sha256/<sha> resolves the sha via
+        # SandboxTaskSearchHash (seeded for the EICAR fixture in e2e) and reads
+        # the resulting instance's metadata. We don't need a live sandbox:
+        # tool_metadata_create attaches an artificial cape_sandbox_v2 blob that
+        # extract_iocs reads straight off the instance. Use the shared EICAR
+        # fixture because the forward view requires a SandboxTaskSearchHash row,
+        # which only the provisioned EICAR sha has.
+        #
+        # The IP must be globally-routable so filter_known_good_iocs keeps it
+        # (it drops private/reserved), and distinct from the other IOC tests so
+        # their docs can't cross-match. 9.42.0.1 — public (IBM netblock).
         ioc_ip = '9.42.0.1'
         instance = api.submit('test/malicious')
         api.tool_metadata_create(instance.id, 'cape_sandbox_v2', {
             'extracted_c2_ips': [ioc_ip],
-            'extracted_c2_urls': ['www.virus-example.test'],
+            'extracted_c2_urls': ['www.mock-ioc.test'],
             'ttp': ['T1081', 'T1060', 'T1069'],
         })
 
-        # persist_external_metadata + ES update runs async via Celery; ~30s
-        # under suite load. Poll the IOC view until the ioc_ip surfaces.
+        # persist_external_metadata + ES update runs async via Celery; poll the
+        # IOC view until the ioc_ip surfaces.
         sha = '275a021bbfb6489e54d471899f7db9d1663fc695ec2fe2a2c4538aabf651fd0f'
         ips, ttps = [], []
         for _ in range(60):
@@ -497,39 +503,51 @@ class ScanTestCaseV2(TestCase):
         assert ioc_ip in ips
         assert set(['T1081', 'T1060', 'T1069']) <= set(ttps)
 
-    @pytest.mark.skip(
-        reason="The reverse IOC search (/v3/search/ioc?ip=) does not populate on "
-               "this e2e even after 90s, while the FORWARD lookup (iocs_by_hash) "
-               "indexes the same metadata in ~28s. The reverse-search index "
-               "lacks a working background indexer in the local container stack "
-               "(or is a separate upstream concern worth its own investigation). "
-               "Re-record against an environment where /v3/search/ioc is backed.",
-    )
     @vcr.use_cassette()
     def test_search_by_ioc(self):
         api = PolyswarmAPI(self.test_api_key, uri=f'http://localhost:9696/{self.api_version}', community='gamma')
-        # Fixed public IP (see test_iocs_by_hash for the rationale). Use a
-        # different one from test_iocs_by_hash so the two tests can't see
-        # each other's IPs in cross-cache state.
-        ioc_ip = '9.42.0.2'
-        instance = api.submit('test/malicious')
+        # Reverse IOC search (/v3/ioc/search?ip=): given an IOC, find the sha256
+        # that reported it. Same artificial cape_sandbox_v2 trick as the forward
+        # test_iocs_by_hash (no live sandbox needed), but the reverse view reads
+        # Elasticsearch rather than the DB, which forces two requirements the
+        # forward test doesn't have:
+        #
+        #   1. A UNIQUE artifact, not the shared EICAR fixture. The EICAR sha has
+        #      a seeded cape sandbox task, and _shape_es_metadata OVERWRITES the
+        #      doc's cape_sandbox_v2 with that task's metadata — discarding our
+        #      mock IOC. A fresh sha has no sandbox task (overwrite skipped) and
+        #      is its own search row's last_scanned_instance, so our mock cape is
+        #      folded into the doc verbatim. Deterministic content keeps the sha
+        #      (hence the cassette) stable; distinct IP so other docs can't match.
+        #   2. Hash the bytes ourselves — the submit response returns
+        #      sha256=None for a brand-new artifact (it's computed server-side).
+        #
+        # The ES doc sat behind the 600s production flush, which is why this was
+        # skipped; e2e now runs ELASTICSEARCH_FLUSH_INTERVAL=5s so it resolves in
+        # ~15-30s.
+        ioc_ip = '9.42.0.6'
+        content = b'polyswarm-sdk search_by_ioc fixture\n'
+        sha = hashlib.sha256(content).hexdigest()
+        with temp_dir({'search_by_ioc_fixture': content}) as (_, files):
+            instance = api.submit(files[0])
         api.tool_metadata_create(instance.id, 'cape_sandbox_v2', {
             'extracted_c2_ips': [ioc_ip],
-            'extracted_c2_urls': ['www.virus-example.test'],
+            'extracted_c2_urls': ['www.mock-ioc.test'],
             'ttp': ['T1081', 'T1060', 'T1069'],
         })
-        sha = '275a021bbfb6489e54d471899f7db9d1663fc695ec2fe2a2c4538aabf651fd0f'
+        # persist_external_metadata (Celery) + the 5s ES flush; poll until OUR
+        # sha resolves (not merely any result — an ip reused across artifacts
+        # can transiently return a neighbour's doc before ours flushes).
         iocs = []
-        for _ in range(60):
+        for _ in range(90):
             try:
                 iocs = list(api.search_by_ioc(ip=ioc_ip))
-                if iocs:
+                if sha in [i.json for i in iocs]:
                     break
             except exceptions.NoResultsException:
                 pass
             time.sleep(1)
-        assert iocs
-        assert iocs[0].json == sha
+        assert sha in [i.json for i in iocs]
 
     @vcr.use_cassette()
     def test_add_known_good_host(self):

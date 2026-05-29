@@ -22,7 +22,7 @@ interactions:
     uri: http://localhost:9696/v3/instance
   response:
     body:
-      string: '{"result":{"artifact_id":"97708788426581379","assertions":[],"bounty_state":0,"community":"gamma","country":"","created":"2026-05-29T17:00:46.822430+00:00","detections":null,"expiration_window":null,"expire_at":null,"extended_type":null,"failed":false,"filename":"malicious","first_seen":"2026-05-29T17:00:46.822430+00:00","id":"97708788426581379","last_scanned":null,"last_seen":null,"md5":null,"metadata":[],"mimetype":null,"permalink":"https://polyswarm.network/scan/results/file/None/97708788426581379","polyscore":null,"result":null,"sha1":null,"sha256":null,"size":null,"type":"FILE","upload_url":"http://minio:9000/artifact-index/instances/a8/d1/da/a8d1dab5-d063-4c1b-a573-c5294bf0ca92?X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Credential=AKIAIOSFODNN7EXAMPLE%2F20260529%2Fus-east-1%2Fs3%2Faws4_request&X-Amz-Date=20260529T170046Z&X-Amz-Expires=300&X-Amz-SignedHeaders=host&X-Amz-Signature=f016f46190579c5f9b544cb16de0eb5cb3d0e66e27f68bd5cdf6067a491fc5f9","votes":[],"window_closed":false},"status":"OK"}
+      string: '{"result":{"artifact_id":"74709278065838228","assertions":[],"bounty_state":0,"community":"gamma","country":"","created":"2026-05-29T23:18:24.956691+00:00","detections":null,"expiration_window":null,"expire_at":null,"extended_type":null,"failed":false,"filename":"malicious","first_seen":"2026-05-29T23:18:24.956691+00:00","id":"74709278065838228","last_scanned":null,"last_seen":null,"md5":null,"metadata":[],"mimetype":null,"permalink":"https://polyswarm.network/scan/results/file/None/74709278065838228","polyscore":null,"result":null,"sha1":null,"sha256":null,"size":null,"type":"FILE","upload_url":"http://minio:9000/artifact-index/instances/45/ad/e5/45ade567-40e6-42a6-9841-a6645dffac8c?X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Credential=AKIAIOSFODNN7EXAMPLE%2F20260529%2Fus-east-1%2Fs3%2Faws4_request&X-Amz-Date=20260529T231824Z&X-Amz-Expires=300&X-Amz-SignedHeaders=host&X-Amz-Signature=207ce208b0e005e8374ba81342e48f1c5a83e99f636190e33dd73f4e77b30ece","votes":[],"window_closed":false},"status":"OK"}
 
         '
     headers:
@@ -37,7 +37,7 @@ interactions:
       Content-Type:
       - application/json
       Date:
-      - Fri, 29 May 2026 17:00:46 GMT
+      - Fri, 29 May 2026 23:18:24 GMT
       Server:
       - gunicorn
       X-Billing-ID:
@@ -61,7 +61,7 @@ interactions:
       user-agent:
       - polyswarm_api/3.21.0 (x86_64-Linux-CPython-3.14.4)
     method: PUT
-    uri: http://minio:9000/artifact-index/instances/a8/d1/da/a8d1dab5-d063-4c1b-a573-c5294bf0ca92?X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Credential=AKIAIOSFODNN7EXAMPLE%2F20260529%2Fus-east-1%2Fs3%2Faws4_request&X-Amz-Date=20260529T170046Z&X-Amz-Expires=300&X-Amz-SignedHeaders=host&X-Amz-Signature=f016f46190579c5f9b544cb16de0eb5cb3d0e66e27f68bd5cdf6067a491fc5f9
+    uri: http://minio:9000/artifact-index/instances/45/ad/e5/45ade567-40e6-42a6-9841-a6645dffac8c?X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Credential=AKIAIOSFODNN7EXAMPLE%2F20260529%2Fus-east-1%2Fs3%2Faws4_request&X-Amz-Date=20260529T231824Z&X-Amz-Expires=300&X-Amz-SignedHeaders=host&X-Amz-Signature=207ce208b0e005e8374ba81342e48f1c5a83e99f636190e33dd73f4e77b30ece
   response:
     body:
       string: ''
@@ -71,7 +71,7 @@ interactions:
       Content-Length:
       - '0'
       Date:
-      - Fri, 29 May 2026 17:00:46 GMT
+      - Fri, 29 May 2026 23:18:24 GMT
       ETag:
       - '"44d88612fea8a8f36de82e1278abb02f"'
       Server:
@@ -84,13 +84,13 @@ interactions:
       X-Amz-Id-2:
       - dd9025bab4ad464b049177c95eb6ebf374d3b3fd1af9251148b658df7ac2e3e8
       X-Amz-Request-Id:
-      - 18B417EA1327B877
+      - 18B42C8595532EC2
       X-Content-Type-Options:
       - nosniff
       X-Ratelimit-Limit:
-      - '14825'
+      - '13011'
       X-Ratelimit-Remaining:
-      - '14825'
+      - '13011'
       X-Xss-Protection:
       - 1; mode=block
       x-amz-expiration:
@@ -118,10 +118,10 @@ interactions:
       user-agent:
       - polyswarm_api/3.21.0 (x86_64-Linux-CPython-3.14.4)
     method: PUT
-    uri: http://localhost:9696/v3/instance?id=97708788426581379
+    uri: http://localhost:9696/v3/instance?id=74709278065838228
   response:
     body:
-      string: '{"result":{"artifact_id":"97708788426581379","assertions":[],"bounty_state":0,"community":"gamma","country":"","created":"2026-05-29T17:00:46.822430+00:00","detections":null,"expiration_window":null,"expire_at":null,"extended_type":null,"failed":false,"filename":"malicious","first_seen":"2026-05-29T17:00:46.822430+00:00","id":"97708788426581379","last_scanned":null,"last_seen":null,"md5":null,"metadata":[],"mimetype":null,"permalink":"https://polyswarm.network/scan/results/file/None/97708788426581379","polyscore":null,"result":null,"sha1":null,"sha256":null,"size":null,"type":"FILE","upload_url":"http://minio:9000/artifact-index/instances/a8/d1/da/a8d1dab5-d063-4c1b-a573-c5294bf0ca92?X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Credential=AKIAIOSFODNN7EXAMPLE%2F20260529%2Fus-east-1%2Fs3%2Faws4_request&X-Amz-Date=20260529T170046Z&X-Amz-Expires=300&X-Amz-SignedHeaders=host&X-Amz-Signature=f016f46190579c5f9b544cb16de0eb5cb3d0e66e27f68bd5cdf6067a491fc5f9","votes":[],"window_closed":false},"status":"OK"}
+      string: '{"result":{"artifact_id":"74709278065838228","assertions":[],"bounty_state":0,"community":"gamma","country":"","created":"2026-05-29T23:18:24.956691+00:00","detections":null,"expiration_window":null,"expire_at":null,"extended_type":null,"failed":false,"filename":"malicious","first_seen":"2026-05-29T23:18:24.956691+00:00","id":"74709278065838228","last_scanned":null,"last_seen":null,"md5":null,"metadata":[],"mimetype":null,"permalink":"https://polyswarm.network/scan/results/file/None/74709278065838228","polyscore":null,"result":null,"sha1":null,"sha256":null,"size":null,"type":"FILE","upload_url":"http://minio:9000/artifact-index/instances/45/ad/e5/45ade567-40e6-42a6-9841-a6645dffac8c?X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Credential=AKIAIOSFODNN7EXAMPLE%2F20260529%2Fus-east-1%2Fs3%2Faws4_request&X-Amz-Date=20260529T231824Z&X-Amz-Expires=300&X-Amz-SignedHeaders=host&X-Amz-Signature=207ce208b0e005e8374ba81342e48f1c5a83e99f636190e33dd73f4e77b30ece","votes":[],"window_closed":false},"status":"OK"}
 
         '
     headers:
@@ -136,7 +136,7 @@ interactions:
       Content-Type:
       - application/json
       Date:
-      - Fri, 29 May 2026 17:00:46 GMT
+      - Fri, 29 May 2026 23:18:24 GMT
       Server:
       - gunicorn
       X-Billing-ID:
@@ -145,7 +145,7 @@ interactions:
       code: 200
       message: OK
 - request:
-    body: '{"instance_id":"97708788426581379","tool":"cape_sandbox_v2","tool_metadata":{"extracted_c2_ips":["9.42.0.1"],"extracted_c2_urls":["www.virus-example.test"],"ttp":["T1081","T1060","T1069"]}}'
+    body: '{"instance_id":"74709278065838228","tool":"cape_sandbox_v2","tool_metadata":{"extracted_c2_ips":["9.42.0.1"],"extracted_c2_urls":["www.mock-ioc.test"],"ttp":["T1081","T1060","T1069"]}}'
     headers:
       accept:
       - '*/*'
@@ -156,7 +156,7 @@ interactions:
       connection:
       - keep-alive
       content-length:
-      - '189'
+      - '184'
       content-type:
       - application/json
       host:
@@ -167,7 +167,7 @@ interactions:
     uri: http://localhost:9696/v3/artifact/metadata
   response:
     body:
-      string: '{"result":{"created":"2026-05-29T17:00:46.868308+00:00","tool":"cape_sandbox_v2","tool_metadata":{"extracted_c2_ips":["9.42.0.1"],"extracted_c2_urls":["www.virus-example.test"],"ttp":["T1081","T1060","T1069"]},"updated":"2026-05-29T17:00:46.868308+00:00"},"status":"OK"}
+      string: '{"result":{"created":"2026-05-29T23:18:25.012356+00:00","tool":"cape_sandbox_v2","tool_metadata":{"extracted_c2_ips":["9.42.0.1"],"extracted_c2_urls":["www.mock-ioc.test"],"ttp":["T1081","T1060","T1069"]},"updated":"2026-05-29T23:18:25.012356+00:00"},"status":"OK"}
 
         '
     headers:
@@ -178,11 +178,11 @@ interactions:
       Connection:
       - keep-alive
       Content-Length:
-      - '271'
+      - '266'
       Content-Type:
       - application/json
       Date:
-      - Fri, 29 May 2026 17:00:46 GMT
+      - Fri, 29 May 2026 23:18:25 GMT
       Server:
       - gunicorn
       X-Billing-ID:
@@ -209,7 +209,7 @@ interactions:
     uri: http://localhost:9696/v3/ioc/sha256/275a021bbfb6489e54d471899f7db9d1663fc695ec2fe2a2c4538aabf651fd0f?hide_known_good=False&community=gamma
   response:
     body:
-      string: '{"result":{"imphash":"","ips":[],"ttps":[],"urls":[]},"status":"OK"}
+      string: '{"result":{"imphash":"","ips":["9.42.0.50"],"ttps":["T1060","T1069","T1081"],"urls":[]},"status":"OK"}
 
         '
     headers:
@@ -220,11 +220,11 @@ interactions:
       Connection:
       - keep-alive
       Content-Length:
-      - '69'
+      - '103'
       Content-Type:
       - application/json
       Date:
-      - Fri, 29 May 2026 17:00:46 GMT
+      - Fri, 29 May 2026 23:18:25 GMT
       Server:
       - gunicorn
       X-Billing-ID:
@@ -251,7 +251,7 @@ interactions:
     uri: http://localhost:9696/v3/ioc/sha256/275a021bbfb6489e54d471899f7db9d1663fc695ec2fe2a2c4538aabf651fd0f?hide_known_good=False&community=gamma
   response:
     body:
-      string: '{"result":{"imphash":"","ips":[],"ttps":[],"urls":[]},"status":"OK"}
+      string: '{"result":{"imphash":"","ips":["9.42.0.50"],"ttps":["T1060","T1069","T1081"],"urls":[]},"status":"OK"}
 
         '
     headers:
@@ -262,11 +262,11 @@ interactions:
       Connection:
       - keep-alive
       Content-Length:
-      - '69'
+      - '103'
       Content-Type:
       - application/json
       Date:
-      - Fri, 29 May 2026 17:00:47 GMT
+      - Fri, 29 May 2026 23:18:26 GMT
       Server:
       - gunicorn
       X-Billing-ID:
@@ -293,7 +293,7 @@ interactions:
     uri: http://localhost:9696/v3/ioc/sha256/275a021bbfb6489e54d471899f7db9d1663fc695ec2fe2a2c4538aabf651fd0f?hide_known_good=False&community=gamma
   response:
     body:
-      string: '{"result":{"imphash":"","ips":[],"ttps":[],"urls":[]},"status":"OK"}
+      string: '{"result":{"imphash":"","ips":["9.42.0.50"],"ttps":["T1060","T1069","T1081"],"urls":[]},"status":"OK"}
 
         '
     headers:
@@ -304,11 +304,11 @@ interactions:
       Connection:
       - keep-alive
       Content-Length:
-      - '69'
+      - '103'
       Content-Type:
       - application/json
       Date:
-      - Fri, 29 May 2026 17:00:49 GMT
+      - Fri, 29 May 2026 23:18:27 GMT
       Server:
       - gunicorn
       X-Billing-ID:
@@ -335,7 +335,7 @@ interactions:
     uri: http://localhost:9696/v3/ioc/sha256/275a021bbfb6489e54d471899f7db9d1663fc695ec2fe2a2c4538aabf651fd0f?hide_known_good=False&community=gamma
   response:
     body:
-      string: '{"result":{"imphash":"","ips":[],"ttps":[],"urls":[]},"status":"OK"}
+      string: '{"result":{"imphash":"","ips":["9.42.0.50"],"ttps":["T1060","T1069","T1081"],"urls":[]},"status":"OK"}
 
         '
     headers:
@@ -346,11 +346,11 @@ interactions:
       Connection:
       - keep-alive
       Content-Length:
-      - '69'
+      - '103'
       Content-Type:
       - application/json
       Date:
-      - Fri, 29 May 2026 17:00:50 GMT
+      - Fri, 29 May 2026 23:18:28 GMT
       Server:
       - gunicorn
       X-Billing-ID:
@@ -377,7 +377,7 @@ interactions:
     uri: http://localhost:9696/v3/ioc/sha256/275a021bbfb6489e54d471899f7db9d1663fc695ec2fe2a2c4538aabf651fd0f?hide_known_good=False&community=gamma
   response:
     body:
-      string: '{"result":{"imphash":"","ips":[],"ttps":[],"urls":[]},"status":"OK"}
+      string: '{"result":{"imphash":"","ips":["9.42.0.50"],"ttps":["T1060","T1069","T1081"],"urls":[]},"status":"OK"}
 
         '
     headers:
@@ -388,11 +388,11 @@ interactions:
       Connection:
       - keep-alive
       Content-Length:
-      - '69'
+      - '103'
       Content-Type:
       - application/json
       Date:
-      - Fri, 29 May 2026 17:00:51 GMT
+      - Fri, 29 May 2026 23:18:29 GMT
       Server:
       - gunicorn
       X-Billing-ID:
@@ -419,7 +419,7 @@ interactions:
     uri: http://localhost:9696/v3/ioc/sha256/275a021bbfb6489e54d471899f7db9d1663fc695ec2fe2a2c4538aabf651fd0f?hide_known_good=False&community=gamma
   response:
     body:
-      string: '{"result":{"imphash":"","ips":[],"ttps":[],"urls":[]},"status":"OK"}
+      string: '{"result":{"imphash":"","ips":["9.42.0.50"],"ttps":["T1060","T1069","T1081"],"urls":[]},"status":"OK"}
 
         '
     headers:
@@ -430,11 +430,11 @@ interactions:
       Connection:
       - keep-alive
       Content-Length:
-      - '69'
+      - '103'
       Content-Type:
       - application/json
       Date:
-      - Fri, 29 May 2026 17:00:52 GMT
+      - Fri, 29 May 2026 23:18:30 GMT
       Server:
       - gunicorn
       X-Billing-ID:
@@ -461,7 +461,7 @@ interactions:
     uri: http://localhost:9696/v3/ioc/sha256/275a021bbfb6489e54d471899f7db9d1663fc695ec2fe2a2c4538aabf651fd0f?hide_known_good=False&community=gamma
   response:
     body:
-      string: '{"result":{"imphash":"","ips":[],"ttps":[],"urls":[]},"status":"OK"}
+      string: '{"result":{"imphash":"","ips":["9.42.0.50"],"ttps":["T1060","T1069","T1081"],"urls":[]},"status":"OK"}
 
         '
     headers:
@@ -472,11 +472,11 @@ interactions:
       Connection:
       - keep-alive
       Content-Length:
-      - '69'
+      - '103'
       Content-Type:
       - application/json
       Date:
-      - Fri, 29 May 2026 17:00:53 GMT
+      - Fri, 29 May 2026 23:18:31 GMT
       Server:
       - gunicorn
       X-Billing-ID:
@@ -503,7 +503,7 @@ interactions:
     uri: http://localhost:9696/v3/ioc/sha256/275a021bbfb6489e54d471899f7db9d1663fc695ec2fe2a2c4538aabf651fd0f?hide_known_good=False&community=gamma
   response:
     body:
-      string: '{"result":{"imphash":"","ips":[],"ttps":[],"urls":[]},"status":"OK"}
+      string: '{"result":{"imphash":"","ips":["9.42.0.50"],"ttps":["T1060","T1069","T1081"],"urls":[]},"status":"OK"}
 
         '
     headers:
@@ -514,11 +514,11 @@ interactions:
       Connection:
       - keep-alive
       Content-Length:
-      - '69'
+      - '103'
       Content-Type:
       - application/json
       Date:
-      - Fri, 29 May 2026 17:00:54 GMT
+      - Fri, 29 May 2026 23:18:32 GMT
       Server:
       - gunicorn
       X-Billing-ID:
@@ -545,7 +545,7 @@ interactions:
     uri: http://localhost:9696/v3/ioc/sha256/275a021bbfb6489e54d471899f7db9d1663fc695ec2fe2a2c4538aabf651fd0f?hide_known_good=False&community=gamma
   response:
     body:
-      string: '{"result":{"imphash":"","ips":[],"ttps":[],"urls":[]},"status":"OK"}
+      string: '{"result":{"imphash":"","ips":["9.42.0.50"],"ttps":["T1060","T1069","T1081"],"urls":[]},"status":"OK"}
 
         '
     headers:
@@ -556,11 +556,11 @@ interactions:
       Connection:
       - keep-alive
       Content-Length:
-      - '69'
+      - '103'
       Content-Type:
       - application/json
       Date:
-      - Fri, 29 May 2026 17:00:55 GMT
+      - Fri, 29 May 2026 23:18:33 GMT
       Server:
       - gunicorn
       X-Billing-ID:
@@ -587,7 +587,7 @@ interactions:
     uri: http://localhost:9696/v3/ioc/sha256/275a021bbfb6489e54d471899f7db9d1663fc695ec2fe2a2c4538aabf651fd0f?hide_known_good=False&community=gamma
   response:
     body:
-      string: '{"result":{"imphash":"","ips":[],"ttps":[],"urls":[]},"status":"OK"}
+      string: '{"result":{"imphash":"","ips":["9.42.0.50"],"ttps":["T1060","T1069","T1081"],"urls":[]},"status":"OK"}
 
         '
     headers:
@@ -598,11 +598,11 @@ interactions:
       Connection:
       - keep-alive
       Content-Length:
-      - '69'
+      - '103'
       Content-Type:
       - application/json
       Date:
-      - Fri, 29 May 2026 17:00:56 GMT
+      - Fri, 29 May 2026 23:18:34 GMT
       Server:
       - gunicorn
       X-Billing-ID:
@@ -629,7 +629,7 @@ interactions:
     uri: http://localhost:9696/v3/ioc/sha256/275a021bbfb6489e54d471899f7db9d1663fc695ec2fe2a2c4538aabf651fd0f?hide_known_good=False&community=gamma
   response:
     body:
-      string: '{"result":{"imphash":"","ips":[],"ttps":[],"urls":[]},"status":"OK"}
+      string: '{"result":{"imphash":"","ips":["9.42.0.50"],"ttps":["T1060","T1069","T1081"],"urls":[]},"status":"OK"}
 
         '
     headers:
@@ -640,11 +640,11 @@ interactions:
       Connection:
       - keep-alive
       Content-Length:
-      - '69'
+      - '103'
       Content-Type:
       - application/json
       Date:
-      - Fri, 29 May 2026 17:00:57 GMT
+      - Fri, 29 May 2026 23:18:35 GMT
       Server:
       - gunicorn
       X-Billing-ID:
@@ -671,7 +671,7 @@ interactions:
     uri: http://localhost:9696/v3/ioc/sha256/275a021bbfb6489e54d471899f7db9d1663fc695ec2fe2a2c4538aabf651fd0f?hide_known_good=False&community=gamma
   response:
     body:
-      string: '{"result":{"imphash":"","ips":[],"ttps":[],"urls":[]},"status":"OK"}
+      string: '{"result":{"imphash":"","ips":["9.42.0.50"],"ttps":["T1060","T1069","T1081"],"urls":[]},"status":"OK"}
 
         '
     headers:
@@ -682,11 +682,11 @@ interactions:
       Connection:
       - keep-alive
       Content-Length:
-      - '69'
+      - '103'
       Content-Type:
       - application/json
       Date:
-      - Fri, 29 May 2026 17:00:58 GMT
+      - Fri, 29 May 2026 23:18:36 GMT
       Server:
       - gunicorn
       X-Billing-ID:
@@ -713,7 +713,7 @@ interactions:
     uri: http://localhost:9696/v3/ioc/sha256/275a021bbfb6489e54d471899f7db9d1663fc695ec2fe2a2c4538aabf651fd0f?hide_known_good=False&community=gamma
   response:
     body:
-      string: '{"result":{"imphash":"","ips":[],"ttps":[],"urls":[]},"status":"OK"}
+      string: '{"result":{"imphash":"","ips":["9.42.0.50"],"ttps":["T1060","T1069","T1081"],"urls":[]},"status":"OK"}
 
         '
     headers:
@@ -724,11 +724,11 @@ interactions:
       Connection:
       - keep-alive
       Content-Length:
-      - '69'
+      - '103'
       Content-Type:
       - application/json
       Date:
-      - Fri, 29 May 2026 17:00:59 GMT
+      - Fri, 29 May 2026 23:18:37 GMT
       Server:
       - gunicorn
       X-Billing-ID:
@@ -755,7 +755,7 @@ interactions:
     uri: http://localhost:9696/v3/ioc/sha256/275a021bbfb6489e54d471899f7db9d1663fc695ec2fe2a2c4538aabf651fd0f?hide_known_good=False&community=gamma
   response:
     body:
-      string: '{"result":{"imphash":"","ips":[],"ttps":[],"urls":[]},"status":"OK"}
+      string: '{"result":{"imphash":"","ips":["9.42.0.50"],"ttps":["T1060","T1069","T1081"],"urls":[]},"status":"OK"}
 
         '
     headers:
@@ -766,11 +766,11 @@ interactions:
       Connection:
       - keep-alive
       Content-Length:
-      - '69'
+      - '103'
       Content-Type:
       - application/json
       Date:
-      - Fri, 29 May 2026 17:01:00 GMT
+      - Fri, 29 May 2026 23:18:38 GMT
       Server:
       - gunicorn
       X-Billing-ID:
@@ -797,7 +797,7 @@ interactions:
     uri: http://localhost:9696/v3/ioc/sha256/275a021bbfb6489e54d471899f7db9d1663fc695ec2fe2a2c4538aabf651fd0f?hide_known_good=False&community=gamma
   response:
     body:
-      string: '{"result":{"imphash":"","ips":[],"ttps":[],"urls":[]},"status":"OK"}
+      string: '{"result":{"imphash":"","ips":["9.42.0.50"],"ttps":["T1060","T1069","T1081"],"urls":[]},"status":"OK"}
 
         '
     headers:
@@ -808,11 +808,11 @@ interactions:
       Connection:
       - keep-alive
       Content-Length:
-      - '69'
+      - '103'
       Content-Type:
       - application/json
       Date:
-      - Fri, 29 May 2026 17:01:01 GMT
+      - Fri, 29 May 2026 23:18:39 GMT
       Server:
       - gunicorn
       X-Billing-ID:
@@ -839,7 +839,7 @@ interactions:
     uri: http://localhost:9696/v3/ioc/sha256/275a021bbfb6489e54d471899f7db9d1663fc695ec2fe2a2c4538aabf651fd0f?hide_known_good=False&community=gamma
   response:
     body:
-      string: '{"result":{"imphash":"","ips":[],"ttps":[],"urls":[]},"status":"OK"}
+      string: '{"result":{"imphash":"","ips":["9.42.0.50"],"ttps":["T1060","T1069","T1081"],"urls":[]},"status":"OK"}
 
         '
     headers:
@@ -850,11 +850,11 @@ interactions:
       Connection:
       - keep-alive
       Content-Length:
-      - '69'
+      - '103'
       Content-Type:
       - application/json
       Date:
-      - Fri, 29 May 2026 17:01:02 GMT
+      - Fri, 29 May 2026 23:18:40 GMT
       Server:
       - gunicorn
       X-Billing-ID:
@@ -881,7 +881,7 @@ interactions:
     uri: http://localhost:9696/v3/ioc/sha256/275a021bbfb6489e54d471899f7db9d1663fc695ec2fe2a2c4538aabf651fd0f?hide_known_good=False&community=gamma
   response:
     body:
-      string: '{"result":{"imphash":"","ips":[],"ttps":[],"urls":[]},"status":"OK"}
+      string: '{"result":{"imphash":"","ips":["9.42.0.50"],"ttps":["T1060","T1069","T1081"],"urls":[]},"status":"OK"}
 
         '
     headers:
@@ -892,11 +892,11 @@ interactions:
       Connection:
       - keep-alive
       Content-Length:
-      - '69'
+      - '103'
       Content-Type:
       - application/json
       Date:
-      - Fri, 29 May 2026 17:01:03 GMT
+      - Fri, 29 May 2026 23:18:41 GMT
       Server:
       - gunicorn
       X-Billing-ID:
@@ -923,7 +923,7 @@ interactions:
     uri: http://localhost:9696/v3/ioc/sha256/275a021bbfb6489e54d471899f7db9d1663fc695ec2fe2a2c4538aabf651fd0f?hide_known_good=False&community=gamma
   response:
     body:
-      string: '{"result":{"imphash":"","ips":[],"ttps":[],"urls":[]},"status":"OK"}
+      string: '{"result":{"imphash":"","ips":["9.42.0.50"],"ttps":["T1060","T1069","T1081"],"urls":[]},"status":"OK"}
 
         '
     headers:
@@ -934,11 +934,11 @@ interactions:
       Connection:
       - keep-alive
       Content-Length:
-      - '69'
+      - '103'
       Content-Type:
       - application/json
       Date:
-      - Fri, 29 May 2026 17:01:04 GMT
+      - Fri, 29 May 2026 23:18:43 GMT
       Server:
       - gunicorn
       X-Billing-ID:
@@ -965,7 +965,7 @@ interactions:
     uri: http://localhost:9696/v3/ioc/sha256/275a021bbfb6489e54d471899f7db9d1663fc695ec2fe2a2c4538aabf651fd0f?hide_known_good=False&community=gamma
   response:
     body:
-      string: '{"result":{"imphash":"","ips":[],"ttps":[],"urls":[]},"status":"OK"}
+      string: '{"result":{"imphash":"","ips":["9.42.0.50"],"ttps":["T1060","T1069","T1081"],"urls":[]},"status":"OK"}
 
         '
     headers:
@@ -976,11 +976,11 @@ interactions:
       Connection:
       - keep-alive
       Content-Length:
-      - '69'
+      - '103'
       Content-Type:
       - application/json
       Date:
-      - Fri, 29 May 2026 17:01:05 GMT
+      - Fri, 29 May 2026 23:18:44 GMT
       Server:
       - gunicorn
       X-Billing-ID:
@@ -1007,7 +1007,7 @@ interactions:
     uri: http://localhost:9696/v3/ioc/sha256/275a021bbfb6489e54d471899f7db9d1663fc695ec2fe2a2c4538aabf651fd0f?hide_known_good=False&community=gamma
   response:
     body:
-      string: '{"result":{"imphash":"","ips":[],"ttps":[],"urls":[]},"status":"OK"}
+      string: '{"result":{"imphash":"","ips":["9.42.0.50"],"ttps":["T1060","T1069","T1081"],"urls":[]},"status":"OK"}
 
         '
     headers:
@@ -1018,11 +1018,11 @@ interactions:
       Connection:
       - keep-alive
       Content-Length:
-      - '69'
+      - '103'
       Content-Type:
       - application/json
       Date:
-      - Fri, 29 May 2026 17:01:06 GMT
+      - Fri, 29 May 2026 23:18:45 GMT
       Server:
       - gunicorn
       X-Billing-ID:
@@ -1049,7 +1049,7 @@ interactions:
     uri: http://localhost:9696/v3/ioc/sha256/275a021bbfb6489e54d471899f7db9d1663fc695ec2fe2a2c4538aabf651fd0f?hide_known_good=False&community=gamma
   response:
     body:
-      string: '{"result":{"imphash":"","ips":[],"ttps":[],"urls":[]},"status":"OK"}
+      string: '{"result":{"imphash":"","ips":["9.42.0.50"],"ttps":["T1060","T1069","T1081"],"urls":[]},"status":"OK"}
 
         '
     headers:
@@ -1060,11 +1060,11 @@ interactions:
       Connection:
       - keep-alive
       Content-Length:
-      - '69'
+      - '103'
       Content-Type:
       - application/json
       Date:
-      - Fri, 29 May 2026 17:01:07 GMT
+      - Fri, 29 May 2026 23:18:46 GMT
       Server:
       - gunicorn
       X-Billing-ID:
@@ -1091,7 +1091,7 @@ interactions:
     uri: http://localhost:9696/v3/ioc/sha256/275a021bbfb6489e54d471899f7db9d1663fc695ec2fe2a2c4538aabf651fd0f?hide_known_good=False&community=gamma
   response:
     body:
-      string: '{"result":{"imphash":"","ips":[],"ttps":[],"urls":[]},"status":"OK"}
+      string: '{"result":{"imphash":"","ips":["9.42.0.50"],"ttps":["T1060","T1069","T1081"],"urls":[]},"status":"OK"}
 
         '
     headers:
@@ -1102,11 +1102,11 @@ interactions:
       Connection:
       - keep-alive
       Content-Length:
-      - '69'
+      - '103'
       Content-Type:
       - application/json
       Date:
-      - Fri, 29 May 2026 17:01:08 GMT
+      - Fri, 29 May 2026 23:18:47 GMT
       Server:
       - gunicorn
       X-Billing-ID:
@@ -1133,7 +1133,7 @@ interactions:
     uri: http://localhost:9696/v3/ioc/sha256/275a021bbfb6489e54d471899f7db9d1663fc695ec2fe2a2c4538aabf651fd0f?hide_known_good=False&community=gamma
   response:
     body:
-      string: '{"result":{"imphash":"","ips":[],"ttps":[],"urls":[]},"status":"OK"}
+      string: '{"result":{"imphash":"","ips":["9.42.0.50"],"ttps":["T1060","T1069","T1081"],"urls":[]},"status":"OK"}
 
         '
     headers:
@@ -1144,11 +1144,11 @@ interactions:
       Connection:
       - keep-alive
       Content-Length:
-      - '69'
+      - '103'
       Content-Type:
       - application/json
       Date:
-      - Fri, 29 May 2026 17:01:09 GMT
+      - Fri, 29 May 2026 23:18:48 GMT
       Server:
       - gunicorn
       X-Billing-ID:
@@ -1175,7 +1175,7 @@ interactions:
     uri: http://localhost:9696/v3/ioc/sha256/275a021bbfb6489e54d471899f7db9d1663fc695ec2fe2a2c4538aabf651fd0f?hide_known_good=False&community=gamma
   response:
     body:
-      string: '{"result":{"imphash":"","ips":[],"ttps":[],"urls":[]},"status":"OK"}
+      string: '{"result":{"imphash":"","ips":["9.42.0.50"],"ttps":["T1060","T1069","T1081"],"urls":[]},"status":"OK"}
 
         '
     headers:
@@ -1186,11 +1186,11 @@ interactions:
       Connection:
       - keep-alive
       Content-Length:
-      - '69'
+      - '103'
       Content-Type:
       - application/json
       Date:
-      - Fri, 29 May 2026 17:01:10 GMT
+      - Fri, 29 May 2026 23:18:49 GMT
       Server:
       - gunicorn
       X-Billing-ID:
@@ -1217,7 +1217,7 @@ interactions:
     uri: http://localhost:9696/v3/ioc/sha256/275a021bbfb6489e54d471899f7db9d1663fc695ec2fe2a2c4538aabf651fd0f?hide_known_good=False&community=gamma
   response:
     body:
-      string: '{"result":{"imphash":"","ips":[],"ttps":[],"urls":[]},"status":"OK"}
+      string: '{"result":{"imphash":"","ips":["9.42.0.50"],"ttps":["T1060","T1069","T1081"],"urls":[]},"status":"OK"}
 
         '
     headers:
@@ -1228,11 +1228,11 @@ interactions:
       Connection:
       - keep-alive
       Content-Length:
-      - '69'
+      - '103'
       Content-Type:
       - application/json
       Date:
-      - Fri, 29 May 2026 17:01:11 GMT
+      - Fri, 29 May 2026 23:18:50 GMT
       Server:
       - gunicorn
       X-Billing-ID:
@@ -1259,7 +1259,7 @@ interactions:
     uri: http://localhost:9696/v3/ioc/sha256/275a021bbfb6489e54d471899f7db9d1663fc695ec2fe2a2c4538aabf651fd0f?hide_known_good=False&community=gamma
   response:
     body:
-      string: '{"result":{"imphash":"","ips":[],"ttps":[],"urls":[]},"status":"OK"}
+      string: '{"result":{"imphash":"","ips":["9.42.0.50"],"ttps":["T1060","T1069","T1081"],"urls":[]},"status":"OK"}
 
         '
     headers:
@@ -1270,11 +1270,11 @@ interactions:
       Connection:
       - keep-alive
       Content-Length:
-      - '69'
+      - '103'
       Content-Type:
       - application/json
       Date:
-      - Fri, 29 May 2026 17:01:13 GMT
+      - Fri, 29 May 2026 23:18:51 GMT
       Server:
       - gunicorn
       X-Billing-ID:
@@ -1301,7 +1301,7 @@ interactions:
     uri: http://localhost:9696/v3/ioc/sha256/275a021bbfb6489e54d471899f7db9d1663fc695ec2fe2a2c4538aabf651fd0f?hide_known_good=False&community=gamma
   response:
     body:
-      string: '{"result":{"imphash":"","ips":[],"ttps":[],"urls":[]},"status":"OK"}
+      string: '{"result":{"imphash":"","ips":["9.42.0.50"],"ttps":["T1060","T1069","T1081"],"urls":[]},"status":"OK"}
 
         '
     headers:
@@ -1312,11 +1312,11 @@ interactions:
       Connection:
       - keep-alive
       Content-Length:
-      - '69'
+      - '103'
       Content-Type:
       - application/json
       Date:
-      - Fri, 29 May 2026 17:01:14 GMT
+      - Fri, 29 May 2026 23:18:52 GMT
       Server:
       - gunicorn
       X-Billing-ID:
@@ -1343,7 +1343,7 @@ interactions:
     uri: http://localhost:9696/v3/ioc/sha256/275a021bbfb6489e54d471899f7db9d1663fc695ec2fe2a2c4538aabf651fd0f?hide_known_good=False&community=gamma
   response:
     body:
-      string: '{"result":{"imphash":"","ips":[],"ttps":[],"urls":[]},"status":"OK"}
+      string: '{"result":{"imphash":"","ips":["9.42.0.50"],"ttps":["T1060","T1069","T1081"],"urls":[]},"status":"OK"}
 
         '
     headers:
@@ -1354,11 +1354,11 @@ interactions:
       Connection:
       - keep-alive
       Content-Length:
-      - '69'
+      - '103'
       Content-Type:
       - application/json
       Date:
-      - Fri, 29 May 2026 17:01:15 GMT
+      - Fri, 29 May 2026 23:18:53 GMT
       Server:
       - gunicorn
       X-Billing-ID:
@@ -1385,7 +1385,7 @@ interactions:
     uri: http://localhost:9696/v3/ioc/sha256/275a021bbfb6489e54d471899f7db9d1663fc695ec2fe2a2c4538aabf651fd0f?hide_known_good=False&community=gamma
   response:
     body:
-      string: '{"result":{"imphash":"","ips":[],"ttps":[],"urls":[]},"status":"OK"}
+      string: '{"result":{"imphash":"","ips":["9.42.0.50"],"ttps":["T1060","T1069","T1081"],"urls":[]},"status":"OK"}
 
         '
     headers:
@@ -1396,11 +1396,11 @@ interactions:
       Connection:
       - keep-alive
       Content-Length:
-      - '69'
+      - '103'
       Content-Type:
       - application/json
       Date:
-      - Fri, 29 May 2026 17:01:16 GMT
+      - Fri, 29 May 2026 23:18:54 GMT
       Server:
       - gunicorn
       X-Billing-ID:
@@ -1427,7 +1427,7 @@ interactions:
     uri: http://localhost:9696/v3/ioc/sha256/275a021bbfb6489e54d471899f7db9d1663fc695ec2fe2a2c4538aabf651fd0f?hide_known_good=False&community=gamma
   response:
     body:
-      string: '{"result":{"imphash":"","ips":["9.42.0.1"],"ttps":["T1069","T1081","T1060"],"urls":[]},"status":"OK"}
+      string: '{"result":{"imphash":"","ips":["9.42.0.1"],"ttps":["T1060","T1069","T1081"],"urls":[]},"status":"OK"}
 
         '
     headers:
@@ -1442,7 +1442,7 @@ interactions:
       Content-Type:
       - application/json
       Date:
-      - Fri, 29 May 2026 17:01:17 GMT
+      - Fri, 29 May 2026 23:18:55 GMT
       Server:
       - gunicorn
       X-Billing-ID:
