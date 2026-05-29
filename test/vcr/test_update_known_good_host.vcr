@@ -17,12 +17,12 @@ interactions:
       host:
       - localhost:9696
       user-agent:
-      - polyswarm_api/3.21.0 (x86_64-Linux-CPython-3.14.2)
+      - polyswarm_api/3.21.0 (x86_64-Linux-CPython-3.14.4)
     method: POST
     uri: http://localhost:9696/v3/ioc/known
   response:
     body:
-      string: '{"result":{"good":true,"host":"polyswarm.network","id":72,"source":"test","type":"domain"},"status":"OK"}
+      string: '{"result":{"good":true,"host":"polyswarm.network","id":16,"source":"test","type":"domain"},"status":"OK"}
 
         '
     headers:
@@ -37,7 +37,7 @@ interactions:
       Content-Type:
       - application/json
       Date:
-      - Thu, 28 May 2026 23:30:16 GMT
+      - Fri, 29 May 2026 17:01:53 GMT
       Server:
       - gunicorn
       X-Billing-ID:
@@ -46,7 +46,7 @@ interactions:
       code: 200
       message: OK
 - request:
-    body: '{"id":72,"type":"ip","host":"1.2.3.4","source":"test","good":true}'
+    body: '{"id":16,"type":"ip","host":"1.2.3.4","source":"test","good":true}'
     headers:
       accept:
       - '*/*'
@@ -63,12 +63,12 @@ interactions:
       host:
       - localhost:9696
       user-agent:
-      - polyswarm_api/3.21.0 (x86_64-Linux-CPython-3.14.2)
+      - polyswarm_api/3.21.0 (x86_64-Linux-CPython-3.14.4)
     method: PUT
     uri: http://localhost:9696/v3/ioc/known
   response:
     body:
-      string: '{"result":{"good":true,"host":"1.2.3.4","id":72,"source":"test","type":"ip"},"status":"OK"}
+      string: '{"result":{"good":true,"host":"1.2.3.4","id":16,"source":"test","type":"ip"},"status":"OK"}
 
         '
     headers:
@@ -83,7 +83,7 @@ interactions:
       Content-Type:
       - application/json
       Date:
-      - Thu, 28 May 2026 23:30:16 GMT
+      - Fri, 29 May 2026 17:01:53 GMT
       Server:
       - gunicorn
       X-Billing-ID:
@@ -105,12 +105,12 @@ interactions:
       host:
       - localhost:9696
       user-agent:
-      - polyswarm_api/3.21.0 (x86_64-Linux-CPython-3.14.2)
+      - polyswarm_api/3.21.0 (x86_64-Linux-CPython-3.14.4)
     method: DELETE
-    uri: http://localhost:9696/v3/ioc/known?id=72
+    uri: http://localhost:9696/v3/ioc/known?id=16
   response:
     body:
-      string: '{"result":{"good":true,"host":"1.2.3.4","id":72,"source":"test","type":"ip"},"status":"OK"}
+      string: '{"result":{"good":true,"host":"1.2.3.4","id":16,"source":"test","type":"ip"},"status":"OK"}
 
         '
     headers:
@@ -125,7 +125,7 @@ interactions:
       Content-Type:
       - application/json
       Date:
-      - Thu, 28 May 2026 23:30:16 GMT
+      - Fri, 29 May 2026 17:01:53 GMT
       Server:
       - gunicorn
       X-Billing-ID:

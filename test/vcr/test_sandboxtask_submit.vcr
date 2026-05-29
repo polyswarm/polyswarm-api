@@ -17,12 +17,12 @@ interactions:
       host:
       - localhost:9696
       user-agent:
-      - polyswarm_api/3.21.0 (x86_64-Linux-CPython-3.14.2)
+      - polyswarm_api/3.21.0 (x86_64-Linux-CPython-3.14.4)
     method: POST
     uri: http://localhost:9696/v3/instance
   response:
     body:
-      string: '{"result":{"artifact_id":"48730960851087702","assertions":[],"bounty_state":0,"community":"gamma","country":"","created":"2026-05-28T23:29:12.594605+00:00","detections":null,"expiration_window":null,"expire_at":null,"extended_type":null,"failed":false,"filename":"malicious","first_seen":"2026-05-28T23:29:12.594605+00:00","id":"48730960851087702","last_scanned":null,"last_seen":null,"md5":null,"metadata":[],"mimetype":null,"permalink":"https://polyswarm.network/scan/results/file/None/48730960851087702","polyscore":null,"result":null,"sha1":null,"sha256":null,"size":null,"type":"FILE","upload_url":"http://minio:9000/artifact-index/instances/81/37/71/81377160-5931-43dc-a44c-0899d7b7128d?X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Credential=AKIAIOSFODNN7EXAMPLE%2F20260528%2Fus-east-1%2Fs3%2Faws4_request&X-Amz-Date=20260528T232912Z&X-Amz-Expires=300&X-Amz-SignedHeaders=host&X-Amz-Signature=38fc57fa103f7c430936bced1b2da5aafb3990910395aae03354e5d8e6fea1e0","votes":[],"window_closed":false},"status":"OK"}
+      string: '{"result":{"artifact_id":"55586137841940135","assertions":[],"bounty_state":0,"community":"gamma","country":"","created":"2026-05-29T17:01:51.560281+00:00","detections":null,"expiration_window":null,"expire_at":null,"extended_type":null,"failed":false,"filename":"malicious","first_seen":"2026-05-29T17:01:51.560281+00:00","id":"55586137841940135","last_scanned":null,"last_seen":null,"md5":null,"metadata":[],"mimetype":null,"permalink":"https://polyswarm.network/scan/results/file/None/55586137841940135","polyscore":null,"result":null,"sha1":null,"sha256":null,"size":null,"type":"FILE","upload_url":"http://minio:9000/artifact-index/instances/1e/70/f7/1e70f777-22e3-4abd-83b5-46ac7abc0ec2?X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Credential=AKIAIOSFODNN7EXAMPLE%2F20260529%2Fus-east-1%2Fs3%2Faws4_request&X-Amz-Date=20260529T170151Z&X-Amz-Expires=300&X-Amz-SignedHeaders=host&X-Amz-Signature=68d53fdd7ff1866b565bdfe25f0c869f0b68d775a11761ec9f8a84af7756abce","votes":[],"window_closed":false},"status":"OK"}
 
         '
     headers:
@@ -37,7 +37,7 @@ interactions:
       Content-Type:
       - application/json
       Date:
-      - Thu, 28 May 2026 23:29:12 GMT
+      - Fri, 29 May 2026 17:01:51 GMT
       Server:
       - gunicorn
       X-Billing-ID:
@@ -59,9 +59,9 @@ interactions:
       host:
       - minio:9000
       user-agent:
-      - polyswarm_api/3.21.0 (x86_64-Linux-CPython-3.14.2)
+      - polyswarm_api/3.21.0 (x86_64-Linux-CPython-3.14.4)
     method: PUT
-    uri: http://minio:9000/artifact-index/instances/81/37/71/81377160-5931-43dc-a44c-0899d7b7128d?X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Credential=AKIAIOSFODNN7EXAMPLE%2F20260528%2Fus-east-1%2Fs3%2Faws4_request&X-Amz-Date=20260528T232912Z&X-Amz-Expires=300&X-Amz-SignedHeaders=host&X-Amz-Signature=38fc57fa103f7c430936bced1b2da5aafb3990910395aae03354e5d8e6fea1e0
+    uri: http://minio:9000/artifact-index/instances/1e/70/f7/1e70f777-22e3-4abd-83b5-46ac7abc0ec2?X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Credential=AKIAIOSFODNN7EXAMPLE%2F20260529%2Fus-east-1%2Fs3%2Faws4_request&X-Amz-Date=20260529T170151Z&X-Amz-Expires=300&X-Amz-SignedHeaders=host&X-Amz-Signature=68d53fdd7ff1866b565bdfe25f0c869f0b68d775a11761ec9f8a84af7756abce
   response:
     body:
       string: ''
@@ -71,7 +71,7 @@ interactions:
       Content-Length:
       - '0'
       Date:
-      - Thu, 28 May 2026 23:29:12 GMT
+      - Fri, 29 May 2026 17:01:51 GMT
       ETag:
       - '"44d88612fea8a8f36de82e1278abb02f"'
       Server:
@@ -84,17 +84,17 @@ interactions:
       X-Amz-Id-2:
       - dd9025bab4ad464b049177c95eb6ebf374d3b3fd1af9251148b658df7ac2e3e8
       X-Amz-Request-Id:
-      - 18B3DE87CE4D4269
+      - 18B417F925D7BD6B
       X-Content-Type-Options:
       - nosniff
       X-Ratelimit-Limit:
-      - '16315'
+      - '14825'
       X-Ratelimit-Remaining:
-      - '16315'
+      - '14825'
       X-Xss-Protection:
       - 1; mode=block
       x-amz-expiration:
-      - expiry-date="Sat, 30 May 2026 00:00:00 GMT", rule-id="expiration-artifact-index_0-instances"
+      - expiry-date="Sun, 31 May 2026 00:00:00 GMT", rule-id="expiration-artifact-index_0-instances"
     status:
       code: 200
       message: OK
@@ -116,12 +116,12 @@ interactions:
       host:
       - localhost:9696
       user-agent:
-      - polyswarm_api/3.21.0 (x86_64-Linux-CPython-3.14.2)
+      - polyswarm_api/3.21.0 (x86_64-Linux-CPython-3.14.4)
     method: PUT
-    uri: http://localhost:9696/v3/instance?id=48730960851087702
+    uri: http://localhost:9696/v3/instance?id=55586137841940135
   response:
     body:
-      string: '{"result":{"artifact_id":"48730960851087702","assertions":[],"bounty_state":0,"community":"gamma","country":"","created":"2026-05-28T23:29:12.594605+00:00","detections":null,"expiration_window":null,"expire_at":null,"extended_type":null,"failed":false,"filename":"malicious","first_seen":"2026-05-28T23:29:12.594605+00:00","id":"48730960851087702","last_scanned":null,"last_seen":null,"md5":null,"metadata":[],"mimetype":null,"permalink":"https://polyswarm.network/scan/results/file/None/48730960851087702","polyscore":null,"result":null,"sha1":null,"sha256":null,"size":null,"type":"FILE","upload_url":"http://minio:9000/artifact-index/instances/81/37/71/81377160-5931-43dc-a44c-0899d7b7128d?X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Credential=AKIAIOSFODNN7EXAMPLE%2F20260528%2Fus-east-1%2Fs3%2Faws4_request&X-Amz-Date=20260528T232912Z&X-Amz-Expires=300&X-Amz-SignedHeaders=host&X-Amz-Signature=38fc57fa103f7c430936bced1b2da5aafb3990910395aae03354e5d8e6fea1e0","votes":[],"window_closed":false},"status":"OK"}
+      string: '{"result":{"artifact_id":"55586137841940135","assertions":[],"bounty_state":0,"community":"gamma","country":"","created":"2026-05-29T17:01:51.560281+00:00","detections":null,"expiration_window":null,"expire_at":null,"extended_type":null,"failed":false,"filename":"malicious","first_seen":"2026-05-29T17:01:51.560281+00:00","id":"55586137841940135","last_scanned":null,"last_seen":null,"md5":null,"metadata":[],"mimetype":null,"permalink":"https://polyswarm.network/scan/results/file/None/55586137841940135","polyscore":null,"result":null,"sha1":null,"sha256":null,"size":null,"type":"FILE","upload_url":"http://minio:9000/artifact-index/instances/1e/70/f7/1e70f777-22e3-4abd-83b5-46ac7abc0ec2?X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Credential=AKIAIOSFODNN7EXAMPLE%2F20260529%2Fus-east-1%2Fs3%2Faws4_request&X-Amz-Date=20260529T170151Z&X-Amz-Expires=300&X-Amz-SignedHeaders=host&X-Amz-Signature=68d53fdd7ff1866b565bdfe25f0c869f0b68d775a11761ec9f8a84af7756abce","votes":[],"window_closed":false},"status":"OK"}
 
         '
     headers:
@@ -136,7 +136,7 @@ interactions:
       Content-Type:
       - application/json
       Date:
-      - Thu, 28 May 2026 23:29:12 GMT
+      - Fri, 29 May 2026 17:01:51 GMT
       Server:
       - gunicorn
       X-Billing-ID:
@@ -145,7 +145,7 @@ interactions:
       code: 200
       message: OK
 - request:
-    body: '{"artifact_id":"48730960851087702","provider_slug":"cape","vm_slug":"win-10-build-19041","network_enabled":1}'
+    body: '{"artifact_id":"55586137841940135","provider_slug":"cape","vm_slug":"win-10-build-19041","network_enabled":1}'
     headers:
       accept:
       - '*/*'
@@ -162,12 +162,12 @@ interactions:
       host:
       - localhost:9696
       user-agent:
-      - polyswarm_api/3.21.0 (x86_64-Linux-CPython-3.14.2)
+      - polyswarm_api/3.21.0 (x86_64-Linux-CPython-3.14.4)
     method: POST
     uri: http://localhost:9696/v3/sandbox/sandboxtask
   response:
     body:
-      string: '{"errors":null,"result":"Could not find storage path for instance 48730960851087702.","status":"error"}
+      string: '{"errors":null,"result":"Could not find storage path for instance 55586137841940135.","status":"error"}
 
         '
     headers:
@@ -182,14 +182,14 @@ interactions:
       Content-Type:
       - application/json
       Date:
-      - Thu, 28 May 2026 23:29:12 GMT
+      - Fri, 29 May 2026 17:01:51 GMT
       Server:
       - gunicorn
     status:
       code: 422
       message: UNPROCESSABLE ENTITY
 - request:
-    body: '{"artifact_id":"48730960851087702","provider_slug":"cape","vm_slug":"win-10-build-19041","network_enabled":1}'
+    body: '{"artifact_id":"55586137841940135","provider_slug":"cape","vm_slug":"win-10-build-19041","network_enabled":1}'
     headers:
       accept:
       - '*/*'
@@ -206,7 +206,7 @@ interactions:
       host:
       - localhost:9696
       user-agent:
-      - polyswarm_api/3.21.0 (x86_64-Linux-CPython-3.14.2)
+      - polyswarm_api/3.21.0 (x86_64-Linux-CPython-3.14.4)
     method: POST
     uri: http://localhost:9696/v3/sandbox/sandboxtask
   response:
@@ -214,7 +214,7 @@ interactions:
       string: '{"result":{"account_number":null,"artifact":{"extended_type":"EICAR
         virus test files","failed":false,"filename":"malicious","mimetype":"text/plain","size":68},"community":"gamma","config":{"arguments":"","artifact_type":"FILE","browser":null,"network_enabled":true,"provider":{"id":"1","name":"cape","slug":"cape","tool":"cape_sandbox_v2"},"target":"malicious","vm":{"architecture":"x64","id":"100","language":"English
         (United States)","name":"Microsoft Windows 10 Pro Build 19041","os_name":"Microsoft
-        Windows 10 Pro","os_version":"10.0.19041 Build 19041","slug":"win-10-build-19041"}},"created":"2026-05-28T23:29:13.731718+00:00","expiration":"2026-05-29T02:29:13.728936+00:00","id":"7779962166233133","instance_id":"48730960851087702","report":{},"sandbox":"cape","sandbox_artifacts":[],"sha256":"275a021bbfb6489e54d471899f7db9d1663fc695ec2fe2a2c4538aabf651fd0f","status":"PENDING","team_account_number":null,"upload_url":null},"status":"OK"}
+        Windows 10 Pro","os_version":"10.0.19041 Build 19041","slug":"win-10-build-19041"}},"created":"2026-05-29T17:01:52.652771+00:00","expiration":"2026-05-29T20:01:52.649547+00:00","id":"17200328531466909","instance_id":"55586137841940135","report":{},"sandbox":"cape","sandbox_artifacts":[],"sha256":"275a021bbfb6489e54d471899f7db9d1663fc695ec2fe2a2c4538aabf651fd0f","status":"PENDING","team_account_number":null,"upload_url":null},"status":"OK"}
 
         '
     headers:
@@ -225,11 +225,11 @@ interactions:
       Connection:
       - keep-alive
       Content-Length:
-      - '946'
+      - '947'
       Content-Type:
       - application/json
       Date:
-      - Thu, 28 May 2026 23:29:13 GMT
+      - Fri, 29 May 2026 17:01:52 GMT
       Server:
       - gunicorn
       X-Billing-ID:
@@ -238,7 +238,7 @@ interactions:
       code: 200
       message: OK
 - request:
-    body: '{"artifact_id":"48730960851087702","provider_slug":"triage","vm_slug":"win10-build-15063","network_enabled":0}'
+    body: '{"artifact_id":"55586137841940135","provider_slug":"triage","vm_slug":"win10-build-15063","network_enabled":0}'
     headers:
       accept:
       - '*/*'
@@ -255,7 +255,7 @@ interactions:
       host:
       - localhost:9696
       user-agent:
-      - polyswarm_api/3.21.0 (x86_64-Linux-CPython-3.14.2)
+      - polyswarm_api/3.21.0 (x86_64-Linux-CPython-3.14.4)
     method: POST
     uri: http://localhost:9696/v3/sandbox/sandboxtask
   response:
@@ -263,7 +263,7 @@ interactions:
       string: '{"result":{"account_number":null,"artifact":{"extended_type":"EICAR
         virus test files","failed":false,"filename":"malicious","mimetype":"text/plain","size":68},"community":"gamma","config":{"arguments":"","artifact_type":"FILE","browser":null,"network_enabled":false,"provider":{"id":"2","name":"triage","slug":"triage","tool":"triage_sandbox_v0"},"target":"malicious","vm":{"Architecture":"x64","id":"200","language":"English
         (United States)","name":"windows11-21h2-x64","os_name":"Windows 11 21h2 x64","os_version":"21H2
-        Build 22000.493","profile":"poly","slug":"windows11-21h2-x64"}},"created":"2026-05-28T23:29:13.775777+00:00","expiration":"2026-05-29T02:29:13.772468+00:00","id":"48365787947934844","instance_id":"48730960851087702","report":{},"sandbox":"triage","sandbox_artifacts":[],"sha256":"275a021bbfb6489e54d471899f7db9d1663fc695ec2fe2a2c4538aabf651fd0f","status":"PENDING","team_account_number":null,"upload_url":null},"status":"OK"}
+        Build 22000.493","profile":"poly","slug":"windows11-21h2-x64"}},"created":"2026-05-29T17:01:52.689668+00:00","expiration":"2026-05-29T20:01:52.686773+00:00","id":"32263438542824994","instance_id":"55586137841940135","report":{},"sandbox":"triage","sandbox_artifacts":[],"sha256":"275a021bbfb6489e54d471899f7db9d1663fc695ec2fe2a2c4538aabf651fd0f","status":"PENDING","team_account_number":null,"upload_url":null},"status":"OK"}
 
         '
     headers:
@@ -278,7 +278,7 @@ interactions:
       Content-Type:
       - application/json
       Date:
-      - Thu, 28 May 2026 23:29:13 GMT
+      - Fri, 29 May 2026 17:01:52 GMT
       Server:
       - gunicorn
       X-Billing-ID:

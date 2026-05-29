@@ -13,7 +13,7 @@ interactions:
       host:
       - localhost:9696
       user-agent:
-      - polyswarm_api/3.21.0 (x86_64-Linux-CPython-3.14.2)
+      - polyswarm_api/3.21.0 (x86_64-Linux-CPython-3.14.4)
     method: GET
     uri: http://localhost:9696/v3/ioc/known?domain=polyswarm.network
   response:
@@ -33,7 +33,7 @@ interactions:
       Content-Type:
       - application/json
       Date:
-      - Thu, 28 May 2026 23:27:42 GMT
+      - Fri, 29 May 2026 17:00:15 GMT
       Server:
       - gunicorn
       X-Billing-ID:
@@ -59,12 +59,12 @@ interactions:
       host:
       - localhost:9696
       user-agent:
-      - polyswarm_api/3.21.0 (x86_64-Linux-CPython-3.14.2)
+      - polyswarm_api/3.21.0 (x86_64-Linux-CPython-3.14.4)
     method: POST
     uri: http://localhost:9696/v3/ioc/known
   response:
     body:
-      string: '{"result":{"good":true,"host":"polyswarm.network","id":65,"source":"test","type":"domain"},"status":"OK"}
+      string: '{"result":{"good":true,"host":"polyswarm.network","id":9,"source":"test","type":"domain"},"status":"OK"}
 
         '
     headers:
@@ -75,11 +75,11 @@ interactions:
       Connection:
       - keep-alive
       Content-Length:
-      - '106'
+      - '105'
       Content-Type:
       - application/json
       Date:
-      - Thu, 28 May 2026 23:27:42 GMT
+      - Fri, 29 May 2026 17:00:15 GMT
       Server:
       - gunicorn
       X-Billing-ID:
@@ -101,12 +101,12 @@ interactions:
       host:
       - localhost:9696
       user-agent:
-      - polyswarm_api/3.21.0 (x86_64-Linux-CPython-3.14.2)
+      - polyswarm_api/3.21.0 (x86_64-Linux-CPython-3.14.4)
     method: DELETE
-    uri: http://localhost:9696/v3/ioc/known?id=65
+    uri: http://localhost:9696/v3/ioc/known?id=9
   response:
     body:
-      string: '{"result":{"good":true,"host":"polyswarm.network","id":65,"source":"test","type":"domain"},"status":"OK"}
+      string: '{"result":{"good":true,"host":"polyswarm.network","id":9,"source":"test","type":"domain"},"status":"OK"}
 
         '
     headers:
@@ -117,11 +117,11 @@ interactions:
       Connection:
       - keep-alive
       Content-Length:
-      - '106'
+      - '105'
       Content-Type:
       - application/json
       Date:
-      - Thu, 28 May 2026 23:27:42 GMT
+      - Fri, 29 May 2026 17:00:15 GMT
       Server:
       - gunicorn
       X-Billing-ID:
