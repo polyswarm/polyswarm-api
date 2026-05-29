@@ -146,31 +146,35 @@ class ScanTestCaseV2(TestCase):
             with open(os.path.join(path, 'temp_file_handle'), 'rb') as f:
                 assert f.read() == b'X5O!P%@AP[4\\PZX54(P^)7CC)7}$EICAR-STANDARD-ANTIVIRUS-TEST-FILE!$H+H*'
 
-    @pytest.mark.skip(
-        reason="The artifact-archive stream feed never produces entries on this "
-               "e2e: the archiver background service that tarballs submissions "
-               "into the stream bucket isn't running in the local container "
-               "stack (a submitted artifact is searchable in ~1s but stream() "
-               "stays empty past 120s). Same class as sandbox_task_latest "
-               "needing workers. Re-record against an environment where the "
-               "archiver runs.",
-    )
     @vcr.use_cassette()
     def test_stream(self):
         api = PolyswarmAPI(self.test_api_key, uri=f'http://localhost:9696/{self.api_version}', community='gamma')
-        # Provision: stream feed reflects submissions in the artifact-archive
-        # bucket; submit once so a fresh e2e has something to yield.
-        api.submit('test/malicious')
+        # The archiver batches submitted instances into a downloadable archive
+        # once ARTIFACT_ARCHIVES_INSTANCE_COUNT (3 in e2e) is *exceeded*, after
+        # an ARCHIVES_CREATION_DELAY (~30s). Submit enough EICAR to cross the
+        # >3 threshold, then poll the stream feed until the archive lands.
+        for _ in range(5):
+            api.submit('test/malicious')
         with temp_dir({}) as (path, _):
-            # Archive indexing lags the submission on a cold e2e; poll.
-            result = _poll_results(api.stream)
-            assert result, 'stream should yield the submitted artifact archive'
-            artifact_archive = result[0]
+            # Consume only the FIRST archive (next(iter(...))) instead of
+            # list(api.stream()) — the feed accumulates archives and paging
+            # the whole thing would bloat the cassette. One page is enough to
+            # download + verify, and bounds the recording to a single request.
+            artifact_archive = None
+            for _ in range(90):
+                try:
+                    artifact_archive = next(iter(api.stream()), None)
+                except exceptions.NoResultsException:
+                    artifact_archive = None
+                if artifact_archive is not None:
+                    break
+                time.sleep(1)
+            assert artifact_archive is not None, 'stream should yield an archive after >3 submits'
             archive = api.download_archive(path, artifact_archive.uri)
             with tarfile.open(os.path.join(path, archive.artifact_name), 'r:gz') as tar:
                 for member in tar.getmembers():
-                    result = tar.extractfile(member)
-                    assert result.read() == b'X5O!P%@AP[4\\PZX54(P^)7CC)7}$EICAR-STANDARD-ANTIVIRUS-TEST-FILE!$H+H*'
+                    extracted = tar.extractfile(member)
+                    assert extracted.read() == b'X5O!P%@AP[4\\PZX54(P^)7CC)7}$EICAR-STANDARD-ANTIVIRUS-TEST-FILE!$H+H*'
 
     @vcr.use_cassette()
     def test_hash_search(self):
