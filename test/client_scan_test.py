@@ -1,4 +1,5 @@
 import hashlib
+import json
 import os
 import shutil
 import tempfile
@@ -82,6 +83,57 @@ def _poll_results(call, tries=30, delay=1):
             pass
         time.sleep(delay)
     return res
+
+
+# ── Sandbox-task completion (standing in for the sandbox worker) ──────────────
+# The e2e stack has no cape/triage analysis VMs, so a dispatched SandboxTask
+# never produces the callbacks that move it to SUCCEEDED — the only state that
+# makes sandbox_task_latest resolve (it reads a search index the backend
+# populates when a task succeeds). These helpers replay the exact HTTP calls the
+# sandbox worker makes to the sandbox service (POST api/sandbox-task/ for status;
+# POST + PUT + PATCH api/sandbox-artifact/ for results), which drive the task to
+# completion server-side. Requires the e2e sandbox-service worker to be running.
+SANDBOX_SERVICE_URI = 'http://localhost:54110'
+
+
+def _post_sandbox_status(task_id, status):
+    httpx.post(f'{SANDBOX_SERVICE_URI}/api/sandbox-task/',
+               json={'sandbox_task_id': task_id, 'status': status, 'errors': []},
+               timeout=30).raise_for_status()
+
+
+def _submit_sandbox_artifact(task_id, content, artifact_type, name,
+                             content_type='application/json',
+                             mimetype='application/json', extended_type='JSON text data'):
+    if isinstance(content, (dict, list)):
+        content = json.dumps(content).encode()
+    resp = httpx.post(
+        f'{SANDBOX_SERVICE_URI}/api/sandbox-artifact/',
+        json={'sandbox_task_id': task_id, 'name': name, 'artifact_type': artifact_type,
+              'mimetype': mimetype, 'extended_type': extended_type,
+              'sha256': hashlib.sha256(content).hexdigest(),
+              'priority': 10, 'content_type': content_type},
+        timeout=30)
+    resp.raise_for_status()
+    created = resp.json()
+    httpx.put(created['upload_url'], content=content, timeout=60).raise_for_status()
+    httpx.patch(f'{SANDBOX_SERVICE_URI}/api/sandbox-artifact/{created["id"]}/',
+                timeout=30).raise_for_status()
+
+
+def _complete_sandbox_task(task_id, sandbox):
+    """Drive a queued SandboxTask to SUCCEEDED without a real VM: STARTED -> a
+    REPORT artifact (whose JSON the backend records as the sandbox tool's
+    metadata, which is what lets the task complete) -> COLLECTING_DATA. triage
+    additionally requires a RECORDING artifact before it will complete, so submit
+    one first. Status codes: STARTED=1, COLLECTING_DATA=8."""
+    _post_sandbox_status(task_id, 1)
+    _submit_sandbox_artifact(task_id, {'malscore': 5.0}, 'report', f'{sandbox}_report.json')
+    if sandbox == 'triage':
+        _submit_sandbox_artifact(task_id, b'recording-data', 'recording', 'recording.cast',
+                                 content_type='application/octet-stream',
+                                 mimetype='application/octet-stream', extended_type='data')
+    _post_sandbox_status(task_id, 8)
 
 
 class JsonResourceTestCase(TestCase):
@@ -649,28 +701,23 @@ class ScanTestCaseV2(TestCase):
         assert status.sha256 == 'a709f37b3a50608f2e9830f92ea25da04bfa4f34d2efecfd061de9f29af02427'
         assert status.created == 'gamma'
 
-    @pytest.mark.skip(
-        reason='Requires the cape + triage sandbox workers to actually process '
-               'queued tasks. sandbox_task_latest reads from '
-               'SandboxTaskSearchHash, which is only populated when a task '
-               'transitions to SUCCEEDED (see '
-               'artifact_index/services/sandbox.py::update_sandbox_search). On '
-               'a fresh e2e without active sandbox workers no task ever '
-               'reaches SUCCEEDED, so the search-hash table stays empty and '
-               'latest returns 404. Re-record against an environment that has '
-               'the workers running, or have the workers stub a SUCCEEDED '
-               'state in test mode.',
-    )
     @vcr.use_cassette()
     def test_sandboxtask_latest(self):
         v3api = PolyswarmAPI(self.test_api_key, uri='http://localhost:9696/v3', community='gamma')
-        # Provision: submit + queue cape and triage tasks; use the SHA256 the
-        # submit returned (or the well-known EICAR sha256 for the malicious
-        # fixture). The latest endpoint returns the most-recently queued task
-        # per sandbox.
+        # Submit + queue cape and triage tasks. There are no cape/triage analysis
+        # VMs in e2e, so each task is driven to SUCCEEDED by replaying the sandbox
+        # worker's HTTP calls (see _complete_sandbox_task) — that is what makes
+        # sandbox_task_latest resolve per sandbox.
         instance = v3api.submit('test/malicious')
-        _dispatch_sandbox(v3api, instance.id, 'cape', 'win-10-build-19041', True)
-        _dispatch_sandbox(v3api, instance.id, 'triage', 'win10-build-15063', False)
+        cape = _dispatch_sandbox(v3api, instance.id, 'cape', 'win-10-build-19041', True)
+        triage = _dispatch_sandbox(v3api, instance.id, 'triage', 'win10-build-15063', False)
+
+        # Let the sandbox service register the dispatched tasks (it creates the
+        # root artifact the status/result callbacks key off) before we complete
+        # them; the autouse fixture no-ops this sleep on VCR replay.
+        time.sleep(6)
+        _complete_sandbox_task(cape.id, 'cape')
+        _complete_sandbox_task(triage.id, 'triage')
 
         sha256 = '275a021bbfb6489e54d471899f7db9d1663fc695ec2fe2a2c4538aabf651fd0f'
         latest_cape = _wait_for_sandbox_task(v3api, v3api.sandbox_task_latest, sha256, 'cape')

@@ -16,6 +16,7 @@ Run with:
 """
 import asyncio
 import hashlib
+import json
 import os
 import tempfile
 from contextlib import contextmanager
@@ -92,6 +93,55 @@ async def _poll_results(agen_factory, tries=30, delay=1):
             pass
         await asyncio.sleep(delay)
     return res
+
+
+# ── Sandbox-task completion (standing in for the sandbox worker) ──────────────
+# Async counterparts of the sync helpers in client_scan_test.py: with no
+# cape/triage analysis VMs in e2e, replay the sandbox worker's HTTP calls to the
+# sandbox service to drive a dispatched SandboxTask to SUCCEEDED (the only state
+# that makes sandbox_task_latest resolve). Requires the e2e sandbox-service
+# worker to be running.
+SANDBOX_SERVICE_URI = 'http://localhost:54110'
+
+
+async def _post_sandbox_status(client, task_id, status):
+    resp = await client.post(f'{SANDBOX_SERVICE_URI}/api/sandbox-task/',
+                             json={'sandbox_task_id': task_id, 'status': status, 'errors': []})
+    resp.raise_for_status()
+
+
+async def _submit_sandbox_artifact(client, task_id, content, artifact_type, name,
+                                   content_type='application/json',
+                                   mimetype='application/json', extended_type='JSON text data'):
+    if isinstance(content, (dict, list)):
+        content = json.dumps(content).encode()
+    resp = await client.post(
+        f'{SANDBOX_SERVICE_URI}/api/sandbox-artifact/',
+        json={'sandbox_task_id': task_id, 'name': name, 'artifact_type': artifact_type,
+              'mimetype': mimetype, 'extended_type': extended_type,
+              'sha256': hashlib.sha256(content).hexdigest(),
+              'priority': 10, 'content_type': content_type})
+    resp.raise_for_status()
+    created = resp.json()
+    (await client.put(created['upload_url'], content=content)).raise_for_status()
+    (await client.patch(f'{SANDBOX_SERVICE_URI}/api/sandbox-artifact/{created["id"]}/')).raise_for_status()
+
+
+async def _complete_sandbox_task(task_id, sandbox):
+    """Drive a queued SandboxTask to SUCCEEDED without a real VM: STARTED -> a
+    REPORT artifact (whose JSON the backend records as the sandbox tool's
+    metadata, which lets the task complete) -> COLLECTING_DATA. triage also
+    requires a RECORDING artifact first. Status codes: STARTED=1,
+    COLLECTING_DATA=8. See client_scan_test.py for the full rationale."""
+    async with httpx.AsyncClient(timeout=60) as client:
+        await _post_sandbox_status(client, task_id, 1)
+        await _submit_sandbox_artifact(client, task_id, {'malscore': 5.0},
+                                       'report', f'{sandbox}_report.json')
+        if sandbox == 'triage':
+            await _submit_sandbox_artifact(client, task_id, b'recording-data', 'recording',
+                                           'recording.cast', content_type='application/octet-stream',
+                                           mimetype='application/octet-stream', extended_type='data')
+        await _post_sandbox_status(client, task_id, 8)
 
 
 # ── VCR setup (mirrors client_scan_test.py, adds match_on for httpx compat) ──
@@ -323,19 +373,19 @@ class TestAsyncScanCase:
             assert task.sandbox == 'triage'
             assert task.json['config']['network_enabled'] is False
 
-    @pytest.mark.skip(
-        reason='Requires sandbox workers to actually process queued tasks. '
-               'sandbox_task_latest reads from SandboxTaskSearchHash which is '
-               'only populated on SUCCEEDED tasks (see sync sibling for the '
-               'full pointer). On a fresh e2e without cape/triage workers no '
-               'task succeeds and latest returns 404.',
-    )
     @vcr.use_cassette()
     async def test_async_sandboxtask_latest(self):
         async with self._api() as api:
             instance = await api.submit('test/malicious')
-            await _dispatch_sandbox(api, instance.id, 'cape', 'win-10-build-19041', True)
-            await _dispatch_sandbox(api, instance.id, 'triage', 'win10-build-15063', False)
+            cape = await _dispatch_sandbox(api, instance.id, 'cape', 'win-10-build-19041', True)
+            triage = await _dispatch_sandbox(api, instance.id, 'triage', 'win10-build-15063', False)
+
+            # No cape/triage VMs in e2e — drive each task to SUCCEEDED by replaying
+            # the sandbox worker's HTTP calls (see sync test_sandboxtask_latest).
+            # The autouse fixture no-ops this sleep on VCR replay.
+            await asyncio.sleep(6)
+            await _complete_sandbox_task(cape.id, 'cape')
+            await _complete_sandbox_task(triage.id, 'triage')
 
             latest_cape = await _wait_for_sandbox_task(
                 lambda: api.sandbox_task_latest(SHA256, 'cape'),
