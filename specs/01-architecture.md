@@ -97,11 +97,10 @@ class PolySwarmAsyncAPI:
         ):
             yield item
 
-    # Carve-outs: file uploads, polling, the engines property.
+    # Multi-step methods (file uploads, polling) — still plain async methods.
     async def submit(self, artifact, ...): ...
     async def wait_for(self, scan, timeout=...): ...
-    @property
-    def engines(self): ...
+    async def engines(self): ...            # cached listing; you await it
     async def refresh_engine_cache(self): ...
 ```
 
@@ -116,9 +115,9 @@ Endpoint methods are one-liners (or async generators with `async for ... yield`)
 - Async control flow: `async def` → `def`, `await` removed, `async for` → `for`, `aclose` → `close`.
 - Misc: `asyncio` → `time` (so `asyncio.sleep` becomes `time.sleep`), `polyswarm_api.aio.` → `polyswarm_api.`.
 
-One escape hatch: the `engines` property. Async raises `AttributeError` (Python properties can't `await`); the sync mirror needs a working cached property. A post-processing step in the script does an exact-text replace on the AttributeError block to install the sync property after unasync runs.
+No per-symbol escape hatches: every method mirrors cleanly through unasync, including `engines`. (Before 4.0 `engines` was a cached *property*; Python properties can't `await`, so when the async client landed it became a cached `async def` method — `await api.engines()` / `api.engines()` — which unasync rewrites like any other method. This is a breaking change for callers; see [`05-downstream-contract.md`](./05-downstream-contract.md). The previous design kept the property on the sync side via an exact-text post-processing patch; that patch and its drift-detection are now gone.)
 
-The script also dedupes duplicate `import time` lines (a side-effect of the `asyncio → time` rename when `import time` was already present) and adds the `# DO NOT EDIT` header to each generated file.
+Post-processing is purely mechanical: dedupe duplicate `import time` lines (a side-effect of the `asyncio → time` rename when `import time` was already present) and add the `# DO NOT EDIT` header to each generated file.
 
 CI (`.gitlab-ci.yml::test-unasync-mirror`) reruns the script and `git diff --exit-code` to catch stale mirrors. Pre-commit (`.pre-commit-config.yaml`) runs the same on local changes under `aio/`.
 

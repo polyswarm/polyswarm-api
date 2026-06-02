@@ -184,8 +184,8 @@ The full catalogue of methods on the public client surface and which transport h
 | `sandbox_file(artifact, …)` / `sandbox_url(url, …)` | Same file-upload pattern. |
 | `wait_for(scan, timeout=…)` | Polling loop. Uses `await asyncio.sleep` (canonical) / `time.sleep` (generated). |
 | `report_wait_for(report_id, timeout=…)` | Same polling shape. |
-| `refresh_engine_cache()` | Mutates `self._engines`. Required before reading the `engines` attribute. |
-| `engines` (property) | **The one escape-hatch site.** Async raises `AttributeError` (Python properties can't await); sync exposes a working cached property installed by `scripts/regenerate_sync.py` post-processing. |
+| `refresh_engine_cache()` | Mutates `self._engines`. Optional — `engines()` refreshes lazily on first use; call this to force a refresh. |
+| `engines()` (method) | Cached engine listing; refreshes on first call. `await api.engines()` (async) / `api.engines()` (sync) — a plain `async def` method mirrored by unasync like everything else. Was a `property` before 4.0 (properties can't `await`); the property→method change is breaking for callers — see [`05-downstream-contract.md`](./05-downstream-contract.md). |
 | `sandbox_providers()` | Returns the executed request itself so callers can read `.json['result'][slug]`. The async version does `return await self.session.execute(resources.SandboxProvider.list(self))`. |
 
 ## Polling helpers — shape

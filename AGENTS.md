@@ -18,7 +18,7 @@ This file points at the right places to read for context, lays out the gitflow /
 | [`specs/00-overview.md`](./specs/00-overview.md) | What this repo ships, where it sits in the platform, repo layout |
 | [`specs/01-architecture.md`](./specs/01-architecture.md) | Three layers + two transports; async-canonical + unasync codegen; pure descriptors; session-as-transport |
 | [`specs/02-resources.md`](./specs/02-resources.md) | `BaseJsonResource`, classmethod builder convention (returns `PolyswarmRequest` descriptors), per-domain catalogue |
-| [`specs/03-endpoints.md`](./specs/03-endpoints.md) | Endpoint catalogue: `_single` vs `_paginate`, special methods (polling, uploads via session, the `engines` escape hatch) |
+| [`specs/03-endpoints.md`](./specs/03-endpoints.md) | Endpoint catalogue: `_single` vs `_paginate`, special methods (polling, uploads via session, the `engines` cached method) |
 | [`specs/04-testing.md`](./specs/04-testing.md) | Three test tiers (pure unit / respx-mocked / VCR), `ClientTestCase` parametrisation, record-on-delete workflow |
 | [`specs/05-downstream-contract.md`](./specs/05-downstream-contract.md) | What the published surface looks like to consumers (the CLI, downstream services), backward-compat invariants |
 | [`specs/99-open-questions.md`](./specs/99-open-questions.md) | Known follow-ups and unresolved questions |
@@ -73,7 +73,7 @@ Customization: subclass `AsyncPolyswarmSession` (or `PolyswarmSession`), overrid
 
 `httpx` is the single HTTP library — sync uses `httpx.Client`, async uses `httpx.AsyncClient`. Both produce `httpx.Response`; `parse_response` is the same logic on both sides (it's a pure function in `core.py`).
 
-One escape hatch: the `engines` property. Async raises `AttributeError` (properties can't await); the codegen script patches a working sync property into the generated mirror. Documented in [`specs/01-architecture.md`](./specs/01-architecture.md).
+No per-symbol codegen carve-outs: every method — including `engines`, a cached listing you `await api.engines()` (async) / `api.engines()` (sync) — mirrors cleanly through unasync. Post-processing only dedupes imports and adds the `# DO NOT EDIT` header. (`engines` was a cached *property* before 4.0; properties can't `await`, so it became a method when the async client landed — a breaking change for callers; see [`specs/05-downstream-contract.md`](./specs/05-downstream-contract.md).)
 
 ## When adding a new resource
 

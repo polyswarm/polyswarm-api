@@ -37,6 +37,16 @@ The endpoint returns the executed `PolyswarmRequest` itself so callers can read 
 
 **Action:** decide on a future major version whether to convert `sandbox_providers` to return the parsed resource list (breaking change). Not blocking.
 
+## `engines` property → method (downstream call-site updates)
+
+**Status:** shipped in 4.0 (breaking).
+
+`engines` changed from a cached *property* to a method on both clients — `api.engines()` (sync) / `await api.engines()` (async). Python properties can't `await`, so adding the async client forced the change; the codegen escape hatch that used to patch a sync-only property is gone, and sync/async are now fully unasync-mirrored with no per-symbol patches. See `05-downstream-contract.md`.
+
+**Action:** update downstream consumers that read `api.engines` as an attribute to call it instead (`for e in api.engines` → `for e in api.engines()`). Known caller: **polyswarm-cli** — grep it for `.engines` and ship a paired update before/with the 4.0 release so the CLI doesn't break. `refresh_engine_cache()` is unchanged.
+
+**Decision point:** none — the v4 break is intended; this entry just tracks the downstream follow-up.
+
 ## Pagination heuristic — `_single` vs `_paginate`
 
 **Status:** decided per-endpoint, no fully formal rule.
