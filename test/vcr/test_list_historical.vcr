@@ -26,14 +26,14 @@ interactions:
       content-type:
       - application/json
       host:
-      - localhost:9696
+      - artifact-index-e2e:9696
       user-agent:
       - polyswarm_api/3.21.0 (x86_64-Linux-CPython-3.14.4)
     method: POST
-    uri: http://localhost:9696/v3/hunt/historical
+    uri: http://artifact-index-e2e:9696/v3/hunt/historical
   response:
     body:
-      string: '{"result":{"account_number":"111","archives_in_flight":0,"archives_scanned":0,"archives_total":0,"communities":["gamma"],"created":"2026-05-29T17:01:17.272918+00:00","failed_max_retries":0,"failed_other":0,"id":"22714349342045589","progress":null,"results_csv_uri":null,"ruleset_name":null,"status":"PENDING","summary":null,"user_account_number":"111","yara":"rule
+      string: '{"result":{"account_number":"111","archives_in_flight":0,"archives_scanned":0,"archives_total":0,"communities":["gamma"],"created":"2026-06-02T21:31:27.928293+00:00","failed_max_retries":0,"failed_other":0,"id":"63445466069403531","progress":null,"results_csv_uri":null,"ruleset_name":null,"status":"PENDING","summary":null,"user_account_number":"111","yara":"rule
         eicar_av_test {\n    /*\n       Per standard, match only if entire file is
         EICAR string plus optional trailing whitespace.\n       The raw EICAR string
         to be matched is:\n       X5O!P%@AP[4\\PZX54(P^)7CC)7}$EICAR-STANDARD-ANTIVIRUS-TEST-FILE!$H+H*\n    */\n\n    meta:\n        description
@@ -61,7 +61,7 @@ interactions:
       Content-Type:
       - application/json
       Date:
-      - Fri, 29 May 2026 17:01:17 GMT
+      - Tue, 02 Jun 2026 21:31:27 GMT
       Server:
       - gunicorn
       X-Billing-ID:
@@ -96,14 +96,14 @@ interactions:
       content-type:
       - application/json
       host:
-      - localhost:9696
+      - artifact-index-e2e:9696
       user-agent:
       - polyswarm_api/3.21.0 (x86_64-Linux-CPython-3.14.4)
     method: POST
-    uri: http://localhost:9696/v3/hunt/historical
+    uri: http://artifact-index-e2e:9696/v3/hunt/historical
   response:
     body:
-      string: '{"result":{"account_number":"111","archives_in_flight":0,"archives_scanned":0,"archives_total":0,"communities":["gamma"],"created":"2026-05-29T17:01:17.313993+00:00","failed_max_retries":0,"failed_other":0,"id":"75077189488089209","progress":null,"results_csv_uri":null,"ruleset_name":null,"status":"PENDING","summary":null,"user_account_number":"111","yara":"rule
+      string: '{"result":{"account_number":"111","archives_in_flight":0,"archives_scanned":0,"archives_total":0,"communities":["gamma"],"created":"2026-06-02T21:31:27.974136+00:00","failed_max_retries":0,"failed_other":0,"id":"13416837506349032","progress":null,"results_csv_uri":null,"ruleset_name":null,"status":"PENDING","summary":null,"user_account_number":"111","yara":"rule
         eicar_av_test {\n    /*\n       Per standard, match only if entire file is
         EICAR string plus optional trailing whitespace.\n       The raw EICAR string
         to be matched is:\n       X5O!P%@AP[4\\PZX54(P^)7CC)7}$EICAR-STANDARD-ANTIVIRUS-TEST-FILE!$H+H*\n    */\n\n    meta:\n        description
@@ -131,7 +131,7 @@ interactions:
       Content-Type:
       - application/json
       Date:
-      - Fri, 29 May 2026 17:01:17 GMT
+      - Tue, 02 Jun 2026 21:31:27 GMT
       Server:
       - gunicorn
       X-Billing-ID:
@@ -166,14 +166,14 @@ interactions:
       content-type:
       - application/json
       host:
-      - localhost:9696
+      - artifact-index-e2e:9696
       user-agent:
       - polyswarm_api/3.21.0 (x86_64-Linux-CPython-3.14.4)
     method: POST
-    uri: http://localhost:9696/v3/hunt/historical
+    uri: http://artifact-index-e2e:9696/v3/hunt/historical
   response:
     body:
-      string: '{"result":{"account_number":"111","archives_in_flight":0,"archives_scanned":0,"archives_total":0,"communities":["gamma"],"created":"2026-05-29T17:01:17.354533+00:00","failed_max_retries":0,"failed_other":0,"id":"9685870359178509","progress":null,"results_csv_uri":null,"ruleset_name":null,"status":"PENDING","summary":null,"user_account_number":"111","yara":"rule
+      string: '{"result":{"account_number":"111","archives_in_flight":0,"archives_scanned":0,"archives_total":0,"communities":["gamma"],"created":"2026-06-02T21:31:28.013493+00:00","failed_max_retries":0,"failed_other":0,"id":"99074218426606500","progress":null,"results_csv_uri":null,"ruleset_name":null,"status":"PENDING","summary":null,"user_account_number":"111","yara":"rule
         eicar_av_test {\n    /*\n       Per standard, match only if entire file is
         EICAR string plus optional trailing whitespace.\n       The raw EICAR string
         to be matched is:\n       X5O!P%@AP[4\\PZX54(P^)7CC)7}$EICAR-STANDARD-ANTIVIRUS-TEST-FILE!$H+H*\n    */\n\n    meta:\n        description
@@ -197,11 +197,11 @@ interactions:
       Connection:
       - keep-alive
       Content-Length:
-      - '1478'
+      - '1479'
       Content-Type:
       - application/json
       Date:
-      - Fri, 29 May 2026 17:01:17 GMT
+      - Tue, 02 Jun 2026 21:31:28 GMT
       Server:
       - gunicorn
       X-Billing-ID:
@@ -236,14 +236,14 @@ interactions:
       content-type:
       - application/json
       host:
-      - localhost:9696
+      - artifact-index-e2e:9696
       user-agent:
       - polyswarm_api/3.21.0 (x86_64-Linux-CPython-3.14.4)
     method: POST
-    uri: http://localhost:9696/v3/hunt/historical
+    uri: http://artifact-index-e2e:9696/v3/hunt/historical
   response:
     body:
-      string: '{"result":{"account_number":"111","archives_in_flight":0,"archives_scanned":0,"archives_total":0,"communities":["gamma"],"created":"2026-05-29T17:01:17.395540+00:00","failed_max_retries":0,"failed_other":0,"id":"30477069900805755","progress":null,"results_csv_uri":null,"ruleset_name":null,"status":"PENDING","summary":null,"user_account_number":"111","yara":"rule
+      string: '{"result":{"account_number":"111","archives_in_flight":0,"archives_scanned":0,"archives_total":0,"communities":["gamma"],"created":"2026-06-02T21:31:28.056556+00:00","failed_max_retries":0,"failed_other":0,"id":"34541611247887338","progress":null,"results_csv_uri":null,"ruleset_name":null,"status":"PENDING","summary":null,"user_account_number":"111","yara":"rule
         eicar_av_test {\n    /*\n       Per standard, match only if entire file is
         EICAR string plus optional trailing whitespace.\n       The raw EICAR string
         to be matched is:\n       X5O!P%@AP[4\\PZX54(P^)7CC)7}$EICAR-STANDARD-ANTIVIRUS-TEST-FILE!$H+H*\n    */\n\n    meta:\n        description
@@ -271,7 +271,7 @@ interactions:
       Content-Type:
       - application/json
       Date:
-      - Fri, 29 May 2026 17:01:17 GMT
+      - Tue, 02 Jun 2026 21:31:28 GMT
       Server:
       - gunicorn
       X-Billing-ID:
@@ -306,14 +306,14 @@ interactions:
       content-type:
       - application/json
       host:
-      - localhost:9696
+      - artifact-index-e2e:9696
       user-agent:
       - polyswarm_api/3.21.0 (x86_64-Linux-CPython-3.14.4)
     method: POST
-    uri: http://localhost:9696/v3/hunt/historical
+    uri: http://artifact-index-e2e:9696/v3/hunt/historical
   response:
     body:
-      string: '{"result":{"account_number":"111","archives_in_flight":0,"archives_scanned":0,"archives_total":0,"communities":["gamma"],"created":"2026-05-29T17:01:17.437199+00:00","failed_max_retries":0,"failed_other":0,"id":"33522825120190788","progress":null,"results_csv_uri":null,"ruleset_name":null,"status":"PENDING","summary":null,"user_account_number":"111","yara":"rule
+      string: '{"result":{"account_number":"111","archives_in_flight":0,"archives_scanned":0,"archives_total":0,"communities":["gamma"],"created":"2026-06-02T21:31:28.099774+00:00","failed_max_retries":0,"failed_other":0,"id":"78870860612494156","progress":null,"results_csv_uri":null,"ruleset_name":null,"status":"PENDING","summary":null,"user_account_number":"111","yara":"rule
         eicar_av_test {\n    /*\n       Per standard, match only if entire file is
         EICAR string plus optional trailing whitespace.\n       The raw EICAR string
         to be matched is:\n       X5O!P%@AP[4\\PZX54(P^)7CC)7}$EICAR-STANDARD-ANTIVIRUS-TEST-FILE!$H+H*\n    */\n\n    meta:\n        description
@@ -341,7 +341,7 @@ interactions:
       Content-Type:
       - application/json
       Date:
-      - Fri, 29 May 2026 17:01:17 GMT
+      - Tue, 02 Jun 2026 21:31:28 GMT
       Server:
       - gunicorn
       X-Billing-ID:
@@ -361,14 +361,14 @@ interactions:
       connection:
       - keep-alive
       host:
-      - localhost:9696
+      - artifact-index-e2e:9696
       user-agent:
       - polyswarm_api/3.21.0 (x86_64-Linux-CPython-3.14.4)
     method: GET
-    uri: http://localhost:9696/v3/hunt/historical/list?community=gamma
+    uri: http://artifact-index-e2e:9696/v3/hunt/historical/list?community=gamma
   response:
     body:
-      string: '{"has_more":false,"limit":50,"result":[{"account_number":"111","archives_in_flight":0,"archives_scanned":0,"archives_total":0,"created":"2026-05-29T17:01:17.437199+00:00","id":"33522825120190788","progress":null,"results_csv_uri":null,"ruleset_name":null,"status":"PENDING","summary":null,"user_account_number":"111","yara":null},{"account_number":"111","archives_in_flight":0,"archives_scanned":0,"archives_total":0,"created":"2026-05-29T17:01:17.395540+00:00","id":"30477069900805755","progress":null,"results_csv_uri":null,"ruleset_name":null,"status":"PENDING","summary":null,"user_account_number":"111","yara":null},{"account_number":"111","archives_in_flight":0,"archives_scanned":0,"archives_total":0,"created":"2026-05-29T17:01:17.354533+00:00","id":"9685870359178509","progress":null,"results_csv_uri":null,"ruleset_name":null,"status":"PENDING","summary":null,"user_account_number":"111","yara":null},{"account_number":"111","archives_in_flight":0,"archives_scanned":0,"archives_total":0,"created":"2026-05-29T17:01:17.313993+00:00","id":"75077189488089209","progress":null,"results_csv_uri":null,"ruleset_name":null,"status":"PENDING","summary":null,"user_account_number":"111","yara":null},{"account_number":"111","archives_in_flight":0,"archives_scanned":0,"archives_total":0,"created":"2026-05-29T17:01:17.272918+00:00","id":"22714349342045589","progress":null,"results_csv_uri":null,"ruleset_name":null,"status":"PENDING","summary":null,"user_account_number":"111","yara":null}],"status":"OK"}
+      string: '{"has_more":false,"limit":50,"result":[{"account_number":"111","archives_in_flight":0,"archives_scanned":0,"archives_total":0,"created":"2026-06-02T21:31:28.099774+00:00","id":"78870860612494156","progress":null,"results_csv_uri":null,"ruleset_name":null,"status":"PENDING","summary":null,"user_account_number":"111","yara":null},{"account_number":"111","archives_in_flight":0,"archives_scanned":0,"archives_total":0,"created":"2026-06-02T21:31:28.056556+00:00","id":"34541611247887338","progress":null,"results_csv_uri":null,"ruleset_name":null,"status":"PENDING","summary":null,"user_account_number":"111","yara":null},{"account_number":"111","archives_in_flight":0,"archives_scanned":0,"archives_total":0,"created":"2026-06-02T21:31:28.013493+00:00","id":"99074218426606500","progress":null,"results_csv_uri":null,"ruleset_name":null,"status":"PENDING","summary":null,"user_account_number":"111","yara":null},{"account_number":"111","archives_in_flight":0,"archives_scanned":0,"archives_total":0,"created":"2026-06-02T21:31:27.974136+00:00","id":"13416837506349032","progress":null,"results_csv_uri":null,"ruleset_name":null,"status":"PENDING","summary":null,"user_account_number":"111","yara":null},{"account_number":"111","archives_in_flight":0,"archives_scanned":0,"archives_total":0,"created":"2026-06-02T21:31:27.928293+00:00","id":"63445466069403531","progress":null,"results_csv_uri":null,"ruleset_name":null,"status":"PENDING","summary":null,"user_account_number":"111","yara":null}],"status":"OK"}
 
         '
     headers:
@@ -379,11 +379,11 @@ interactions:
       Connection:
       - keep-alive
       Content-Length:
-      - '1509'
+      - '1510'
       Content-Type:
       - application/json
       Date:
-      - Fri, 29 May 2026 17:01:17 GMT
+      - Tue, 02 Jun 2026 21:31:28 GMT
       Server:
       - gunicorn
       X-Billing-ID:
@@ -392,7 +392,7 @@ interactions:
       code: 200
       message: OK
 - request:
-    body: '{"historical_ids":["22714349342045589","75077189488089209","9685870359178509","30477069900805755","33522825120190788"],"community":"gamma"}'
+    body: '{"historical_ids":["63445466069403531","13416837506349032","99074218426606500","34541611247887338","78870860612494156"],"community":"gamma"}'
     headers:
       accept:
       - '*/*'
@@ -403,18 +403,18 @@ interactions:
       connection:
       - keep-alive
       content-length:
-      - '139'
+      - '140'
       content-type:
       - application/json
       host:
-      - localhost:9696
+      - artifact-index-e2e:9696
       user-agent:
       - polyswarm_api/3.21.0 (x86_64-Linux-CPython-3.14.4)
     method: DELETE
-    uri: http://localhost:9696/v3/hunt/historical/list
+    uri: http://artifact-index-e2e:9696/v3/hunt/historical/list
   response:
     body:
-      string: '{"has_more":true,"limit":50,"result":[{"account_number":"111","archives_in_flight":0,"archives_scanned":0,"archives_total":0,"created":"2026-05-29T17:01:17.272918+00:00","id":"22714349342045589","progress":null,"results_csv_uri":null,"ruleset_name":null,"status":"DELETING","summary":null,"user_account_number":"111","yara":null},{"account_number":"111","archives_in_flight":0,"archives_scanned":0,"archives_total":0,"created":"2026-05-29T17:01:17.313993+00:00","id":"75077189488089209","progress":null,"results_csv_uri":null,"ruleset_name":null,"status":"DELETING","summary":null,"user_account_number":"111","yara":null},{"account_number":"111","archives_in_flight":0,"archives_scanned":0,"archives_total":0,"created":"2026-05-29T17:01:17.354533+00:00","id":"9685870359178509","progress":null,"results_csv_uri":null,"ruleset_name":null,"status":"DELETING","summary":null,"user_account_number":"111","yara":null},{"account_number":"111","archives_in_flight":0,"archives_scanned":0,"archives_total":0,"created":"2026-05-29T17:01:17.395540+00:00","id":"30477069900805755","progress":null,"results_csv_uri":null,"ruleset_name":null,"status":"DELETING","summary":null,"user_account_number":"111","yara":null},{"account_number":"111","archives_in_flight":0,"archives_scanned":0,"archives_total":0,"created":"2026-05-29T17:01:17.437199+00:00","id":"33522825120190788","progress":null,"results_csv_uri":null,"ruleset_name":null,"status":"DELETING","summary":null,"user_account_number":"111","yara":null}],"status":"OK"}
+      string: '{"has_more":true,"limit":50,"result":[{"account_number":"111","archives_in_flight":0,"archives_scanned":0,"archives_total":0,"created":"2026-06-02T21:31:27.928293+00:00","id":"63445466069403531","progress":null,"results_csv_uri":null,"ruleset_name":null,"status":"DELETING","summary":null,"user_account_number":"111","yara":null},{"account_number":"111","archives_in_flight":0,"archives_scanned":0,"archives_total":0,"created":"2026-06-02T21:31:27.974136+00:00","id":"13416837506349032","progress":null,"results_csv_uri":null,"ruleset_name":null,"status":"DELETING","summary":null,"user_account_number":"111","yara":null},{"account_number":"111","archives_in_flight":0,"archives_scanned":0,"archives_total":0,"created":"2026-06-02T21:31:28.013493+00:00","id":"99074218426606500","progress":null,"results_csv_uri":null,"ruleset_name":null,"status":"DELETING","summary":null,"user_account_number":"111","yara":null},{"account_number":"111","archives_in_flight":0,"archives_scanned":0,"archives_total":0,"created":"2026-06-02T21:31:28.056556+00:00","id":"34541611247887338","progress":null,"results_csv_uri":null,"ruleset_name":null,"status":"DELETING","summary":null,"user_account_number":"111","yara":null},{"account_number":"111","archives_in_flight":0,"archives_scanned":0,"archives_total":0,"created":"2026-06-02T21:31:28.099774+00:00","id":"78870860612494156","progress":null,"results_csv_uri":null,"ruleset_name":null,"status":"DELETING","summary":null,"user_account_number":"111","yara":null}],"status":"OK"}
 
         '
     headers:
@@ -425,11 +425,11 @@ interactions:
       Connection:
       - keep-alive
       Content-Length:
-      - '1513'
+      - '1514'
       Content-Type:
       - application/json
       Date:
-      - Fri, 29 May 2026 17:01:17 GMT
+      - Tue, 02 Jun 2026 21:31:28 GMT
       Server:
       - gunicorn
       X-Billing-ID:

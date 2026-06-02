@@ -11,11 +11,11 @@ interactions:
       connection:
       - keep-alive
       host:
-      - localhost:9696
+      - artifact-index-e2e:9696
       user-agent:
       - polyswarm_api/3.21.0 (x86_64-Linux-CPython-3.14.4)
     method: GET
-    uri: http://localhost:9696/v3/ioc/known?domain=polyswarm.network
+    uri: http://artifact-index-e2e:9696/v3/ioc/known?domain=polyswarm.network
   response:
     body:
       string: '{"result":[],"status":"OK"}
@@ -33,7 +33,7 @@ interactions:
       Content-Type:
       - application/json
       Date:
-      - Fri, 29 May 2026 17:00:15 GMT
+      - Tue, 02 Jun 2026 21:29:46 GMT
       Server:
       - gunicorn
       X-Billing-ID:
@@ -57,14 +57,14 @@ interactions:
       content-type:
       - application/json
       host:
-      - localhost:9696
+      - artifact-index-e2e:9696
       user-agent:
       - polyswarm_api/3.21.0 (x86_64-Linux-CPython-3.14.4)
     method: POST
-    uri: http://localhost:9696/v3/ioc/known
+    uri: http://artifact-index-e2e:9696/v3/ioc/known
   response:
     body:
-      string: '{"result":{"good":true,"host":"polyswarm.network","id":9,"source":"test","type":"domain"},"status":"OK"}
+      string: '{"result":{"good":true,"host":"polyswarm.network","id":1,"source":"test","type":"domain"},"status":"OK"}
 
         '
     headers:
@@ -79,7 +79,7 @@ interactions:
       Content-Type:
       - application/json
       Date:
-      - Fri, 29 May 2026 17:00:15 GMT
+      - Tue, 02 Jun 2026 21:29:46 GMT
       Server:
       - gunicorn
       X-Billing-ID:
@@ -99,14 +99,14 @@ interactions:
       connection:
       - keep-alive
       host:
-      - localhost:9696
+      - artifact-index-e2e:9696
       user-agent:
       - polyswarm_api/3.21.0 (x86_64-Linux-CPython-3.14.4)
     method: DELETE
-    uri: http://localhost:9696/v3/ioc/known?id=9
+    uri: http://artifact-index-e2e:9696/v3/ioc/known?id=1
   response:
     body:
-      string: '{"result":{"good":true,"host":"polyswarm.network","id":9,"source":"test","type":"domain"},"status":"OK"}
+      string: '{"result":{"good":true,"host":"polyswarm.network","id":1,"source":"test","type":"domain"},"status":"OK"}
 
         '
     headers:
@@ -121,7 +121,7 @@ interactions:
       Content-Type:
       - application/json
       Date:
-      - Fri, 29 May 2026 17:00:15 GMT
+      - Tue, 02 Jun 2026 21:29:46 GMT
       Server:
       - gunicorn
       X-Billing-ID:

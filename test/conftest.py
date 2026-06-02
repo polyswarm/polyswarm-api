@@ -21,6 +21,14 @@ _TESTS_LOG_LEVEL = os.getenv("TESTS_LOG_LEVEL", "INFO").upper()
 # surfaces). This caps verbosity only; it does not hide app warnings/errors.
 _NOISY_LIBS = ("vcr", "httpx", "httpcore", "asyncio")
 
+# VCR replay/record toggle. Default "on" = record-on-once + replay against
+# cassettes. Set TESTS_VCR=off to bypass VCR entirely (live, no replay, no
+# recording) — used by the e2e CI command that runs this suite against the live
+# stack. The test modules read this to no-op ``@vcr.use_cassette``; the fixture
+# below also keeps the poll sleeps real when it's off, since a live run must
+# pace itself against the real services.
+_TESTS_VCR_ON = os.getenv("TESTS_VCR", "on").lower() != "off"
+
 
 def pytest_configure(config):
     # Honor an explicit --log-cli-level / --log-level on the CLI; otherwise drive
@@ -52,6 +60,8 @@ def _skip_poll_sleep_on_replay(request, monkeypatch):
     e2e isn't hammered and pacing is preserved. ``monkeypatch`` auto-reverts
     after each test.
     """
+    if not _TESTS_VCR_ON:
+        return  # VCR bypassed (TESTS_VCR=off) — hitting live, keep real pacing
     cassette = os.path.join(_VCR_DIR, f"{request.node.name}.vcr")
     if not os.path.exists(cassette):
         return  # recording, or a non-cassette test — keep real sleeps

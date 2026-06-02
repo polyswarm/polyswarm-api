@@ -26,14 +26,14 @@ interactions:
       content-type:
       - application/json
       host:
-      - localhost:9696
+      - artifact-index-e2e:9696
       user-agent:
       - polyswarm_api/3.21.0 (x86_64-Linux-CPython-3.14.4)
     method: POST
-    uri: http://localhost:9696/v3/hunt/rule
+    uri: http://artifact-index-e2e:9696/v3/hunt/rule
   response:
     body:
-      string: '{"result":{"created":"2026-05-29T17:01:17.572702+00:00","deleted":false,"description":null,"id":"67079816688551821","livescan_created":null,"livescan_id":null,"modified":"2026-05-29T17:01:17.572702+00:00","name":"eicar","yara":"rule
+      string: '{"result":{"created":"2026-06-02T21:31:28.195186+00:00","deleted":false,"description":null,"id":"65998398481478367","livescan_created":null,"livescan_id":null,"modified":"2026-06-02T21:31:28.195186+00:00","name":"eicar","yara":"rule
         eicar_av_test {\n    /*\n       Per standard, match only if entire file is
         EICAR string plus optional trailing whitespace.\n       The raw EICAR string
         to be matched is:\n       X5O!P%@AP[4\\PZX54(P^)7CC)7}$EICAR-STANDARD-ANTIVIRUS-TEST-FILE!$H+H*\n    */\n\n    meta:\n        description
@@ -61,7 +61,7 @@ interactions:
       Content-Type:
       - application/json
       Date:
-      - Fri, 29 May 2026 17:01:17 GMT
+      - Tue, 02 Jun 2026 21:31:28 GMT
       Server:
       - gunicorn
       X-Billing-ID:
@@ -70,7 +70,7 @@ interactions:
       code: 200
       message: OK
 - request:
-    body: '{"rule_id":"67079816688551821"}'
+    body: '{"rule_id":"65998398481478367"}'
     headers:
       accept:
       - '*/*'
@@ -85,14 +85,14 @@ interactions:
       content-type:
       - application/json
       host:
-      - localhost:9696
+      - artifact-index-e2e:9696
       user-agent:
       - polyswarm_api/3.21.0 (x86_64-Linux-CPython-3.14.4)
     method: POST
-    uri: http://localhost:9696/v3/hunt/rule/live
+    uri: http://artifact-index-e2e:9696/v3/hunt/rule/live
   response:
     body:
-      string: '{"result":{"created":"2026-05-29T17:01:17.572702+00:00","deleted":false,"description":null,"id":"67079816688551821","livescan_created":"2026-05-29T17:01:17.619330+00:00","livescan_id":null,"modified":"2026-05-29T17:01:17.572702+00:00","name":"eicar","yara":"rule
+      string: '{"result":{"created":"2026-06-02T21:31:28.195186+00:00","deleted":false,"description":null,"id":"65998398481478367","livescan_created":"2026-06-02T21:31:28.239922+00:00","livescan_id":null,"modified":"2026-06-02T21:31:28.195186+00:00","name":"eicar","yara":"rule
         eicar_av_test {\n    /*\n       Per standard, match only if entire file is
         EICAR string plus optional trailing whitespace.\n       The raw EICAR string
         to be matched is:\n       X5O!P%@AP[4\\PZX54(P^)7CC)7}$EICAR-STANDARD-ANTIVIRUS-TEST-FILE!$H+H*\n    */\n\n    meta:\n        description
@@ -120,7 +120,7 @@ interactions:
       Content-Type:
       - application/json
       Date:
-      - Fri, 29 May 2026 17:01:17 GMT
+      - Tue, 02 Jun 2026 21:31:28 GMT
       Server:
       - gunicorn
       X-Billing-ID:
@@ -140,14 +140,14 @@ interactions:
       connection:
       - keep-alive
       host:
-      - localhost:9696
+      - artifact-index-e2e:9696
       user-agent:
       - polyswarm_api/3.21.0 (x86_64-Linux-CPython-3.14.4)
     method: GET
-    uri: http://localhost:9696/v3/hunt/rule?id=67079816688551821&community=gamma
+    uri: http://artifact-index-e2e:9696/v3/hunt/rule?id=65998398481478367&community=gamma
   response:
     body:
-      string: '{"result":{"created":"2026-05-29T17:01:17.572702+00:00","deleted":false,"description":null,"id":"67079816688551821","livescan_created":"2026-05-29T17:01:17.619330+00:00","livescan_id":55119277108169049,"modified":"2026-05-29T17:01:17.596785+00:00","name":"eicar","yara":"rule
+      string: '{"result":{"created":"2026-06-02T21:31:28.195186+00:00","deleted":false,"description":null,"id":"65998398481478367","livescan_created":"2026-06-02T21:31:28.239922+00:00","livescan_id":91914085347004847,"modified":"2026-06-02T21:31:28.219455+00:00","name":"eicar","yara":"rule
         eicar_av_test {\n    /*\n       Per standard, match only if entire file is
         EICAR string plus optional trailing whitespace.\n       The raw EICAR string
         to be matched is:\n       X5O!P%@AP[4\\PZX54(P^)7CC)7}$EICAR-STANDARD-ANTIVIRUS-TEST-FILE!$H+H*\n    */\n\n    meta:\n        description
@@ -175,7 +175,7 @@ interactions:
       Content-Type:
       - application/json
       Date:
-      - Fri, 29 May 2026 17:01:18 GMT
+      - Tue, 02 Jun 2026 21:31:29 GMT
       Server:
       - gunicorn
       X-Billing-ID:
@@ -199,14 +199,14 @@ interactions:
       content-type:
       - application/json
       host:
-      - localhost:9696
+      - artifact-index-e2e:9696
       user-agent:
       - polyswarm_api/3.21.0 (x86_64-Linux-CPython-3.14.4)
     method: POST
-    uri: http://localhost:9696/v3/instance
+    uri: http://artifact-index-e2e:9696/v3/instance
   response:
     body:
-      string: '{"result":{"artifact_id":"41087082655675282","assertions":[],"bounty_state":0,"community":"gamma","country":"","created":"2026-05-29T17:01:18.684978+00:00","detections":null,"expiration_window":null,"expire_at":null,"extended_type":null,"failed":false,"filename":"malicious","first_seen":"2026-05-29T17:01:18.684978+00:00","id":"41087082655675282","last_scanned":null,"last_seen":null,"md5":null,"metadata":[],"mimetype":null,"permalink":"https://polyswarm.network/scan/results/file/None/41087082655675282","polyscore":null,"result":null,"sha1":null,"sha256":null,"size":null,"type":"FILE","upload_url":"http://minio:9000/artifact-index/instances/05/06/f3/0506f3bd-3e6b-4a4f-ba04-78d6c5d73f22?X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Credential=AKIAIOSFODNN7EXAMPLE%2F20260529%2Fus-east-1%2Fs3%2Faws4_request&X-Amz-Date=20260529T170118Z&X-Amz-Expires=300&X-Amz-SignedHeaders=host&X-Amz-Signature=e0f898a26549b8e9beabbbf56b59616e268963a18c8eae67335aea3014a0f80a","votes":[],"window_closed":false},"status":"OK"}
+      string: '{"result":{"artifact_id":"57793255281645913","assertions":[],"bounty_state":0,"community":"gamma","country":"","created":"2026-06-02T21:31:29.296550+00:00","detections":null,"expiration_window":null,"expire_at":null,"extended_type":null,"failed":false,"filename":"malicious","first_seen":"2026-06-02T21:31:29.296550+00:00","id":"57793255281645913","last_scanned":null,"last_seen":null,"md5":null,"metadata":[],"mimetype":null,"permalink":"https://polyswarm.network/scan/results/file/None/57793255281645913","polyscore":null,"result":null,"sha1":null,"sha256":null,"size":null,"type":"FILE","upload_url":"http://minio:9000/artifact-index/instances/86/ed/3a/86ed3a97-5682-41e1-8dca-8b6fb3829ab1?X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Credential=AKIAIOSFODNN7EXAMPLE%2F20260602%2Fus-east-1%2Fs3%2Faws4_request&X-Amz-Date=20260602T213129Z&X-Amz-Expires=300&X-Amz-SignedHeaders=host&X-Amz-Signature=30204137b2648920d573079172df7d5457204220eca8c3916f6c3e988795cc37","votes":[],"window_closed":false},"status":"OK"}
 
         '
     headers:
@@ -221,7 +221,7 @@ interactions:
       Content-Type:
       - application/json
       Date:
-      - Fri, 29 May 2026 17:01:18 GMT
+      - Tue, 02 Jun 2026 21:31:29 GMT
       Server:
       - gunicorn
       X-Billing-ID:
@@ -245,7 +245,7 @@ interactions:
       user-agent:
       - polyswarm_api/3.21.0 (x86_64-Linux-CPython-3.14.4)
     method: PUT
-    uri: http://minio:9000/artifact-index/instances/05/06/f3/0506f3bd-3e6b-4a4f-ba04-78d6c5d73f22?X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Credential=AKIAIOSFODNN7EXAMPLE%2F20260529%2Fus-east-1%2Fs3%2Faws4_request&X-Amz-Date=20260529T170118Z&X-Amz-Expires=300&X-Amz-SignedHeaders=host&X-Amz-Signature=e0f898a26549b8e9beabbbf56b59616e268963a18c8eae67335aea3014a0f80a
+    uri: http://minio:9000/artifact-index/instances/86/ed/3a/86ed3a97-5682-41e1-8dca-8b6fb3829ab1?X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Credential=AKIAIOSFODNN7EXAMPLE%2F20260602%2Fus-east-1%2Fs3%2Faws4_request&X-Amz-Date=20260602T213129Z&X-Amz-Expires=300&X-Amz-SignedHeaders=host&X-Amz-Signature=30204137b2648920d573079172df7d5457204220eca8c3916f6c3e988795cc37
   response:
     body:
       string: ''
@@ -255,7 +255,7 @@ interactions:
       Content-Length:
       - '0'
       Date:
-      - Fri, 29 May 2026 17:01:18 GMT
+      - Tue, 02 Jun 2026 21:31:29 GMT
       ETag:
       - '"44d88612fea8a8f36de82e1278abb02f"'
       Server:
@@ -268,17 +268,17 @@ interactions:
       X-Amz-Id-2:
       - dd9025bab4ad464b049177c95eb6ebf374d3b3fd1af9251148b658df7ac2e3e8
       X-Amz-Request-Id:
-      - 18B417F17E60961A
+      - 18B561021741714F
       X-Content-Type-Options:
       - nosniff
       X-Ratelimit-Limit:
-      - '14825'
+      - '10975'
       X-Ratelimit-Remaining:
-      - '14825'
+      - '10975'
       X-Xss-Protection:
       - 1; mode=block
       x-amz-expiration:
-      - expiry-date="Sun, 31 May 2026 00:00:00 GMT", rule-id="expiration-artifact-index_0-instances"
+      - expiry-date="Thu, 04 Jun 2026 00:00:00 GMT", rule-id="expiration-artifact-index_0-instances"
     status:
       code: 200
       message: OK
@@ -298,14 +298,14 @@ interactions:
       content-type:
       - application/json
       host:
-      - localhost:9696
+      - artifact-index-e2e:9696
       user-agent:
       - polyswarm_api/3.21.0 (x86_64-Linux-CPython-3.14.4)
     method: PUT
-    uri: http://localhost:9696/v3/instance?id=41087082655675282
+    uri: http://artifact-index-e2e:9696/v3/instance?id=57793255281645913
   response:
     body:
-      string: '{"result":{"artifact_id":"41087082655675282","assertions":[],"bounty_state":0,"community":"gamma","country":"","created":"2026-05-29T17:01:18.684978+00:00","detections":null,"expiration_window":null,"expire_at":null,"extended_type":null,"failed":false,"filename":"malicious","first_seen":"2026-05-29T17:01:18.684978+00:00","id":"41087082655675282","last_scanned":null,"last_seen":null,"md5":null,"metadata":[],"mimetype":null,"permalink":"https://polyswarm.network/scan/results/file/None/41087082655675282","polyscore":null,"result":null,"sha1":null,"sha256":null,"size":null,"type":"FILE","upload_url":"http://minio:9000/artifact-index/instances/05/06/f3/0506f3bd-3e6b-4a4f-ba04-78d6c5d73f22?X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Credential=AKIAIOSFODNN7EXAMPLE%2F20260529%2Fus-east-1%2Fs3%2Faws4_request&X-Amz-Date=20260529T170118Z&X-Amz-Expires=300&X-Amz-SignedHeaders=host&X-Amz-Signature=e0f898a26549b8e9beabbbf56b59616e268963a18c8eae67335aea3014a0f80a","votes":[],"window_closed":false},"status":"OK"}
+      string: '{"result":{"artifact_id":"57793255281645913","assertions":[],"bounty_state":0,"community":"gamma","country":"","created":"2026-06-02T21:31:29.296550+00:00","detections":null,"expiration_window":null,"expire_at":null,"extended_type":null,"failed":false,"filename":"malicious","first_seen":"2026-06-02T21:31:29.296550+00:00","id":"57793255281645913","last_scanned":null,"last_seen":null,"md5":null,"metadata":[],"mimetype":null,"permalink":"https://polyswarm.network/scan/results/file/None/57793255281645913","polyscore":null,"result":null,"sha1":null,"sha256":null,"size":null,"type":"FILE","upload_url":"http://minio:9000/artifact-index/instances/86/ed/3a/86ed3a97-5682-41e1-8dca-8b6fb3829ab1?X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Credential=AKIAIOSFODNN7EXAMPLE%2F20260602%2Fus-east-1%2Fs3%2Faws4_request&X-Amz-Date=20260602T213129Z&X-Amz-Expires=300&X-Amz-SignedHeaders=host&X-Amz-Signature=30204137b2648920d573079172df7d5457204220eca8c3916f6c3e988795cc37","votes":[],"window_closed":false},"status":"OK"}
 
         '
     headers:
@@ -320,7 +320,7 @@ interactions:
       Content-Type:
       - application/json
       Date:
-      - Fri, 29 May 2026 17:01:18 GMT
+      - Tue, 02 Jun 2026 21:31:29 GMT
       Server:
       - gunicorn
       X-Billing-ID:
@@ -340,14 +340,14 @@ interactions:
       connection:
       - keep-alive
       host:
-      - localhost:9696
+      - artifact-index-e2e:9696
       user-agent:
       - polyswarm_api/3.21.0 (x86_64-Linux-CPython-3.14.4)
     method: GET
-    uri: http://localhost:9696/v3/hunt/live/list?since=600&community=gamma
+    uri: http://artifact-index-e2e:9696/v3/hunt/live/list?since=600&community=gamma
   response:
     body:
-      string: '{"has_more":false,"limit":50,"result":[{"community":"gamma","created":"2026-05-29T17:00:45.470532+00:00","detections":{"benign":0,"malicious":1,"total":1},"download_url":null,"first_seen":"2026-05-29T16:41:55.333961+00:00","id":"75623850622795974","instance_id":"80765888123124713","livescan_id":"28724514192463934","malware_family":"EICAR","md5":"44d88612fea8a8f36de82e1278abb02f","polyscore":null,"rule_name":"eicar_av_test","sha1":"3395856ce81f2b7382dee72602f798b642f14140","sha256":"275a021bbfb6489e54d471899f7db9d1663fc695ec2fe2a2c4538aabf651fd0f","tags":"{}","yara":null}],"status":"OK"}
+      string: '{"has_more":false,"limit":50,"result":[{"community":"gamma","created":"2026-06-02T21:30:55.951749+00:00","detections":{"benign":0,"malicious":1,"total":1},"download_url":null,"first_seen":"2026-06-02T21:28:09.811386+00:00","id":"58639170568721642","instance_id":"74368847331660562","livescan_id":"63275315559588283","malware_family":"EICAR","md5":"44d88612fea8a8f36de82e1278abb02f","polyscore":null,"rule_name":"eicar_av_test","sha1":"3395856ce81f2b7382dee72602f798b642f14140","sha256":"275a021bbfb6489e54d471899f7db9d1663fc695ec2fe2a2c4538aabf651fd0f","tags":"{}","yara":null}],"status":"OK"}
 
         '
     headers:
@@ -362,7 +362,7 @@ interactions:
       Content-Type:
       - application/json
       Date:
-      - Fri, 29 May 2026 17:01:19 GMT
+      - Tue, 02 Jun 2026 21:31:30 GMT
       Server:
       - gunicorn
       X-Billing-ID:
@@ -382,14 +382,14 @@ interactions:
       connection:
       - keep-alive
       host:
-      - localhost:9696
+      - artifact-index-e2e:9696
       user-agent:
       - polyswarm_api/3.21.0 (x86_64-Linux-CPython-3.14.4)
     method: GET
-    uri: http://localhost:9696/v3/hunt/live/list?since=600&community=gamma
+    uri: http://artifact-index-e2e:9696/v3/hunt/live/list?since=600&community=gamma
   response:
     body:
-      string: '{"has_more":false,"limit":50,"result":[{"community":"gamma","created":"2026-05-29T17:00:45.470532+00:00","detections":{"benign":0,"malicious":1,"total":1},"download_url":null,"first_seen":"2026-05-29T16:41:55.333961+00:00","id":"75623850622795974","instance_id":"80765888123124713","livescan_id":"28724514192463934","malware_family":"EICAR","md5":"44d88612fea8a8f36de82e1278abb02f","polyscore":null,"rule_name":"eicar_av_test","sha1":"3395856ce81f2b7382dee72602f798b642f14140","sha256":"275a021bbfb6489e54d471899f7db9d1663fc695ec2fe2a2c4538aabf651fd0f","tags":"{}","yara":null}],"status":"OK"}
+      string: '{"has_more":false,"limit":50,"result":[{"community":"gamma","created":"2026-06-02T21:30:55.951749+00:00","detections":{"benign":0,"malicious":1,"total":1},"download_url":null,"first_seen":"2026-06-02T21:28:09.811386+00:00","id":"58639170568721642","instance_id":"74368847331660562","livescan_id":"63275315559588283","malware_family":"EICAR","md5":"44d88612fea8a8f36de82e1278abb02f","polyscore":null,"rule_name":"eicar_av_test","sha1":"3395856ce81f2b7382dee72602f798b642f14140","sha256":"275a021bbfb6489e54d471899f7db9d1663fc695ec2fe2a2c4538aabf651fd0f","tags":"{}","yara":null}],"status":"OK"}
 
         '
     headers:
@@ -404,7 +404,7 @@ interactions:
       Content-Type:
       - application/json
       Date:
-      - Fri, 29 May 2026 17:01:20 GMT
+      - Tue, 02 Jun 2026 21:31:31 GMT
       Server:
       - gunicorn
       X-Billing-ID:
@@ -424,14 +424,14 @@ interactions:
       connection:
       - keep-alive
       host:
-      - localhost:9696
+      - artifact-index-e2e:9696
       user-agent:
       - polyswarm_api/3.21.0 (x86_64-Linux-CPython-3.14.4)
     method: GET
-    uri: http://localhost:9696/v3/hunt/live/list?since=600&community=gamma
+    uri: http://artifact-index-e2e:9696/v3/hunt/live/list?since=600&community=gamma
   response:
     body:
-      string: '{"has_more":false,"limit":50,"result":[{"community":"gamma","created":"2026-05-29T17:00:45.470532+00:00","detections":{"benign":0,"malicious":1,"total":1},"download_url":null,"first_seen":"2026-05-29T16:41:55.333961+00:00","id":"75623850622795974","instance_id":"80765888123124713","livescan_id":"28724514192463934","malware_family":"EICAR","md5":"44d88612fea8a8f36de82e1278abb02f","polyscore":null,"rule_name":"eicar_av_test","sha1":"3395856ce81f2b7382dee72602f798b642f14140","sha256":"275a021bbfb6489e54d471899f7db9d1663fc695ec2fe2a2c4538aabf651fd0f","tags":"{}","yara":null}],"status":"OK"}
+      string: '{"has_more":false,"limit":50,"result":[{"community":"gamma","created":"2026-06-02T21:30:55.951749+00:00","detections":{"benign":0,"malicious":1,"total":1},"download_url":null,"first_seen":"2026-06-02T21:28:09.811386+00:00","id":"58639170568721642","instance_id":"74368847331660562","livescan_id":"63275315559588283","malware_family":"EICAR","md5":"44d88612fea8a8f36de82e1278abb02f","polyscore":null,"rule_name":"eicar_av_test","sha1":"3395856ce81f2b7382dee72602f798b642f14140","sha256":"275a021bbfb6489e54d471899f7db9d1663fc695ec2fe2a2c4538aabf651fd0f","tags":"{}","yara":null}],"status":"OK"}
 
         '
     headers:
@@ -446,7 +446,7 @@ interactions:
       Content-Type:
       - application/json
       Date:
-      - Fri, 29 May 2026 17:01:21 GMT
+      - Tue, 02 Jun 2026 21:31:32 GMT
       Server:
       - gunicorn
       X-Billing-ID:
@@ -466,14 +466,14 @@ interactions:
       connection:
       - keep-alive
       host:
-      - localhost:9696
+      - artifact-index-e2e:9696
       user-agent:
       - polyswarm_api/3.21.0 (x86_64-Linux-CPython-3.14.4)
     method: GET
-    uri: http://localhost:9696/v3/hunt/live/list?since=600&community=gamma
+    uri: http://artifact-index-e2e:9696/v3/hunt/live/list?since=600&community=gamma
   response:
     body:
-      string: '{"has_more":false,"limit":50,"result":[{"community":"gamma","created":"2026-05-29T17:00:45.470532+00:00","detections":{"benign":0,"malicious":1,"total":1},"download_url":null,"first_seen":"2026-05-29T16:41:55.333961+00:00","id":"75623850622795974","instance_id":"80765888123124713","livescan_id":"28724514192463934","malware_family":"EICAR","md5":"44d88612fea8a8f36de82e1278abb02f","polyscore":null,"rule_name":"eicar_av_test","sha1":"3395856ce81f2b7382dee72602f798b642f14140","sha256":"275a021bbfb6489e54d471899f7db9d1663fc695ec2fe2a2c4538aabf651fd0f","tags":"{}","yara":null}],"status":"OK"}
+      string: '{"has_more":false,"limit":50,"result":[{"community":"gamma","created":"2026-06-02T21:30:55.951749+00:00","detections":{"benign":0,"malicious":1,"total":1},"download_url":null,"first_seen":"2026-06-02T21:28:09.811386+00:00","id":"58639170568721642","instance_id":"74368847331660562","livescan_id":"63275315559588283","malware_family":"EICAR","md5":"44d88612fea8a8f36de82e1278abb02f","polyscore":null,"rule_name":"eicar_av_test","sha1":"3395856ce81f2b7382dee72602f798b642f14140","sha256":"275a021bbfb6489e54d471899f7db9d1663fc695ec2fe2a2c4538aabf651fd0f","tags":"{}","yara":null}],"status":"OK"}
 
         '
     headers:
@@ -488,7 +488,7 @@ interactions:
       Content-Type:
       - application/json
       Date:
-      - Fri, 29 May 2026 17:01:22 GMT
+      - Tue, 02 Jun 2026 21:31:33 GMT
       Server:
       - gunicorn
       X-Billing-ID:
@@ -508,14 +508,14 @@ interactions:
       connection:
       - keep-alive
       host:
-      - localhost:9696
+      - artifact-index-e2e:9696
       user-agent:
       - polyswarm_api/3.21.0 (x86_64-Linux-CPython-3.14.4)
     method: GET
-    uri: http://localhost:9696/v3/hunt/live/list?since=600&community=gamma
+    uri: http://artifact-index-e2e:9696/v3/hunt/live/list?since=600&community=gamma
   response:
     body:
-      string: '{"has_more":false,"limit":50,"result":[{"community":"gamma","created":"2026-05-29T17:00:45.470532+00:00","detections":{"benign":0,"malicious":1,"total":1},"download_url":null,"first_seen":"2026-05-29T16:41:55.333961+00:00","id":"75623850622795974","instance_id":"80765888123124713","livescan_id":"28724514192463934","malware_family":"EICAR","md5":"44d88612fea8a8f36de82e1278abb02f","polyscore":null,"rule_name":"eicar_av_test","sha1":"3395856ce81f2b7382dee72602f798b642f14140","sha256":"275a021bbfb6489e54d471899f7db9d1663fc695ec2fe2a2c4538aabf651fd0f","tags":"{}","yara":null}],"status":"OK"}
+      string: '{"has_more":false,"limit":50,"result":[{"community":"gamma","created":"2026-06-02T21:30:55.951749+00:00","detections":{"benign":0,"malicious":1,"total":1},"download_url":null,"first_seen":"2026-06-02T21:28:09.811386+00:00","id":"58639170568721642","instance_id":"74368847331660562","livescan_id":"63275315559588283","malware_family":"EICAR","md5":"44d88612fea8a8f36de82e1278abb02f","polyscore":null,"rule_name":"eicar_av_test","sha1":"3395856ce81f2b7382dee72602f798b642f14140","sha256":"275a021bbfb6489e54d471899f7db9d1663fc695ec2fe2a2c4538aabf651fd0f","tags":"{}","yara":null}],"status":"OK"}
 
         '
     headers:
@@ -530,7 +530,7 @@ interactions:
       Content-Type:
       - application/json
       Date:
-      - Fri, 29 May 2026 17:01:23 GMT
+      - Tue, 02 Jun 2026 21:31:34 GMT
       Server:
       - gunicorn
       X-Billing-ID:
@@ -550,14 +550,14 @@ interactions:
       connection:
       - keep-alive
       host:
-      - localhost:9696
+      - artifact-index-e2e:9696
       user-agent:
       - polyswarm_api/3.21.0 (x86_64-Linux-CPython-3.14.4)
     method: GET
-    uri: http://localhost:9696/v3/hunt/live/list?since=600&community=gamma
+    uri: http://artifact-index-e2e:9696/v3/hunt/live/list?since=600&community=gamma
   response:
     body:
-      string: '{"has_more":false,"limit":50,"result":[{"community":"gamma","created":"2026-05-29T17:00:45.470532+00:00","detections":{"benign":0,"malicious":1,"total":1},"download_url":null,"first_seen":"2026-05-29T16:41:55.333961+00:00","id":"75623850622795974","instance_id":"80765888123124713","livescan_id":"28724514192463934","malware_family":"EICAR","md5":"44d88612fea8a8f36de82e1278abb02f","polyscore":null,"rule_name":"eicar_av_test","sha1":"3395856ce81f2b7382dee72602f798b642f14140","sha256":"275a021bbfb6489e54d471899f7db9d1663fc695ec2fe2a2c4538aabf651fd0f","tags":"{}","yara":null}],"status":"OK"}
+      string: '{"has_more":false,"limit":50,"result":[{"community":"gamma","created":"2026-06-02T21:30:55.951749+00:00","detections":{"benign":0,"malicious":1,"total":1},"download_url":null,"first_seen":"2026-06-02T21:28:09.811386+00:00","id":"58639170568721642","instance_id":"74368847331660562","livescan_id":"63275315559588283","malware_family":"EICAR","md5":"44d88612fea8a8f36de82e1278abb02f","polyscore":null,"rule_name":"eicar_av_test","sha1":"3395856ce81f2b7382dee72602f798b642f14140","sha256":"275a021bbfb6489e54d471899f7db9d1663fc695ec2fe2a2c4538aabf651fd0f","tags":"{}","yara":null}],"status":"OK"}
 
         '
     headers:
@@ -572,7 +572,7 @@ interactions:
       Content-Type:
       - application/json
       Date:
-      - Fri, 29 May 2026 17:01:24 GMT
+      - Tue, 02 Jun 2026 21:31:35 GMT
       Server:
       - gunicorn
       X-Billing-ID:
@@ -592,14 +592,14 @@ interactions:
       connection:
       - keep-alive
       host:
-      - localhost:9696
+      - artifact-index-e2e:9696
       user-agent:
       - polyswarm_api/3.21.0 (x86_64-Linux-CPython-3.14.4)
     method: GET
-    uri: http://localhost:9696/v3/hunt/live/list?since=600&community=gamma
+    uri: http://artifact-index-e2e:9696/v3/hunt/live/list?since=600&community=gamma
   response:
     body:
-      string: '{"has_more":false,"limit":50,"result":[{"community":"gamma","created":"2026-05-29T17:00:45.470532+00:00","detections":{"benign":0,"malicious":1,"total":1},"download_url":null,"first_seen":"2026-05-29T16:41:55.333961+00:00","id":"75623850622795974","instance_id":"80765888123124713","livescan_id":"28724514192463934","malware_family":"EICAR","md5":"44d88612fea8a8f36de82e1278abb02f","polyscore":null,"rule_name":"eicar_av_test","sha1":"3395856ce81f2b7382dee72602f798b642f14140","sha256":"275a021bbfb6489e54d471899f7db9d1663fc695ec2fe2a2c4538aabf651fd0f","tags":"{}","yara":null}],"status":"OK"}
+      string: '{"has_more":false,"limit":50,"result":[{"community":"gamma","created":"2026-06-02T21:30:55.951749+00:00","detections":{"benign":0,"malicious":1,"total":1},"download_url":null,"first_seen":"2026-06-02T21:28:09.811386+00:00","id":"58639170568721642","instance_id":"74368847331660562","livescan_id":"63275315559588283","malware_family":"EICAR","md5":"44d88612fea8a8f36de82e1278abb02f","polyscore":null,"rule_name":"eicar_av_test","sha1":"3395856ce81f2b7382dee72602f798b642f14140","sha256":"275a021bbfb6489e54d471899f7db9d1663fc695ec2fe2a2c4538aabf651fd0f","tags":"{}","yara":null}],"status":"OK"}
 
         '
     headers:
@@ -614,7 +614,7 @@ interactions:
       Content-Type:
       - application/json
       Date:
-      - Fri, 29 May 2026 17:01:25 GMT
+      - Tue, 02 Jun 2026 21:31:36 GMT
       Server:
       - gunicorn
       X-Billing-ID:
@@ -634,14 +634,14 @@ interactions:
       connection:
       - keep-alive
       host:
-      - localhost:9696
+      - artifact-index-e2e:9696
       user-agent:
       - polyswarm_api/3.21.0 (x86_64-Linux-CPython-3.14.4)
     method: GET
-    uri: http://localhost:9696/v3/hunt/live/list?since=600&community=gamma
+    uri: http://artifact-index-e2e:9696/v3/hunt/live/list?since=600&community=gamma
   response:
     body:
-      string: '{"has_more":false,"limit":50,"result":[{"community":"gamma","created":"2026-05-29T17:00:45.470532+00:00","detections":{"benign":0,"malicious":1,"total":1},"download_url":null,"first_seen":"2026-05-29T16:41:55.333961+00:00","id":"75623850622795974","instance_id":"80765888123124713","livescan_id":"28724514192463934","malware_family":"EICAR","md5":"44d88612fea8a8f36de82e1278abb02f","polyscore":null,"rule_name":"eicar_av_test","sha1":"3395856ce81f2b7382dee72602f798b642f14140","sha256":"275a021bbfb6489e54d471899f7db9d1663fc695ec2fe2a2c4538aabf651fd0f","tags":"{}","yara":null}],"status":"OK"}
+      string: '{"has_more":false,"limit":50,"result":[{"community":"gamma","created":"2026-06-02T21:30:55.951749+00:00","detections":{"benign":0,"malicious":1,"total":1},"download_url":null,"first_seen":"2026-06-02T21:28:09.811386+00:00","id":"58639170568721642","instance_id":"74368847331660562","livescan_id":"63275315559588283","malware_family":"EICAR","md5":"44d88612fea8a8f36de82e1278abb02f","polyscore":null,"rule_name":"eicar_av_test","sha1":"3395856ce81f2b7382dee72602f798b642f14140","sha256":"275a021bbfb6489e54d471899f7db9d1663fc695ec2fe2a2c4538aabf651fd0f","tags":"{}","yara":null}],"status":"OK"}
 
         '
     headers:
@@ -656,7 +656,7 @@ interactions:
       Content-Type:
       - application/json
       Date:
-      - Fri, 29 May 2026 17:01:26 GMT
+      - Tue, 02 Jun 2026 21:31:37 GMT
       Server:
       - gunicorn
       X-Billing-ID:
@@ -676,14 +676,14 @@ interactions:
       connection:
       - keep-alive
       host:
-      - localhost:9696
+      - artifact-index-e2e:9696
       user-agent:
       - polyswarm_api/3.21.0 (x86_64-Linux-CPython-3.14.4)
     method: GET
-    uri: http://localhost:9696/v3/hunt/live/list?since=600&community=gamma
+    uri: http://artifact-index-e2e:9696/v3/hunt/live/list?since=600&community=gamma
   response:
     body:
-      string: '{"has_more":false,"limit":50,"result":[{"community":"gamma","created":"2026-05-29T17:00:45.470532+00:00","detections":{"benign":0,"malicious":1,"total":1},"download_url":null,"first_seen":"2026-05-29T16:41:55.333961+00:00","id":"75623850622795974","instance_id":"80765888123124713","livescan_id":"28724514192463934","malware_family":"EICAR","md5":"44d88612fea8a8f36de82e1278abb02f","polyscore":null,"rule_name":"eicar_av_test","sha1":"3395856ce81f2b7382dee72602f798b642f14140","sha256":"275a021bbfb6489e54d471899f7db9d1663fc695ec2fe2a2c4538aabf651fd0f","tags":"{}","yara":null}],"status":"OK"}
+      string: '{"has_more":false,"limit":50,"result":[{"community":"gamma","created":"2026-06-02T21:30:55.951749+00:00","detections":{"benign":0,"malicious":1,"total":1},"download_url":null,"first_seen":"2026-06-02T21:28:09.811386+00:00","id":"58639170568721642","instance_id":"74368847331660562","livescan_id":"63275315559588283","malware_family":"EICAR","md5":"44d88612fea8a8f36de82e1278abb02f","polyscore":null,"rule_name":"eicar_av_test","sha1":"3395856ce81f2b7382dee72602f798b642f14140","sha256":"275a021bbfb6489e54d471899f7db9d1663fc695ec2fe2a2c4538aabf651fd0f","tags":"{}","yara":null}],"status":"OK"}
 
         '
     headers:
@@ -698,7 +698,7 @@ interactions:
       Content-Type:
       - application/json
       Date:
-      - Fri, 29 May 2026 17:01:27 GMT
+      - Tue, 02 Jun 2026 21:31:38 GMT
       Server:
       - gunicorn
       X-Billing-ID:
@@ -718,14 +718,14 @@ interactions:
       connection:
       - keep-alive
       host:
-      - localhost:9696
+      - artifact-index-e2e:9696
       user-agent:
       - polyswarm_api/3.21.0 (x86_64-Linux-CPython-3.14.4)
     method: GET
-    uri: http://localhost:9696/v3/hunt/live/list?since=600&community=gamma
+    uri: http://artifact-index-e2e:9696/v3/hunt/live/list?since=600&community=gamma
   response:
     body:
-      string: '{"has_more":false,"limit":50,"result":[{"community":"gamma","created":"2026-05-29T17:00:45.470532+00:00","detections":{"benign":0,"malicious":1,"total":1},"download_url":null,"first_seen":"2026-05-29T16:41:55.333961+00:00","id":"75623850622795974","instance_id":"80765888123124713","livescan_id":"28724514192463934","malware_family":"EICAR","md5":"44d88612fea8a8f36de82e1278abb02f","polyscore":null,"rule_name":"eicar_av_test","sha1":"3395856ce81f2b7382dee72602f798b642f14140","sha256":"275a021bbfb6489e54d471899f7db9d1663fc695ec2fe2a2c4538aabf651fd0f","tags":"{}","yara":null}],"status":"OK"}
+      string: '{"has_more":false,"limit":50,"result":[{"community":"gamma","created":"2026-06-02T21:30:55.951749+00:00","detections":{"benign":0,"malicious":1,"total":1},"download_url":null,"first_seen":"2026-06-02T21:28:09.811386+00:00","id":"58639170568721642","instance_id":"74368847331660562","livescan_id":"63275315559588283","malware_family":"EICAR","md5":"44d88612fea8a8f36de82e1278abb02f","polyscore":null,"rule_name":"eicar_av_test","sha1":"3395856ce81f2b7382dee72602f798b642f14140","sha256":"275a021bbfb6489e54d471899f7db9d1663fc695ec2fe2a2c4538aabf651fd0f","tags":"{}","yara":null}],"status":"OK"}
 
         '
     headers:
@@ -740,7 +740,7 @@ interactions:
       Content-Type:
       - application/json
       Date:
-      - Fri, 29 May 2026 17:01:28 GMT
+      - Tue, 02 Jun 2026 21:31:39 GMT
       Server:
       - gunicorn
       X-Billing-ID:
@@ -760,14 +760,14 @@ interactions:
       connection:
       - keep-alive
       host:
-      - localhost:9696
+      - artifact-index-e2e:9696
       user-agent:
       - polyswarm_api/3.21.0 (x86_64-Linux-CPython-3.14.4)
     method: GET
-    uri: http://localhost:9696/v3/hunt/live/list?since=600&community=gamma
+    uri: http://artifact-index-e2e:9696/v3/hunt/live/list?since=600&community=gamma
   response:
     body:
-      string: '{"has_more":false,"limit":50,"result":[{"community":"gamma","created":"2026-05-29T17:00:45.470532+00:00","detections":{"benign":0,"malicious":1,"total":1},"download_url":null,"first_seen":"2026-05-29T16:41:55.333961+00:00","id":"75623850622795974","instance_id":"80765888123124713","livescan_id":"28724514192463934","malware_family":"EICAR","md5":"44d88612fea8a8f36de82e1278abb02f","polyscore":null,"rule_name":"eicar_av_test","sha1":"3395856ce81f2b7382dee72602f798b642f14140","sha256":"275a021bbfb6489e54d471899f7db9d1663fc695ec2fe2a2c4538aabf651fd0f","tags":"{}","yara":null}],"status":"OK"}
+      string: '{"has_more":false,"limit":50,"result":[{"community":"gamma","created":"2026-06-02T21:30:55.951749+00:00","detections":{"benign":0,"malicious":1,"total":1},"download_url":null,"first_seen":"2026-06-02T21:28:09.811386+00:00","id":"58639170568721642","instance_id":"74368847331660562","livescan_id":"63275315559588283","malware_family":"EICAR","md5":"44d88612fea8a8f36de82e1278abb02f","polyscore":null,"rule_name":"eicar_av_test","sha1":"3395856ce81f2b7382dee72602f798b642f14140","sha256":"275a021bbfb6489e54d471899f7db9d1663fc695ec2fe2a2c4538aabf651fd0f","tags":"{}","yara":null}],"status":"OK"}
 
         '
     headers:
@@ -782,7 +782,7 @@ interactions:
       Content-Type:
       - application/json
       Date:
-      - Fri, 29 May 2026 17:01:29 GMT
+      - Tue, 02 Jun 2026 21:31:40 GMT
       Server:
       - gunicorn
       X-Billing-ID:
@@ -802,14 +802,14 @@ interactions:
       connection:
       - keep-alive
       host:
-      - localhost:9696
+      - artifact-index-e2e:9696
       user-agent:
       - polyswarm_api/3.21.0 (x86_64-Linux-CPython-3.14.4)
     method: GET
-    uri: http://localhost:9696/v3/hunt/live/list?since=600&community=gamma
+    uri: http://artifact-index-e2e:9696/v3/hunt/live/list?since=600&community=gamma
   response:
     body:
-      string: '{"has_more":false,"limit":50,"result":[{"community":"gamma","created":"2026-05-29T17:00:45.470532+00:00","detections":{"benign":0,"malicious":1,"total":1},"download_url":null,"first_seen":"2026-05-29T16:41:55.333961+00:00","id":"75623850622795974","instance_id":"80765888123124713","livescan_id":"28724514192463934","malware_family":"EICAR","md5":"44d88612fea8a8f36de82e1278abb02f","polyscore":null,"rule_name":"eicar_av_test","sha1":"3395856ce81f2b7382dee72602f798b642f14140","sha256":"275a021bbfb6489e54d471899f7db9d1663fc695ec2fe2a2c4538aabf651fd0f","tags":"{}","yara":null}],"status":"OK"}
+      string: '{"has_more":false,"limit":50,"result":[{"community":"gamma","created":"2026-06-02T21:30:55.951749+00:00","detections":{"benign":0,"malicious":1,"total":1},"download_url":null,"first_seen":"2026-06-02T21:28:09.811386+00:00","id":"58639170568721642","instance_id":"74368847331660562","livescan_id":"63275315559588283","malware_family":"EICAR","md5":"44d88612fea8a8f36de82e1278abb02f","polyscore":null,"rule_name":"eicar_av_test","sha1":"3395856ce81f2b7382dee72602f798b642f14140","sha256":"275a021bbfb6489e54d471899f7db9d1663fc695ec2fe2a2c4538aabf651fd0f","tags":"{}","yara":null}],"status":"OK"}
 
         '
     headers:
@@ -824,7 +824,7 @@ interactions:
       Content-Type:
       - application/json
       Date:
-      - Fri, 29 May 2026 17:01:30 GMT
+      - Tue, 02 Jun 2026 21:31:41 GMT
       Server:
       - gunicorn
       X-Billing-ID:
@@ -844,14 +844,14 @@ interactions:
       connection:
       - keep-alive
       host:
-      - localhost:9696
+      - artifact-index-e2e:9696
       user-agent:
       - polyswarm_api/3.21.0 (x86_64-Linux-CPython-3.14.4)
     method: GET
-    uri: http://localhost:9696/v3/hunt/live/list?since=600&community=gamma
+    uri: http://artifact-index-e2e:9696/v3/hunt/live/list?since=600&community=gamma
   response:
     body:
-      string: '{"has_more":false,"limit":50,"result":[{"community":"gamma","created":"2026-05-29T17:00:45.470532+00:00","detections":{"benign":0,"malicious":1,"total":1},"download_url":null,"first_seen":"2026-05-29T16:41:55.333961+00:00","id":"75623850622795974","instance_id":"80765888123124713","livescan_id":"28724514192463934","malware_family":"EICAR","md5":"44d88612fea8a8f36de82e1278abb02f","polyscore":null,"rule_name":"eicar_av_test","sha1":"3395856ce81f2b7382dee72602f798b642f14140","sha256":"275a021bbfb6489e54d471899f7db9d1663fc695ec2fe2a2c4538aabf651fd0f","tags":"{}","yara":null}],"status":"OK"}
+      string: '{"has_more":false,"limit":50,"result":[{"community":"gamma","created":"2026-06-02T21:30:55.951749+00:00","detections":{"benign":0,"malicious":1,"total":1},"download_url":null,"first_seen":"2026-06-02T21:28:09.811386+00:00","id":"58639170568721642","instance_id":"74368847331660562","livescan_id":"63275315559588283","malware_family":"EICAR","md5":"44d88612fea8a8f36de82e1278abb02f","polyscore":null,"rule_name":"eicar_av_test","sha1":"3395856ce81f2b7382dee72602f798b642f14140","sha256":"275a021bbfb6489e54d471899f7db9d1663fc695ec2fe2a2c4538aabf651fd0f","tags":"{}","yara":null}],"status":"OK"}
 
         '
     headers:
@@ -866,7 +866,7 @@ interactions:
       Content-Type:
       - application/json
       Date:
-      - Fri, 29 May 2026 17:01:31 GMT
+      - Tue, 02 Jun 2026 21:31:42 GMT
       Server:
       - gunicorn
       X-Billing-ID:
@@ -886,14 +886,14 @@ interactions:
       connection:
       - keep-alive
       host:
-      - localhost:9696
+      - artifact-index-e2e:9696
       user-agent:
       - polyswarm_api/3.21.0 (x86_64-Linux-CPython-3.14.4)
     method: GET
-    uri: http://localhost:9696/v3/hunt/live/list?since=600&community=gamma
+    uri: http://artifact-index-e2e:9696/v3/hunt/live/list?since=600&community=gamma
   response:
     body:
-      string: '{"has_more":false,"limit":50,"result":[{"community":"gamma","created":"2026-05-29T17:00:45.470532+00:00","detections":{"benign":0,"malicious":1,"total":1},"download_url":null,"first_seen":"2026-05-29T16:41:55.333961+00:00","id":"75623850622795974","instance_id":"80765888123124713","livescan_id":"28724514192463934","malware_family":"EICAR","md5":"44d88612fea8a8f36de82e1278abb02f","polyscore":null,"rule_name":"eicar_av_test","sha1":"3395856ce81f2b7382dee72602f798b642f14140","sha256":"275a021bbfb6489e54d471899f7db9d1663fc695ec2fe2a2c4538aabf651fd0f","tags":"{}","yara":null}],"status":"OK"}
+      string: '{"has_more":false,"limit":50,"result":[{"community":"gamma","created":"2026-06-02T21:30:55.951749+00:00","detections":{"benign":0,"malicious":1,"total":1},"download_url":null,"first_seen":"2026-06-02T21:28:09.811386+00:00","id":"58639170568721642","instance_id":"74368847331660562","livescan_id":"63275315559588283","malware_family":"EICAR","md5":"44d88612fea8a8f36de82e1278abb02f","polyscore":null,"rule_name":"eicar_av_test","sha1":"3395856ce81f2b7382dee72602f798b642f14140","sha256":"275a021bbfb6489e54d471899f7db9d1663fc695ec2fe2a2c4538aabf651fd0f","tags":"{}","yara":null}],"status":"OK"}
 
         '
     headers:
@@ -908,7 +908,7 @@ interactions:
       Content-Type:
       - application/json
       Date:
-      - Fri, 29 May 2026 17:01:32 GMT
+      - Tue, 02 Jun 2026 21:31:43 GMT
       Server:
       - gunicorn
       X-Billing-ID:
@@ -928,14 +928,14 @@ interactions:
       connection:
       - keep-alive
       host:
-      - localhost:9696
+      - artifact-index-e2e:9696
       user-agent:
       - polyswarm_api/3.21.0 (x86_64-Linux-CPython-3.14.4)
     method: GET
-    uri: http://localhost:9696/v3/hunt/live/list?since=600&community=gamma
+    uri: http://artifact-index-e2e:9696/v3/hunt/live/list?since=600&community=gamma
   response:
     body:
-      string: '{"has_more":false,"limit":50,"result":[{"community":"gamma","created":"2026-05-29T17:00:45.470532+00:00","detections":{"benign":0,"malicious":1,"total":1},"download_url":null,"first_seen":"2026-05-29T16:41:55.333961+00:00","id":"75623850622795974","instance_id":"80765888123124713","livescan_id":"28724514192463934","malware_family":"EICAR","md5":"44d88612fea8a8f36de82e1278abb02f","polyscore":null,"rule_name":"eicar_av_test","sha1":"3395856ce81f2b7382dee72602f798b642f14140","sha256":"275a021bbfb6489e54d471899f7db9d1663fc695ec2fe2a2c4538aabf651fd0f","tags":"{}","yara":null}],"status":"OK"}
+      string: '{"has_more":false,"limit":50,"result":[{"community":"gamma","created":"2026-06-02T21:30:55.951749+00:00","detections":{"benign":0,"malicious":1,"total":1},"download_url":null,"first_seen":"2026-06-02T21:28:09.811386+00:00","id":"58639170568721642","instance_id":"74368847331660562","livescan_id":"63275315559588283","malware_family":"EICAR","md5":"44d88612fea8a8f36de82e1278abb02f","polyscore":null,"rule_name":"eicar_av_test","sha1":"3395856ce81f2b7382dee72602f798b642f14140","sha256":"275a021bbfb6489e54d471899f7db9d1663fc695ec2fe2a2c4538aabf651fd0f","tags":"{}","yara":null}],"status":"OK"}
 
         '
     headers:
@@ -950,7 +950,7 @@ interactions:
       Content-Type:
       - application/json
       Date:
-      - Fri, 29 May 2026 17:01:34 GMT
+      - Tue, 02 Jun 2026 21:31:44 GMT
       Server:
       - gunicorn
       X-Billing-ID:
@@ -970,14 +970,14 @@ interactions:
       connection:
       - keep-alive
       host:
-      - localhost:9696
+      - artifact-index-e2e:9696
       user-agent:
       - polyswarm_api/3.21.0 (x86_64-Linux-CPython-3.14.4)
     method: GET
-    uri: http://localhost:9696/v3/hunt/live/list?since=600&community=gamma
+    uri: http://artifact-index-e2e:9696/v3/hunt/live/list?since=600&community=gamma
   response:
     body:
-      string: '{"has_more":false,"limit":50,"result":[{"community":"gamma","created":"2026-05-29T17:00:45.470532+00:00","detections":{"benign":0,"malicious":1,"total":1},"download_url":null,"first_seen":"2026-05-29T16:41:55.333961+00:00","id":"75623850622795974","instance_id":"80765888123124713","livescan_id":"28724514192463934","malware_family":"EICAR","md5":"44d88612fea8a8f36de82e1278abb02f","polyscore":null,"rule_name":"eicar_av_test","sha1":"3395856ce81f2b7382dee72602f798b642f14140","sha256":"275a021bbfb6489e54d471899f7db9d1663fc695ec2fe2a2c4538aabf651fd0f","tags":"{}","yara":null}],"status":"OK"}
+      string: '{"has_more":false,"limit":50,"result":[{"community":"gamma","created":"2026-06-02T21:30:55.951749+00:00","detections":{"benign":0,"malicious":1,"total":1},"download_url":null,"first_seen":"2026-06-02T21:28:09.811386+00:00","id":"58639170568721642","instance_id":"74368847331660562","livescan_id":"63275315559588283","malware_family":"EICAR","md5":"44d88612fea8a8f36de82e1278abb02f","polyscore":null,"rule_name":"eicar_av_test","sha1":"3395856ce81f2b7382dee72602f798b642f14140","sha256":"275a021bbfb6489e54d471899f7db9d1663fc695ec2fe2a2c4538aabf651fd0f","tags":"{}","yara":null}],"status":"OK"}
 
         '
     headers:
@@ -992,7 +992,7 @@ interactions:
       Content-Type:
       - application/json
       Date:
-      - Fri, 29 May 2026 17:01:35 GMT
+      - Tue, 02 Jun 2026 21:31:45 GMT
       Server:
       - gunicorn
       X-Billing-ID:
@@ -1012,14 +1012,14 @@ interactions:
       connection:
       - keep-alive
       host:
-      - localhost:9696
+      - artifact-index-e2e:9696
       user-agent:
       - polyswarm_api/3.21.0 (x86_64-Linux-CPython-3.14.4)
     method: GET
-    uri: http://localhost:9696/v3/hunt/live/list?since=600&community=gamma
+    uri: http://artifact-index-e2e:9696/v3/hunt/live/list?since=600&community=gamma
   response:
     body:
-      string: '{"has_more":false,"limit":50,"result":[{"community":"gamma","created":"2026-05-29T17:00:45.470532+00:00","detections":{"benign":0,"malicious":1,"total":1},"download_url":null,"first_seen":"2026-05-29T16:41:55.333961+00:00","id":"75623850622795974","instance_id":"80765888123124713","livescan_id":"28724514192463934","malware_family":"EICAR","md5":"44d88612fea8a8f36de82e1278abb02f","polyscore":null,"rule_name":"eicar_av_test","sha1":"3395856ce81f2b7382dee72602f798b642f14140","sha256":"275a021bbfb6489e54d471899f7db9d1663fc695ec2fe2a2c4538aabf651fd0f","tags":"{}","yara":null}],"status":"OK"}
+      string: '{"has_more":false,"limit":50,"result":[{"community":"gamma","created":"2026-06-02T21:30:55.951749+00:00","detections":{"benign":0,"malicious":1,"total":1},"download_url":null,"first_seen":"2026-06-02T21:28:09.811386+00:00","id":"58639170568721642","instance_id":"74368847331660562","livescan_id":"63275315559588283","malware_family":"EICAR","md5":"44d88612fea8a8f36de82e1278abb02f","polyscore":null,"rule_name":"eicar_av_test","sha1":"3395856ce81f2b7382dee72602f798b642f14140","sha256":"275a021bbfb6489e54d471899f7db9d1663fc695ec2fe2a2c4538aabf651fd0f","tags":"{}","yara":null}],"status":"OK"}
 
         '
     headers:
@@ -1034,7 +1034,7 @@ interactions:
       Content-Type:
       - application/json
       Date:
-      - Fri, 29 May 2026 17:01:36 GMT
+      - Tue, 02 Jun 2026 21:31:46 GMT
       Server:
       - gunicorn
       X-Billing-ID:
@@ -1054,14 +1054,14 @@ interactions:
       connection:
       - keep-alive
       host:
-      - localhost:9696
+      - artifact-index-e2e:9696
       user-agent:
       - polyswarm_api/3.21.0 (x86_64-Linux-CPython-3.14.4)
     method: GET
-    uri: http://localhost:9696/v3/hunt/live/list?since=600&community=gamma
+    uri: http://artifact-index-e2e:9696/v3/hunt/live/list?since=600&community=gamma
   response:
     body:
-      string: '{"has_more":false,"limit":50,"result":[{"community":"gamma","created":"2026-05-29T17:00:45.470532+00:00","detections":{"benign":0,"malicious":1,"total":1},"download_url":null,"first_seen":"2026-05-29T16:41:55.333961+00:00","id":"75623850622795974","instance_id":"80765888123124713","livescan_id":"28724514192463934","malware_family":"EICAR","md5":"44d88612fea8a8f36de82e1278abb02f","polyscore":null,"rule_name":"eicar_av_test","sha1":"3395856ce81f2b7382dee72602f798b642f14140","sha256":"275a021bbfb6489e54d471899f7db9d1663fc695ec2fe2a2c4538aabf651fd0f","tags":"{}","yara":null}],"status":"OK"}
+      string: '{"has_more":false,"limit":50,"result":[{"community":"gamma","created":"2026-06-02T21:30:55.951749+00:00","detections":{"benign":0,"malicious":1,"total":1},"download_url":null,"first_seen":"2026-06-02T21:28:09.811386+00:00","id":"58639170568721642","instance_id":"74368847331660562","livescan_id":"63275315559588283","malware_family":"EICAR","md5":"44d88612fea8a8f36de82e1278abb02f","polyscore":null,"rule_name":"eicar_av_test","sha1":"3395856ce81f2b7382dee72602f798b642f14140","sha256":"275a021bbfb6489e54d471899f7db9d1663fc695ec2fe2a2c4538aabf651fd0f","tags":"{}","yara":null}],"status":"OK"}
 
         '
     headers:
@@ -1076,7 +1076,7 @@ interactions:
       Content-Type:
       - application/json
       Date:
-      - Fri, 29 May 2026 17:01:37 GMT
+      - Tue, 02 Jun 2026 21:31:47 GMT
       Server:
       - gunicorn
       X-Billing-ID:
@@ -1096,14 +1096,14 @@ interactions:
       connection:
       - keep-alive
       host:
-      - localhost:9696
+      - artifact-index-e2e:9696
       user-agent:
       - polyswarm_api/3.21.0 (x86_64-Linux-CPython-3.14.4)
     method: GET
-    uri: http://localhost:9696/v3/hunt/live/list?since=600&community=gamma
+    uri: http://artifact-index-e2e:9696/v3/hunt/live/list?since=600&community=gamma
   response:
     body:
-      string: '{"has_more":false,"limit":50,"result":[{"community":"gamma","created":"2026-05-29T17:00:45.470532+00:00","detections":{"benign":0,"malicious":1,"total":1},"download_url":null,"first_seen":"2026-05-29T16:41:55.333961+00:00","id":"75623850622795974","instance_id":"80765888123124713","livescan_id":"28724514192463934","malware_family":"EICAR","md5":"44d88612fea8a8f36de82e1278abb02f","polyscore":null,"rule_name":"eicar_av_test","sha1":"3395856ce81f2b7382dee72602f798b642f14140","sha256":"275a021bbfb6489e54d471899f7db9d1663fc695ec2fe2a2c4538aabf651fd0f","tags":"{}","yara":null}],"status":"OK"}
+      string: '{"has_more":false,"limit":50,"result":[{"community":"gamma","created":"2026-06-02T21:30:55.951749+00:00","detections":{"benign":0,"malicious":1,"total":1},"download_url":null,"first_seen":"2026-06-02T21:28:09.811386+00:00","id":"58639170568721642","instance_id":"74368847331660562","livescan_id":"63275315559588283","malware_family":"EICAR","md5":"44d88612fea8a8f36de82e1278abb02f","polyscore":null,"rule_name":"eicar_av_test","sha1":"3395856ce81f2b7382dee72602f798b642f14140","sha256":"275a021bbfb6489e54d471899f7db9d1663fc695ec2fe2a2c4538aabf651fd0f","tags":"{}","yara":null}],"status":"OK"}
 
         '
     headers:
@@ -1118,7 +1118,7 @@ interactions:
       Content-Type:
       - application/json
       Date:
-      - Fri, 29 May 2026 17:01:38 GMT
+      - Tue, 02 Jun 2026 21:31:48 GMT
       Server:
       - gunicorn
       X-Billing-ID:
@@ -1138,14 +1138,14 @@ interactions:
       connection:
       - keep-alive
       host:
-      - localhost:9696
+      - artifact-index-e2e:9696
       user-agent:
       - polyswarm_api/3.21.0 (x86_64-Linux-CPython-3.14.4)
     method: GET
-    uri: http://localhost:9696/v3/hunt/live/list?since=600&community=gamma
+    uri: http://artifact-index-e2e:9696/v3/hunt/live/list?since=600&community=gamma
   response:
     body:
-      string: '{"has_more":false,"limit":50,"result":[{"community":"gamma","created":"2026-05-29T17:00:45.470532+00:00","detections":{"benign":0,"malicious":1,"total":1},"download_url":null,"first_seen":"2026-05-29T16:41:55.333961+00:00","id":"75623850622795974","instance_id":"80765888123124713","livescan_id":"28724514192463934","malware_family":"EICAR","md5":"44d88612fea8a8f36de82e1278abb02f","polyscore":null,"rule_name":"eicar_av_test","sha1":"3395856ce81f2b7382dee72602f798b642f14140","sha256":"275a021bbfb6489e54d471899f7db9d1663fc695ec2fe2a2c4538aabf651fd0f","tags":"{}","yara":null}],"status":"OK"}
+      string: '{"has_more":false,"limit":50,"result":[{"community":"gamma","created":"2026-06-02T21:30:55.951749+00:00","detections":{"benign":0,"malicious":1,"total":1},"download_url":null,"first_seen":"2026-06-02T21:28:09.811386+00:00","id":"58639170568721642","instance_id":"74368847331660562","livescan_id":"63275315559588283","malware_family":"EICAR","md5":"44d88612fea8a8f36de82e1278abb02f","polyscore":null,"rule_name":"eicar_av_test","sha1":"3395856ce81f2b7382dee72602f798b642f14140","sha256":"275a021bbfb6489e54d471899f7db9d1663fc695ec2fe2a2c4538aabf651fd0f","tags":"{}","yara":null}],"status":"OK"}
 
         '
     headers:
@@ -1160,7 +1160,7 @@ interactions:
       Content-Type:
       - application/json
       Date:
-      - Fri, 29 May 2026 17:01:39 GMT
+      - Tue, 02 Jun 2026 21:31:49 GMT
       Server:
       - gunicorn
       X-Billing-ID:
@@ -1180,14 +1180,14 @@ interactions:
       connection:
       - keep-alive
       host:
-      - localhost:9696
+      - artifact-index-e2e:9696
       user-agent:
       - polyswarm_api/3.21.0 (x86_64-Linux-CPython-3.14.4)
     method: GET
-    uri: http://localhost:9696/v3/hunt/live/list?since=600&community=gamma
+    uri: http://artifact-index-e2e:9696/v3/hunt/live/list?since=600&community=gamma
   response:
     body:
-      string: '{"has_more":false,"limit":50,"result":[{"community":"gamma","created":"2026-05-29T17:00:45.470532+00:00","detections":{"benign":0,"malicious":1,"total":1},"download_url":null,"first_seen":"2026-05-29T16:41:55.333961+00:00","id":"75623850622795974","instance_id":"80765888123124713","livescan_id":"28724514192463934","malware_family":"EICAR","md5":"44d88612fea8a8f36de82e1278abb02f","polyscore":null,"rule_name":"eicar_av_test","sha1":"3395856ce81f2b7382dee72602f798b642f14140","sha256":"275a021bbfb6489e54d471899f7db9d1663fc695ec2fe2a2c4538aabf651fd0f","tags":"{}","yara":null}],"status":"OK"}
+      string: '{"has_more":false,"limit":50,"result":[{"community":"gamma","created":"2026-06-02T21:30:55.951749+00:00","detections":{"benign":0,"malicious":1,"total":1},"download_url":null,"first_seen":"2026-06-02T21:28:09.811386+00:00","id":"58639170568721642","instance_id":"74368847331660562","livescan_id":"63275315559588283","malware_family":"EICAR","md5":"44d88612fea8a8f36de82e1278abb02f","polyscore":null,"rule_name":"eicar_av_test","sha1":"3395856ce81f2b7382dee72602f798b642f14140","sha256":"275a021bbfb6489e54d471899f7db9d1663fc695ec2fe2a2c4538aabf651fd0f","tags":"{}","yara":null}],"status":"OK"}
 
         '
     headers:
@@ -1202,7 +1202,7 @@ interactions:
       Content-Type:
       - application/json
       Date:
-      - Fri, 29 May 2026 17:01:40 GMT
+      - Tue, 02 Jun 2026 21:31:50 GMT
       Server:
       - gunicorn
       X-Billing-ID:
@@ -1222,14 +1222,14 @@ interactions:
       connection:
       - keep-alive
       host:
-      - localhost:9696
+      - artifact-index-e2e:9696
       user-agent:
       - polyswarm_api/3.21.0 (x86_64-Linux-CPython-3.14.4)
     method: GET
-    uri: http://localhost:9696/v3/hunt/live/list?since=600&community=gamma
+    uri: http://artifact-index-e2e:9696/v3/hunt/live/list?since=600&community=gamma
   response:
     body:
-      string: '{"has_more":false,"limit":50,"result":[{"community":"gamma","created":"2026-05-29T17:00:45.470532+00:00","detections":{"benign":0,"malicious":1,"total":1},"download_url":null,"first_seen":"2026-05-29T16:41:55.333961+00:00","id":"75623850622795974","instance_id":"80765888123124713","livescan_id":"28724514192463934","malware_family":"EICAR","md5":"44d88612fea8a8f36de82e1278abb02f","polyscore":null,"rule_name":"eicar_av_test","sha1":"3395856ce81f2b7382dee72602f798b642f14140","sha256":"275a021bbfb6489e54d471899f7db9d1663fc695ec2fe2a2c4538aabf651fd0f","tags":"{}","yara":null}],"status":"OK"}
+      string: '{"has_more":false,"limit":50,"result":[{"community":"gamma","created":"2026-06-02T21:30:55.951749+00:00","detections":{"benign":0,"malicious":1,"total":1},"download_url":null,"first_seen":"2026-06-02T21:28:09.811386+00:00","id":"58639170568721642","instance_id":"74368847331660562","livescan_id":"63275315559588283","malware_family":"EICAR","md5":"44d88612fea8a8f36de82e1278abb02f","polyscore":null,"rule_name":"eicar_av_test","sha1":"3395856ce81f2b7382dee72602f798b642f14140","sha256":"275a021bbfb6489e54d471899f7db9d1663fc695ec2fe2a2c4538aabf651fd0f","tags":"{}","yara":null}],"status":"OK"}
 
         '
     headers:
@@ -1244,7 +1244,7 @@ interactions:
       Content-Type:
       - application/json
       Date:
-      - Fri, 29 May 2026 17:01:41 GMT
+      - Tue, 02 Jun 2026 21:31:51 GMT
       Server:
       - gunicorn
       X-Billing-ID:
@@ -1264,14 +1264,14 @@ interactions:
       connection:
       - keep-alive
       host:
-      - localhost:9696
+      - artifact-index-e2e:9696
       user-agent:
       - polyswarm_api/3.21.0 (x86_64-Linux-CPython-3.14.4)
     method: GET
-    uri: http://localhost:9696/v3/hunt/live/list?since=600&community=gamma
+    uri: http://artifact-index-e2e:9696/v3/hunt/live/list?since=600&community=gamma
   response:
     body:
-      string: '{"has_more":false,"limit":50,"result":[{"community":"gamma","created":"2026-05-29T17:00:45.470532+00:00","detections":{"benign":0,"malicious":1,"total":1},"download_url":null,"first_seen":"2026-05-29T16:41:55.333961+00:00","id":"75623850622795974","instance_id":"80765888123124713","livescan_id":"28724514192463934","malware_family":"EICAR","md5":"44d88612fea8a8f36de82e1278abb02f","polyscore":null,"rule_name":"eicar_av_test","sha1":"3395856ce81f2b7382dee72602f798b642f14140","sha256":"275a021bbfb6489e54d471899f7db9d1663fc695ec2fe2a2c4538aabf651fd0f","tags":"{}","yara":null}],"status":"OK"}
+      string: '{"has_more":false,"limit":50,"result":[{"community":"gamma","created":"2026-06-02T21:30:55.951749+00:00","detections":{"benign":0,"malicious":1,"total":1},"download_url":null,"first_seen":"2026-06-02T21:28:09.811386+00:00","id":"58639170568721642","instance_id":"74368847331660562","livescan_id":"63275315559588283","malware_family":"EICAR","md5":"44d88612fea8a8f36de82e1278abb02f","polyscore":null,"rule_name":"eicar_av_test","sha1":"3395856ce81f2b7382dee72602f798b642f14140","sha256":"275a021bbfb6489e54d471899f7db9d1663fc695ec2fe2a2c4538aabf651fd0f","tags":"{}","yara":null}],"status":"OK"}
 
         '
     headers:
@@ -1286,7 +1286,7 @@ interactions:
       Content-Type:
       - application/json
       Date:
-      - Fri, 29 May 2026 17:01:42 GMT
+      - Tue, 02 Jun 2026 21:31:52 GMT
       Server:
       - gunicorn
       X-Billing-ID:
@@ -1306,14 +1306,14 @@ interactions:
       connection:
       - keep-alive
       host:
-      - localhost:9696
+      - artifact-index-e2e:9696
       user-agent:
       - polyswarm_api/3.21.0 (x86_64-Linux-CPython-3.14.4)
     method: GET
-    uri: http://localhost:9696/v3/hunt/live/list?since=600&community=gamma
+    uri: http://artifact-index-e2e:9696/v3/hunt/live/list?since=600&community=gamma
   response:
     body:
-      string: '{"has_more":false,"limit":50,"result":[{"community":"gamma","created":"2026-05-29T17:00:45.470532+00:00","detections":{"benign":0,"malicious":1,"total":1},"download_url":null,"first_seen":"2026-05-29T16:41:55.333961+00:00","id":"75623850622795974","instance_id":"80765888123124713","livescan_id":"28724514192463934","malware_family":"EICAR","md5":"44d88612fea8a8f36de82e1278abb02f","polyscore":null,"rule_name":"eicar_av_test","sha1":"3395856ce81f2b7382dee72602f798b642f14140","sha256":"275a021bbfb6489e54d471899f7db9d1663fc695ec2fe2a2c4538aabf651fd0f","tags":"{}","yara":null}],"status":"OK"}
+      string: '{"has_more":false,"limit":50,"result":[{"community":"gamma","created":"2026-06-02T21:30:55.951749+00:00","detections":{"benign":0,"malicious":1,"total":1},"download_url":null,"first_seen":"2026-06-02T21:28:09.811386+00:00","id":"58639170568721642","instance_id":"74368847331660562","livescan_id":"63275315559588283","malware_family":"EICAR","md5":"44d88612fea8a8f36de82e1278abb02f","polyscore":null,"rule_name":"eicar_av_test","sha1":"3395856ce81f2b7382dee72602f798b642f14140","sha256":"275a021bbfb6489e54d471899f7db9d1663fc695ec2fe2a2c4538aabf651fd0f","tags":"{}","yara":null}],"status":"OK"}
 
         '
     headers:
@@ -1328,7 +1328,7 @@ interactions:
       Content-Type:
       - application/json
       Date:
-      - Fri, 29 May 2026 17:01:43 GMT
+      - Tue, 02 Jun 2026 21:31:53 GMT
       Server:
       - gunicorn
       X-Billing-ID:
@@ -1348,14 +1348,14 @@ interactions:
       connection:
       - keep-alive
       host:
-      - localhost:9696
+      - artifact-index-e2e:9696
       user-agent:
       - polyswarm_api/3.21.0 (x86_64-Linux-CPython-3.14.4)
     method: GET
-    uri: http://localhost:9696/v3/hunt/live/list?since=600&community=gamma
+    uri: http://artifact-index-e2e:9696/v3/hunt/live/list?since=600&community=gamma
   response:
     body:
-      string: '{"has_more":false,"limit":50,"result":[{"community":"gamma","created":"2026-05-29T17:00:45.470532+00:00","detections":{"benign":0,"malicious":1,"total":1},"download_url":null,"first_seen":"2026-05-29T16:41:55.333961+00:00","id":"75623850622795974","instance_id":"80765888123124713","livescan_id":"28724514192463934","malware_family":"EICAR","md5":"44d88612fea8a8f36de82e1278abb02f","polyscore":null,"rule_name":"eicar_av_test","sha1":"3395856ce81f2b7382dee72602f798b642f14140","sha256":"275a021bbfb6489e54d471899f7db9d1663fc695ec2fe2a2c4538aabf651fd0f","tags":"{}","yara":null}],"status":"OK"}
+      string: '{"has_more":false,"limit":50,"result":[{"community":"gamma","created":"2026-06-02T21:30:55.951749+00:00","detections":{"benign":0,"malicious":1,"total":1},"download_url":null,"first_seen":"2026-06-02T21:28:09.811386+00:00","id":"58639170568721642","instance_id":"74368847331660562","livescan_id":"63275315559588283","malware_family":"EICAR","md5":"44d88612fea8a8f36de82e1278abb02f","polyscore":null,"rule_name":"eicar_av_test","sha1":"3395856ce81f2b7382dee72602f798b642f14140","sha256":"275a021bbfb6489e54d471899f7db9d1663fc695ec2fe2a2c4538aabf651fd0f","tags":"{}","yara":null}],"status":"OK"}
 
         '
     headers:
@@ -1370,7 +1370,7 @@ interactions:
       Content-Type:
       - application/json
       Date:
-      - Fri, 29 May 2026 17:01:44 GMT
+      - Tue, 02 Jun 2026 21:31:54 GMT
       Server:
       - gunicorn
       X-Billing-ID:
@@ -1390,14 +1390,14 @@ interactions:
       connection:
       - keep-alive
       host:
-      - localhost:9696
+      - artifact-index-e2e:9696
       user-agent:
       - polyswarm_api/3.21.0 (x86_64-Linux-CPython-3.14.4)
     method: GET
-    uri: http://localhost:9696/v3/hunt/live/list?since=600&community=gamma
+    uri: http://artifact-index-e2e:9696/v3/hunt/live/list?since=600&community=gamma
   response:
     body:
-      string: '{"has_more":false,"limit":50,"result":[{"community":"gamma","created":"2026-05-29T17:00:45.470532+00:00","detections":{"benign":0,"malicious":1,"total":1},"download_url":null,"first_seen":"2026-05-29T16:41:55.333961+00:00","id":"75623850622795974","instance_id":"80765888123124713","livescan_id":"28724514192463934","malware_family":"EICAR","md5":"44d88612fea8a8f36de82e1278abb02f","polyscore":null,"rule_name":"eicar_av_test","sha1":"3395856ce81f2b7382dee72602f798b642f14140","sha256":"275a021bbfb6489e54d471899f7db9d1663fc695ec2fe2a2c4538aabf651fd0f","tags":"{}","yara":null}],"status":"OK"}
+      string: '{"has_more":false,"limit":50,"result":[{"community":"gamma","created":"2026-06-02T21:30:55.951749+00:00","detections":{"benign":0,"malicious":1,"total":1},"download_url":null,"first_seen":"2026-06-02T21:28:09.811386+00:00","id":"58639170568721642","instance_id":"74368847331660562","livescan_id":"63275315559588283","malware_family":"EICAR","md5":"44d88612fea8a8f36de82e1278abb02f","polyscore":null,"rule_name":"eicar_av_test","sha1":"3395856ce81f2b7382dee72602f798b642f14140","sha256":"275a021bbfb6489e54d471899f7db9d1663fc695ec2fe2a2c4538aabf651fd0f","tags":"{}","yara":null}],"status":"OK"}
 
         '
     headers:
@@ -1412,7 +1412,7 @@ interactions:
       Content-Type:
       - application/json
       Date:
-      - Fri, 29 May 2026 17:01:45 GMT
+      - Tue, 02 Jun 2026 21:31:55 GMT
       Server:
       - gunicorn
       X-Billing-ID:
@@ -1432,14 +1432,14 @@ interactions:
       connection:
       - keep-alive
       host:
-      - localhost:9696
+      - artifact-index-e2e:9696
       user-agent:
       - polyswarm_api/3.21.0 (x86_64-Linux-CPython-3.14.4)
     method: GET
-    uri: http://localhost:9696/v3/hunt/live/list?since=600&community=gamma
+    uri: http://artifact-index-e2e:9696/v3/hunt/live/list?since=600&community=gamma
   response:
     body:
-      string: '{"has_more":false,"limit":50,"result":[{"community":"gamma","created":"2026-05-29T17:00:45.470532+00:00","detections":{"benign":0,"malicious":1,"total":1},"download_url":null,"first_seen":"2026-05-29T16:41:55.333961+00:00","id":"75623850622795974","instance_id":"80765888123124713","livescan_id":"28724514192463934","malware_family":"EICAR","md5":"44d88612fea8a8f36de82e1278abb02f","polyscore":null,"rule_name":"eicar_av_test","sha1":"3395856ce81f2b7382dee72602f798b642f14140","sha256":"275a021bbfb6489e54d471899f7db9d1663fc695ec2fe2a2c4538aabf651fd0f","tags":"{}","yara":null}],"status":"OK"}
+      string: '{"has_more":false,"limit":50,"result":[{"community":"gamma","created":"2026-06-02T21:30:55.951749+00:00","detections":{"benign":0,"malicious":1,"total":1},"download_url":null,"first_seen":"2026-06-02T21:28:09.811386+00:00","id":"58639170568721642","instance_id":"74368847331660562","livescan_id":"63275315559588283","malware_family":"EICAR","md5":"44d88612fea8a8f36de82e1278abb02f","polyscore":null,"rule_name":"eicar_av_test","sha1":"3395856ce81f2b7382dee72602f798b642f14140","sha256":"275a021bbfb6489e54d471899f7db9d1663fc695ec2fe2a2c4538aabf651fd0f","tags":"{}","yara":null}],"status":"OK"}
 
         '
     headers:
@@ -1454,7 +1454,7 @@ interactions:
       Content-Type:
       - application/json
       Date:
-      - Fri, 29 May 2026 17:01:46 GMT
+      - Tue, 02 Jun 2026 21:31:56 GMT
       Server:
       - gunicorn
       X-Billing-ID:
@@ -1474,14 +1474,14 @@ interactions:
       connection:
       - keep-alive
       host:
-      - localhost:9696
+      - artifact-index-e2e:9696
       user-agent:
       - polyswarm_api/3.21.0 (x86_64-Linux-CPython-3.14.4)
     method: GET
-    uri: http://localhost:9696/v3/hunt/live/list?since=600&community=gamma
+    uri: http://artifact-index-e2e:9696/v3/hunt/live/list?since=600&community=gamma
   response:
     body:
-      string: '{"has_more":false,"limit":50,"result":[{"community":"gamma","created":"2026-05-29T17:00:45.470532+00:00","detections":{"benign":0,"malicious":1,"total":1},"download_url":null,"first_seen":"2026-05-29T16:41:55.333961+00:00","id":"75623850622795974","instance_id":"80765888123124713","livescan_id":"28724514192463934","malware_family":"EICAR","md5":"44d88612fea8a8f36de82e1278abb02f","polyscore":null,"rule_name":"eicar_av_test","sha1":"3395856ce81f2b7382dee72602f798b642f14140","sha256":"275a021bbfb6489e54d471899f7db9d1663fc695ec2fe2a2c4538aabf651fd0f","tags":"{}","yara":null}],"status":"OK"}
+      string: '{"has_more":false,"limit":50,"result":[{"community":"gamma","created":"2026-06-02T21:30:55.951749+00:00","detections":{"benign":0,"malicious":1,"total":1},"download_url":null,"first_seen":"2026-06-02T21:28:09.811386+00:00","id":"58639170568721642","instance_id":"74368847331660562","livescan_id":"63275315559588283","malware_family":"EICAR","md5":"44d88612fea8a8f36de82e1278abb02f","polyscore":null,"rule_name":"eicar_av_test","sha1":"3395856ce81f2b7382dee72602f798b642f14140","sha256":"275a021bbfb6489e54d471899f7db9d1663fc695ec2fe2a2c4538aabf651fd0f","tags":"{}","yara":null}],"status":"OK"}
 
         '
     headers:
@@ -1496,7 +1496,7 @@ interactions:
       Content-Type:
       - application/json
       Date:
-      - Fri, 29 May 2026 17:01:47 GMT
+      - Tue, 02 Jun 2026 21:31:57 GMT
       Server:
       - gunicorn
       X-Billing-ID:
@@ -1516,14 +1516,14 @@ interactions:
       connection:
       - keep-alive
       host:
-      - localhost:9696
+      - artifact-index-e2e:9696
       user-agent:
       - polyswarm_api/3.21.0 (x86_64-Linux-CPython-3.14.4)
     method: GET
-    uri: http://localhost:9696/v3/hunt/live/list?since=600&community=gamma
+    uri: http://artifact-index-e2e:9696/v3/hunt/live/list?since=600&community=gamma
   response:
     body:
-      string: '{"has_more":false,"limit":50,"result":[{"community":"gamma","created":"2026-05-29T17:00:45.470532+00:00","detections":{"benign":0,"malicious":1,"total":1},"download_url":null,"first_seen":"2026-05-29T16:41:55.333961+00:00","id":"75623850622795974","instance_id":"80765888123124713","livescan_id":"28724514192463934","malware_family":"EICAR","md5":"44d88612fea8a8f36de82e1278abb02f","polyscore":null,"rule_name":"eicar_av_test","sha1":"3395856ce81f2b7382dee72602f798b642f14140","sha256":"275a021bbfb6489e54d471899f7db9d1663fc695ec2fe2a2c4538aabf651fd0f","tags":"{}","yara":null}],"status":"OK"}
+      string: '{"has_more":false,"limit":50,"result":[{"community":"gamma","created":"2026-06-02T21:30:55.951749+00:00","detections":{"benign":0,"malicious":1,"total":1},"download_url":null,"first_seen":"2026-06-02T21:28:09.811386+00:00","id":"58639170568721642","instance_id":"74368847331660562","livescan_id":"63275315559588283","malware_family":"EICAR","md5":"44d88612fea8a8f36de82e1278abb02f","polyscore":null,"rule_name":"eicar_av_test","sha1":"3395856ce81f2b7382dee72602f798b642f14140","sha256":"275a021bbfb6489e54d471899f7db9d1663fc695ec2fe2a2c4538aabf651fd0f","tags":"{}","yara":null}],"status":"OK"}
 
         '
     headers:
@@ -1538,7 +1538,7 @@ interactions:
       Content-Type:
       - application/json
       Date:
-      - Fri, 29 May 2026 17:01:48 GMT
+      - Tue, 02 Jun 2026 21:31:58 GMT
       Server:
       - gunicorn
       X-Billing-ID:
@@ -1558,14 +1558,14 @@ interactions:
       connection:
       - keep-alive
       host:
-      - localhost:9696
+      - artifact-index-e2e:9696
       user-agent:
       - polyswarm_api/3.21.0 (x86_64-Linux-CPython-3.14.4)
     method: GET
-    uri: http://localhost:9696/v3/hunt/live/list?since=600&community=gamma
+    uri: http://artifact-index-e2e:9696/v3/hunt/live/list?since=600&community=gamma
   response:
     body:
-      string: '{"has_more":false,"limit":50,"result":[{"community":"gamma","created":"2026-05-29T17:01:48.855203+00:00","detections":{"benign":0,"malicious":1,"total":1},"download_url":null,"first_seen":"2026-05-29T16:41:55.333961+00:00","id":"48331715322960795","instance_id":"41087082655675282","livescan_id":"55119277108169049","malware_family":"EICAR","md5":"44d88612fea8a8f36de82e1278abb02f","polyscore":null,"rule_name":"eicar_substring_test","sha1":"3395856ce81f2b7382dee72602f798b642f14140","sha256":"275a021bbfb6489e54d471899f7db9d1663fc695ec2fe2a2c4538aabf651fd0f","tags":"{}","yara":null},{"community":"gamma","created":"2026-05-29T17:01:48.850325+00:00","detections":{"benign":0,"malicious":1,"total":1},"download_url":null,"first_seen":"2026-05-29T16:41:55.333961+00:00","id":"71027937546942615","instance_id":"41087082655675282","livescan_id":"55119277108169049","malware_family":"EICAR","md5":"44d88612fea8a8f36de82e1278abb02f","polyscore":null,"rule_name":"eicar_av_test","sha1":"3395856ce81f2b7382dee72602f798b642f14140","sha256":"275a021bbfb6489e54d471899f7db9d1663fc695ec2fe2a2c4538aabf651fd0f","tags":"{}","yara":null},{"community":"gamma","created":"2026-05-29T17:00:45.470532+00:00","detections":{"benign":0,"malicious":1,"total":1},"download_url":null,"first_seen":"2026-05-29T16:41:55.333961+00:00","id":"75623850622795974","instance_id":"80765888123124713","livescan_id":"28724514192463934","malware_family":"EICAR","md5":"44d88612fea8a8f36de82e1278abb02f","polyscore":null,"rule_name":"eicar_av_test","sha1":"3395856ce81f2b7382dee72602f798b642f14140","sha256":"275a021bbfb6489e54d471899f7db9d1663fc695ec2fe2a2c4538aabf651fd0f","tags":"{}","yara":null}],"status":"OK"}
+      string: '{"has_more":false,"limit":50,"result":[{"community":"gamma","created":"2026-06-02T21:31:59.432898+00:00","detections":{"benign":0,"malicious":1,"total":1},"download_url":null,"first_seen":"2026-06-02T21:28:09.811386+00:00","id":"64364242723126279","instance_id":"57793255281645913","livescan_id":"91914085347004847","malware_family":"EICAR","md5":"44d88612fea8a8f36de82e1278abb02f","polyscore":null,"rule_name":"eicar_substring_test","sha1":"3395856ce81f2b7382dee72602f798b642f14140","sha256":"275a021bbfb6489e54d471899f7db9d1663fc695ec2fe2a2c4538aabf651fd0f","tags":"{}","yara":null},{"community":"gamma","created":"2026-06-02T21:31:59.429178+00:00","detections":{"benign":0,"malicious":1,"total":1},"download_url":null,"first_seen":"2026-06-02T21:28:09.811386+00:00","id":"91938527309709259","instance_id":"57793255281645913","livescan_id":"91914085347004847","malware_family":"EICAR","md5":"44d88612fea8a8f36de82e1278abb02f","polyscore":null,"rule_name":"eicar_av_test","sha1":"3395856ce81f2b7382dee72602f798b642f14140","sha256":"275a021bbfb6489e54d471899f7db9d1663fc695ec2fe2a2c4538aabf651fd0f","tags":"{}","yara":null},{"community":"gamma","created":"2026-06-02T21:30:55.951749+00:00","detections":{"benign":0,"malicious":1,"total":1},"download_url":null,"first_seen":"2026-06-02T21:28:09.811386+00:00","id":"58639170568721642","instance_id":"74368847331660562","livescan_id":"63275315559588283","malware_family":"EICAR","md5":"44d88612fea8a8f36de82e1278abb02f","polyscore":null,"rule_name":"eicar_av_test","sha1":"3395856ce81f2b7382dee72602f798b642f14140","sha256":"275a021bbfb6489e54d471899f7db9d1663fc695ec2fe2a2c4538aabf651fd0f","tags":"{}","yara":null}],"status":"OK"}
 
         '
     headers:
@@ -1580,7 +1580,7 @@ interactions:
       Content-Type:
       - application/json
       Date:
-      - Fri, 29 May 2026 17:01:49 GMT
+      - Tue, 02 Jun 2026 21:31:59 GMT
       Server:
       - gunicorn
       X-Billing-ID:
@@ -1600,14 +1600,14 @@ interactions:
       connection:
       - keep-alive
       host:
-      - localhost:9696
+      - artifact-index-e2e:9696
       user-agent:
       - polyswarm_api/3.21.0 (x86_64-Linux-CPython-3.14.4)
     method: GET
-    uri: http://localhost:9696/v3/hunt/live?id=48331715322960795
+    uri: http://artifact-index-e2e:9696/v3/hunt/live?id=64364242723126279
   response:
     body:
-      string: '{"result":{"community":"gamma","created":"2026-05-29T17:01:48.855203+00:00","detections":{"benign":0,"malicious":1,"total":1},"download_url":"http://minio:9000/public-cache/27/5a/02/275a021bbfb6489e54d471899f7db9d1663fc695ec2fe2a2c4538aabf651fd0f3395856ce81f2b7382dee72602f798b642f1414044d88612fea8a8f36de82e1278abb02f?response-content-disposition=attachment%3Bfilename%3Dinfected&response-content-type=application%2Foctet-stream&X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Credential=AKIAIOSFODNN7EXAMPLE%2F20260529%2Fus-east-1%2Fs3%2Faws4_request&X-Amz-Date=20260529T170149Z&X-Amz-Expires=3600&X-Amz-SignedHeaders=host&X-Amz-Signature=a70bd1728c6a0bdf66df1579079b318efb8db6cf2b69adc57bb14ef66b87b279","first_seen":"2026-05-29T16:41:55.333961+00:00","id":"48331715322960795","instance_id":"41087082655675282","livescan_id":"55119277108169049","malware_family":"EICAR","md5":"44d88612fea8a8f36de82e1278abb02f","polyscore":null,"rule_name":"eicar_substring_test","sha1":"3395856ce81f2b7382dee72602f798b642f14140","sha256":"275a021bbfb6489e54d471899f7db9d1663fc695ec2fe2a2c4538aabf651fd0f","tags":"{}","yara":"rule
+      string: '{"result":{"community":"gamma","created":"2026-06-02T21:31:59.432898+00:00","detections":{"benign":0,"malicious":1,"total":1},"download_url":"http://minio:9000/public-cache/27/5a/02/275a021bbfb6489e54d471899f7db9d1663fc695ec2fe2a2c4538aabf651fd0f3395856ce81f2b7382dee72602f798b642f1414044d88612fea8a8f36de82e1278abb02f?response-content-disposition=attachment%3Bfilename%3Dinfected&response-content-type=application%2Foctet-stream&X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Credential=AKIAIOSFODNN7EXAMPLE%2F20260602%2Fus-east-1%2Fs3%2Faws4_request&X-Amz-Date=20260602T213159Z&X-Amz-Expires=3600&X-Amz-SignedHeaders=host&X-Amz-Signature=4dd80e39b60b5db2a0218841a5017325913a4f97f5d9ae624c38a78476d7ed13","first_seen":"2026-06-02T21:28:09.811386+00:00","id":"64364242723126279","instance_id":"57793255281645913","livescan_id":"91914085347004847","malware_family":"EICAR","md5":"44d88612fea8a8f36de82e1278abb02f","polyscore":null,"rule_name":"eicar_substring_test","sha1":"3395856ce81f2b7382dee72602f798b642f14140","sha256":"275a021bbfb6489e54d471899f7db9d1663fc695ec2fe2a2c4538aabf651fd0f","tags":"{}","yara":"rule
         eicar_av_test {\n    /*\n       Per standard, match only if entire file is
         EICAR string plus optional trailing whitespace.\n       The raw EICAR string
         to be matched is:\n       X5O!P%@AP[4\\PZX54(P^)7CC)7}$EICAR-STANDARD-ANTIVIRUS-TEST-FILE!$H+H*\n    */\n\n    meta:\n        description
@@ -1635,7 +1635,7 @@ interactions:
       Content-Type:
       - application/json
       Date:
-      - Fri, 29 May 2026 17:01:49 GMT
+      - Tue, 02 Jun 2026 21:31:59 GMT
       Server:
       - gunicorn
       X-Billing-ID:
@@ -1644,7 +1644,7 @@ interactions:
       code: 200
       message: OK
 - request:
-    body: '{"result_ids":["48331715322960795"]}'
+    body: '{"result_ids":["64364242723126279"]}'
     headers:
       accept:
       - '*/*'
@@ -1659,14 +1659,14 @@ interactions:
       content-type:
       - application/json
       host:
-      - localhost:9696
+      - artifact-index-e2e:9696
       user-agent:
       - polyswarm_api/3.21.0 (x86_64-Linux-CPython-3.14.4)
     method: DELETE
-    uri: http://localhost:9696/v3/hunt/live/list
+    uri: http://artifact-index-e2e:9696/v3/hunt/live/list
   response:
     body:
-      string: '{"has_more":true,"limit":50,"result":[{"community":"gamma","created":"2026-05-29T17:01:48.855203+00:00","detections":{"benign":0,"malicious":1,"total":1},"download_url":null,"first_seen":"2026-05-29T16:41:55.333961+00:00","id":"48331715322960795","instance_id":"41087082655675282","livescan_id":"55119277108169049","malware_family":"EICAR","md5":"44d88612fea8a8f36de82e1278abb02f","polyscore":null,"rule_name":"eicar_substring_test","sha1":"3395856ce81f2b7382dee72602f798b642f14140","sha256":"275a021bbfb6489e54d471899f7db9d1663fc695ec2fe2a2c4538aabf651fd0f","tags":"{}","yara":null}],"status":"OK"}
+      string: '{"has_more":true,"limit":50,"result":[{"community":"gamma","created":"2026-06-02T21:31:59.432898+00:00","detections":{"benign":0,"malicious":1,"total":1},"download_url":null,"first_seen":"2026-06-02T21:28:09.811386+00:00","id":"64364242723126279","instance_id":"57793255281645913","livescan_id":"91914085347004847","malware_family":"EICAR","md5":"44d88612fea8a8f36de82e1278abb02f","polyscore":null,"rule_name":"eicar_substring_test","sha1":"3395856ce81f2b7382dee72602f798b642f14140","sha256":"275a021bbfb6489e54d471899f7db9d1663fc695ec2fe2a2c4538aabf651fd0f","tags":"{}","yara":null}],"status":"OK"}
 
         '
     headers:
@@ -1681,7 +1681,7 @@ interactions:
       Content-Type:
       - application/json
       Date:
-      - Fri, 29 May 2026 17:01:49 GMT
+      - Tue, 02 Jun 2026 21:31:59 GMT
       Server:
       - gunicorn
       X-Billing-ID:
@@ -1701,15 +1701,15 @@ interactions:
       connection:
       - keep-alive
       host:
-      - localhost:9696
+      - artifact-index-e2e:9696
       user-agent:
       - polyswarm_api/3.21.0 (x86_64-Linux-CPython-3.14.4)
     method: GET
-    uri: http://localhost:9696/v3/hunt/live?id=48331715322960795
+    uri: http://artifact-index-e2e:9696/v3/hunt/live?id=64364242723126279
   response:
     body:
       string: '{"errors":null,"result":"Could not find requested live hunt result:
-        48331715322960795.","status":"error"}
+        64364242723126279.","status":"error"}
 
         '
     headers:
@@ -1724,14 +1724,14 @@ interactions:
       Content-Type:
       - application/json
       Date:
-      - Fri, 29 May 2026 17:01:49 GMT
+      - Tue, 02 Jun 2026 21:31:59 GMT
       Server:
       - gunicorn
     status:
       code: 404
       message: NOT FOUND
 - request:
-    body: '{"rule_id":"67079816688551821"}'
+    body: '{"rule_id":"65998398481478367"}'
     headers:
       accept:
       - '*/*'
@@ -1746,14 +1746,14 @@ interactions:
       content-type:
       - application/json
       host:
-      - localhost:9696
+      - artifact-index-e2e:9696
       user-agent:
       - polyswarm_api/3.21.0 (x86_64-Linux-CPython-3.14.4)
     method: DELETE
-    uri: http://localhost:9696/v3/hunt/rule/live
+    uri: http://artifact-index-e2e:9696/v3/hunt/rule/live
   response:
     body:
-      string: '{"result":{"created":"2026-05-29T17:01:17.572702+00:00","deleted":false,"description":null,"id":"67079816688551821","livescan_created":"2026-05-29T17:01:17.619330+00:00","livescan_id":55119277108169049,"modified":"2026-05-29T17:01:17.596785+00:00","name":"eicar","yara":"rule
+      string: '{"result":{"created":"2026-06-02T21:31:28.195186+00:00","deleted":false,"description":null,"id":"65998398481478367","livescan_created":"2026-06-02T21:31:28.239922+00:00","livescan_id":91914085347004847,"modified":"2026-06-02T21:31:28.219455+00:00","name":"eicar","yara":"rule
         eicar_av_test {\n    /*\n       Per standard, match only if entire file is
         EICAR string plus optional trailing whitespace.\n       The raw EICAR string
         to be matched is:\n       X5O!P%@AP[4\\PZX54(P^)7CC)7}$EICAR-STANDARD-ANTIVIRUS-TEST-FILE!$H+H*\n    */\n\n    meta:\n        description
@@ -1781,7 +1781,7 @@ interactions:
       Content-Type:
       - application/json
       Date:
-      - Fri, 29 May 2026 17:01:49 GMT
+      - Tue, 02 Jun 2026 21:31:59 GMT
       Server:
       - gunicorn
       X-Billing-ID:
@@ -1801,14 +1801,14 @@ interactions:
       connection:
       - keep-alive
       host:
-      - localhost:9696
+      - artifact-index-e2e:9696
       user-agent:
       - polyswarm_api/3.21.0 (x86_64-Linux-CPython-3.14.4)
     method: GET
-    uri: http://localhost:9696/v3/hunt/rule?id=67079816688551821&community=gamma
+    uri: http://artifact-index-e2e:9696/v3/hunt/rule?id=65998398481478367&community=gamma
   response:
     body:
-      string: '{"result":{"created":"2026-05-29T17:01:17.572702+00:00","deleted":false,"description":null,"id":"67079816688551821","livescan_created":"2026-05-29T17:01:17.619330+00:00","livescan_id":null,"modified":"2026-05-29T17:01:49.464213+00:00","name":"eicar","yara":"rule
+      string: '{"result":{"created":"2026-06-02T21:31:28.195186+00:00","deleted":false,"description":null,"id":"65998398481478367","livescan_created":"2026-06-02T21:31:28.239922+00:00","livescan_id":null,"modified":"2026-06-02T21:31:59.976872+00:00","name":"eicar","yara":"rule
         eicar_av_test {\n    /*\n       Per standard, match only if entire file is
         EICAR string plus optional trailing whitespace.\n       The raw EICAR string
         to be matched is:\n       X5O!P%@AP[4\\PZX54(P^)7CC)7}$EICAR-STANDARD-ANTIVIRUS-TEST-FILE!$H+H*\n    */\n\n    meta:\n        description
@@ -1836,7 +1836,7 @@ interactions:
       Content-Type:
       - application/json
       Date:
-      - Fri, 29 May 2026 17:01:49 GMT
+      - Tue, 02 Jun 2026 21:32:00 GMT
       Server:
       - gunicorn
       X-Billing-ID:
@@ -1845,7 +1845,7 @@ interactions:
       code: 200
       message: OK
 - request:
-    body: '{"rule_id":"67079816688551821"}'
+    body: '{"rule_id":"65998398481478367"}'
     headers:
       accept:
       - '*/*'
@@ -1860,11 +1860,11 @@ interactions:
       content-type:
       - application/json
       host:
-      - localhost:9696
+      - artifact-index-e2e:9696
       user-agent:
       - polyswarm_api/3.21.0 (x86_64-Linux-CPython-3.14.4)
     method: DELETE
-    uri: http://localhost:9696/v3/hunt/rule/live
+    uri: http://artifact-index-e2e:9696/v3/hunt/rule/live
   response:
     body:
       string: '{"errors":null,"result":"Ruleset does not have an active live scan.","status":"error"}
@@ -1882,7 +1882,7 @@ interactions:
       Content-Type:
       - application/json
       Date:
-      - Fri, 29 May 2026 17:01:49 GMT
+      - Tue, 02 Jun 2026 21:32:00 GMT
       Server:
       - gunicorn
     status:
@@ -1904,14 +1904,14 @@ interactions:
       content-type:
       - application/json
       host:
-      - localhost:9696
+      - artifact-index-e2e:9696
       user-agent:
       - polyswarm_api/3.21.0 (x86_64-Linux-CPython-3.14.4)
     method: DELETE
-    uri: http://localhost:9696/v3/hunt/rule?id=67079816688551821
+    uri: http://artifact-index-e2e:9696/v3/hunt/rule?id=65998398481478367
   response:
     body:
-      string: '{"result":{"created":"2026-05-29T17:01:17.572702+00:00","deleted":true,"description":null,"id":"67079816688551821","livescan_created":"2026-05-29T17:01:17.619330+00:00","livescan_id":null,"modified":"2026-05-29T17:01:49.464213+00:00","name":"eicar","yara":"rule
+      string: '{"result":{"created":"2026-06-02T21:31:28.195186+00:00","deleted":true,"description":null,"id":"65998398481478367","livescan_created":"2026-06-02T21:31:28.239922+00:00","livescan_id":null,"modified":"2026-06-02T21:31:59.976872+00:00","name":"eicar","yara":"rule
         eicar_av_test {\n    /*\n       Per standard, match only if entire file is
         EICAR string plus optional trailing whitespace.\n       The raw EICAR string
         to be matched is:\n       X5O!P%@AP[4\\PZX54(P^)7CC)7}$EICAR-STANDARD-ANTIVIRUS-TEST-FILE!$H+H*\n    */\n\n    meta:\n        description
@@ -1939,7 +1939,7 @@ interactions:
       Content-Type:
       - application/json
       Date:
-      - Fri, 29 May 2026 17:01:49 GMT
+      - Tue, 02 Jun 2026 21:32:00 GMT
       Server:
       - gunicorn
       X-Billing-ID:

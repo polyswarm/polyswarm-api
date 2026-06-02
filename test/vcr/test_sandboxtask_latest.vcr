@@ -15,11 +15,11 @@ interactions:
       content-type:
       - application/json
       host:
-      - localhost:9696
+      - artifact-index-e2e:9696
       user-agent:
       - polyswarm_api/3.21.0 (x86_64-Linux-CPython-3.14.4)
     method: POST
-    uri: http://localhost:9696/v3/instance
+    uri: http://artifact-index-e2e:9696/v3/instance
   response:
     body:
       string: '{"result":{"artifact_id":"32835587133135949","assertions":[],"bounty_state":0,"community":"gamma","country":"","created":"2026-06-01T23:18:07.921396+00:00","detections":null,"expiration_window":null,"expire_at":null,"extended_type":null,"failed":false,"filename":"malicious","first_seen":"2026-06-01T23:18:07.921396+00:00","id":"32835587133135949","last_scanned":null,"last_seen":null,"md5":null,"metadata":[],"mimetype":null,"permalink":"https://polyswarm.network/scan/results/file/None/32835587133135949","polyscore":null,"result":null,"sha1":null,"sha256":null,"size":null,"type":"FILE","upload_url":"http://minio:9000/artifact-index/instances/3f/8c/ff/3f8cff96-d575-4376-bb04-b1f0ee039e57?X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Credential=AKIAIOSFODNN7EXAMPLE%2F20260601%2Fus-east-1%2Fs3%2Faws4_request&X-Amz-Date=20260601T231807Z&X-Amz-Expires=300&X-Amz-SignedHeaders=host&X-Amz-Signature=d033829fbf2abde096a4d3ae91c91be59e7d92b01a25fe241655446761f42dd4","votes":[],"window_closed":false},"status":"OK"}
@@ -114,11 +114,11 @@ interactions:
       content-type:
       - application/json
       host:
-      - localhost:9696
+      - artifact-index-e2e:9696
       user-agent:
       - polyswarm_api/3.21.0 (x86_64-Linux-CPython-3.14.4)
     method: PUT
-    uri: http://localhost:9696/v3/instance?id=32835587133135949
+    uri: http://artifact-index-e2e:9696/v3/instance?id=32835587133135949
   response:
     body:
       string: '{"result":{"artifact_id":"32835587133135949","assertions":[],"bounty_state":0,"community":"gamma","country":"","created":"2026-06-01T23:18:07.921396+00:00","detections":null,"expiration_window":null,"expire_at":null,"extended_type":null,"failed":false,"filename":"malicious","first_seen":"2026-06-01T23:18:07.921396+00:00","id":"32835587133135949","last_scanned":null,"last_seen":null,"md5":null,"metadata":[],"mimetype":null,"permalink":"https://polyswarm.network/scan/results/file/None/32835587133135949","polyscore":null,"result":null,"sha1":null,"sha256":null,"size":null,"type":"FILE","upload_url":"http://minio:9000/artifact-index/instances/3f/8c/ff/3f8cff96-d575-4376-bb04-b1f0ee039e57?X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Credential=AKIAIOSFODNN7EXAMPLE%2F20260601%2Fus-east-1%2Fs3%2Faws4_request&X-Amz-Date=20260601T231807Z&X-Amz-Expires=300&X-Amz-SignedHeaders=host&X-Amz-Signature=d033829fbf2abde096a4d3ae91c91be59e7d92b01a25fe241655446761f42dd4","votes":[],"window_closed":false},"status":"OK"}
@@ -160,11 +160,11 @@ interactions:
       content-type:
       - application/json
       host:
-      - localhost:9696
+      - artifact-index-e2e:9696
       user-agent:
       - polyswarm_api/3.21.0 (x86_64-Linux-CPython-3.14.4)
     method: POST
-    uri: http://localhost:9696/v3/sandbox/sandboxtask
+    uri: http://artifact-index-e2e:9696/v3/sandbox/sandboxtask
   response:
     body:
       string: '{"errors":null,"result":"Could not find storage path for instance 32835587133135949.","status":"error"}
@@ -204,11 +204,11 @@ interactions:
       content-type:
       - application/json
       host:
-      - localhost:9696
+      - artifact-index-e2e:9696
       user-agent:
       - polyswarm_api/3.21.0 (x86_64-Linux-CPython-3.14.4)
     method: POST
-    uri: http://localhost:9696/v3/sandbox/sandboxtask
+    uri: http://artifact-index-e2e:9696/v3/sandbox/sandboxtask
   response:
     body:
       string: '{"result":{"account_number":null,"artifact":{"extended_type":"EICAR
@@ -253,11 +253,11 @@ interactions:
       content-type:
       - application/json
       host:
-      - localhost:9696
+      - artifact-index-e2e:9696
       user-agent:
       - polyswarm_api/3.21.0 (x86_64-Linux-CPython-3.14.4)
     method: POST
-    uri: http://localhost:9696/v3/sandbox/sandboxtask
+    uri: http://artifact-index-e2e:9696/v3/sandbox/sandboxtask
   response:
     body:
       string: '{"result":{"account_number":null,"artifact":{"extended_type":"EICAR
@@ -300,11 +300,11 @@ interactions:
       content-type:
       - application/json
       host:
-      - localhost:54110
+      - sandbox-service-e2e:54110
       user-agent:
       - python-httpx/0.28.1
     method: POST
-    uri: http://localhost:54110/api/sandbox-task/
+    uri: http://sandbox-service-e2e:54110/api/sandbox-task/
   response:
     body:
       string: '{"status":"OK"}'
@@ -349,11 +349,11 @@ interactions:
       content-type:
       - application/json
       host:
-      - localhost:54110
+      - sandbox-service-e2e:54110
       user-agent:
       - python-httpx/0.28.1
     method: POST
-    uri: http://localhost:54110/api/sandbox-artifact/
+    uri: http://sandbox-service-e2e:54110/api/sandbox-artifact/
   response:
     body:
       string: '{"id":8,"created":"2026-06-01T23:18:15.115614Z","sandbox_task_id":745704345833036,"instance_number":null,"artifact_type":"report","meta_community":"","sandbox":"","sha256":"703014278b978e8772c8188f6d66b7d43519abe6af896352181d2ba5758afaa5","parent":null,"upload_url":"http://minio:9000/sandbox-dropped/8/8?X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Credential=AKIAIOSFODNN7EXAMPLE%2F20260601%2Fus-east-1%2Fs3%2Faws4_request&X-Amz-Date=20260601T231815Z&X-Amz-Expires=300&X-Amz-SignedHeaders=host&X-Amz-Signature=94ff9b99a9a04907a032ea494dfc241454dfccb05bd9bb234a9a9458708da672","name":"cape_report.json","mimetype":"application/json","extended_type":"JSON
@@ -447,11 +447,11 @@ interactions:
       content-length:
       - '0'
       host:
-      - localhost:54110
+      - sandbox-service-e2e:54110
       user-agent:
       - python-httpx/0.28.1
     method: PATCH
-    uri: http://localhost:54110/api/sandbox-artifact/8/
+    uri: http://sandbox-service-e2e:54110/api/sandbox-artifact/8/
   response:
     body:
       string: '{"status":"OK"}'
@@ -495,11 +495,11 @@ interactions:
       content-type:
       - application/json
       host:
-      - localhost:54110
+      - sandbox-service-e2e:54110
       user-agent:
       - python-httpx/0.28.1
     method: POST
-    uri: http://localhost:54110/api/sandbox-task/
+    uri: http://sandbox-service-e2e:54110/api/sandbox-task/
   response:
     body:
       string: '{"status":"OK"}'
@@ -543,11 +543,11 @@ interactions:
       content-type:
       - application/json
       host:
-      - localhost:54110
+      - sandbox-service-e2e:54110
       user-agent:
       - python-httpx/0.28.1
     method: POST
-    uri: http://localhost:54110/api/sandbox-task/
+    uri: http://sandbox-service-e2e:54110/api/sandbox-task/
   response:
     body:
       string: '{"status":"OK"}'
@@ -592,11 +592,11 @@ interactions:
       content-type:
       - application/json
       host:
-      - localhost:54110
+      - sandbox-service-e2e:54110
       user-agent:
       - python-httpx/0.28.1
     method: POST
-    uri: http://localhost:54110/api/sandbox-artifact/
+    uri: http://sandbox-service-e2e:54110/api/sandbox-artifact/
   response:
     body:
       string: '{"id":9,"created":"2026-06-01T23:18:15.188094Z","sandbox_task_id":12524983802031914,"instance_number":null,"artifact_type":"report","meta_community":"","sandbox":"","sha256":"703014278b978e8772c8188f6d66b7d43519abe6af896352181d2ba5758afaa5","parent":null,"upload_url":"http://minio:9000/sandbox-dropped/9/9?X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Credential=AKIAIOSFODNN7EXAMPLE%2F20260601%2Fus-east-1%2Fs3%2Faws4_request&X-Amz-Date=20260601T231815Z&X-Amz-Expires=300&X-Amz-SignedHeaders=host&X-Amz-Signature=914a5f829ba403593400b6eece6860cbaac75401a6632073a68e88551bdaecb1","name":"triage_report.json","mimetype":"application/json","extended_type":"JSON
@@ -690,11 +690,11 @@ interactions:
       content-length:
       - '0'
       host:
-      - localhost:54110
+      - sandbox-service-e2e:54110
       user-agent:
       - python-httpx/0.28.1
     method: PATCH
-    uri: http://localhost:54110/api/sandbox-artifact/9/
+    uri: http://sandbox-service-e2e:54110/api/sandbox-artifact/9/
   response:
     body:
       string: '{"status":"OK"}'
@@ -738,11 +738,11 @@ interactions:
       content-type:
       - application/json
       host:
-      - localhost:54110
+      - sandbox-service-e2e:54110
       user-agent:
       - python-httpx/0.28.1
     method: POST
-    uri: http://localhost:54110/api/sandbox-artifact/
+    uri: http://sandbox-service-e2e:54110/api/sandbox-artifact/
   response:
     body:
       string: '{"id":10,"created":"2026-06-01T23:18:15.219466Z","sandbox_task_id":12524983802031914,"instance_number":null,"artifact_type":"recording","meta_community":"","sandbox":"","sha256":"3e819ced39f63e97a494d4c1af4b320ea970f2f6fc45cf2b4bc844622f7d1f08","parent":null,"upload_url":"http://minio:9000/sandbox-dropped/01/01?X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Credential=AKIAIOSFODNN7EXAMPLE%2F20260601%2Fus-east-1%2Fs3%2Faws4_request&X-Amz-Date=20260601T231815Z&X-Amz-Expires=300&X-Amz-SignedHeaders=host&X-Amz-Signature=54cf1f7b98a8cef3cbc0df0e3d1aab8bfcbca1656d32c7aee273026d0f81af52","name":"recording.cast","mimetype":"application/octet-stream","extended_type":"data","description":"","callback_uri":null,"content_type":"application/octet-stream","status":"created"}'
@@ -835,11 +835,11 @@ interactions:
       content-length:
       - '0'
       host:
-      - localhost:54110
+      - sandbox-service-e2e:54110
       user-agent:
       - python-httpx/0.28.1
     method: PATCH
-    uri: http://localhost:54110/api/sandbox-artifact/10/
+    uri: http://sandbox-service-e2e:54110/api/sandbox-artifact/10/
   response:
     body:
       string: '{"status":"OK"}'
@@ -883,11 +883,11 @@ interactions:
       content-type:
       - application/json
       host:
-      - localhost:54110
+      - sandbox-service-e2e:54110
       user-agent:
       - python-httpx/0.28.1
     method: POST
-    uri: http://localhost:54110/api/sandbox-task/
+    uri: http://sandbox-service-e2e:54110/api/sandbox-task/
   response:
     body:
       string: '{"status":"OK"}'
@@ -929,11 +929,11 @@ interactions:
       connection:
       - keep-alive
       host:
-      - localhost:9696
+      - artifact-index-e2e:9696
       user-agent:
       - polyswarm_api/3.21.0 (x86_64-Linux-CPython-3.14.4)
     method: GET
-    uri: http://localhost:9696/v3/sandbox/sandboxtask/latest?community=gamma&sha256=275a021bbfb6489e54d471899f7db9d1663fc695ec2fe2a2c4538aabf651fd0f&sandbox=cape
+    uri: http://artifact-index-e2e:9696/v3/sandbox/sandboxtask/latest?community=gamma&sha256=275a021bbfb6489e54d471899f7db9d1663fc695ec2fe2a2c4538aabf651fd0f&sandbox=cape
   response:
     body:
       string: '{"result":{"account_number":null,"artifact":{"extended_type":"EICAR
@@ -975,11 +975,11 @@ interactions:
       connection:
       - keep-alive
       host:
-      - localhost:9696
+      - artifact-index-e2e:9696
       user-agent:
       - polyswarm_api/3.21.0 (x86_64-Linux-CPython-3.14.4)
     method: GET
-    uri: http://localhost:9696/v3/sandbox/sandboxtask/latest?community=gamma&sha256=275a021bbfb6489e54d471899f7db9d1663fc695ec2fe2a2c4538aabf651fd0f&sandbox=triage
+    uri: http://artifact-index-e2e:9696/v3/sandbox/sandboxtask/latest?community=gamma&sha256=275a021bbfb6489e54d471899f7db9d1663fc695ec2fe2a2c4538aabf651fd0f&sandbox=triage
   response:
     body:
       string: '{"result":{"account_number":null,"artifact":{"extended_type":"EICAR

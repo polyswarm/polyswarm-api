@@ -15,14 +15,14 @@ interactions:
       content-type:
       - application/json
       host:
-      - localhost:9696
+      - artifact-index-e2e:9696
       user-agent:
       - polyswarm_api/3.21.0 (x86_64-Linux-CPython-3.14.4)
     method: POST
-    uri: http://localhost:9696/v3/instance
+    uri: http://artifact-index-e2e:9696/v3/instance
   response:
     body:
-      string: '{"result":{"artifact_id":"88912205678248522","assertions":[],"bounty_state":0,"community":"gamma","country":"","created":"2026-05-29T23:18:55.689715+00:00","detections":null,"expiration_window":null,"expire_at":null,"extended_type":null,"failed":false,"filename":"malicious","first_seen":"2026-05-29T23:18:55.689715+00:00","id":"88912205678248522","last_scanned":null,"last_seen":null,"md5":null,"metadata":[],"mimetype":null,"permalink":"https://polyswarm.network/scan/results/file/None/88912205678248522","polyscore":null,"result":null,"sha1":null,"sha256":null,"size":null,"type":"FILE","upload_url":"http://minio:9000/artifact-index/instances/0f/28/cb/0f28cb32-f920-4888-939c-d3fabf4ac607?X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Credential=AKIAIOSFODNN7EXAMPLE%2F20260529%2Fus-east-1%2Fs3%2Faws4_request&X-Amz-Date=20260529T231855Z&X-Amz-Expires=300&X-Amz-SignedHeaders=host&X-Amz-Signature=5830503f76bf3408fa4c191e15a67ab372d301b9a3a7c9a08a17663b6ff44f2a","votes":[],"window_closed":false},"status":"OK"}
+      string: '{"result":{"artifact_id":"24290174417462052","assertions":[],"bounty_state":0,"community":"gamma","country":"","created":"2026-06-02T21:28:45.465652+00:00","detections":null,"expiration_window":null,"expire_at":null,"extended_type":null,"failed":false,"filename":"malicious","first_seen":"2026-06-02T21:28:45.465652+00:00","id":"24290174417462052","last_scanned":null,"last_seen":null,"md5":null,"metadata":[],"mimetype":null,"permalink":"https://polyswarm.network/scan/results/file/None/24290174417462052","polyscore":null,"result":null,"sha1":null,"sha256":null,"size":null,"type":"FILE","upload_url":"http://minio:9000/artifact-index/instances/fa/63/0d/fa630d93-dcf7-4f7e-959c-ed0b37f67cdd?X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Credential=AKIAIOSFODNN7EXAMPLE%2F20260602%2Fus-east-1%2Fs3%2Faws4_request&X-Amz-Date=20260602T212845Z&X-Amz-Expires=300&X-Amz-SignedHeaders=host&X-Amz-Signature=da4139c74818ea4be02bf57c66c73ac5cf14a2ab1dec5bf6817334509c05e271","votes":[],"window_closed":false},"status":"OK"}
 
         '
     headers:
@@ -37,7 +37,7 @@ interactions:
       Content-Type:
       - application/json
       Date:
-      - Fri, 29 May 2026 23:18:55 GMT
+      - Tue, 02 Jun 2026 21:28:45 GMT
       Server:
       - gunicorn
       X-Billing-ID:
@@ -61,7 +61,7 @@ interactions:
       user-agent:
       - polyswarm_api/3.21.0 (x86_64-Linux-CPython-3.14.4)
     method: PUT
-    uri: http://minio:9000/artifact-index/instances/0f/28/cb/0f28cb32-f920-4888-939c-d3fabf4ac607?X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Credential=AKIAIOSFODNN7EXAMPLE%2F20260529%2Fus-east-1%2Fs3%2Faws4_request&X-Amz-Date=20260529T231855Z&X-Amz-Expires=300&X-Amz-SignedHeaders=host&X-Amz-Signature=5830503f76bf3408fa4c191e15a67ab372d301b9a3a7c9a08a17663b6ff44f2a
+    uri: http://minio:9000/artifact-index/instances/fa/63/0d/fa630d93-dcf7-4f7e-959c-ed0b37f67cdd?X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Credential=AKIAIOSFODNN7EXAMPLE%2F20260602%2Fus-east-1%2Fs3%2Faws4_request&X-Amz-Date=20260602T212845Z&X-Amz-Expires=300&X-Amz-SignedHeaders=host&X-Amz-Signature=da4139c74818ea4be02bf57c66c73ac5cf14a2ab1dec5bf6817334509c05e271
   response:
     body:
       string: ''
@@ -71,7 +71,7 @@ interactions:
       Content-Length:
       - '0'
       Date:
-      - Fri, 29 May 2026 23:18:55 GMT
+      - Tue, 02 Jun 2026 21:28:45 GMT
       ETag:
       - '"44d88612fea8a8f36de82e1278abb02f"'
       Server:
@@ -84,17 +84,17 @@ interactions:
       X-Amz-Id-2:
       - dd9025bab4ad464b049177c95eb6ebf374d3b3fd1af9251148b658df7ac2e3e8
       X-Amz-Request-Id:
-      - 18B42C8CBD199CFA
+      - 18B560DBF4110EC3
       X-Content-Type-Options:
       - nosniff
       X-Ratelimit-Limit:
-      - '13011'
+      - '10975'
       X-Ratelimit-Remaining:
-      - '13011'
+      - '10975'
       X-Xss-Protection:
       - 1; mode=block
       x-amz-expiration:
-      - expiry-date="Sun, 31 May 2026 00:00:00 GMT", rule-id="expiration-artifact-index_0-instances"
+      - expiry-date="Thu, 04 Jun 2026 00:00:00 GMT", rule-id="expiration-artifact-index_0-instances"
     status:
       code: 200
       message: OK
@@ -114,14 +114,14 @@ interactions:
       content-type:
       - application/json
       host:
-      - localhost:9696
+      - artifact-index-e2e:9696
       user-agent:
       - polyswarm_api/3.21.0 (x86_64-Linux-CPython-3.14.4)
     method: PUT
-    uri: http://localhost:9696/v3/instance?id=88912205678248522
+    uri: http://artifact-index-e2e:9696/v3/instance?id=24290174417462052
   response:
     body:
-      string: '{"result":{"artifact_id":"88912205678248522","assertions":[],"bounty_state":0,"community":"gamma","country":"","created":"2026-05-29T23:18:55.689715+00:00","detections":null,"expiration_window":null,"expire_at":null,"extended_type":null,"failed":false,"filename":"malicious","first_seen":"2026-05-29T23:18:55.689715+00:00","id":"88912205678248522","last_scanned":null,"last_seen":null,"md5":null,"metadata":[],"mimetype":null,"permalink":"https://polyswarm.network/scan/results/file/None/88912205678248522","polyscore":null,"result":null,"sha1":null,"sha256":null,"size":null,"type":"FILE","upload_url":"http://minio:9000/artifact-index/instances/0f/28/cb/0f28cb32-f920-4888-939c-d3fabf4ac607?X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Credential=AKIAIOSFODNN7EXAMPLE%2F20260529%2Fus-east-1%2Fs3%2Faws4_request&X-Amz-Date=20260529T231855Z&X-Amz-Expires=300&X-Amz-SignedHeaders=host&X-Amz-Signature=5830503f76bf3408fa4c191e15a67ab372d301b9a3a7c9a08a17663b6ff44f2a","votes":[],"window_closed":false},"status":"OK"}
+      string: '{"result":{"artifact_id":"24290174417462052","assertions":[],"bounty_state":0,"community":"gamma","country":"","created":"2026-06-02T21:28:45.465652+00:00","detections":null,"expiration_window":null,"expire_at":null,"extended_type":null,"failed":false,"filename":"malicious","first_seen":"2026-06-02T21:28:45.465652+00:00","id":"24290174417462052","last_scanned":null,"last_seen":null,"md5":null,"metadata":[],"mimetype":null,"permalink":"https://polyswarm.network/scan/results/file/None/24290174417462052","polyscore":null,"result":null,"sha1":null,"sha256":null,"size":null,"type":"FILE","upload_url":"http://minio:9000/artifact-index/instances/fa/63/0d/fa630d93-dcf7-4f7e-959c-ed0b37f67cdd?X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Credential=AKIAIOSFODNN7EXAMPLE%2F20260602%2Fus-east-1%2Fs3%2Faws4_request&X-Amz-Date=20260602T212845Z&X-Amz-Expires=300&X-Amz-SignedHeaders=host&X-Amz-Signature=da4139c74818ea4be02bf57c66c73ac5cf14a2ab1dec5bf6817334509c05e271","votes":[],"window_closed":false},"status":"OK"}
 
         '
     headers:
@@ -136,7 +136,7 @@ interactions:
       Content-Type:
       - application/json
       Date:
-      - Fri, 29 May 2026 23:18:55 GMT
+      - Tue, 02 Jun 2026 21:28:45 GMT
       Server:
       - gunicorn
       X-Billing-ID:
@@ -145,7 +145,7 @@ interactions:
       code: 200
       message: OK
 - request:
-    body: '{"instance_id":"88912205678248522","tool":"cape_sandbox_v2","tool_metadata":{"extracted_c2_ips":["9.42.0.3"],"extracted_c2_urls":["www.mock-ioc.test"],"ttp":["T1081","T1060","T1069"]}}'
+    body: '{"instance_id":"24290174417462052","tool":"cape_sandbox_v2","tool_metadata":{"extracted_c2_ips":["9.42.0.3"],"extracted_c2_urls":["www.mock-ioc.test"],"ttp":["T1081","T1060","T1069"]}}'
     headers:
       accept:
       - '*/*'
@@ -160,14 +160,14 @@ interactions:
       content-type:
       - application/json
       host:
-      - localhost:9696
+      - artifact-index-e2e:9696
       user-agent:
       - polyswarm_api/3.21.0 (x86_64-Linux-CPython-3.14.4)
     method: POST
-    uri: http://localhost:9696/v3/artifact/metadata
+    uri: http://artifact-index-e2e:9696/v3/artifact/metadata
   response:
     body:
-      string: '{"result":{"created":"2026-05-29T23:18:55.740410+00:00","tool":"cape_sandbox_v2","tool_metadata":{"extracted_c2_ips":["9.42.0.3"],"extracted_c2_urls":["www.mock-ioc.test"],"ttp":["T1081","T1060","T1069"]},"updated":"2026-05-29T23:18:55.740410+00:00"},"status":"OK"}
+      string: '{"result":{"created":"2026-06-02T21:28:45.551160+00:00","tool":"cape_sandbox_v2","tool_metadata":{"extracted_c2_ips":["9.42.0.3"],"extracted_c2_urls":["www.mock-ioc.test"],"ttp":["T1081","T1060","T1069"]},"updated":"2026-06-02T21:28:45.551160+00:00"},"status":"OK"}
 
         '
     headers:
@@ -182,7 +182,7 @@ interactions:
       Content-Type:
       - application/json
       Date:
-      - Fri, 29 May 2026 23:18:55 GMT
+      - Tue, 02 Jun 2026 21:28:45 GMT
       Server:
       - gunicorn
       X-Billing-ID:
@@ -202,14 +202,14 @@ interactions:
       connection:
       - keep-alive
       host:
-      - localhost:9696
+      - artifact-index-e2e:9696
       user-agent:
       - polyswarm_api/3.21.0 (x86_64-Linux-CPython-3.14.4)
     method: GET
-    uri: http://localhost:9696/v3/ioc/sha256/275a021bbfb6489e54d471899f7db9d1663fc695ec2fe2a2c4538aabf651fd0f?hide_known_good=False&community=gamma
+    uri: http://artifact-index-e2e:9696/v3/ioc/sha256/275a021bbfb6489e54d471899f7db9d1663fc695ec2fe2a2c4538aabf651fd0f?hide_known_good=False&community=gamma
   response:
     body:
-      string: '{"result":{"imphash":"","ips":["9.42.0.1"],"ttps":["T1060","T1069","T1081"],"urls":[]},"status":"OK"}
+      string: '{"result":{"imphash":"","ips":[],"ttps":[],"urls":[]},"status":"OK"}
 
         '
     headers:
@@ -220,11 +220,11 @@ interactions:
       Connection:
       - keep-alive
       Content-Length:
-      - '102'
+      - '69'
       Content-Type:
       - application/json
       Date:
-      - Fri, 29 May 2026 23:18:55 GMT
+      - Tue, 02 Jun 2026 21:28:45 GMT
       Server:
       - gunicorn
       X-Billing-ID:
@@ -244,14 +244,14 @@ interactions:
       connection:
       - keep-alive
       host:
-      - localhost:9696
+      - artifact-index-e2e:9696
       user-agent:
       - polyswarm_api/3.21.0 (x86_64-Linux-CPython-3.14.4)
     method: GET
-    uri: http://localhost:9696/v3/ioc/sha256/275a021bbfb6489e54d471899f7db9d1663fc695ec2fe2a2c4538aabf651fd0f?hide_known_good=False&community=gamma
+    uri: http://artifact-index-e2e:9696/v3/ioc/sha256/275a021bbfb6489e54d471899f7db9d1663fc695ec2fe2a2c4538aabf651fd0f?hide_known_good=False&community=gamma
   response:
     body:
-      string: '{"result":{"imphash":"","ips":["9.42.0.1"],"ttps":["T1060","T1069","T1081"],"urls":[]},"status":"OK"}
+      string: '{"result":{"imphash":"","ips":[],"ttps":[],"urls":[]},"status":"OK"}
 
         '
     headers:
@@ -262,11 +262,11 @@ interactions:
       Connection:
       - keep-alive
       Content-Length:
-      - '102'
+      - '69'
       Content-Type:
       - application/json
       Date:
-      - Fri, 29 May 2026 23:18:56 GMT
+      - Tue, 02 Jun 2026 21:28:46 GMT
       Server:
       - gunicorn
       X-Billing-ID:
@@ -286,14 +286,14 @@ interactions:
       connection:
       - keep-alive
       host:
-      - localhost:9696
+      - artifact-index-e2e:9696
       user-agent:
       - polyswarm_api/3.21.0 (x86_64-Linux-CPython-3.14.4)
     method: GET
-    uri: http://localhost:9696/v3/ioc/sha256/275a021bbfb6489e54d471899f7db9d1663fc695ec2fe2a2c4538aabf651fd0f?hide_known_good=False&community=gamma
+    uri: http://artifact-index-e2e:9696/v3/ioc/sha256/275a021bbfb6489e54d471899f7db9d1663fc695ec2fe2a2c4538aabf651fd0f?hide_known_good=False&community=gamma
   response:
     body:
-      string: '{"result":{"imphash":"","ips":["9.42.0.1"],"ttps":["T1060","T1069","T1081"],"urls":[]},"status":"OK"}
+      string: '{"result":{"imphash":"","ips":[],"ttps":[],"urls":[]},"status":"OK"}
 
         '
     headers:
@@ -304,11 +304,11 @@ interactions:
       Connection:
       - keep-alive
       Content-Length:
-      - '102'
+      - '69'
       Content-Type:
       - application/json
       Date:
-      - Fri, 29 May 2026 23:18:57 GMT
+      - Tue, 02 Jun 2026 21:28:47 GMT
       Server:
       - gunicorn
       X-Billing-ID:
@@ -328,14 +328,14 @@ interactions:
       connection:
       - keep-alive
       host:
-      - localhost:9696
+      - artifact-index-e2e:9696
       user-agent:
       - polyswarm_api/3.21.0 (x86_64-Linux-CPython-3.14.4)
     method: GET
-    uri: http://localhost:9696/v3/ioc/sha256/275a021bbfb6489e54d471899f7db9d1663fc695ec2fe2a2c4538aabf651fd0f?hide_known_good=False&community=gamma
+    uri: http://artifact-index-e2e:9696/v3/ioc/sha256/275a021bbfb6489e54d471899f7db9d1663fc695ec2fe2a2c4538aabf651fd0f?hide_known_good=False&community=gamma
   response:
     body:
-      string: '{"result":{"imphash":"","ips":["9.42.0.1"],"ttps":["T1060","T1069","T1081"],"urls":[]},"status":"OK"}
+      string: '{"result":{"imphash":"","ips":[],"ttps":[],"urls":[]},"status":"OK"}
 
         '
     headers:
@@ -346,11 +346,11 @@ interactions:
       Connection:
       - keep-alive
       Content-Length:
-      - '102'
+      - '69'
       Content-Type:
       - application/json
       Date:
-      - Fri, 29 May 2026 23:18:58 GMT
+      - Tue, 02 Jun 2026 21:28:48 GMT
       Server:
       - gunicorn
       X-Billing-ID:
@@ -370,14 +370,14 @@ interactions:
       connection:
       - keep-alive
       host:
-      - localhost:9696
+      - artifact-index-e2e:9696
       user-agent:
       - polyswarm_api/3.21.0 (x86_64-Linux-CPython-3.14.4)
     method: GET
-    uri: http://localhost:9696/v3/ioc/sha256/275a021bbfb6489e54d471899f7db9d1663fc695ec2fe2a2c4538aabf651fd0f?hide_known_good=False&community=gamma
+    uri: http://artifact-index-e2e:9696/v3/ioc/sha256/275a021bbfb6489e54d471899f7db9d1663fc695ec2fe2a2c4538aabf651fd0f?hide_known_good=False&community=gamma
   response:
     body:
-      string: '{"result":{"imphash":"","ips":["9.42.0.1"],"ttps":["T1060","T1069","T1081"],"urls":[]},"status":"OK"}
+      string: '{"result":{"imphash":"","ips":[],"ttps":[],"urls":[]},"status":"OK"}
 
         '
     headers:
@@ -388,11 +388,11 @@ interactions:
       Connection:
       - keep-alive
       Content-Length:
-      - '102'
+      - '69'
       Content-Type:
       - application/json
       Date:
-      - Fri, 29 May 2026 23:19:00 GMT
+      - Tue, 02 Jun 2026 21:28:49 GMT
       Server:
       - gunicorn
       X-Billing-ID:
@@ -412,14 +412,14 @@ interactions:
       connection:
       - keep-alive
       host:
-      - localhost:9696
+      - artifact-index-e2e:9696
       user-agent:
       - polyswarm_api/3.21.0 (x86_64-Linux-CPython-3.14.4)
     method: GET
-    uri: http://localhost:9696/v3/ioc/sha256/275a021bbfb6489e54d471899f7db9d1663fc695ec2fe2a2c4538aabf651fd0f?hide_known_good=False&community=gamma
+    uri: http://artifact-index-e2e:9696/v3/ioc/sha256/275a021bbfb6489e54d471899f7db9d1663fc695ec2fe2a2c4538aabf651fd0f?hide_known_good=False&community=gamma
   response:
     body:
-      string: '{"result":{"imphash":"","ips":["9.42.0.1"],"ttps":["T1060","T1069","T1081"],"urls":[]},"status":"OK"}
+      string: '{"result":{"imphash":"","ips":[],"ttps":[],"urls":[]},"status":"OK"}
 
         '
     headers:
@@ -430,11 +430,11 @@ interactions:
       Connection:
       - keep-alive
       Content-Length:
-      - '102'
+      - '69'
       Content-Type:
       - application/json
       Date:
-      - Fri, 29 May 2026 23:19:01 GMT
+      - Tue, 02 Jun 2026 21:28:50 GMT
       Server:
       - gunicorn
       X-Billing-ID:
@@ -454,14 +454,14 @@ interactions:
       connection:
       - keep-alive
       host:
-      - localhost:9696
+      - artifact-index-e2e:9696
       user-agent:
       - polyswarm_api/3.21.0 (x86_64-Linux-CPython-3.14.4)
     method: GET
-    uri: http://localhost:9696/v3/ioc/sha256/275a021bbfb6489e54d471899f7db9d1663fc695ec2fe2a2c4538aabf651fd0f?hide_known_good=False&community=gamma
+    uri: http://artifact-index-e2e:9696/v3/ioc/sha256/275a021bbfb6489e54d471899f7db9d1663fc695ec2fe2a2c4538aabf651fd0f?hide_known_good=False&community=gamma
   response:
     body:
-      string: '{"result":{"imphash":"","ips":["9.42.0.1"],"ttps":["T1060","T1069","T1081"],"urls":[]},"status":"OK"}
+      string: '{"result":{"imphash":"","ips":[],"ttps":[],"urls":[]},"status":"OK"}
 
         '
     headers:
@@ -472,11 +472,11 @@ interactions:
       Connection:
       - keep-alive
       Content-Length:
-      - '102'
+      - '69'
       Content-Type:
       - application/json
       Date:
-      - Fri, 29 May 2026 23:19:02 GMT
+      - Tue, 02 Jun 2026 21:28:51 GMT
       Server:
       - gunicorn
       X-Billing-ID:
@@ -496,14 +496,14 @@ interactions:
       connection:
       - keep-alive
       host:
-      - localhost:9696
+      - artifact-index-e2e:9696
       user-agent:
       - polyswarm_api/3.21.0 (x86_64-Linux-CPython-3.14.4)
     method: GET
-    uri: http://localhost:9696/v3/ioc/sha256/275a021bbfb6489e54d471899f7db9d1663fc695ec2fe2a2c4538aabf651fd0f?hide_known_good=False&community=gamma
+    uri: http://artifact-index-e2e:9696/v3/ioc/sha256/275a021bbfb6489e54d471899f7db9d1663fc695ec2fe2a2c4538aabf651fd0f?hide_known_good=False&community=gamma
   response:
     body:
-      string: '{"result":{"imphash":"","ips":["9.42.0.1"],"ttps":["T1060","T1069","T1081"],"urls":[]},"status":"OK"}
+      string: '{"result":{"imphash":"","ips":[],"ttps":[],"urls":[]},"status":"OK"}
 
         '
     headers:
@@ -514,11 +514,11 @@ interactions:
       Connection:
       - keep-alive
       Content-Length:
-      - '102'
+      - '69'
       Content-Type:
       - application/json
       Date:
-      - Fri, 29 May 2026 23:19:03 GMT
+      - Tue, 02 Jun 2026 21:28:52 GMT
       Server:
       - gunicorn
       X-Billing-ID:
@@ -538,14 +538,14 @@ interactions:
       connection:
       - keep-alive
       host:
-      - localhost:9696
+      - artifact-index-e2e:9696
       user-agent:
       - polyswarm_api/3.21.0 (x86_64-Linux-CPython-3.14.4)
     method: GET
-    uri: http://localhost:9696/v3/ioc/sha256/275a021bbfb6489e54d471899f7db9d1663fc695ec2fe2a2c4538aabf651fd0f?hide_known_good=False&community=gamma
+    uri: http://artifact-index-e2e:9696/v3/ioc/sha256/275a021bbfb6489e54d471899f7db9d1663fc695ec2fe2a2c4538aabf651fd0f?hide_known_good=False&community=gamma
   response:
     body:
-      string: '{"result":{"imphash":"","ips":["9.42.0.1"],"ttps":["T1060","T1069","T1081"],"urls":[]},"status":"OK"}
+      string: '{"result":{"imphash":"","ips":[],"ttps":[],"urls":[]},"status":"OK"}
 
         '
     headers:
@@ -556,11 +556,11 @@ interactions:
       Connection:
       - keep-alive
       Content-Length:
-      - '102'
+      - '69'
       Content-Type:
       - application/json
       Date:
-      - Fri, 29 May 2026 23:19:04 GMT
+      - Tue, 02 Jun 2026 21:28:53 GMT
       Server:
       - gunicorn
       X-Billing-ID:
@@ -580,14 +580,14 @@ interactions:
       connection:
       - keep-alive
       host:
-      - localhost:9696
+      - artifact-index-e2e:9696
       user-agent:
       - polyswarm_api/3.21.0 (x86_64-Linux-CPython-3.14.4)
     method: GET
-    uri: http://localhost:9696/v3/ioc/sha256/275a021bbfb6489e54d471899f7db9d1663fc695ec2fe2a2c4538aabf651fd0f?hide_known_good=False&community=gamma
+    uri: http://artifact-index-e2e:9696/v3/ioc/sha256/275a021bbfb6489e54d471899f7db9d1663fc695ec2fe2a2c4538aabf651fd0f?hide_known_good=False&community=gamma
   response:
     body:
-      string: '{"result":{"imphash":"","ips":["9.42.0.1"],"ttps":["T1060","T1069","T1081"],"urls":[]},"status":"OK"}
+      string: '{"result":{"imphash":"","ips":[],"ttps":[],"urls":[]},"status":"OK"}
 
         '
     headers:
@@ -598,11 +598,11 @@ interactions:
       Connection:
       - keep-alive
       Content-Length:
-      - '102'
+      - '69'
       Content-Type:
       - application/json
       Date:
-      - Fri, 29 May 2026 23:19:05 GMT
+      - Tue, 02 Jun 2026 21:28:54 GMT
       Server:
       - gunicorn
       X-Billing-ID:
@@ -622,14 +622,14 @@ interactions:
       connection:
       - keep-alive
       host:
-      - localhost:9696
+      - artifact-index-e2e:9696
       user-agent:
       - polyswarm_api/3.21.0 (x86_64-Linux-CPython-3.14.4)
     method: GET
-    uri: http://localhost:9696/v3/ioc/sha256/275a021bbfb6489e54d471899f7db9d1663fc695ec2fe2a2c4538aabf651fd0f?hide_known_good=False&community=gamma
+    uri: http://artifact-index-e2e:9696/v3/ioc/sha256/275a021bbfb6489e54d471899f7db9d1663fc695ec2fe2a2c4538aabf651fd0f?hide_known_good=False&community=gamma
   response:
     body:
-      string: '{"result":{"imphash":"","ips":["9.42.0.1"],"ttps":["T1060","T1069","T1081"],"urls":[]},"status":"OK"}
+      string: '{"result":{"imphash":"","ips":[],"ttps":[],"urls":[]},"status":"OK"}
 
         '
     headers:
@@ -640,11 +640,11 @@ interactions:
       Connection:
       - keep-alive
       Content-Length:
-      - '102'
+      - '69'
       Content-Type:
       - application/json
       Date:
-      - Fri, 29 May 2026 23:19:06 GMT
+      - Tue, 02 Jun 2026 21:28:56 GMT
       Server:
       - gunicorn
       X-Billing-ID:
@@ -664,14 +664,14 @@ interactions:
       connection:
       - keep-alive
       host:
-      - localhost:9696
+      - artifact-index-e2e:9696
       user-agent:
       - polyswarm_api/3.21.0 (x86_64-Linux-CPython-3.14.4)
     method: GET
-    uri: http://localhost:9696/v3/ioc/sha256/275a021bbfb6489e54d471899f7db9d1663fc695ec2fe2a2c4538aabf651fd0f?hide_known_good=False&community=gamma
+    uri: http://artifact-index-e2e:9696/v3/ioc/sha256/275a021bbfb6489e54d471899f7db9d1663fc695ec2fe2a2c4538aabf651fd0f?hide_known_good=False&community=gamma
   response:
     body:
-      string: '{"result":{"imphash":"","ips":["9.42.0.1"],"ttps":["T1060","T1069","T1081"],"urls":[]},"status":"OK"}
+      string: '{"result":{"imphash":"","ips":[],"ttps":[],"urls":[]},"status":"OK"}
 
         '
     headers:
@@ -682,11 +682,11 @@ interactions:
       Connection:
       - keep-alive
       Content-Length:
-      - '102'
+      - '69'
       Content-Type:
       - application/json
       Date:
-      - Fri, 29 May 2026 23:19:07 GMT
+      - Tue, 02 Jun 2026 21:28:57 GMT
       Server:
       - gunicorn
       X-Billing-ID:
@@ -706,14 +706,14 @@ interactions:
       connection:
       - keep-alive
       host:
-      - localhost:9696
+      - artifact-index-e2e:9696
       user-agent:
       - polyswarm_api/3.21.0 (x86_64-Linux-CPython-3.14.4)
     method: GET
-    uri: http://localhost:9696/v3/ioc/sha256/275a021bbfb6489e54d471899f7db9d1663fc695ec2fe2a2c4538aabf651fd0f?hide_known_good=False&community=gamma
+    uri: http://artifact-index-e2e:9696/v3/ioc/sha256/275a021bbfb6489e54d471899f7db9d1663fc695ec2fe2a2c4538aabf651fd0f?hide_known_good=False&community=gamma
   response:
     body:
-      string: '{"result":{"imphash":"","ips":["9.42.0.1"],"ttps":["T1060","T1069","T1081"],"urls":[]},"status":"OK"}
+      string: '{"result":{"imphash":"","ips":[],"ttps":[],"urls":[]},"status":"OK"}
 
         '
     headers:
@@ -724,11 +724,11 @@ interactions:
       Connection:
       - keep-alive
       Content-Length:
-      - '102'
+      - '69'
       Content-Type:
       - application/json
       Date:
-      - Fri, 29 May 2026 23:19:08 GMT
+      - Tue, 02 Jun 2026 21:28:58 GMT
       Server:
       - gunicorn
       X-Billing-ID:
@@ -748,14 +748,14 @@ interactions:
       connection:
       - keep-alive
       host:
-      - localhost:9696
+      - artifact-index-e2e:9696
       user-agent:
       - polyswarm_api/3.21.0 (x86_64-Linux-CPython-3.14.4)
     method: GET
-    uri: http://localhost:9696/v3/ioc/sha256/275a021bbfb6489e54d471899f7db9d1663fc695ec2fe2a2c4538aabf651fd0f?hide_known_good=False&community=gamma
+    uri: http://artifact-index-e2e:9696/v3/ioc/sha256/275a021bbfb6489e54d471899f7db9d1663fc695ec2fe2a2c4538aabf651fd0f?hide_known_good=False&community=gamma
   response:
     body:
-      string: '{"result":{"imphash":"","ips":["9.42.0.1"],"ttps":["T1060","T1069","T1081"],"urls":[]},"status":"OK"}
+      string: '{"result":{"imphash":"","ips":[],"ttps":[],"urls":[]},"status":"OK"}
 
         '
     headers:
@@ -766,11 +766,11 @@ interactions:
       Connection:
       - keep-alive
       Content-Length:
-      - '102'
+      - '69'
       Content-Type:
       - application/json
       Date:
-      - Fri, 29 May 2026 23:19:09 GMT
+      - Tue, 02 Jun 2026 21:28:59 GMT
       Server:
       - gunicorn
       X-Billing-ID:
@@ -790,14 +790,14 @@ interactions:
       connection:
       - keep-alive
       host:
-      - localhost:9696
+      - artifact-index-e2e:9696
       user-agent:
       - polyswarm_api/3.21.0 (x86_64-Linux-CPython-3.14.4)
     method: GET
-    uri: http://localhost:9696/v3/ioc/sha256/275a021bbfb6489e54d471899f7db9d1663fc695ec2fe2a2c4538aabf651fd0f?hide_known_good=False&community=gamma
+    uri: http://artifact-index-e2e:9696/v3/ioc/sha256/275a021bbfb6489e54d471899f7db9d1663fc695ec2fe2a2c4538aabf651fd0f?hide_known_good=False&community=gamma
   response:
     body:
-      string: '{"result":{"imphash":"","ips":["9.42.0.1"],"ttps":["T1060","T1069","T1081"],"urls":[]},"status":"OK"}
+      string: '{"result":{"imphash":"","ips":[],"ttps":[],"urls":[]},"status":"OK"}
 
         '
     headers:
@@ -808,11 +808,11 @@ interactions:
       Connection:
       - keep-alive
       Content-Length:
-      - '102'
+      - '69'
       Content-Type:
       - application/json
       Date:
-      - Fri, 29 May 2026 23:19:10 GMT
+      - Tue, 02 Jun 2026 21:29:00 GMT
       Server:
       - gunicorn
       X-Billing-ID:
@@ -832,14 +832,14 @@ interactions:
       connection:
       - keep-alive
       host:
-      - localhost:9696
+      - artifact-index-e2e:9696
       user-agent:
       - polyswarm_api/3.21.0 (x86_64-Linux-CPython-3.14.4)
     method: GET
-    uri: http://localhost:9696/v3/ioc/sha256/275a021bbfb6489e54d471899f7db9d1663fc695ec2fe2a2c4538aabf651fd0f?hide_known_good=False&community=gamma
+    uri: http://artifact-index-e2e:9696/v3/ioc/sha256/275a021bbfb6489e54d471899f7db9d1663fc695ec2fe2a2c4538aabf651fd0f?hide_known_good=False&community=gamma
   response:
     body:
-      string: '{"result":{"imphash":"","ips":["9.42.0.1"],"ttps":["T1060","T1069","T1081"],"urls":[]},"status":"OK"}
+      string: '{"result":{"imphash":"","ips":[],"ttps":[],"urls":[]},"status":"OK"}
 
         '
     headers:
@@ -850,11 +850,11 @@ interactions:
       Connection:
       - keep-alive
       Content-Length:
-      - '102'
+      - '69'
       Content-Type:
       - application/json
       Date:
-      - Fri, 29 May 2026 23:19:11 GMT
+      - Tue, 02 Jun 2026 21:29:01 GMT
       Server:
       - gunicorn
       X-Billing-ID:
@@ -874,14 +874,14 @@ interactions:
       connection:
       - keep-alive
       host:
-      - localhost:9696
+      - artifact-index-e2e:9696
       user-agent:
       - polyswarm_api/3.21.0 (x86_64-Linux-CPython-3.14.4)
     method: GET
-    uri: http://localhost:9696/v3/ioc/sha256/275a021bbfb6489e54d471899f7db9d1663fc695ec2fe2a2c4538aabf651fd0f?hide_known_good=False&community=gamma
+    uri: http://artifact-index-e2e:9696/v3/ioc/sha256/275a021bbfb6489e54d471899f7db9d1663fc695ec2fe2a2c4538aabf651fd0f?hide_known_good=False&community=gamma
   response:
     body:
-      string: '{"result":{"imphash":"","ips":["9.42.0.1"],"ttps":["T1060","T1069","T1081"],"urls":[]},"status":"OK"}
+      string: '{"result":{"imphash":"","ips":[],"ttps":[],"urls":[]},"status":"OK"}
 
         '
     headers:
@@ -892,11 +892,11 @@ interactions:
       Connection:
       - keep-alive
       Content-Length:
-      - '102'
+      - '69'
       Content-Type:
       - application/json
       Date:
-      - Fri, 29 May 2026 23:19:12 GMT
+      - Tue, 02 Jun 2026 21:29:02 GMT
       Server:
       - gunicorn
       X-Billing-ID:
@@ -916,14 +916,14 @@ interactions:
       connection:
       - keep-alive
       host:
-      - localhost:9696
+      - artifact-index-e2e:9696
       user-agent:
       - polyswarm_api/3.21.0 (x86_64-Linux-CPython-3.14.4)
     method: GET
-    uri: http://localhost:9696/v3/ioc/sha256/275a021bbfb6489e54d471899f7db9d1663fc695ec2fe2a2c4538aabf651fd0f?hide_known_good=False&community=gamma
+    uri: http://artifact-index-e2e:9696/v3/ioc/sha256/275a021bbfb6489e54d471899f7db9d1663fc695ec2fe2a2c4538aabf651fd0f?hide_known_good=False&community=gamma
   response:
     body:
-      string: '{"result":{"imphash":"","ips":["9.42.0.1"],"ttps":["T1060","T1069","T1081"],"urls":[]},"status":"OK"}
+      string: '{"result":{"imphash":"","ips":[],"ttps":[],"urls":[]},"status":"OK"}
 
         '
     headers:
@@ -934,11 +934,11 @@ interactions:
       Connection:
       - keep-alive
       Content-Length:
-      - '102'
+      - '69'
       Content-Type:
       - application/json
       Date:
-      - Fri, 29 May 2026 23:19:13 GMT
+      - Tue, 02 Jun 2026 21:29:03 GMT
       Server:
       - gunicorn
       X-Billing-ID:
@@ -958,14 +958,14 @@ interactions:
       connection:
       - keep-alive
       host:
-      - localhost:9696
+      - artifact-index-e2e:9696
       user-agent:
       - polyswarm_api/3.21.0 (x86_64-Linux-CPython-3.14.4)
     method: GET
-    uri: http://localhost:9696/v3/ioc/sha256/275a021bbfb6489e54d471899f7db9d1663fc695ec2fe2a2c4538aabf651fd0f?hide_known_good=False&community=gamma
+    uri: http://artifact-index-e2e:9696/v3/ioc/sha256/275a021bbfb6489e54d471899f7db9d1663fc695ec2fe2a2c4538aabf651fd0f?hide_known_good=False&community=gamma
   response:
     body:
-      string: '{"result":{"imphash":"","ips":["9.42.0.1"],"ttps":["T1060","T1069","T1081"],"urls":[]},"status":"OK"}
+      string: '{"result":{"imphash":"","ips":[],"ttps":[],"urls":[]},"status":"OK"}
 
         '
     headers:
@@ -976,11 +976,11 @@ interactions:
       Connection:
       - keep-alive
       Content-Length:
-      - '102'
+      - '69'
       Content-Type:
       - application/json
       Date:
-      - Fri, 29 May 2026 23:19:14 GMT
+      - Tue, 02 Jun 2026 21:29:04 GMT
       Server:
       - gunicorn
       X-Billing-ID:
@@ -1000,14 +1000,14 @@ interactions:
       connection:
       - keep-alive
       host:
-      - localhost:9696
+      - artifact-index-e2e:9696
       user-agent:
       - polyswarm_api/3.21.0 (x86_64-Linux-CPython-3.14.4)
     method: GET
-    uri: http://localhost:9696/v3/ioc/sha256/275a021bbfb6489e54d471899f7db9d1663fc695ec2fe2a2c4538aabf651fd0f?hide_known_good=False&community=gamma
+    uri: http://artifact-index-e2e:9696/v3/ioc/sha256/275a021bbfb6489e54d471899f7db9d1663fc695ec2fe2a2c4538aabf651fd0f?hide_known_good=False&community=gamma
   response:
     body:
-      string: '{"result":{"imphash":"","ips":["9.42.0.1"],"ttps":["T1060","T1069","T1081"],"urls":[]},"status":"OK"}
+      string: '{"result":{"imphash":"","ips":[],"ttps":[],"urls":[]},"status":"OK"}
 
         '
     headers:
@@ -1018,11 +1018,11 @@ interactions:
       Connection:
       - keep-alive
       Content-Length:
-      - '102'
+      - '69'
       Content-Type:
       - application/json
       Date:
-      - Fri, 29 May 2026 23:19:15 GMT
+      - Tue, 02 Jun 2026 21:29:05 GMT
       Server:
       - gunicorn
       X-Billing-ID:
@@ -1042,14 +1042,14 @@ interactions:
       connection:
       - keep-alive
       host:
-      - localhost:9696
+      - artifact-index-e2e:9696
       user-agent:
       - polyswarm_api/3.21.0 (x86_64-Linux-CPython-3.14.4)
     method: GET
-    uri: http://localhost:9696/v3/ioc/sha256/275a021bbfb6489e54d471899f7db9d1663fc695ec2fe2a2c4538aabf651fd0f?hide_known_good=False&community=gamma
+    uri: http://artifact-index-e2e:9696/v3/ioc/sha256/275a021bbfb6489e54d471899f7db9d1663fc695ec2fe2a2c4538aabf651fd0f?hide_known_good=False&community=gamma
   response:
     body:
-      string: '{"result":{"imphash":"","ips":["9.42.0.1"],"ttps":["T1060","T1069","T1081"],"urls":[]},"status":"OK"}
+      string: '{"result":{"imphash":"","ips":[],"ttps":[],"urls":[]},"status":"OK"}
 
         '
     headers:
@@ -1060,11 +1060,11 @@ interactions:
       Connection:
       - keep-alive
       Content-Length:
-      - '102'
+      - '69'
       Content-Type:
       - application/json
       Date:
-      - Fri, 29 May 2026 23:19:16 GMT
+      - Tue, 02 Jun 2026 21:29:06 GMT
       Server:
       - gunicorn
       X-Billing-ID:
@@ -1084,14 +1084,14 @@ interactions:
       connection:
       - keep-alive
       host:
-      - localhost:9696
+      - artifact-index-e2e:9696
       user-agent:
       - polyswarm_api/3.21.0 (x86_64-Linux-CPython-3.14.4)
     method: GET
-    uri: http://localhost:9696/v3/ioc/sha256/275a021bbfb6489e54d471899f7db9d1663fc695ec2fe2a2c4538aabf651fd0f?hide_known_good=False&community=gamma
+    uri: http://artifact-index-e2e:9696/v3/ioc/sha256/275a021bbfb6489e54d471899f7db9d1663fc695ec2fe2a2c4538aabf651fd0f?hide_known_good=False&community=gamma
   response:
     body:
-      string: '{"result":{"imphash":"","ips":["9.42.0.1"],"ttps":["T1060","T1069","T1081"],"urls":[]},"status":"OK"}
+      string: '{"result":{"imphash":"","ips":[],"ttps":[],"urls":[]},"status":"OK"}
 
         '
     headers:
@@ -1102,11 +1102,11 @@ interactions:
       Connection:
       - keep-alive
       Content-Length:
-      - '102'
+      - '69'
       Content-Type:
       - application/json
       Date:
-      - Fri, 29 May 2026 23:19:17 GMT
+      - Tue, 02 Jun 2026 21:29:07 GMT
       Server:
       - gunicorn
       X-Billing-ID:
@@ -1126,14 +1126,14 @@ interactions:
       connection:
       - keep-alive
       host:
-      - localhost:9696
+      - artifact-index-e2e:9696
       user-agent:
       - polyswarm_api/3.21.0 (x86_64-Linux-CPython-3.14.4)
     method: GET
-    uri: http://localhost:9696/v3/ioc/sha256/275a021bbfb6489e54d471899f7db9d1663fc695ec2fe2a2c4538aabf651fd0f?hide_known_good=False&community=gamma
+    uri: http://artifact-index-e2e:9696/v3/ioc/sha256/275a021bbfb6489e54d471899f7db9d1663fc695ec2fe2a2c4538aabf651fd0f?hide_known_good=False&community=gamma
   response:
     body:
-      string: '{"result":{"imphash":"","ips":["9.42.0.1"],"ttps":["T1060","T1069","T1081"],"urls":[]},"status":"OK"}
+      string: '{"result":{"imphash":"","ips":[],"ttps":[],"urls":[]},"status":"OK"}
 
         '
     headers:
@@ -1144,11 +1144,11 @@ interactions:
       Connection:
       - keep-alive
       Content-Length:
-      - '102'
+      - '69'
       Content-Type:
       - application/json
       Date:
-      - Fri, 29 May 2026 23:19:18 GMT
+      - Tue, 02 Jun 2026 21:29:08 GMT
       Server:
       - gunicorn
       X-Billing-ID:
@@ -1168,14 +1168,14 @@ interactions:
       connection:
       - keep-alive
       host:
-      - localhost:9696
+      - artifact-index-e2e:9696
       user-agent:
       - polyswarm_api/3.21.0 (x86_64-Linux-CPython-3.14.4)
     method: GET
-    uri: http://localhost:9696/v3/ioc/sha256/275a021bbfb6489e54d471899f7db9d1663fc695ec2fe2a2c4538aabf651fd0f?hide_known_good=False&community=gamma
+    uri: http://artifact-index-e2e:9696/v3/ioc/sha256/275a021bbfb6489e54d471899f7db9d1663fc695ec2fe2a2c4538aabf651fd0f?hide_known_good=False&community=gamma
   response:
     body:
-      string: '{"result":{"imphash":"","ips":["9.42.0.1"],"ttps":["T1060","T1069","T1081"],"urls":[]},"status":"OK"}
+      string: '{"result":{"imphash":"","ips":[],"ttps":[],"urls":[]},"status":"OK"}
 
         '
     headers:
@@ -1186,11 +1186,11 @@ interactions:
       Connection:
       - keep-alive
       Content-Length:
-      - '102'
+      - '69'
       Content-Type:
       - application/json
       Date:
-      - Fri, 29 May 2026 23:19:19 GMT
+      - Tue, 02 Jun 2026 21:29:09 GMT
       Server:
       - gunicorn
       X-Billing-ID:
@@ -1210,14 +1210,14 @@ interactions:
       connection:
       - keep-alive
       host:
-      - localhost:9696
+      - artifact-index-e2e:9696
       user-agent:
       - polyswarm_api/3.21.0 (x86_64-Linux-CPython-3.14.4)
     method: GET
-    uri: http://localhost:9696/v3/ioc/sha256/275a021bbfb6489e54d471899f7db9d1663fc695ec2fe2a2c4538aabf651fd0f?hide_known_good=False&community=gamma
+    uri: http://artifact-index-e2e:9696/v3/ioc/sha256/275a021bbfb6489e54d471899f7db9d1663fc695ec2fe2a2c4538aabf651fd0f?hide_known_good=False&community=gamma
   response:
     body:
-      string: '{"result":{"imphash":"","ips":["9.42.0.1"],"ttps":["T1060","T1069","T1081"],"urls":[]},"status":"OK"}
+      string: '{"result":{"imphash":"","ips":[],"ttps":[],"urls":[]},"status":"OK"}
 
         '
     headers:
@@ -1228,11 +1228,11 @@ interactions:
       Connection:
       - keep-alive
       Content-Length:
-      - '102'
+      - '69'
       Content-Type:
       - application/json
       Date:
-      - Fri, 29 May 2026 23:19:20 GMT
+      - Tue, 02 Jun 2026 21:29:10 GMT
       Server:
       - gunicorn
       X-Billing-ID:
@@ -1252,14 +1252,14 @@ interactions:
       connection:
       - keep-alive
       host:
-      - localhost:9696
+      - artifact-index-e2e:9696
       user-agent:
       - polyswarm_api/3.21.0 (x86_64-Linux-CPython-3.14.4)
     method: GET
-    uri: http://localhost:9696/v3/ioc/sha256/275a021bbfb6489e54d471899f7db9d1663fc695ec2fe2a2c4538aabf651fd0f?hide_known_good=False&community=gamma
+    uri: http://artifact-index-e2e:9696/v3/ioc/sha256/275a021bbfb6489e54d471899f7db9d1663fc695ec2fe2a2c4538aabf651fd0f?hide_known_good=False&community=gamma
   response:
     body:
-      string: '{"result":{"imphash":"","ips":["9.42.0.1"],"ttps":["T1060","T1069","T1081"],"urls":[]},"status":"OK"}
+      string: '{"result":{"imphash":"","ips":[],"ttps":[],"urls":[]},"status":"OK"}
 
         '
     headers:
@@ -1270,11 +1270,11 @@ interactions:
       Connection:
       - keep-alive
       Content-Length:
-      - '102'
+      - '69'
       Content-Type:
       - application/json
       Date:
-      - Fri, 29 May 2026 23:19:21 GMT
+      - Tue, 02 Jun 2026 21:29:11 GMT
       Server:
       - gunicorn
       X-Billing-ID:
@@ -1294,14 +1294,14 @@ interactions:
       connection:
       - keep-alive
       host:
-      - localhost:9696
+      - artifact-index-e2e:9696
       user-agent:
       - polyswarm_api/3.21.0 (x86_64-Linux-CPython-3.14.4)
     method: GET
-    uri: http://localhost:9696/v3/ioc/sha256/275a021bbfb6489e54d471899f7db9d1663fc695ec2fe2a2c4538aabf651fd0f?hide_known_good=False&community=gamma
+    uri: http://artifact-index-e2e:9696/v3/ioc/sha256/275a021bbfb6489e54d471899f7db9d1663fc695ec2fe2a2c4538aabf651fd0f?hide_known_good=False&community=gamma
   response:
     body:
-      string: '{"result":{"imphash":"","ips":["9.42.0.1"],"ttps":["T1060","T1069","T1081"],"urls":[]},"status":"OK"}
+      string: '{"result":{"imphash":"","ips":[],"ttps":[],"urls":[]},"status":"OK"}
 
         '
     headers:
@@ -1312,11 +1312,11 @@ interactions:
       Connection:
       - keep-alive
       Content-Length:
-      - '102'
+      - '69'
       Content-Type:
       - application/json
       Date:
-      - Fri, 29 May 2026 23:19:23 GMT
+      - Tue, 02 Jun 2026 21:29:12 GMT
       Server:
       - gunicorn
       X-Billing-ID:
@@ -1336,14 +1336,14 @@ interactions:
       connection:
       - keep-alive
       host:
-      - localhost:9696
+      - artifact-index-e2e:9696
       user-agent:
       - polyswarm_api/3.21.0 (x86_64-Linux-CPython-3.14.4)
     method: GET
-    uri: http://localhost:9696/v3/ioc/sha256/275a021bbfb6489e54d471899f7db9d1663fc695ec2fe2a2c4538aabf651fd0f?hide_known_good=False&community=gamma
+    uri: http://artifact-index-e2e:9696/v3/ioc/sha256/275a021bbfb6489e54d471899f7db9d1663fc695ec2fe2a2c4538aabf651fd0f?hide_known_good=False&community=gamma
   response:
     body:
-      string: '{"result":{"imphash":"","ips":["9.42.0.1"],"ttps":["T1060","T1069","T1081"],"urls":[]},"status":"OK"}
+      string: '{"result":{"imphash":"","ips":[],"ttps":[],"urls":[]},"status":"OK"}
 
         '
     headers:
@@ -1354,11 +1354,11 @@ interactions:
       Connection:
       - keep-alive
       Content-Length:
-      - '102'
+      - '69'
       Content-Type:
       - application/json
       Date:
-      - Fri, 29 May 2026 23:19:24 GMT
+      - Tue, 02 Jun 2026 21:29:13 GMT
       Server:
       - gunicorn
       X-Billing-ID:
@@ -1378,14 +1378,14 @@ interactions:
       connection:
       - keep-alive
       host:
-      - localhost:9696
+      - artifact-index-e2e:9696
       user-agent:
       - polyswarm_api/3.21.0 (x86_64-Linux-CPython-3.14.4)
     method: GET
-    uri: http://localhost:9696/v3/ioc/sha256/275a021bbfb6489e54d471899f7db9d1663fc695ec2fe2a2c4538aabf651fd0f?hide_known_good=False&community=gamma
+    uri: http://artifact-index-e2e:9696/v3/ioc/sha256/275a021bbfb6489e54d471899f7db9d1663fc695ec2fe2a2c4538aabf651fd0f?hide_known_good=False&community=gamma
   response:
     body:
-      string: '{"result":{"imphash":"","ips":["9.42.0.1"],"ttps":["T1060","T1069","T1081"],"urls":[]},"status":"OK"}
+      string: '{"result":{"imphash":"","ips":[],"ttps":[],"urls":[]},"status":"OK"}
 
         '
     headers:
@@ -1396,11 +1396,11 @@ interactions:
       Connection:
       - keep-alive
       Content-Length:
-      - '102'
+      - '69'
       Content-Type:
       - application/json
       Date:
-      - Fri, 29 May 2026 23:19:25 GMT
+      - Tue, 02 Jun 2026 21:29:14 GMT
       Server:
       - gunicorn
       X-Billing-ID:
@@ -1420,14 +1420,14 @@ interactions:
       connection:
       - keep-alive
       host:
-      - localhost:9696
+      - artifact-index-e2e:9696
       user-agent:
       - polyswarm_api/3.21.0 (x86_64-Linux-CPython-3.14.4)
     method: GET
-    uri: http://localhost:9696/v3/ioc/sha256/275a021bbfb6489e54d471899f7db9d1663fc695ec2fe2a2c4538aabf651fd0f?hide_known_good=False&community=gamma
+    uri: http://artifact-index-e2e:9696/v3/ioc/sha256/275a021bbfb6489e54d471899f7db9d1663fc695ec2fe2a2c4538aabf651fd0f?hide_known_good=False&community=gamma
   response:
     body:
-      string: '{"result":{"imphash":"","ips":["9.42.0.3"],"ttps":["T1060","T1069","T1081"],"urls":[]},"status":"OK"}
+      string: '{"result":{"imphash":"","ips":["9.42.0.3"],"ttps":["T1060","T1081","T1069"],"urls":[]},"status":"OK"}
 
         '
     headers:
@@ -1442,7 +1442,7 @@ interactions:
       Content-Type:
       - application/json
       Date:
-      - Fri, 29 May 2026 23:19:26 GMT
+      - Tue, 02 Jun 2026 21:29:15 GMT
       Server:
       - gunicorn
       X-Billing-ID:

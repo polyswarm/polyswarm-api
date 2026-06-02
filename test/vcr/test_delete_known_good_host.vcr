@@ -15,14 +15,14 @@ interactions:
       content-type:
       - application/json
       host:
-      - localhost:9696
+      - artifact-index-e2e:9696
       user-agent:
       - polyswarm_api/3.21.0 (x86_64-Linux-CPython-3.14.4)
     method: POST
-    uri: http://localhost:9696/v3/ioc/known
+    uri: http://artifact-index-e2e:9696/v3/ioc/known
   response:
     body:
-      string: '{"result":{"good":true,"host":"polyswarm.network","id":15,"source":"test","type":"domain"},"status":"OK"}
+      string: '{"result":{"good":true,"host":"polyswarm.network","id":7,"source":"test","type":"domain"},"status":"OK"}
 
         '
     headers:
@@ -33,11 +33,11 @@ interactions:
       Connection:
       - keep-alive
       Content-Length:
-      - '106'
+      - '105'
       Content-Type:
       - application/json
       Date:
-      - Fri, 29 May 2026 17:00:46 GMT
+      - Tue, 02 Jun 2026 21:30:57 GMT
       Server:
       - gunicorn
       X-Billing-ID:
@@ -57,14 +57,14 @@ interactions:
       connection:
       - keep-alive
       host:
-      - localhost:9696
+      - artifact-index-e2e:9696
       user-agent:
       - polyswarm_api/3.21.0 (x86_64-Linux-CPython-3.14.4)
     method: DELETE
-    uri: http://localhost:9696/v3/ioc/known?id=15
+    uri: http://artifact-index-e2e:9696/v3/ioc/known?id=7
   response:
     body:
-      string: '{"result":{"good":true,"host":"polyswarm.network","id":15,"source":"test","type":"domain"},"status":"OK"}
+      string: '{"result":{"good":true,"host":"polyswarm.network","id":7,"source":"test","type":"domain"},"status":"OK"}
 
         '
     headers:
@@ -75,11 +75,11 @@ interactions:
       Connection:
       - keep-alive
       Content-Length:
-      - '106'
+      - '105'
       Content-Type:
       - application/json
       Date:
-      - Fri, 29 May 2026 17:00:46 GMT
+      - Tue, 02 Jun 2026 21:30:57 GMT
       Server:
       - gunicorn
       X-Billing-ID:

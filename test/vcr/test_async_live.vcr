@@ -26,14 +26,14 @@ interactions:
       content-type:
       - application/json
       host:
-      - localhost:9696
+      - artifact-index-e2e:9696
       user-agent:
       - polyswarm_api/3.21.0 (x86_64-Linux-CPython-3.14.4)
     method: POST
-    uri: http://localhost:9696/v3/hunt/rule
+    uri: http://artifact-index-e2e:9696/v3/hunt/rule
   response:
     body:
-      string: '{"result":{"created":"2026-05-29T17:00:18.736874+00:00","deleted":false,"description":null,"id":"10146124047824056","livescan_created":null,"livescan_id":null,"modified":"2026-05-29T17:00:18.736874+00:00","name":"eicar","yara":"rule
+      string: '{"result":{"created":"2026-06-02T21:30:27.800377+00:00","deleted":false,"description":null,"id":"41408977860969060","livescan_created":null,"livescan_id":null,"modified":"2026-06-02T21:30:27.800377+00:00","name":"eicar","yara":"rule
         eicar_av_test {\n    /*\n       Per standard, match only if entire file is
         EICAR string plus optional trailing whitespace.\n       The raw EICAR string
         to be matched is:\n       X5O!P%@AP[4\\PZX54(P^)7CC)7}$EICAR-STANDARD-ANTIVIRUS-TEST-FILE!$H+H*\n    */\n\n    meta:\n        description
@@ -61,7 +61,7 @@ interactions:
       Content-Type:
       - application/json
       Date:
-      - Fri, 29 May 2026 17:00:18 GMT
+      - Tue, 02 Jun 2026 21:30:27 GMT
       Server:
       - gunicorn
       X-Billing-ID:
@@ -70,7 +70,7 @@ interactions:
       code: 200
       message: OK
 - request:
-    body: '{"rule_id":"10146124047824056"}'
+    body: '{"rule_id":"41408977860969060"}'
     headers:
       accept:
       - '*/*'
@@ -85,14 +85,14 @@ interactions:
       content-type:
       - application/json
       host:
-      - localhost:9696
+      - artifact-index-e2e:9696
       user-agent:
       - polyswarm_api/3.21.0 (x86_64-Linux-CPython-3.14.4)
     method: POST
-    uri: http://localhost:9696/v3/hunt/rule/live
+    uri: http://artifact-index-e2e:9696/v3/hunt/rule/live
   response:
     body:
-      string: '{"result":{"created":"2026-05-29T17:00:18.736874+00:00","deleted":false,"description":null,"id":"10146124047824056","livescan_created":"2026-05-29T17:00:18.787050+00:00","livescan_id":null,"modified":"2026-05-29T17:00:18.736874+00:00","name":"eicar","yara":"rule
+      string: '{"result":{"created":"2026-06-02T21:30:27.800377+00:00","deleted":false,"description":null,"id":"41408977860969060","livescan_created":"2026-06-02T21:30:27.844717+00:00","livescan_id":null,"modified":"2026-06-02T21:30:27.800377+00:00","name":"eicar","yara":"rule
         eicar_av_test {\n    /*\n       Per standard, match only if entire file is
         EICAR string plus optional trailing whitespace.\n       The raw EICAR string
         to be matched is:\n       X5O!P%@AP[4\\PZX54(P^)7CC)7}$EICAR-STANDARD-ANTIVIRUS-TEST-FILE!$H+H*\n    */\n\n    meta:\n        description
@@ -120,7 +120,7 @@ interactions:
       Content-Type:
       - application/json
       Date:
-      - Fri, 29 May 2026 17:00:18 GMT
+      - Tue, 02 Jun 2026 21:30:27 GMT
       Server:
       - gunicorn
       X-Billing-ID:
@@ -140,14 +140,14 @@ interactions:
       connection:
       - keep-alive
       host:
-      - localhost:9696
+      - artifact-index-e2e:9696
       user-agent:
       - polyswarm_api/3.21.0 (x86_64-Linux-CPython-3.14.4)
     method: GET
-    uri: http://localhost:9696/v3/hunt/rule?id=10146124047824056&community=gamma
+    uri: http://artifact-index-e2e:9696/v3/hunt/rule?id=41408977860969060&community=gamma
   response:
     body:
-      string: '{"result":{"created":"2026-05-29T17:00:18.736874+00:00","deleted":false,"description":null,"id":"10146124047824056","livescan_created":"2026-05-29T17:00:18.787050+00:00","livescan_id":28724514192463934,"modified":"2026-05-29T17:00:18.764219+00:00","name":"eicar","yara":"rule
+      string: '{"result":{"created":"2026-06-02T21:30:27.800377+00:00","deleted":false,"description":null,"id":"41408977860969060","livescan_created":"2026-06-02T21:30:27.844717+00:00","livescan_id":63275315559588283,"modified":"2026-06-02T21:30:27.823508+00:00","name":"eicar","yara":"rule
         eicar_av_test {\n    /*\n       Per standard, match only if entire file is
         EICAR string plus optional trailing whitespace.\n       The raw EICAR string
         to be matched is:\n       X5O!P%@AP[4\\PZX54(P^)7CC)7}$EICAR-STANDARD-ANTIVIRUS-TEST-FILE!$H+H*\n    */\n\n    meta:\n        description
@@ -175,7 +175,7 @@ interactions:
       Content-Type:
       - application/json
       Date:
-      - Fri, 29 May 2026 17:00:19 GMT
+      - Tue, 02 Jun 2026 21:30:28 GMT
       Server:
       - gunicorn
       X-Billing-ID:
@@ -199,14 +199,14 @@ interactions:
       content-type:
       - application/json
       host:
-      - localhost:9696
+      - artifact-index-e2e:9696
       user-agent:
       - polyswarm_api/3.21.0 (x86_64-Linux-CPython-3.14.4)
     method: POST
-    uri: http://localhost:9696/v3/instance
+    uri: http://artifact-index-e2e:9696/v3/instance
   response:
     body:
-      string: '{"result":{"artifact_id":"345071453775330","assertions":[],"bounty_state":0,"community":"gamma","country":"","created":"2026-05-29T17:00:19.890714+00:00","detections":null,"expiration_window":null,"expire_at":null,"extended_type":null,"failed":false,"filename":"malicious","first_seen":"2026-05-29T17:00:19.890714+00:00","id":"345071453775330","last_scanned":null,"last_seen":null,"md5":null,"metadata":[],"mimetype":null,"permalink":"https://polyswarm.network/scan/results/file/None/345071453775330","polyscore":null,"result":null,"sha1":null,"sha256":null,"size":null,"type":"FILE","upload_url":"http://minio:9000/artifact-index/instances/c9/5d/33/c95d3360-0042-4698-af1c-3a07706a2f5d?X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Credential=AKIAIOSFODNN7EXAMPLE%2F20260529%2Fus-east-1%2Fs3%2Faws4_request&X-Amz-Date=20260529T170019Z&X-Amz-Expires=300&X-Amz-SignedHeaders=host&X-Amz-Signature=c9395e857e4517147186005fdf5bf762a4a2655a0e97347afed9e1746b69311d","votes":[],"window_closed":false},"status":"OK"}
+      string: '{"result":{"artifact_id":"11144296714669999","assertions":[],"bounty_state":0,"community":"gamma","country":"","created":"2026-06-02T21:30:28.896819+00:00","detections":null,"expiration_window":null,"expire_at":null,"extended_type":null,"failed":false,"filename":"malicious","first_seen":"2026-06-02T21:30:28.896819+00:00","id":"11144296714669999","last_scanned":null,"last_seen":null,"md5":null,"metadata":[],"mimetype":null,"permalink":"https://polyswarm.network/scan/results/file/None/11144296714669999","polyscore":null,"result":null,"sha1":null,"sha256":null,"size":null,"type":"FILE","upload_url":"http://minio:9000/artifact-index/instances/0b/99/a3/0b99a38e-9e7f-492b-8523-66a1ec801b51?X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Credential=AKIAIOSFODNN7EXAMPLE%2F20260602%2Fus-east-1%2Fs3%2Faws4_request&X-Amz-Date=20260602T213028Z&X-Amz-Expires=300&X-Amz-SignedHeaders=host&X-Amz-Signature=5e8ac6358388e6d1f220b68d439ef197d6da2786176ce492fc9bf6474f1292a4","votes":[],"window_closed":false},"status":"OK"}
 
         '
     headers:
@@ -217,11 +217,11 @@ interactions:
       Connection:
       - keep-alive
       Content-Length:
-      - '1003'
+      - '1009'
       Content-Type:
       - application/json
       Date:
-      - Fri, 29 May 2026 17:00:19 GMT
+      - Tue, 02 Jun 2026 21:30:28 GMT
       Server:
       - gunicorn
       X-Billing-ID:
@@ -245,7 +245,7 @@ interactions:
       user-agent:
       - polyswarm_api/3.21.0 (x86_64-Linux-CPython-3.14.4)
     method: PUT
-    uri: http://minio:9000/artifact-index/instances/c9/5d/33/c95d3360-0042-4698-af1c-3a07706a2f5d?X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Credential=AKIAIOSFODNN7EXAMPLE%2F20260529%2Fus-east-1%2Fs3%2Faws4_request&X-Amz-Date=20260529T170019Z&X-Amz-Expires=300&X-Amz-SignedHeaders=host&X-Amz-Signature=c9395e857e4517147186005fdf5bf762a4a2655a0e97347afed9e1746b69311d
+    uri: http://minio:9000/artifact-index/instances/0b/99/a3/0b99a38e-9e7f-492b-8523-66a1ec801b51?X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Credential=AKIAIOSFODNN7EXAMPLE%2F20260602%2Fus-east-1%2Fs3%2Faws4_request&X-Amz-Date=20260602T213028Z&X-Amz-Expires=300&X-Amz-SignedHeaders=host&X-Amz-Signature=5e8ac6358388e6d1f220b68d439ef197d6da2786176ce492fc9bf6474f1292a4
   response:
     body:
       string: ''
@@ -255,7 +255,7 @@ interactions:
       Content-Length:
       - '0'
       Date:
-      - Fri, 29 May 2026 17:00:19 GMT
+      - Tue, 02 Jun 2026 21:30:28 GMT
       ETag:
       - '"44d88612fea8a8f36de82e1278abb02f"'
       Server:
@@ -268,17 +268,17 @@ interactions:
       X-Amz-Id-2:
       - dd9025bab4ad464b049177c95eb6ebf374d3b3fd1af9251148b658df7ac2e3e8
       X-Amz-Request-Id:
-      - 18B417E3CE0719EE
+      - 18B560F4071AA27D
       X-Content-Type-Options:
       - nosniff
       X-Ratelimit-Limit:
-      - '14825'
+      - '10975'
       X-Ratelimit-Remaining:
-      - '14825'
+      - '10975'
       X-Xss-Protection:
       - 1; mode=block
       x-amz-expiration:
-      - expiry-date="Sun, 31 May 2026 00:00:00 GMT", rule-id="expiration-artifact-index_0-instances"
+      - expiry-date="Thu, 04 Jun 2026 00:00:00 GMT", rule-id="expiration-artifact-index_0-instances"
     status:
       code: 200
       message: OK
@@ -298,14 +298,14 @@ interactions:
       content-type:
       - application/json
       host:
-      - localhost:9696
+      - artifact-index-e2e:9696
       user-agent:
       - polyswarm_api/3.21.0 (x86_64-Linux-CPython-3.14.4)
     method: PUT
-    uri: http://localhost:9696/v3/instance?id=345071453775330
+    uri: http://artifact-index-e2e:9696/v3/instance?id=11144296714669999
   response:
     body:
-      string: '{"result":{"artifact_id":"345071453775330","assertions":[],"bounty_state":0,"community":"gamma","country":"","created":"2026-05-29T17:00:19.890714+00:00","detections":null,"expiration_window":null,"expire_at":null,"extended_type":null,"failed":false,"filename":"malicious","first_seen":"2026-05-29T17:00:19.890714+00:00","id":"345071453775330","last_scanned":null,"last_seen":null,"md5":null,"metadata":[],"mimetype":null,"permalink":"https://polyswarm.network/scan/results/file/None/345071453775330","polyscore":null,"result":null,"sha1":null,"sha256":null,"size":null,"type":"FILE","upload_url":"http://minio:9000/artifact-index/instances/c9/5d/33/c95d3360-0042-4698-af1c-3a07706a2f5d?X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Credential=AKIAIOSFODNN7EXAMPLE%2F20260529%2Fus-east-1%2Fs3%2Faws4_request&X-Amz-Date=20260529T170019Z&X-Amz-Expires=300&X-Amz-SignedHeaders=host&X-Amz-Signature=c9395e857e4517147186005fdf5bf762a4a2655a0e97347afed9e1746b69311d","votes":[],"window_closed":false},"status":"OK"}
+      string: '{"result":{"artifact_id":"11144296714669999","assertions":[],"bounty_state":0,"community":"gamma","country":"","created":"2026-06-02T21:30:28.896819+00:00","detections":null,"expiration_window":null,"expire_at":null,"extended_type":null,"failed":false,"filename":"malicious","first_seen":"2026-06-02T21:30:28.896819+00:00","id":"11144296714669999","last_scanned":null,"last_seen":null,"md5":null,"metadata":[],"mimetype":null,"permalink":"https://polyswarm.network/scan/results/file/None/11144296714669999","polyscore":null,"result":null,"sha1":null,"sha256":null,"size":null,"type":"FILE","upload_url":"http://minio:9000/artifact-index/instances/0b/99/a3/0b99a38e-9e7f-492b-8523-66a1ec801b51?X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Credential=AKIAIOSFODNN7EXAMPLE%2F20260602%2Fus-east-1%2Fs3%2Faws4_request&X-Amz-Date=20260602T213028Z&X-Amz-Expires=300&X-Amz-SignedHeaders=host&X-Amz-Signature=5e8ac6358388e6d1f220b68d439ef197d6da2786176ce492fc9bf6474f1292a4","votes":[],"window_closed":false},"status":"OK"}
 
         '
     headers:
@@ -316,11 +316,11 @@ interactions:
       Connection:
       - keep-alive
       Content-Length:
-      - '1003'
+      - '1009'
       Content-Type:
       - application/json
       Date:
-      - Fri, 29 May 2026 17:00:19 GMT
+      - Tue, 02 Jun 2026 21:30:28 GMT
       Server:
       - gunicorn
       X-Billing-ID:
@@ -340,53 +340,11 @@ interactions:
       connection:
       - keep-alive
       host:
-      - localhost:9696
+      - artifact-index-e2e:9696
       user-agent:
       - polyswarm_api/3.21.0 (x86_64-Linux-CPython-3.14.4)
     method: GET
-    uri: http://localhost:9696/v3/hunt/live/list?since=600&community=gamma
-  response:
-    body:
-      string: '{"has_more":false,"limit":50,"result":[{"community":"gamma","created":"2026-05-29T16:50:21.166391+00:00","detections":{"benign":0,"malicious":1,"total":1},"download_url":null,"first_seen":"2026-05-29T16:41:55.333961+00:00","id":"14334819528128576","instance_id":"72021209496960962","livescan_id":"60908111256287930","malware_family":"EICAR","md5":"44d88612fea8a8f36de82e1278abb02f","polyscore":null,"rule_name":"eicar_av_test","sha1":"3395856ce81f2b7382dee72602f798b642f14140","sha256":"275a021bbfb6489e54d471899f7db9d1663fc695ec2fe2a2c4538aabf651fd0f","tags":"{}","yara":null}],"status":"OK"}
-
-        '
-    headers:
-      Access-Control-Allow-Origin:
-      - '*'
-      Access-Control-Expose-Headers:
-      - Authorization
-      Connection:
-      - keep-alive
-      Content-Length:
-      - '594'
-      Content-Type:
-      - application/json
-      Date:
-      - Fri, 29 May 2026 17:00:20 GMT
-      Server:
-      - gunicorn
-      X-Billing-ID:
-      - '111'
-    status:
-      code: 200
-      message: OK
-- request:
-    body: ''
-    headers:
-      accept:
-      - '*/*'
-      accept-encoding:
-      - gzip, deflate
-      authorization:
-      - '11111111111111111111111111111111'
-      connection:
-      - keep-alive
-      host:
-      - localhost:9696
-      user-agent:
-      - polyswarm_api/3.21.0 (x86_64-Linux-CPython-3.14.4)
-    method: GET
-    uri: http://localhost:9696/v3/hunt/live/list?since=600&community=gamma
+    uri: http://artifact-index-e2e:9696/v3/hunt/live/list?since=600&community=gamma
   response:
     body:
       string: ''
@@ -400,7 +358,7 @@ interactions:
       Content-Type:
       - text/html; charset=utf-8
       Date:
-      - Fri, 29 May 2026 17:00:21 GMT
+      - Tue, 02 Jun 2026 21:30:29 GMT
       Server:
       - gunicorn
     status:
@@ -418,11 +376,11 @@ interactions:
       connection:
       - keep-alive
       host:
-      - localhost:9696
+      - artifact-index-e2e:9696
       user-agent:
       - polyswarm_api/3.21.0 (x86_64-Linux-CPython-3.14.4)
     method: GET
-    uri: http://localhost:9696/v3/hunt/live/list?since=600&community=gamma
+    uri: http://artifact-index-e2e:9696/v3/hunt/live/list?since=600&community=gamma
   response:
     body:
       string: ''
@@ -436,7 +394,7 @@ interactions:
       Content-Type:
       - text/html; charset=utf-8
       Date:
-      - Fri, 29 May 2026 17:00:22 GMT
+      - Tue, 02 Jun 2026 21:30:30 GMT
       Server:
       - gunicorn
     status:
@@ -454,11 +412,11 @@ interactions:
       connection:
       - keep-alive
       host:
-      - localhost:9696
+      - artifact-index-e2e:9696
       user-agent:
       - polyswarm_api/3.21.0 (x86_64-Linux-CPython-3.14.4)
     method: GET
-    uri: http://localhost:9696/v3/hunt/live/list?since=600&community=gamma
+    uri: http://artifact-index-e2e:9696/v3/hunt/live/list?since=600&community=gamma
   response:
     body:
       string: ''
@@ -472,7 +430,7 @@ interactions:
       Content-Type:
       - text/html; charset=utf-8
       Date:
-      - Fri, 29 May 2026 17:00:24 GMT
+      - Tue, 02 Jun 2026 21:30:31 GMT
       Server:
       - gunicorn
     status:
@@ -490,11 +448,11 @@ interactions:
       connection:
       - keep-alive
       host:
-      - localhost:9696
+      - artifact-index-e2e:9696
       user-agent:
       - polyswarm_api/3.21.0 (x86_64-Linux-CPython-3.14.4)
     method: GET
-    uri: http://localhost:9696/v3/hunt/live/list?since=600&community=gamma
+    uri: http://artifact-index-e2e:9696/v3/hunt/live/list?since=600&community=gamma
   response:
     body:
       string: ''
@@ -508,7 +466,7 @@ interactions:
       Content-Type:
       - text/html; charset=utf-8
       Date:
-      - Fri, 29 May 2026 17:00:25 GMT
+      - Tue, 02 Jun 2026 21:30:32 GMT
       Server:
       - gunicorn
     status:
@@ -526,11 +484,11 @@ interactions:
       connection:
       - keep-alive
       host:
-      - localhost:9696
+      - artifact-index-e2e:9696
       user-agent:
       - polyswarm_api/3.21.0 (x86_64-Linux-CPython-3.14.4)
     method: GET
-    uri: http://localhost:9696/v3/hunt/live/list?since=600&community=gamma
+    uri: http://artifact-index-e2e:9696/v3/hunt/live/list?since=600&community=gamma
   response:
     body:
       string: ''
@@ -544,7 +502,7 @@ interactions:
       Content-Type:
       - text/html; charset=utf-8
       Date:
-      - Fri, 29 May 2026 17:00:26 GMT
+      - Tue, 02 Jun 2026 21:30:34 GMT
       Server:
       - gunicorn
     status:
@@ -562,11 +520,11 @@ interactions:
       connection:
       - keep-alive
       host:
-      - localhost:9696
+      - artifact-index-e2e:9696
       user-agent:
       - polyswarm_api/3.21.0 (x86_64-Linux-CPython-3.14.4)
     method: GET
-    uri: http://localhost:9696/v3/hunt/live/list?since=600&community=gamma
+    uri: http://artifact-index-e2e:9696/v3/hunt/live/list?since=600&community=gamma
   response:
     body:
       string: ''
@@ -580,7 +538,7 @@ interactions:
       Content-Type:
       - text/html; charset=utf-8
       Date:
-      - Fri, 29 May 2026 17:00:27 GMT
+      - Tue, 02 Jun 2026 21:30:35 GMT
       Server:
       - gunicorn
     status:
@@ -598,11 +556,11 @@ interactions:
       connection:
       - keep-alive
       host:
-      - localhost:9696
+      - artifact-index-e2e:9696
       user-agent:
       - polyswarm_api/3.21.0 (x86_64-Linux-CPython-3.14.4)
     method: GET
-    uri: http://localhost:9696/v3/hunt/live/list?since=600&community=gamma
+    uri: http://artifact-index-e2e:9696/v3/hunt/live/list?since=600&community=gamma
   response:
     body:
       string: ''
@@ -616,7 +574,7 @@ interactions:
       Content-Type:
       - text/html; charset=utf-8
       Date:
-      - Fri, 29 May 2026 17:00:28 GMT
+      - Tue, 02 Jun 2026 21:30:36 GMT
       Server:
       - gunicorn
     status:
@@ -634,11 +592,11 @@ interactions:
       connection:
       - keep-alive
       host:
-      - localhost:9696
+      - artifact-index-e2e:9696
       user-agent:
       - polyswarm_api/3.21.0 (x86_64-Linux-CPython-3.14.4)
     method: GET
-    uri: http://localhost:9696/v3/hunt/live/list?since=600&community=gamma
+    uri: http://artifact-index-e2e:9696/v3/hunt/live/list?since=600&community=gamma
   response:
     body:
       string: ''
@@ -652,7 +610,7 @@ interactions:
       Content-Type:
       - text/html; charset=utf-8
       Date:
-      - Fri, 29 May 2026 17:00:29 GMT
+      - Tue, 02 Jun 2026 21:30:37 GMT
       Server:
       - gunicorn
     status:
@@ -670,11 +628,11 @@ interactions:
       connection:
       - keep-alive
       host:
-      - localhost:9696
+      - artifact-index-e2e:9696
       user-agent:
       - polyswarm_api/3.21.0 (x86_64-Linux-CPython-3.14.4)
     method: GET
-    uri: http://localhost:9696/v3/hunt/live/list?since=600&community=gamma
+    uri: http://artifact-index-e2e:9696/v3/hunt/live/list?since=600&community=gamma
   response:
     body:
       string: ''
@@ -688,7 +646,7 @@ interactions:
       Content-Type:
       - text/html; charset=utf-8
       Date:
-      - Fri, 29 May 2026 17:00:30 GMT
+      - Tue, 02 Jun 2026 21:30:38 GMT
       Server:
       - gunicorn
     status:
@@ -706,11 +664,11 @@ interactions:
       connection:
       - keep-alive
       host:
-      - localhost:9696
+      - artifact-index-e2e:9696
       user-agent:
       - polyswarm_api/3.21.0 (x86_64-Linux-CPython-3.14.4)
     method: GET
-    uri: http://localhost:9696/v3/hunt/live/list?since=600&community=gamma
+    uri: http://artifact-index-e2e:9696/v3/hunt/live/list?since=600&community=gamma
   response:
     body:
       string: ''
@@ -724,7 +682,7 @@ interactions:
       Content-Type:
       - text/html; charset=utf-8
       Date:
-      - Fri, 29 May 2026 17:00:31 GMT
+      - Tue, 02 Jun 2026 21:30:39 GMT
       Server:
       - gunicorn
     status:
@@ -742,11 +700,11 @@ interactions:
       connection:
       - keep-alive
       host:
-      - localhost:9696
+      - artifact-index-e2e:9696
       user-agent:
       - polyswarm_api/3.21.0 (x86_64-Linux-CPython-3.14.4)
     method: GET
-    uri: http://localhost:9696/v3/hunt/live/list?since=600&community=gamma
+    uri: http://artifact-index-e2e:9696/v3/hunt/live/list?since=600&community=gamma
   response:
     body:
       string: ''
@@ -760,7 +718,7 @@ interactions:
       Content-Type:
       - text/html; charset=utf-8
       Date:
-      - Fri, 29 May 2026 17:00:32 GMT
+      - Tue, 02 Jun 2026 21:30:40 GMT
       Server:
       - gunicorn
     status:
@@ -778,11 +736,11 @@ interactions:
       connection:
       - keep-alive
       host:
-      - localhost:9696
+      - artifact-index-e2e:9696
       user-agent:
       - polyswarm_api/3.21.0 (x86_64-Linux-CPython-3.14.4)
     method: GET
-    uri: http://localhost:9696/v3/hunt/live/list?since=600&community=gamma
+    uri: http://artifact-index-e2e:9696/v3/hunt/live/list?since=600&community=gamma
   response:
     body:
       string: ''
@@ -796,7 +754,7 @@ interactions:
       Content-Type:
       - text/html; charset=utf-8
       Date:
-      - Fri, 29 May 2026 17:00:33 GMT
+      - Tue, 02 Jun 2026 21:30:41 GMT
       Server:
       - gunicorn
     status:
@@ -814,11 +772,11 @@ interactions:
       connection:
       - keep-alive
       host:
-      - localhost:9696
+      - artifact-index-e2e:9696
       user-agent:
       - polyswarm_api/3.21.0 (x86_64-Linux-CPython-3.14.4)
     method: GET
-    uri: http://localhost:9696/v3/hunt/live/list?since=600&community=gamma
+    uri: http://artifact-index-e2e:9696/v3/hunt/live/list?since=600&community=gamma
   response:
     body:
       string: ''
@@ -832,7 +790,7 @@ interactions:
       Content-Type:
       - text/html; charset=utf-8
       Date:
-      - Fri, 29 May 2026 17:00:34 GMT
+      - Tue, 02 Jun 2026 21:30:42 GMT
       Server:
       - gunicorn
     status:
@@ -850,11 +808,11 @@ interactions:
       connection:
       - keep-alive
       host:
-      - localhost:9696
+      - artifact-index-e2e:9696
       user-agent:
       - polyswarm_api/3.21.0 (x86_64-Linux-CPython-3.14.4)
     method: GET
-    uri: http://localhost:9696/v3/hunt/live/list?since=600&community=gamma
+    uri: http://artifact-index-e2e:9696/v3/hunt/live/list?since=600&community=gamma
   response:
     body:
       string: ''
@@ -868,7 +826,7 @@ interactions:
       Content-Type:
       - text/html; charset=utf-8
       Date:
-      - Fri, 29 May 2026 17:00:35 GMT
+      - Tue, 02 Jun 2026 21:30:43 GMT
       Server:
       - gunicorn
     status:
@@ -886,11 +844,11 @@ interactions:
       connection:
       - keep-alive
       host:
-      - localhost:9696
+      - artifact-index-e2e:9696
       user-agent:
       - polyswarm_api/3.21.0 (x86_64-Linux-CPython-3.14.4)
     method: GET
-    uri: http://localhost:9696/v3/hunt/live/list?since=600&community=gamma
+    uri: http://artifact-index-e2e:9696/v3/hunt/live/list?since=600&community=gamma
   response:
     body:
       string: ''
@@ -904,7 +862,7 @@ interactions:
       Content-Type:
       - text/html; charset=utf-8
       Date:
-      - Fri, 29 May 2026 17:00:36 GMT
+      - Tue, 02 Jun 2026 21:30:44 GMT
       Server:
       - gunicorn
     status:
@@ -922,11 +880,11 @@ interactions:
       connection:
       - keep-alive
       host:
-      - localhost:9696
+      - artifact-index-e2e:9696
       user-agent:
       - polyswarm_api/3.21.0 (x86_64-Linux-CPython-3.14.4)
     method: GET
-    uri: http://localhost:9696/v3/hunt/live/list?since=600&community=gamma
+    uri: http://artifact-index-e2e:9696/v3/hunt/live/list?since=600&community=gamma
   response:
     body:
       string: ''
@@ -940,7 +898,7 @@ interactions:
       Content-Type:
       - text/html; charset=utf-8
       Date:
-      - Fri, 29 May 2026 17:00:37 GMT
+      - Tue, 02 Jun 2026 21:30:45 GMT
       Server:
       - gunicorn
     status:
@@ -958,11 +916,11 @@ interactions:
       connection:
       - keep-alive
       host:
-      - localhost:9696
+      - artifact-index-e2e:9696
       user-agent:
       - polyswarm_api/3.21.0 (x86_64-Linux-CPython-3.14.4)
     method: GET
-    uri: http://localhost:9696/v3/hunt/live/list?since=600&community=gamma
+    uri: http://artifact-index-e2e:9696/v3/hunt/live/list?since=600&community=gamma
   response:
     body:
       string: ''
@@ -976,7 +934,7 @@ interactions:
       Content-Type:
       - text/html; charset=utf-8
       Date:
-      - Fri, 29 May 2026 17:00:38 GMT
+      - Tue, 02 Jun 2026 21:30:46 GMT
       Server:
       - gunicorn
     status:
@@ -994,11 +952,11 @@ interactions:
       connection:
       - keep-alive
       host:
-      - localhost:9696
+      - artifact-index-e2e:9696
       user-agent:
       - polyswarm_api/3.21.0 (x86_64-Linux-CPython-3.14.4)
     method: GET
-    uri: http://localhost:9696/v3/hunt/live/list?since=600&community=gamma
+    uri: http://artifact-index-e2e:9696/v3/hunt/live/list?since=600&community=gamma
   response:
     body:
       string: ''
@@ -1012,7 +970,7 @@ interactions:
       Content-Type:
       - text/html; charset=utf-8
       Date:
-      - Fri, 29 May 2026 17:00:39 GMT
+      - Tue, 02 Jun 2026 21:30:47 GMT
       Server:
       - gunicorn
     status:
@@ -1030,11 +988,11 @@ interactions:
       connection:
       - keep-alive
       host:
-      - localhost:9696
+      - artifact-index-e2e:9696
       user-agent:
       - polyswarm_api/3.21.0 (x86_64-Linux-CPython-3.14.4)
     method: GET
-    uri: http://localhost:9696/v3/hunt/live/list?since=600&community=gamma
+    uri: http://artifact-index-e2e:9696/v3/hunt/live/list?since=600&community=gamma
   response:
     body:
       string: ''
@@ -1048,7 +1006,7 @@ interactions:
       Content-Type:
       - text/html; charset=utf-8
       Date:
-      - Fri, 29 May 2026 17:00:40 GMT
+      - Tue, 02 Jun 2026 21:30:48 GMT
       Server:
       - gunicorn
     status:
@@ -1066,11 +1024,11 @@ interactions:
       connection:
       - keep-alive
       host:
-      - localhost:9696
+      - artifact-index-e2e:9696
       user-agent:
       - polyswarm_api/3.21.0 (x86_64-Linux-CPython-3.14.4)
     method: GET
-    uri: http://localhost:9696/v3/hunt/live/list?since=600&community=gamma
+    uri: http://artifact-index-e2e:9696/v3/hunt/live/list?since=600&community=gamma
   response:
     body:
       string: ''
@@ -1084,7 +1042,7 @@ interactions:
       Content-Type:
       - text/html; charset=utf-8
       Date:
-      - Fri, 29 May 2026 17:00:41 GMT
+      - Tue, 02 Jun 2026 21:30:49 GMT
       Server:
       - gunicorn
     status:
@@ -1102,11 +1060,11 @@ interactions:
       connection:
       - keep-alive
       host:
-      - localhost:9696
+      - artifact-index-e2e:9696
       user-agent:
       - polyswarm_api/3.21.0 (x86_64-Linux-CPython-3.14.4)
     method: GET
-    uri: http://localhost:9696/v3/hunt/live/list?since=600&community=gamma
+    uri: http://artifact-index-e2e:9696/v3/hunt/live/list?since=600&community=gamma
   response:
     body:
       string: ''
@@ -1120,7 +1078,7 @@ interactions:
       Content-Type:
       - text/html; charset=utf-8
       Date:
-      - Fri, 29 May 2026 17:00:42 GMT
+      - Tue, 02 Jun 2026 21:30:50 GMT
       Server:
       - gunicorn
     status:
@@ -1138,11 +1096,11 @@ interactions:
       connection:
       - keep-alive
       host:
-      - localhost:9696
+      - artifact-index-e2e:9696
       user-agent:
       - polyswarm_api/3.21.0 (x86_64-Linux-CPython-3.14.4)
     method: GET
-    uri: http://localhost:9696/v3/hunt/live/list?since=600&community=gamma
+    uri: http://artifact-index-e2e:9696/v3/hunt/live/list?since=600&community=gamma
   response:
     body:
       string: ''
@@ -1156,7 +1114,7 @@ interactions:
       Content-Type:
       - text/html; charset=utf-8
       Date:
-      - Fri, 29 May 2026 17:00:43 GMT
+      - Tue, 02 Jun 2026 21:30:51 GMT
       Server:
       - gunicorn
     status:
@@ -1174,11 +1132,11 @@ interactions:
       connection:
       - keep-alive
       host:
-      - localhost:9696
+      - artifact-index-e2e:9696
       user-agent:
       - polyswarm_api/3.21.0 (x86_64-Linux-CPython-3.14.4)
     method: GET
-    uri: http://localhost:9696/v3/hunt/live/list?since=600&community=gamma
+    uri: http://artifact-index-e2e:9696/v3/hunt/live/list?since=600&community=gamma
   response:
     body:
       string: ''
@@ -1192,7 +1150,7 @@ interactions:
       Content-Type:
       - text/html; charset=utf-8
       Date:
-      - Fri, 29 May 2026 17:00:44 GMT
+      - Tue, 02 Jun 2026 21:30:52 GMT
       Server:
       - gunicorn
     status:
@@ -1210,14 +1168,122 @@ interactions:
       connection:
       - keep-alive
       host:
-      - localhost:9696
+      - artifact-index-e2e:9696
       user-agent:
       - polyswarm_api/3.21.0 (x86_64-Linux-CPython-3.14.4)
     method: GET
-    uri: http://localhost:9696/v3/hunt/live/list?since=600&community=gamma
+    uri: http://artifact-index-e2e:9696/v3/hunt/live/list?since=600&community=gamma
   response:
     body:
-      string: '{"has_more":false,"limit":50,"result":[{"community":"gamma","created":"2026-05-29T17:00:45.474321+00:00","detections":{"benign":0,"malicious":1,"total":1},"download_url":null,"first_seen":"2026-05-29T16:41:55.333961+00:00","id":"10935006890606812","instance_id":"80765888123124713","livescan_id":"28724514192463934","malware_family":"EICAR","md5":"44d88612fea8a8f36de82e1278abb02f","polyscore":null,"rule_name":"eicar_substring_test","sha1":"3395856ce81f2b7382dee72602f798b642f14140","sha256":"275a021bbfb6489e54d471899f7db9d1663fc695ec2fe2a2c4538aabf651fd0f","tags":"{}","yara":null},{"community":"gamma","created":"2026-05-29T17:00:45.470532+00:00","detections":{"benign":0,"malicious":1,"total":1},"download_url":null,"first_seen":"2026-05-29T16:41:55.333961+00:00","id":"75623850622795974","instance_id":"80765888123124713","livescan_id":"28724514192463934","malware_family":"EICAR","md5":"44d88612fea8a8f36de82e1278abb02f","polyscore":null,"rule_name":"eicar_av_test","sha1":"3395856ce81f2b7382dee72602f798b642f14140","sha256":"275a021bbfb6489e54d471899f7db9d1663fc695ec2fe2a2c4538aabf651fd0f","tags":"{}","yara":null}],"status":"OK"}
+      string: ''
+    headers:
+      Access-Control-Allow-Origin:
+      - '*'
+      Access-Control-Expose-Headers:
+      - Authorization
+      Connection:
+      - keep-alive
+      Content-Type:
+      - text/html; charset=utf-8
+      Date:
+      - Tue, 02 Jun 2026 21:30:53 GMT
+      Server:
+      - gunicorn
+    status:
+      code: 204
+      message: NO CONTENT
+- request:
+    body: ''
+    headers:
+      accept:
+      - '*/*'
+      accept-encoding:
+      - gzip, deflate
+      authorization:
+      - '11111111111111111111111111111111'
+      connection:
+      - keep-alive
+      host:
+      - artifact-index-e2e:9696
+      user-agent:
+      - polyswarm_api/3.21.0 (x86_64-Linux-CPython-3.14.4)
+    method: GET
+    uri: http://artifact-index-e2e:9696/v3/hunt/live/list?since=600&community=gamma
+  response:
+    body:
+      string: ''
+    headers:
+      Access-Control-Allow-Origin:
+      - '*'
+      Access-Control-Expose-Headers:
+      - Authorization
+      Connection:
+      - keep-alive
+      Content-Type:
+      - text/html; charset=utf-8
+      Date:
+      - Tue, 02 Jun 2026 21:30:54 GMT
+      Server:
+      - gunicorn
+    status:
+      code: 204
+      message: NO CONTENT
+- request:
+    body: ''
+    headers:
+      accept:
+      - '*/*'
+      accept-encoding:
+      - gzip, deflate
+      authorization:
+      - '11111111111111111111111111111111'
+      connection:
+      - keep-alive
+      host:
+      - artifact-index-e2e:9696
+      user-agent:
+      - polyswarm_api/3.21.0 (x86_64-Linux-CPython-3.14.4)
+    method: GET
+    uri: http://artifact-index-e2e:9696/v3/hunt/live/list?since=600&community=gamma
+  response:
+    body:
+      string: ''
+    headers:
+      Access-Control-Allow-Origin:
+      - '*'
+      Access-Control-Expose-Headers:
+      - Authorization
+      Connection:
+      - keep-alive
+      Content-Type:
+      - text/html; charset=utf-8
+      Date:
+      - Tue, 02 Jun 2026 21:30:55 GMT
+      Server:
+      - gunicorn
+    status:
+      code: 204
+      message: NO CONTENT
+- request:
+    body: ''
+    headers:
+      accept:
+      - '*/*'
+      accept-encoding:
+      - gzip, deflate
+      authorization:
+      - '11111111111111111111111111111111'
+      connection:
+      - keep-alive
+      host:
+      - artifact-index-e2e:9696
+      user-agent:
+      - polyswarm_api/3.21.0 (x86_64-Linux-CPython-3.14.4)
+    method: GET
+    uri: http://artifact-index-e2e:9696/v3/hunt/live/list?since=600&community=gamma
+  response:
+    body:
+      string: '{"has_more":false,"limit":50,"result":[{"community":"gamma","created":"2026-06-02T21:30:55.958806+00:00","detections":{"benign":0,"malicious":1,"total":1},"download_url":null,"first_seen":"2026-06-02T21:28:09.811386+00:00","id":"90605047317657020","instance_id":"74368847331660562","livescan_id":"63275315559588283","malware_family":"EICAR","md5":"44d88612fea8a8f36de82e1278abb02f","polyscore":null,"rule_name":"eicar_substring_test","sha1":"3395856ce81f2b7382dee72602f798b642f14140","sha256":"275a021bbfb6489e54d471899f7db9d1663fc695ec2fe2a2c4538aabf651fd0f","tags":"{}","yara":null},{"community":"gamma","created":"2026-06-02T21:30:55.951749+00:00","detections":{"benign":0,"malicious":1,"total":1},"download_url":null,"first_seen":"2026-06-02T21:28:09.811386+00:00","id":"58639170568721642","instance_id":"74368847331660562","livescan_id":"63275315559588283","malware_family":"EICAR","md5":"44d88612fea8a8f36de82e1278abb02f","polyscore":null,"rule_name":"eicar_av_test","sha1":"3395856ce81f2b7382dee72602f798b642f14140","sha256":"275a021bbfb6489e54d471899f7db9d1663fc695ec2fe2a2c4538aabf651fd0f","tags":"{}","yara":null}],"status":"OK"}
 
         '
     headers:
@@ -1232,7 +1298,7 @@ interactions:
       Content-Type:
       - application/json
       Date:
-      - Fri, 29 May 2026 17:00:45 GMT
+      - Tue, 02 Jun 2026 21:30:56 GMT
       Server:
       - gunicorn
       X-Billing-ID:
@@ -1252,14 +1318,14 @@ interactions:
       connection:
       - keep-alive
       host:
-      - localhost:9696
+      - artifact-index-e2e:9696
       user-agent:
       - polyswarm_api/3.21.0 (x86_64-Linux-CPython-3.14.4)
     method: GET
-    uri: http://localhost:9696/v3/hunt/live?id=10935006890606812
+    uri: http://artifact-index-e2e:9696/v3/hunt/live?id=90605047317657020
   response:
     body:
-      string: '{"result":{"community":"gamma","created":"2026-05-29T17:00:45.474321+00:00","detections":{"benign":0,"malicious":1,"total":1},"download_url":"http://minio:9000/public-cache/27/5a/02/275a021bbfb6489e54d471899f7db9d1663fc695ec2fe2a2c4538aabf651fd0f3395856ce81f2b7382dee72602f798b642f1414044d88612fea8a8f36de82e1278abb02f?response-content-disposition=attachment%3Bfilename%3Dinfected&response-content-type=application%2Foctet-stream&X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Credential=AKIAIOSFODNN7EXAMPLE%2F20260529%2Fus-east-1%2Fs3%2Faws4_request&X-Amz-Date=20260529T170045Z&X-Amz-Expires=3600&X-Amz-SignedHeaders=host&X-Amz-Signature=46d6d68c65139440b32cddce44e85f3d235f1600eaa8059afcf59f1bbc1dfaff","first_seen":"2026-05-29T16:41:55.333961+00:00","id":"10935006890606812","instance_id":"80765888123124713","livescan_id":"28724514192463934","malware_family":"EICAR","md5":"44d88612fea8a8f36de82e1278abb02f","polyscore":null,"rule_name":"eicar_substring_test","sha1":"3395856ce81f2b7382dee72602f798b642f14140","sha256":"275a021bbfb6489e54d471899f7db9d1663fc695ec2fe2a2c4538aabf651fd0f","tags":"{}","yara":"rule
+      string: '{"result":{"community":"gamma","created":"2026-06-02T21:30:55.958806+00:00","detections":{"benign":0,"malicious":1,"total":1},"download_url":"http://minio:9000/public-cache/27/5a/02/275a021bbfb6489e54d471899f7db9d1663fc695ec2fe2a2c4538aabf651fd0f3395856ce81f2b7382dee72602f798b642f1414044d88612fea8a8f36de82e1278abb02f?response-content-disposition=attachment%3Bfilename%3Dinfected&response-content-type=application%2Foctet-stream&X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Credential=AKIAIOSFODNN7EXAMPLE%2F20260602%2Fus-east-1%2Fs3%2Faws4_request&X-Amz-Date=20260602T213056Z&X-Amz-Expires=3600&X-Amz-SignedHeaders=host&X-Amz-Signature=63a468f47454b7ab17ff763d43a62112c04e13495a4854a23d484a6f3d269a36","first_seen":"2026-06-02T21:28:09.811386+00:00","id":"90605047317657020","instance_id":"74368847331660562","livescan_id":"63275315559588283","malware_family":"EICAR","md5":"44d88612fea8a8f36de82e1278abb02f","polyscore":null,"rule_name":"eicar_substring_test","sha1":"3395856ce81f2b7382dee72602f798b642f14140","sha256":"275a021bbfb6489e54d471899f7db9d1663fc695ec2fe2a2c4538aabf651fd0f","tags":"{}","yara":"rule
         eicar_av_test {\n    /*\n       Per standard, match only if entire file is
         EICAR string plus optional trailing whitespace.\n       The raw EICAR string
         to be matched is:\n       X5O!P%@AP[4\\PZX54(P^)7CC)7}$EICAR-STANDARD-ANTIVIRUS-TEST-FILE!$H+H*\n    */\n\n    meta:\n        description
@@ -1287,7 +1353,7 @@ interactions:
       Content-Type:
       - application/json
       Date:
-      - Fri, 29 May 2026 17:00:45 GMT
+      - Tue, 02 Jun 2026 21:30:56 GMT
       Server:
       - gunicorn
       X-Billing-ID:
@@ -1296,7 +1362,7 @@ interactions:
       code: 200
       message: OK
 - request:
-    body: '{"result_ids":["10935006890606812"]}'
+    body: '{"result_ids":["90605047317657020"]}'
     headers:
       accept:
       - '*/*'
@@ -1311,14 +1377,14 @@ interactions:
       content-type:
       - application/json
       host:
-      - localhost:9696
+      - artifact-index-e2e:9696
       user-agent:
       - polyswarm_api/3.21.0 (x86_64-Linux-CPython-3.14.4)
     method: DELETE
-    uri: http://localhost:9696/v3/hunt/live/list
+    uri: http://artifact-index-e2e:9696/v3/hunt/live/list
   response:
     body:
-      string: '{"has_more":true,"limit":50,"result":[{"community":"gamma","created":"2026-05-29T17:00:45.474321+00:00","detections":{"benign":0,"malicious":1,"total":1},"download_url":null,"first_seen":"2026-05-29T16:41:55.333961+00:00","id":"10935006890606812","instance_id":"80765888123124713","livescan_id":"28724514192463934","malware_family":"EICAR","md5":"44d88612fea8a8f36de82e1278abb02f","polyscore":null,"rule_name":"eicar_substring_test","sha1":"3395856ce81f2b7382dee72602f798b642f14140","sha256":"275a021bbfb6489e54d471899f7db9d1663fc695ec2fe2a2c4538aabf651fd0f","tags":"{}","yara":null}],"status":"OK"}
+      string: '{"has_more":true,"limit":50,"result":[{"community":"gamma","created":"2026-06-02T21:30:55.958806+00:00","detections":{"benign":0,"malicious":1,"total":1},"download_url":null,"first_seen":"2026-06-02T21:28:09.811386+00:00","id":"90605047317657020","instance_id":"74368847331660562","livescan_id":"63275315559588283","malware_family":"EICAR","md5":"44d88612fea8a8f36de82e1278abb02f","polyscore":null,"rule_name":"eicar_substring_test","sha1":"3395856ce81f2b7382dee72602f798b642f14140","sha256":"275a021bbfb6489e54d471899f7db9d1663fc695ec2fe2a2c4538aabf651fd0f","tags":"{}","yara":null}],"status":"OK"}
 
         '
     headers:
@@ -1333,7 +1399,7 @@ interactions:
       Content-Type:
       - application/json
       Date:
-      - Fri, 29 May 2026 17:00:45 GMT
+      - Tue, 02 Jun 2026 21:30:56 GMT
       Server:
       - gunicorn
       X-Billing-ID:
@@ -1353,15 +1419,15 @@ interactions:
       connection:
       - keep-alive
       host:
-      - localhost:9696
+      - artifact-index-e2e:9696
       user-agent:
       - polyswarm_api/3.21.0 (x86_64-Linux-CPython-3.14.4)
     method: GET
-    uri: http://localhost:9696/v3/hunt/live?id=10935006890606812
+    uri: http://artifact-index-e2e:9696/v3/hunt/live?id=90605047317657020
   response:
     body:
       string: '{"errors":null,"result":"Could not find requested live hunt result:
-        10935006890606812.","status":"error"}
+        90605047317657020.","status":"error"}
 
         '
     headers:
@@ -1376,14 +1442,14 @@ interactions:
       Content-Type:
       - application/json
       Date:
-      - Fri, 29 May 2026 17:00:45 GMT
+      - Tue, 02 Jun 2026 21:30:56 GMT
       Server:
       - gunicorn
     status:
       code: 404
       message: NOT FOUND
 - request:
-    body: '{"rule_id":"10146124047824056"}'
+    body: '{"rule_id":"41408977860969060"}'
     headers:
       accept:
       - '*/*'
@@ -1398,14 +1464,14 @@ interactions:
       content-type:
       - application/json
       host:
-      - localhost:9696
+      - artifact-index-e2e:9696
       user-agent:
       - polyswarm_api/3.21.0 (x86_64-Linux-CPython-3.14.4)
     method: DELETE
-    uri: http://localhost:9696/v3/hunt/rule/live
+    uri: http://artifact-index-e2e:9696/v3/hunt/rule/live
   response:
     body:
-      string: '{"result":{"created":"2026-05-29T17:00:18.736874+00:00","deleted":false,"description":null,"id":"10146124047824056","livescan_created":"2026-05-29T17:00:18.787050+00:00","livescan_id":28724514192463934,"modified":"2026-05-29T17:00:18.764219+00:00","name":"eicar","yara":"rule
+      string: '{"result":{"created":"2026-06-02T21:30:27.800377+00:00","deleted":false,"description":null,"id":"41408977860969060","livescan_created":"2026-06-02T21:30:27.844717+00:00","livescan_id":63275315559588283,"modified":"2026-06-02T21:30:27.823508+00:00","name":"eicar","yara":"rule
         eicar_av_test {\n    /*\n       Per standard, match only if entire file is
         EICAR string plus optional trailing whitespace.\n       The raw EICAR string
         to be matched is:\n       X5O!P%@AP[4\\PZX54(P^)7CC)7}$EICAR-STANDARD-ANTIVIRUS-TEST-FILE!$H+H*\n    */\n\n    meta:\n        description
@@ -1433,7 +1499,7 @@ interactions:
       Content-Type:
       - application/json
       Date:
-      - Fri, 29 May 2026 17:00:45 GMT
+      - Tue, 02 Jun 2026 21:30:56 GMT
       Server:
       - gunicorn
       X-Billing-ID:
@@ -1453,14 +1519,14 @@ interactions:
       connection:
       - keep-alive
       host:
-      - localhost:9696
+      - artifact-index-e2e:9696
       user-agent:
       - polyswarm_api/3.21.0 (x86_64-Linux-CPython-3.14.4)
     method: GET
-    uri: http://localhost:9696/v3/hunt/rule?id=10146124047824056&community=gamma
+    uri: http://artifact-index-e2e:9696/v3/hunt/rule?id=41408977860969060&community=gamma
   response:
     body:
-      string: '{"result":{"created":"2026-05-29T17:00:18.736874+00:00","deleted":false,"description":null,"id":"10146124047824056","livescan_created":"2026-05-29T17:00:18.787050+00:00","livescan_id":null,"modified":"2026-05-29T17:00:45.582384+00:00","name":"eicar","yara":"rule
+      string: '{"result":{"created":"2026-06-02T21:30:27.800377+00:00","deleted":false,"description":null,"id":"41408977860969060","livescan_created":"2026-06-02T21:30:27.844717+00:00","livescan_id":null,"modified":"2026-06-02T21:30:56.625826+00:00","name":"eicar","yara":"rule
         eicar_av_test {\n    /*\n       Per standard, match only if entire file is
         EICAR string plus optional trailing whitespace.\n       The raw EICAR string
         to be matched is:\n       X5O!P%@AP[4\\PZX54(P^)7CC)7}$EICAR-STANDARD-ANTIVIRUS-TEST-FILE!$H+H*\n    */\n\n    meta:\n        description
@@ -1488,7 +1554,7 @@ interactions:
       Content-Type:
       - application/json
       Date:
-      - Fri, 29 May 2026 17:00:45 GMT
+      - Tue, 02 Jun 2026 21:30:56 GMT
       Server:
       - gunicorn
       X-Billing-ID:
@@ -1497,7 +1563,7 @@ interactions:
       code: 200
       message: OK
 - request:
-    body: '{"rule_id":"10146124047824056"}'
+    body: '{"rule_id":"41408977860969060"}'
     headers:
       accept:
       - '*/*'
@@ -1512,11 +1578,11 @@ interactions:
       content-type:
       - application/json
       host:
-      - localhost:9696
+      - artifact-index-e2e:9696
       user-agent:
       - polyswarm_api/3.21.0 (x86_64-Linux-CPython-3.14.4)
     method: DELETE
-    uri: http://localhost:9696/v3/hunt/rule/live
+    uri: http://artifact-index-e2e:9696/v3/hunt/rule/live
   response:
     body:
       string: '{"errors":null,"result":"Ruleset does not have an active live scan.","status":"error"}
@@ -1534,7 +1600,7 @@ interactions:
       Content-Type:
       - application/json
       Date:
-      - Fri, 29 May 2026 17:00:45 GMT
+      - Tue, 02 Jun 2026 21:30:56 GMT
       Server:
       - gunicorn
     status:
@@ -1556,14 +1622,14 @@ interactions:
       content-type:
       - application/json
       host:
-      - localhost:9696
+      - artifact-index-e2e:9696
       user-agent:
       - polyswarm_api/3.21.0 (x86_64-Linux-CPython-3.14.4)
     method: DELETE
-    uri: http://localhost:9696/v3/hunt/rule?id=10146124047824056
+    uri: http://artifact-index-e2e:9696/v3/hunt/rule?id=41408977860969060
   response:
     body:
-      string: '{"result":{"created":"2026-05-29T17:00:18.736874+00:00","deleted":true,"description":null,"id":"10146124047824056","livescan_created":"2026-05-29T17:00:18.787050+00:00","livescan_id":null,"modified":"2026-05-29T17:00:45.582384+00:00","name":"eicar","yara":"rule
+      string: '{"result":{"created":"2026-06-02T21:30:27.800377+00:00","deleted":true,"description":null,"id":"41408977860969060","livescan_created":"2026-06-02T21:30:27.844717+00:00","livescan_id":null,"modified":"2026-06-02T21:30:56.625826+00:00","name":"eicar","yara":"rule
         eicar_av_test {\n    /*\n       Per standard, match only if entire file is
         EICAR string plus optional trailing whitespace.\n       The raw EICAR string
         to be matched is:\n       X5O!P%@AP[4\\PZX54(P^)7CC)7}$EICAR-STANDARD-ANTIVIRUS-TEST-FILE!$H+H*\n    */\n\n    meta:\n        description
@@ -1591,7 +1657,7 @@ interactions:
       Content-Type:
       - application/json
       Date:
-      - Fri, 29 May 2026 17:00:45 GMT
+      - Tue, 02 Jun 2026 21:30:56 GMT
       Server:
       - gunicorn
       X-Billing-ID:

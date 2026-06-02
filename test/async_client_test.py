@@ -101,7 +101,7 @@ async def _poll_results(agen_factory, tries=30, delay=1):
 # sandbox service to drive a dispatched SandboxTask to SUCCEEDED (the only state
 # that makes sandbox_task_latest resolve). Requires the e2e sandbox-service
 # worker to be running.
-SANDBOX_SERVICE_URI = 'http://localhost:54110'
+SANDBOX_SERVICE_URI = 'http://sandbox-service-e2e:54110'
 
 
 async def _post_sandbox_status(client, task_id, status):
@@ -156,6 +156,12 @@ vcr = vcr_.VCR(
     match_on=['method', 'scheme', 'host', 'port', 'path', 'query'],
 )
 
+# TESTS_VCR=off bypasses VCR entirely: `@vcr.use_cassette()` becomes a no-op so
+# the suite runs against the live stack with no replay/record. Used by the e2e
+# CI command. Default (unset/on) keeps the normal record-once/replay behaviour.
+if os.getenv('TESTS_VCR', 'on').lower() == 'off':
+    vcr.use_cassette = lambda *_a, **_k: (lambda _fn: _fn)
+
 
 # ── Shared constants ──────────────────────────────────────────────────────────
 
@@ -177,7 +183,7 @@ class TestAsyncScanCase:
     def _api(self, community='gamma'):
         return PolySwarmAsyncAPI(
             self.test_api_key,
-            uri=f'http://localhost:9696/{self.api_version}',
+            uri=f'http://artifact-index-e2e:9696/{self.api_version}',
             community=community,
         )
 
@@ -703,7 +709,7 @@ class TestAsyncEngineCache:
 
 # ── Error handling (no cassettes) — mirrors no-cassette sync tests ────────────
 
-BASE_URL = 'http://localhost:9696/v3'
+BASE_URL = 'http://artifact-index-e2e:9696/v3'
 API_KEY = '11111111111111111111111111111111'
 
 
