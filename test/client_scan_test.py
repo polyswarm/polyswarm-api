@@ -327,8 +327,8 @@ class ScanTestCaseV2(TestCase):
 
             # This still does not have a v2 path
             api = PolyswarmAPI(self.test_api_key, uri='http://localhost:3000/api/v1', community='gamma')
-            assert {'Intezer', 'IRIS-H', 'Test', 'K7-Arbiter'} == {e.name for e in api.engines}
-            assert {'K7-Arbiter'} == {e.name for e in api.engines if e.is_arbiter}
+            assert {'Intezer', 'IRIS-H', 'Test', 'K7-Arbiter'} == {e.name for e in api.engines()}
+            assert {'K7-Arbiter'} == {e.name for e in api.engines() if e.is_arbiter}
 
             # Verify handling of invalid responses
             route.mock(return_value=httpx.Response(500))
@@ -339,8 +339,8 @@ class ScanTestCaseV2(TestCase):
             with pytest.raises(exceptions.InvalidValueException):
                 api.refresh_engine_cache()
 
-            # Run tests after failed `refresh_engine_cache` to verify that we haven't cleared `api.engines`
-            assert len(set(api.engines)) == 4
+            # Run tests after failed `refresh_engine_cache` to verify that we haven't cleared the cache
+            assert len(set(api.engines())) == 4
 
     @vcr.use_cassette()
     def test_live(self):

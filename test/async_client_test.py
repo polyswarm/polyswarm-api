@@ -673,9 +673,9 @@ class TestAsyncEngineCache:
             'has_more': False,
         }))
         api = PolySwarmAsyncAPI(self.test_api_key, uri='http://localhost:3000/api/v1', community='gamma')
-        await api.refresh_engine_cache()
-        assert {'Intezer', 'IRIS-H', 'Test', 'K7-Arbiter'} == {e.name for e in api._engines}
-        assert {'K7-Arbiter'} == {e.name for e in api._engines if e.is_arbiter}
+        engines = await api.engines()
+        assert {'Intezer', 'IRIS-H', 'Test', 'K7-Arbiter'} == {e.name for e in engines}
+        assert {'K7-Arbiter'} == {e.name for e in engines if e.is_arbiter}
         await api.aclose()
 
     @respx.mock

@@ -65,39 +65,13 @@ REPLACEMENTS = {
 }
 
 
-# ── Post-processing patches ────────────────────────────────────────
+# ── Post-processing ────────────────────────────────────────────────
 #
-# unasync is a mechanical token-rewrite. A few sites need divergent
-# sync/async behaviour that the rename map can't express; we patch the
-# generated sync mirror here, deterministically, after unasync runs.
-# CI verifies the result is stable.
-
-# The ``engines`` property: the async client raises AttributeError
-# (Python properties can't await); the sync client should expose a
-# working cached property. The canonical async source carries the
-# AttributeError version; this replacement installs the sync property
-# in the generated mirror.
-ENGINES_ASYNC = '''    @property
-    def engines(self):
-        # Async clients can't expose a property that awaits — call
-        # ``refresh_engine_cache()`` first and read ``self._engines``.
-        # The sync mirror gets a working property via post-processing in
-        # scripts/regenerate_sync.py (see ENGINES_SYNC there).
-        raise AttributeError(
-            "Use 'await refresh_engine_cache()' then access '_engines' directly. "
-            "Properties cannot be async."
-        )'''
-
-ENGINES_SYNC = '''    @property
-    def engines(self):
-        if not self._engines:
-            self.refresh_engine_cache()
-        return self._engines'''
-
-# ``await refresh_engine_cache()`` mention inside the AttributeError
-# docstring above is itself an instruction for async callers and stays
-# unchanged on the async side. The replacement above swaps the whole
-# block, so the sync side never sees that string.
+# unasync is a mechanical token-rewrite. The generated mirrors need only
+# two content-agnostic fixups afterward: de-duplicating imports the
+# rename map can introduce (e.g. ``asyncio`` -> ``time``) and prepending
+# the "DO NOT EDIT" header. There are NO per-symbol behavioural patches —
+# every method, including ``engines``, mirrors cleanly via unasync.
 
 
 GENERATED_HEADER = (
@@ -139,20 +113,6 @@ def dedupe_imports(path: str) -> None:
     target.write_text("".join(out))
 
 
-def patch_engines_property(path: str) -> None:
-    """Swap the async-style ``engines`` property for the sync one."""
-    import pathlib
-    target = pathlib.Path(path)
-    text = target.read_text()
-    if ENGINES_ASYNC not in text:
-        raise RuntimeError(
-            f"expected ENGINES_ASYNC block not found in {path} after unasync. "
-            f"Update scripts/regenerate_sync.py if the canonical source changed.",
-        )
-    text = text.replace(ENGINES_ASYNC, ENGINES_SYNC)
-    target.write_text(text)
-
-
 def main() -> int:
     print("running unasync...")
     unasync.unasync_files(
@@ -166,10 +126,9 @@ def main() -> int:
         ],
     )
 
-    print("applying post-processing patches...")
+    print("applying post-processing...")
     for path in GENERATED:
         dedupe_imports(path)
-    patch_engines_property("src/polyswarm_api/api.py")
     for path in GENERATED:
         add_generated_header(path)
 
