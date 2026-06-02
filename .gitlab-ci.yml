@@ -3,12 +3,22 @@ include:
     ref: master
     file: '.gitlab-ci-default.yaml'
 
+variables:
+  BASE_IMAGE_NAME: polyswarm-api
+
 ###############################################################
 # Build Stage
 ###############################################################
 
 dev-pypi:
   extends: .dev-pypi
+
+# Build the polyswarm-api test image (whole repo + suite) from docker/Dockerfile.
+# .build-docker tags it :$CI_COMMIT_SHA and :$CI_COMMIT_REF_SLUG, so the e2e stack
+# (running on the same-named branch) resolves the matching image for its
+# `polyswarm-api` command, which runs this suite VCR-off against the live stack.
+build:
+  extends: .build-docker
 
 ###############################################################
 # Test Stage
@@ -64,8 +74,22 @@ test-unasync-mirror:
       }
 
 ###############################################################
+# End-to-end Stage
+###############################################################
+
+# Bring up the full platform and run this suite (VCR-off) against it as the e2e
+# `polyswarm-api` command. Validates the SDK against the live stack on every MR.
+e2e:
+  extends: .e2e
+
+###############################################################
 # Release Stage
 ###############################################################
 
 release-pypi:
   extends: .release-pypi-public
+
+# Promote the SHA-tagged image to :latest on master so the e2e master pipeline
+# keeps running this suite against the newest published image.
+release:
+  extends: .release-docker
