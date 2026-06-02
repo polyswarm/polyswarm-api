@@ -75,7 +75,11 @@ replace = "__version__ = '{new_version}'"
 
 [tool.pytest.ini_options]
 log_cli = true
-log_cli_level = "DEBUG"
+# Default live-log level. INFO keeps the useful app request/response lines while
+# dropping the DEBUG firehose (VCR per-request match trace, parse traces) that
+# otherwise bloats CI logs ~1000x. Override per-run with the TESTS_LOG_LEVEL env
+# var (e.g. TESTS_LOG_LEVEL=DEBUG to log everything); see test/conftest.py.
+log_cli_level = "INFO"
 log_format = "%(asctime)s %(levelname)-2s [%(name)s:%(filename)s:%(lineno)d:%(funcName)1s()] %(message)s"
 python_files = ["test_*.py", "*_test.py"]
 testpaths = ["test"]

@@ -1,10 +1,37 @@
 import asyncio
+import logging
 import os
 import time
 
 import pytest
 
 _VCR_DIR = os.path.join(os.path.dirname(__file__), "vcr")
+
+# Test log verbosity, controllable per-run via the TESTS_LOG_LEVEL env var
+# (default INFO). At INFO the suite emits the useful app request/response lines
+# but not the DEBUG firehose that bloats CI logs ~1000x. Set TESTS_LOG_LEVEL=DEBUG
+# to log everything (including the replay/transport libraries below).
+_TESTS_LOG_LEVEL = os.getenv("TESTS_LOG_LEVEL", "INFO").upper()
+
+# Replay/transport libraries are extremely chatty at DEBUG — vcr.matchers alone
+# logs a full comparison for every recorded request on every call (~24% of the
+# old log) and vcr.cassette/vcr.request dump entire response bodies. Pin them to
+# WARNING unless DEBUG was explicitly requested, so they never drown the app's
+# own logs (and a real cassette-miss / transport error is >=WARNING, so it still
+# surfaces). This caps verbosity only; it does not hide app warnings/errors.
+_NOISY_LIBS = ("vcr", "httpx", "httpcore", "asyncio")
+
+
+def pytest_configure(config):
+    # Honor an explicit --log-cli-level / --log-level on the CLI; otherwise drive
+    # both the live and captured log level from TESTS_LOG_LEVEL.
+    if config.option.log_cli_level is None:
+        config.option.log_cli_level = _TESTS_LOG_LEVEL
+    if config.option.log_level is None:
+        config.option.log_level = _TESTS_LOG_LEVEL
+    noisy_level = "DEBUG" if _TESTS_LOG_LEVEL == "DEBUG" else "WARNING"
+    for name in _NOISY_LIBS:
+        logging.getLogger(name).setLevel(noisy_level)
 
 
 @pytest.fixture(autouse=True)
