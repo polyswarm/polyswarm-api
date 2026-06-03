@@ -37,6 +37,13 @@ class PolySwarmAsyncAPI:
     iterators directly; async callers ``await`` / ``async for``.
     """
 
+    # Pagination safety bound: ``_consume_results`` never walks more than this
+    # many pages, even if the server keeps reporting ``has_more`` (or returns a
+    # cursor that doesn't advance). A misbehaving endpoint must not be able to
+    # hang a client in an unbounded loop; the cap is far above any legitimate
+    # result set (50/page => 500k results).
+    _MAX_PAGES = 10_000
+
     def __init__(
         self,
         key: str | None = None,
@@ -149,7 +156,11 @@ class PolySwarmAsyncAPI:
                 yield result
 
     async def _consume_results(self, request):
-        while True:
+        # Bounded by _MAX_PAGES, and stops if the offset/cursor repeats, so a
+        # server that leaves has_more set (or returns a non-advancing cursor)
+        # can't loop the client forever.
+        seen_offsets = set()
+        for _page in range(self._MAX_PAGES):
             try:
                 for item in request._result:
                     yield item
@@ -158,7 +169,15 @@ class PolySwarmAsyncAPI:
                 return
             if not request.has_more:
                 return
+            offset = request.offset
+            if offset is not None and offset in seen_offsets:
+                logger.warning(
+                    'Stopping pagination: offset %r did not advance while '
+                    'has_more was still set.', offset)
+                return
+            seen_offsets.add(offset)
             request = await self._next_page(request)
+        logger.warning('Stopping pagination at the %d-page safety cap.', self._MAX_PAGES)
 
     async def _next_page(self, request):
         """Build the next-page descriptor by cloning ``request`` with

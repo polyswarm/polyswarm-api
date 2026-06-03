@@ -1147,3 +1147,58 @@ async def test_async_context_manager():
     async with PolySwarmAsyncAPI(API_KEY, uri=BASE_URL, community='gamma') as api:
         result = [r async for r in api.search(SHA256)]
     assert result[0].sha256 == SHA256
+
+
+# ── Pagination (no cassette) — multi-page walk + runaway safety bound ──────────
+
+def _instance(sha):
+    return {
+        'sha256': sha, 'md5': '44d88612fea8a8f36de82e1278abb02f',
+        'sha1': '3395856ce81f2b7382dee72602f798b642f14d8',
+        'mimetype': 'text/plain', 'size': 68, 'extended_type': '',
+        'first_seen': '2020-01-01T00:00:00', 'upload_url': '', 'assertions': [],
+        'votes': [], 'failed': False, 'window_closed': True, 'polyscore': 0.0,
+        'result': None, 'metadata': [],
+    }
+
+
+@respx.mock
+async def test_async_pagination_walks_all_pages():
+    """``_consume_results`` follows ``has_more`` + the returned offset to the
+    next page until the server says it's done — the multi-page path the recorded
+    IOC/search cassettes (all single-page) never exercise.
+    """
+    route = respx.get(f'{BASE_URL}/search/hash/sha256').mock(side_effect=[
+        httpx.Response(200, json={
+            'status': 'OK', 'has_more': True, 'offset': 'cursor-1',
+            'result': [_instance(SHA256), _instance(SHA256)],
+        }),
+        httpx.Response(200, json={
+            'status': 'OK', 'has_more': False,
+            'result': [_instance(SHA256)],
+        }),
+    ])
+    async with PolySwarmAsyncAPI(API_KEY, uri=BASE_URL, community='gamma') as api:
+        results = [r async for r in api.search(SHA256)]
+    assert len(results) == 3            # both pages consumed
+    assert route.call_count == 2        # advanced to page 2 via the offset
+    assert 'cursor-1' in str(route.calls[-1].request.url)  # offset echoed back
+
+
+@respx.mock
+async def test_async_pagination_bounded_when_cursor_never_advances():
+    """A pathological server that leaves ``has_more`` set with a non-advancing
+    offset must NOT loop the client forever — the offset-repeat guard in
+    ``_consume_results`` stops it. (This is the failure mode that, with the old
+    shared-IP reverse-IOC search, hung CI.)
+    """
+    respx.get(f'{BASE_URL}/search/hash/sha256').mock(return_value=httpx.Response(
+        200, json={
+            'status': 'OK', 'has_more': True, 'offset': 'STUCK',
+            'result': [_instance(SHA256)],
+        },
+    ))
+    async with PolySwarmAsyncAPI(API_KEY, uri=BASE_URL, community='gamma') as api:
+        results = [r async for r in api.search(SHA256)]
+    # Terminated with a bounded set instead of hanging.
+    assert 0 < len(results) <= 5

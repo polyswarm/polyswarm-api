@@ -243,31 +243,48 @@ class ScanTestCaseV2(TestCase):
     def test_stream(self):
         api = PolyswarmAPI(self.test_api_key, uri=f'http://artifact-index-e2e:9696/{self.api_version}', community='gamma')
         # The archiver batches submitted instances into a downloadable archive
-        # once ARTIFACT_ARCHIVES_INSTANCE_COUNT (3 in e2e) is *exceeded*, after
-        # an ARCHIVES_CREATION_DELAY (~30s). Submit enough EICAR to cross the
-        # >3 threshold, then poll the stream feed until the archive lands.
-        for _ in range(5):
-            api.submit('test/malicious')
+        # once ARTIFACT_ARCHIVES_INSTANCE_COUNT (3 in e2e) is *exceeded*, after an
+        # ARCHIVES_CREATION_DELAY. The batch is global, so we submit enough of OUR
+        # OWN unique artifacts to cross the >3 threshold by ourselves, then walk
+        # the feed (downloading each archive once) until every one of OUR shas has
+        # turned up — ignoring whatever other artifacts share the archives.
+        # The archiver batches in groups of >3 and leaves a trailing partial batch
+        # pending until more submits arrive, so not every file we submit is
+        # guaranteed to be archived in isolation. Submit a healthy batch of our
+        # own unique artifacts and assert at least one full batch's worth (>3) of
+        # OUR shas turns up in the recent archives — ignoring co-tenant artifacts.
+        uid = self._testMethodName
+        my = {}
+        for i in range(8):
+            content, sha = malicious_artifact(f'{uid}-{i}')
+            my[sha] = content
+            with artifact_file(content) as fpath:
+                api.submit(fpath)
+        my_shas = set(my)
+        found, seen = set(), set()
         with temp_dir({}) as (path, _):
-            # Consume only the FIRST archive (next(iter(...))) instead of
-            # list(api.stream()) — the feed accumulates archives and paging
-            # the whole thing would bloat the cassette. One page is enough to
-            # download + verify, and bounds the recording to a single request.
-            artifact_archive = None
             for _ in range(90):
                 try:
-                    artifact_archive = next(iter(api.stream()), None)
+                    # Bound to recent archives (this run), not the 2-day backlog.
+                    for artifact_archive in api.stream(since=2):
+                        # Dedup by the stable storage path; the presigned uri
+                        # carries a fresh signature on every fetch.
+                        key = artifact_archive.uri.split('?', 1)[0]
+                        if key in seen:
+                            continue
+                        seen.add(key)
+                        archive = api.download_archive(path, artifact_archive.uri)
+                        with tarfile.open(os.path.join(path, archive.artifact_name), 'r:gz') as tar:
+                            for member in tar.getmembers():
+                                data = tar.extractfile(member).read()
+                                found.add(hashlib.sha256(data).hexdigest())
                 except exceptions.NoResultsException:
-                    artifact_archive = None
-                if artifact_archive is not None:
+                    pass
+                if len(my_shas & found) >= 4:
                     break
                 time.sleep(1)
-            assert artifact_archive is not None, 'stream should yield an archive after >3 submits'
-            archive = api.download_archive(path, artifact_archive.uri)
-            with tarfile.open(os.path.join(path, archive.artifact_name), 'r:gz') as tar:
-                for member in tar.getmembers():
-                    extracted = tar.extractfile(member)
-                    assert extracted.read() == b'X5O!P%@AP[4\\PZX54(P^)7CC)7}$EICAR-STANDARD-ANTIVIRUS-TEST-FILE!$H+H*'
+        assert len(my_shas & found) >= 4, \
+            'a batch of our submitted artifacts should appear in the stream archives'
 
     @vcr.use_cassette()
     def test_hash_search(self):
