@@ -22,7 +22,7 @@ interactions:
     uri: http://artifact-index-e2e:9696/v3/instance
   response:
     body:
-      string: '{"result":{"artifact_id":"44851084203678122","assertions":[],"bounty_state":0,"community":"gamma","country":"","created":"2026-06-03T22:40:53.198624+00:00","detections":null,"expiration_window":null,"expire_at":null,"extended_type":null,"failed":false,"filename":"artifact","first_seen":"2026-06-03T22:40:53.198624+00:00","id":"44851084203678122","last_scanned":null,"last_seen":null,"md5":null,"metadata":[],"mimetype":null,"permalink":"https://polyswarm.network/scan/results/file/None/44851084203678122","polyscore":null,"result":null,"sha1":null,"sha256":null,"size":null,"type":"FILE","upload_url":"http://minio:9000/artifact-index/instances/ce/b7/0b/ceb70bd2-745e-42a2-9fb8-1e8120a613f5?X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Credential=AKIAIOSFODNN7EXAMPLE%2F20260603%2Fus-east-1%2Fs3%2Faws4_request&X-Amz-Date=20260603T224053Z&X-Amz-Expires=300&X-Amz-SignedHeaders=host&X-Amz-Signature=df0762507622fc7cd5b299e1e62482d1aca6baa4806baabaf6d9bfc8514c88f4","votes":[],"window_closed":false},"status":"OK"}
+      string: '{"result":{"artifact_id":"7779577867950164","assertions":[],"bounty_state":0,"community":"gamma","country":"","created":"2026-06-03T23:18:50.373264+00:00","detections":null,"expiration_window":null,"expire_at":null,"extended_type":null,"failed":false,"filename":"artifact","first_seen":"2026-06-03T23:18:50.373264+00:00","id":"7779577867950164","last_scanned":null,"last_seen":null,"md5":null,"metadata":[],"mimetype":null,"permalink":"https://polyswarm.network/scan/results/file/None/7779577867950164","polyscore":null,"result":null,"sha1":null,"sha256":null,"size":null,"type":"FILE","upload_url":"http://minio:9000/artifact-index/instances/89/e3/02/89e3022b-9d27-4339-b494-f98261dd98fc?X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Credential=AKIAIOSFODNN7EXAMPLE%2F20260603%2Fus-east-1%2Fs3%2Faws4_request&X-Amz-Date=20260603T231850Z&X-Amz-Expires=300&X-Amz-SignedHeaders=host&X-Amz-Signature=54593b7ba65161b3f14a287d571dce9165c785e2478008d4aafc41665cc089f9","votes":[],"window_closed":false},"status":"OK"}
 
         '
     headers:
@@ -33,11 +33,11 @@ interactions:
       Connection:
       - keep-alive
       Content-Length:
-      - '1008'
+      - '1005'
       Content-Type:
       - application/json
       Date:
-      - Wed, 03 Jun 2026 22:40:53 GMT
+      - Wed, 03 Jun 2026 23:18:50 GMT
       Server:
       - gunicorn
       X-Billing-ID:
@@ -63,7 +63,7 @@ interactions:
       user-agent:
       - polyswarm_api/3.21.0 (x86_64-Linux-CPython-3.14.4)
     method: PUT
-    uri: http://minio:9000/artifact-index/instances/ce/b7/0b/ceb70bd2-745e-42a2-9fb8-1e8120a613f5?X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Credential=AKIAIOSFODNN7EXAMPLE%2F20260603%2Fus-east-1%2Fs3%2Faws4_request&X-Amz-Date=20260603T224053Z&X-Amz-Expires=300&X-Amz-SignedHeaders=host&X-Amz-Signature=df0762507622fc7cd5b299e1e62482d1aca6baa4806baabaf6d9bfc8514c88f4
+    uri: http://minio:9000/artifact-index/instances/89/e3/02/89e3022b-9d27-4339-b494-f98261dd98fc?X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Credential=AKIAIOSFODNN7EXAMPLE%2F20260603%2Fus-east-1%2Fs3%2Faws4_request&X-Amz-Date=20260603T231850Z&X-Amz-Expires=300&X-Amz-SignedHeaders=host&X-Amz-Signature=54593b7ba65161b3f14a287d571dce9165c785e2478008d4aafc41665cc089f9
   response:
     body:
       string: ''
@@ -73,7 +73,7 @@ interactions:
       Content-Length:
       - '0'
       Date:
-      - Wed, 03 Jun 2026 22:40:53 GMT
+      - Wed, 03 Jun 2026 23:18:50 GMT
       ETag:
       - '"2d37e24b8f9efb14011a209006f0445e"'
       Server:
@@ -86,7 +86,7 @@ interactions:
       X-Amz-Id-2:
       - dd9025bab4ad464b049177c95eb6ebf374d3b3fd1af9251148b658df7ac2e3e8
       X-Amz-Request-Id:
-      - 18B5B360248E5CA5
+      - 18B5B57256AD578F
       X-Content-Type-Options:
       - nosniff
       X-Ratelimit-Limit:
@@ -120,10 +120,10 @@ interactions:
       user-agent:
       - polyswarm_api/3.21.0 (x86_64-Linux-CPython-3.14.4)
     method: PUT
-    uri: http://artifact-index-e2e:9696/v3/instance?id=44851084203678122
+    uri: http://artifact-index-e2e:9696/v3/instance?id=7779577867950164
   response:
     body:
-      string: '{"result":{"artifact_id":"44851084203678122","assertions":[],"bounty_state":0,"community":"gamma","country":"","created":"2026-06-03T22:40:53.198624+00:00","detections":null,"expiration_window":null,"expire_at":null,"extended_type":null,"failed":false,"filename":"artifact","first_seen":"2026-06-03T22:40:53.198624+00:00","id":"44851084203678122","last_scanned":null,"last_seen":null,"md5":null,"metadata":[],"mimetype":null,"permalink":"https://polyswarm.network/scan/results/file/None/44851084203678122","polyscore":null,"result":null,"sha1":null,"sha256":null,"size":null,"type":"FILE","upload_url":"http://minio:9000/artifact-index/instances/ce/b7/0b/ceb70bd2-745e-42a2-9fb8-1e8120a613f5?X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Credential=AKIAIOSFODNN7EXAMPLE%2F20260603%2Fus-east-1%2Fs3%2Faws4_request&X-Amz-Date=20260603T224053Z&X-Amz-Expires=300&X-Amz-SignedHeaders=host&X-Amz-Signature=df0762507622fc7cd5b299e1e62482d1aca6baa4806baabaf6d9bfc8514c88f4","votes":[],"window_closed":false},"status":"OK"}
+      string: '{"result":{"artifact_id":"7779577867950164","assertions":[],"bounty_state":0,"community":"gamma","country":"","created":"2026-06-03T23:18:50.373264+00:00","detections":null,"expiration_window":null,"expire_at":null,"extended_type":null,"failed":false,"filename":"artifact","first_seen":"2026-06-03T23:18:50.373264+00:00","id":"7779577867950164","last_scanned":null,"last_seen":null,"md5":null,"metadata":[],"mimetype":null,"permalink":"https://polyswarm.network/scan/results/file/None/7779577867950164","polyscore":null,"result":null,"sha1":null,"sha256":null,"size":null,"type":"FILE","upload_url":"http://minio:9000/artifact-index/instances/89/e3/02/89e3022b-9d27-4339-b494-f98261dd98fc?X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Credential=AKIAIOSFODNN7EXAMPLE%2F20260603%2Fus-east-1%2Fs3%2Faws4_request&X-Amz-Date=20260603T231850Z&X-Amz-Expires=300&X-Amz-SignedHeaders=host&X-Amz-Signature=54593b7ba65161b3f14a287d571dce9165c785e2478008d4aafc41665cc089f9","votes":[],"window_closed":false},"status":"OK"}
 
         '
     headers:
@@ -134,11 +134,11 @@ interactions:
       Connection:
       - keep-alive
       Content-Length:
-      - '1008'
+      - '1005'
       Content-Type:
       - application/json
       Date:
-      - Wed, 03 Jun 2026 22:40:53 GMT
+      - Wed, 03 Jun 2026 23:18:50 GMT
       Server:
       - gunicorn
       X-Billing-ID:
@@ -147,7 +147,7 @@ interactions:
       code: 200
       message: OK
 - request:
-    body: '{"artifact_id":"44851084203678122","provider_slug":"cape","vm_slug":"win-10-build-19041","network_enabled":1}'
+    body: '{"artifact_id":"7779577867950164","provider_slug":"cape","vm_slug":"win-10-build-19041","network_enabled":1}'
     headers:
       accept:
       - '*/*'
@@ -158,7 +158,51 @@ interactions:
       connection:
       - keep-alive
       content-length:
-      - '109'
+      - '108'
+      content-type:
+      - application/json
+      host:
+      - artifact-index-e2e:9696
+      user-agent:
+      - polyswarm_api/3.21.0 (x86_64-Linux-CPython-3.14.4)
+    method: POST
+    uri: http://artifact-index-e2e:9696/v3/sandbox/sandboxtask
+  response:
+    body:
+      string: '{"errors":null,"result":"Could not find storage path for instance 7779577867950164.","status":"error"}
+
+        '
+    headers:
+      Access-Control-Allow-Origin:
+      - '*'
+      Access-Control-Expose-Headers:
+      - Authorization
+      Connection:
+      - keep-alive
+      Content-Length:
+      - '103'
+      Content-Type:
+      - application/json
+      Date:
+      - Wed, 03 Jun 2026 23:18:50 GMT
+      Server:
+      - gunicorn
+    status:
+      code: 422
+      message: UNPROCESSABLE ENTITY
+- request:
+    body: '{"artifact_id":"7779577867950164","provider_slug":"cape","vm_slug":"win-10-build-19041","network_enabled":1}'
+    headers:
+      accept:
+      - '*/*'
+      accept-encoding:
+      - gzip, deflate
+      authorization:
+      - '11111111111111111111111111111111'
+      connection:
+      - keep-alive
+      content-length:
+      - '108'
       content-type:
       - application/json
       host:
@@ -172,7 +216,7 @@ interactions:
       string: '{"result":{"account_number":null,"artifact":{"extended_type":"EICAR
         virus test files","failed":false,"filename":"artifact","mimetype":"text/plain","size":86},"community":"gamma","config":{"arguments":"","artifact_type":"FILE","browser":null,"network_enabled":true,"provider":{"id":"1","name":"cape","slug":"cape","tool":"cape_sandbox_v2"},"target":"artifact","vm":{"architecture":"x64","id":"100","language":"English
         (United States)","name":"Microsoft Windows 10 Pro Build 19041","os_name":"Microsoft
-        Windows 10 Pro","os_version":"10.0.19041 Build 19041","slug":"win-10-build-19041"}},"created":"2026-06-03T22:40:53.437072+00:00","expiration":"2026-06-04T01:40:53.305465+00:00","id":"29703044724966183","instance_id":"44851084203678122","report":{},"sandbox":"cape","sandbox_artifacts":[],"sha256":"1e09244674510371328fa46a23f9705ad52f1dc959884db384a34ed4c84464ee","status":"PENDING","team_account_number":null,"upload_url":null},"status":"OK"}
+        Windows 10 Pro","os_version":"10.0.19041 Build 19041","slug":"win-10-build-19041"}},"created":"2026-06-03T23:18:51.450969+00:00","expiration":"2026-06-04T02:18:51.448843+00:00","id":"65789145233407297","instance_id":"7779577867950164","report":{},"sandbox":"cape","sandbox_artifacts":[],"sha256":"1e09244674510371328fa46a23f9705ad52f1dc959884db384a34ed4c84464ee","status":"PENDING","team_account_number":null,"upload_url":null},"status":"OK"}
 
         '
     headers:
@@ -183,11 +227,11 @@ interactions:
       Connection:
       - keep-alive
       Content-Length:
-      - '945'
+      - '944'
       Content-Type:
       - application/json
       Date:
-      - Wed, 03 Jun 2026 22:40:53 GMT
+      - Wed, 03 Jun 2026 23:18:51 GMT
       Server:
       - gunicorn
       X-Billing-ID:
@@ -196,7 +240,7 @@ interactions:
       code: 200
       message: OK
 - request:
-    body: '{"sandbox_task_id":"29703044724966183","status":1,"errors":[]}'
+    body: '{"sandbox_task_id":"65789145233407297","status":1,"errors":[]}'
     headers:
       accept:
       - '*/*'
@@ -229,7 +273,7 @@ interactions:
       Cross-Origin-Opener-Policy:
       - same-origin
       Date:
-      - Wed, 03 Jun 2026 22:40:59 GMT
+      - Wed, 03 Jun 2026 23:18:57 GMT
       Referrer-Policy:
       - same-origin
       Server:
@@ -244,7 +288,7 @@ interactions:
       code: 200
       message: OK
 - request:
-    body: '{"sandbox_task_id":"29703044724966183","name":"cape_report.json","artifact_type":"report","mimetype":"application/json","extended_type":"JSON
+    body: '{"sandbox_task_id":"65789145233407297","name":"cape_report.json","artifact_type":"report","mimetype":"application/json","extended_type":"JSON
       text data","sha256":"703014278b978e8772c8188f6d66b7d43519abe6af896352181d2ba5758afaa5","priority":10,"content_type":"application/json"}'
     headers:
       accept:
@@ -265,7 +309,7 @@ interactions:
     uri: http://sandbox-service-e2e:54110/api/sandbox-artifact/
   response:
     body:
-      string: '{"id":6,"created":"2026-06-03T22:40:59.467424Z","sandbox_task_id":29703044724966183,"instance_number":null,"artifact_type":"report","meta_community":"","sandbox":"","sha256":"703014278b978e8772c8188f6d66b7d43519abe6af896352181d2ba5758afaa5","parent":null,"upload_url":"http://minio:9000/sandbox-dropped/6/6?X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Credential=AKIAIOSFODNN7EXAMPLE%2F20260603%2Fus-east-1%2Fs3%2Faws4_request&X-Amz-Date=20260603T224059Z&X-Amz-Expires=300&X-Amz-SignedHeaders=host&X-Amz-Signature=7dd208012f8444c3cafb7ffb70e09b28b37391b9dc2aa12199c577c54ba530df","name":"cape_report.json","mimetype":"application/json","extended_type":"JSON
+      string: '{"id":86,"created":"2026-06-03T23:18:57.468875Z","sandbox_task_id":65789145233407297,"instance_number":null,"artifact_type":"report","meta_community":"","sandbox":"","sha256":"703014278b978e8772c8188f6d66b7d43519abe6af896352181d2ba5758afaa5","parent":null,"upload_url":"http://minio:9000/sandbox-dropped/68/68?X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Credential=AKIAIOSFODNN7EXAMPLE%2F20260603%2Fus-east-1%2Fs3%2Faws4_request&X-Amz-Date=20260603T231857Z&X-Amz-Expires=300&X-Amz-SignedHeaders=host&X-Amz-Signature=7d07340eab3262ff840ea2bbacebc6992cc81ee4857eaadf40115cd5ca576e6c","name":"cape_report.json","mimetype":"application/json","extended_type":"JSON
         text data","description":"","callback_uri":null,"content_type":"application/json","status":"created"}'
     headers:
       Allow:
@@ -273,13 +317,13 @@ interactions:
       Connection:
       - close
       Content-Length:
-      - '753'
+      - '756'
       Content-Type:
       - application/json
       Cross-Origin-Opener-Policy:
       - same-origin
       Date:
-      - Wed, 03 Jun 2026 22:40:59 GMT
+      - Wed, 03 Jun 2026 23:18:57 GMT
       Referrer-Policy:
       - same-origin
       Server:
@@ -309,7 +353,7 @@ interactions:
       user-agent:
       - python-httpx/0.28.1
     method: PUT
-    uri: http://minio:9000/sandbox-dropped/6/6?X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Credential=AKIAIOSFODNN7EXAMPLE%2F20260603%2Fus-east-1%2Fs3%2Faws4_request&X-Amz-Date=20260603T224059Z&X-Amz-Expires=300&X-Amz-SignedHeaders=host&X-Amz-Signature=7dd208012f8444c3cafb7ffb70e09b28b37391b9dc2aa12199c577c54ba530df
+    uri: http://minio:9000/sandbox-dropped/68/68?X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Credential=AKIAIOSFODNN7EXAMPLE%2F20260603%2Fus-east-1%2Fs3%2Faws4_request&X-Amz-Date=20260603T231857Z&X-Amz-Expires=300&X-Amz-SignedHeaders=host&X-Amz-Signature=7d07340eab3262ff840ea2bbacebc6992cc81ee4857eaadf40115cd5ca576e6c
   response:
     body:
       string: ''
@@ -319,7 +363,7 @@ interactions:
       Content-Length:
       - '0'
       Date:
-      - Wed, 03 Jun 2026 22:40:59 GMT
+      - Wed, 03 Jun 2026 23:18:57 GMT
       ETag:
       - '"5afb380f7145039eaca012f0a3891240"'
       Server:
@@ -332,7 +376,7 @@ interactions:
       X-Amz-Id-2:
       - dd9025bab4ad464b049177c95eb6ebf374d3b3fd1af9251148b658df7ac2e3e8
       X-Amz-Request-Id:
-      - 18B5B3619B6AEE07
+      - 18B5B573FE0764A8
       X-Content-Type-Options:
       - nosniff
       X-Ratelimit-Limit:
@@ -360,7 +404,7 @@ interactions:
       user-agent:
       - python-httpx/0.28.1
     method: PATCH
-    uri: http://sandbox-service-e2e:54110/api/sandbox-artifact/6/
+    uri: http://sandbox-service-e2e:54110/api/sandbox-artifact/86/
   response:
     body:
       string: '{"status":"OK"}'
@@ -376,7 +420,7 @@ interactions:
       Cross-Origin-Opener-Policy:
       - same-origin
       Date:
-      - Wed, 03 Jun 2026 22:40:59 GMT
+      - Wed, 03 Jun 2026 23:18:57 GMT
       Referrer-Policy:
       - same-origin
       Server:
@@ -391,7 +435,7 @@ interactions:
       code: 200
       message: OK
 - request:
-    body: '{"sandbox_task_id":"29703044724966183","status":8,"errors":[]}'
+    body: '{"sandbox_task_id":"65789145233407297","status":8,"errors":[]}'
     headers:
       accept:
       - '*/*'
@@ -424,7 +468,7 @@ interactions:
       Cross-Origin-Opener-Policy:
       - same-origin
       Date:
-      - Wed, 03 Jun 2026 22:40:59 GMT
+      - Wed, 03 Jun 2026 23:18:57 GMT
       Referrer-Policy:
       - same-origin
       Server:
@@ -439,7 +483,53 @@ interactions:
       code: 200
       message: OK
 - request:
-    body: '{"instance_id":"44851084203678122","tool":"cape_sandbox_v2","tool_metadata":{"extracted_c2_ips":["9.42.121.179"],"extracted_c2_urls":["www.mock-ioc.test"],"ttp":["T1081","T1060","T1069"]}}'
+    body: ''
+    headers:
+      accept:
+      - '*/*'
+      accept-encoding:
+      - gzip, deflate
+      authorization:
+      - '11111111111111111111111111111111'
+      connection:
+      - keep-alive
+      host:
+      - artifact-index-e2e:9696
+      user-agent:
+      - polyswarm_api/3.21.0 (x86_64-Linux-CPython-3.14.4)
+    method: GET
+    uri: http://artifact-index-e2e:9696/v3/sandbox/sandboxtask/latest?community=gamma&sha256=1e09244674510371328fa46a23f9705ad52f1dc959884db384a34ed4c84464ee&sandbox=cape
+  response:
+    body:
+      string: '{"result":{"account_number":null,"artifact":{"extended_type":"EICAR
+        virus test files","failed":false,"filename":"artifact","mimetype":"text/plain","size":86},"community":"gamma","config":{"arguments":"","artifact_type":"FILE","browser":null,"cape_malscore":5.0,"network_enabled":true,"provider":{"id":"1","name":"cape","slug":"cape","tool":"cape_sandbox_v2"},"target":"artifact","vm":{"architecture":"x64","id":"100","language":"English
+        (United States)","name":"Microsoft Windows 10 Pro Build 19041","os_name":"Microsoft
+        Windows 10 Pro","os_version":"10.0.19041 Build 19041","slug":"win-10-build-19041"}},"created":"2026-06-03T23:14:31.604397+00:00","expiration":"2026-06-04T02:14:31.601728+00:00","id":"35389862160487656","instance_id":"8182399043606653","report":{"malscore":5.0},"sandbox":"cape","sandbox_artifacts":[{"created":"2026-06-03T23:14:37.702083+00:00","extended_type":"JSON
+        text data","id":"34","instance_id":"60850512226685171","mimetype":"","name":"cape_report.json","sandbox_task_id":"35389862160487656","type":"report"}],"sha256":"1e09244674510371328fa46a23f9705ad52f1dc959884db384a34ed4c84464ee","status":"SUCCEEDED","team_account_number":null,"upload_url":null},"status":"OK"}
+
+        '
+    headers:
+      Access-Control-Allow-Origin:
+      - '*'
+      Access-Control-Expose-Headers:
+      - Authorization
+      Connection:
+      - keep-alive
+      Content-Length:
+      - '1197'
+      Content-Type:
+      - application/json
+      Date:
+      - Wed, 03 Jun 2026 23:18:57 GMT
+      Server:
+      - gunicorn
+      X-Billing-ID:
+      - '111'
+    status:
+      code: 200
+      message: OK
+- request:
+    body: '{"instance_id":"7779577867950164","tool":"cape_sandbox_v2","tool_metadata":{"extracted_c2_ips":["9.42.121.179"],"extracted_c2_urls":["www.mock-ioc.test"],"ttp":["T1081","T1060","T1069"]}}'
     headers:
       accept:
       - '*/*'
@@ -450,7 +540,7 @@ interactions:
       connection:
       - keep-alive
       content-length:
-      - '188'
+      - '187'
       content-type:
       - application/json
       host:
@@ -461,7 +551,7 @@ interactions:
     uri: http://artifact-index-e2e:9696/v3/artifact/metadata
   response:
     body:
-      string: '{"result":{"created":"2026-06-03T22:40:59.538873+00:00","tool":"cape_sandbox_v2","tool_metadata":{"extracted_c2_ips":["9.42.121.179"],"extracted_c2_urls":["www.mock-ioc.test"],"ttp":["T1081","T1060","T1069"]},"updated":"2026-06-03T22:40:59.538873+00:00"},"status":"OK"}
+      string: '{"result":{"created":"2026-06-03T23:18:57.545540+00:00","tool":"cape_sandbox_v2","tool_metadata":{"extracted_c2_ips":["9.42.121.179"],"extracted_c2_urls":["www.mock-ioc.test"],"ttp":["T1081","T1060","T1069"]},"updated":"2026-06-03T23:18:57.545540+00:00"},"status":"OK"}
 
         '
     headers:
@@ -476,7 +566,217 @@ interactions:
       Content-Type:
       - application/json
       Date:
-      - Wed, 03 Jun 2026 22:40:59 GMT
+      - Wed, 03 Jun 2026 23:18:57 GMT
+      Server:
+      - gunicorn
+      X-Billing-ID:
+      - '111'
+    status:
+      code: 200
+      message: OK
+- request:
+    body: ''
+    headers:
+      accept:
+      - '*/*'
+      accept-encoding:
+      - gzip, deflate
+      authorization:
+      - '11111111111111111111111111111111'
+      connection:
+      - keep-alive
+      host:
+      - artifact-index-e2e:9696
+      user-agent:
+      - polyswarm_api/3.21.0 (x86_64-Linux-CPython-3.14.4)
+    method: GET
+    uri: http://artifact-index-e2e:9696/v3/ioc/sha256/1e09244674510371328fa46a23f9705ad52f1dc959884db384a34ed4c84464ee?hide_known_good=False&community=gamma
+  response:
+    body:
+      string: '{"result":{"imphash":"","ips":[],"ttps":[],"urls":[]},"status":"OK"}
+
+        '
+    headers:
+      Access-Control-Allow-Origin:
+      - '*'
+      Access-Control-Expose-Headers:
+      - Authorization
+      Connection:
+      - keep-alive
+      Content-Length:
+      - '69'
+      Content-Type:
+      - application/json
+      Date:
+      - Wed, 03 Jun 2026 23:18:57 GMT
+      Server:
+      - gunicorn
+      X-Billing-ID:
+      - '111'
+    status:
+      code: 200
+      message: OK
+- request:
+    body: ''
+    headers:
+      accept:
+      - '*/*'
+      accept-encoding:
+      - gzip, deflate
+      authorization:
+      - '11111111111111111111111111111111'
+      connection:
+      - keep-alive
+      host:
+      - artifact-index-e2e:9696
+      user-agent:
+      - polyswarm_api/3.21.0 (x86_64-Linux-CPython-3.14.4)
+    method: GET
+    uri: http://artifact-index-e2e:9696/v3/ioc/sha256/1e09244674510371328fa46a23f9705ad52f1dc959884db384a34ed4c84464ee?hide_known_good=False&community=gamma
+  response:
+    body:
+      string: '{"result":{"imphash":"","ips":[],"ttps":[],"urls":[]},"status":"OK"}
+
+        '
+    headers:
+      Access-Control-Allow-Origin:
+      - '*'
+      Access-Control-Expose-Headers:
+      - Authorization
+      Connection:
+      - keep-alive
+      Content-Length:
+      - '69'
+      Content-Type:
+      - application/json
+      Date:
+      - Wed, 03 Jun 2026 23:18:58 GMT
+      Server:
+      - gunicorn
+      X-Billing-ID:
+      - '111'
+    status:
+      code: 200
+      message: OK
+- request:
+    body: ''
+    headers:
+      accept:
+      - '*/*'
+      accept-encoding:
+      - gzip, deflate
+      authorization:
+      - '11111111111111111111111111111111'
+      connection:
+      - keep-alive
+      host:
+      - artifact-index-e2e:9696
+      user-agent:
+      - polyswarm_api/3.21.0 (x86_64-Linux-CPython-3.14.4)
+    method: GET
+    uri: http://artifact-index-e2e:9696/v3/ioc/sha256/1e09244674510371328fa46a23f9705ad52f1dc959884db384a34ed4c84464ee?hide_known_good=False&community=gamma
+  response:
+    body:
+      string: '{"result":{"imphash":"","ips":[],"ttps":[],"urls":[]},"status":"OK"}
+
+        '
+    headers:
+      Access-Control-Allow-Origin:
+      - '*'
+      Access-Control-Expose-Headers:
+      - Authorization
+      Connection:
+      - keep-alive
+      Content-Length:
+      - '69'
+      Content-Type:
+      - application/json
+      Date:
+      - Wed, 03 Jun 2026 23:18:59 GMT
+      Server:
+      - gunicorn
+      X-Billing-ID:
+      - '111'
+    status:
+      code: 200
+      message: OK
+- request:
+    body: ''
+    headers:
+      accept:
+      - '*/*'
+      accept-encoding:
+      - gzip, deflate
+      authorization:
+      - '11111111111111111111111111111111'
+      connection:
+      - keep-alive
+      host:
+      - artifact-index-e2e:9696
+      user-agent:
+      - polyswarm_api/3.21.0 (x86_64-Linux-CPython-3.14.4)
+    method: GET
+    uri: http://artifact-index-e2e:9696/v3/ioc/sha256/1e09244674510371328fa46a23f9705ad52f1dc959884db384a34ed4c84464ee?hide_known_good=False&community=gamma
+  response:
+    body:
+      string: '{"result":{"imphash":"","ips":[],"ttps":[],"urls":[]},"status":"OK"}
+
+        '
+    headers:
+      Access-Control-Allow-Origin:
+      - '*'
+      Access-Control-Expose-Headers:
+      - Authorization
+      Connection:
+      - keep-alive
+      Content-Length:
+      - '69'
+      Content-Type:
+      - application/json
+      Date:
+      - Wed, 03 Jun 2026 23:19:00 GMT
+      Server:
+      - gunicorn
+      X-Billing-ID:
+      - '111'
+    status:
+      code: 200
+      message: OK
+- request:
+    body: ''
+    headers:
+      accept:
+      - '*/*'
+      accept-encoding:
+      - gzip, deflate
+      authorization:
+      - '11111111111111111111111111111111'
+      connection:
+      - keep-alive
+      host:
+      - artifact-index-e2e:9696
+      user-agent:
+      - polyswarm_api/3.21.0 (x86_64-Linux-CPython-3.14.4)
+    method: GET
+    uri: http://artifact-index-e2e:9696/v3/ioc/sha256/1e09244674510371328fa46a23f9705ad52f1dc959884db384a34ed4c84464ee?hide_known_good=False&community=gamma
+  response:
+    body:
+      string: '{"result":{"imphash":"","ips":[],"ttps":[],"urls":[]},"status":"OK"}
+
+        '
+    headers:
+      Access-Control-Allow-Origin:
+      - '*'
+      Access-Control-Expose-Headers:
+      - Authorization
+      Connection:
+      - keep-alive
+      Content-Length:
+      - '69'
+      Content-Type:
+      - application/json
+      Date:
+      - Wed, 03 Jun 2026 23:19:01 GMT
       Server:
       - gunicorn
       X-Billing-ID:
@@ -518,7 +818,7 @@ interactions:
       Content-Type:
       - application/json
       Date:
-      - Wed, 03 Jun 2026 22:40:59 GMT
+      - Wed, 03 Jun 2026 23:19:02 GMT
       Server:
       - gunicorn
       X-Billing-ID:

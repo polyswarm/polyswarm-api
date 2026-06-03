@@ -266,6 +266,9 @@ class TestAsyncScanCase:
             cape = await _dispatch_sandbox(api, instance.id, 'cape', 'win-10-build-19041', True)
             await asyncio.sleep(6)
             await _complete_sandbox_task(cape.id, 'cape')
+            # Wait until the task is fully processed before attaching our mock IOC,
+            # so ours is the last write and isn't clobbered under load.
+            await _wait_for_sandbox_task(lambda: api.sandbox_task_latest(sha, 'cape'))
             await api.tool_metadata_create(
                 instance.id, 'cape_sandbox_v2', {
                     'extracted_c2_ips': [ioc_ip],
@@ -273,7 +276,7 @@ class TestAsyncScanCase:
                     'ttp': ['T1081', 'T1060', 'T1069'],
                 })
             ips, ttps = [], []
-            for _ in range(60):
+            for _ in range(90):
                 iocs = [r async for r in api.iocs_by_hash('sha256', sha)]
                 if iocs:
                     ips = iocs[0].json.get('ips') or []

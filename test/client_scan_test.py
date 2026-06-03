@@ -603,6 +603,10 @@ class ScanTestCaseV2(TestCase):
         cape = _dispatch_sandbox(api, instance.id, 'cape', 'win-10-build-19041', True)
         time.sleep(6)
         _complete_sandbox_task(cape.id, 'cape')
+        # Wait until the task is fully processed (SandboxTaskSearchHash populated
+        # and the completion's own async metadata write settled) BEFORE attaching
+        # our mock IOC, so ours is the last write and isn't clobbered under load.
+        _wait_for_sandbox_task(api, api.sandbox_task_latest, sha, 'cape')
         api.tool_metadata_create(instance.id, 'cape_sandbox_v2', {
             'extracted_c2_ips': [ioc_ip],
             'extracted_c2_urls': ['www.mock-ioc.test'],
@@ -610,9 +614,9 @@ class ScanTestCaseV2(TestCase):
         })
 
         # persist_external_metadata + ES update runs async via Celery; poll the
-        # IOC view until the ioc_ip surfaces.
+        # IOC view until the ioc_ip surfaces (generous window for full-suite load).
         ips, ttps = [], []
-        for _ in range(60):
+        for _ in range(90):
             iocs = list(api.iocs_by_hash('sha256', sha))
             if iocs:
                 ips = iocs[0].json.get('ips') or []
