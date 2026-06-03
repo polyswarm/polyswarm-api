@@ -21,5 +21,13 @@ RUN pip install --no-cache-dir .[tests]
 # also sets these explicitly.
 ENV TESTS_VCR=off
 ENV TESTS_LOG_LEVEL=INFO
+# Unbuffered stdout/stderr so per-test results and the suite's INFO poll lines
+# appear live (the harness streams this command), not in one dump at the end.
+ENV PYTHONUNBUFFERED=1
 
-CMD ["pytest", "test/"]
+# --timeout is a backstop for the live run: VCR-off keeps real poll/sleep pacing,
+# so a service that never settles would otherwise hang a test indefinitely. The
+# default (signal) method fails just that test with a traceback and continues, so
+# the whole suite still reports. 300s sits well above the slowest legitimate poll;
+# tune if real e2e timings push past it.
+CMD ["pytest", "test/", "--timeout=300"]
