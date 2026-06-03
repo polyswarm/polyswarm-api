@@ -26,8 +26,12 @@ ENV TESTS_LOG_LEVEL=INFO
 ENV PYTHONUNBUFFERED=1
 
 # --timeout is a backstop for the live run: VCR-off keeps real poll/sleep pacing,
-# so a service that never settles would otherwise hang a test indefinitely. The
-# default (signal) method fails just that test with a traceback and continues, so
-# the whole suite still reports. 300s sits well above the slowest legitimate poll;
-# tune if real e2e timings push past it.
-CMD ["pytest", "test/", "--timeout=300"]
+# so a non-terminating test (e.g. a pagination loop) would otherwise hang until the
+# CI job limit. The signal method does NOT reliably interrupt a hang inside the
+# asyncio event loop, so use --timeout-method=thread: a watchdog thread fires
+# regardless of event-loop state, dumps every thread's stack (showing exactly where
+# execution is stuck), then terminates the run. Note: thread method ends the whole
+# session rather than failing one test, so a hang fails the job in ~300s with a
+# stack dump instead of running to the CI job limit. Tune 300s if real e2e timings
+# push past it.
+CMD ["pytest", "test/", "--timeout=300", "--timeout-method=thread"]
