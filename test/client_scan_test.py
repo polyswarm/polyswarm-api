@@ -572,11 +572,20 @@ class ScanTestCaseV2(TestCase):
         # fixture because the forward view requires a SandboxTaskSearchHash row,
         # which only the provisioned EICAR sha has.
         #
-        # The IP must be globally-routable so filter_known_good_iocs keeps it
-        # (it drops private/reserved), and distinct from the other IOC tests so
-        # their docs can't cross-match. 9.42.0.1 — public (IBM netblock).
-        ioc_ip = '9.42.0.1'
-        instance = api.submit('test/malicious')
+        # Self-contained: the forward view needs a SandboxTaskSearchHash row for
+        # the sha (its lookup key), which the backend creates when a sandbox task
+        # is processed — so we dispatch + complete one for our own fresh artifact
+        # rather than depending on the seeded EICAR sha. The mock cape_sandbox_v2
+        # IOC blob is attached AFTER completion so the task's own report metadata
+        # can't overwrite it. uid-unique IP (public, survives filter_known_good).
+        uid = self._testMethodName
+        ioc_ip = uid_ip(uid)
+        content, sha = malicious_artifact(uid)
+        with artifact_file(content) as fpath:
+            instance = api.submit(fpath)
+        cape = _dispatch_sandbox(api, instance.id, 'cape', 'win-10-build-19041', True)
+        time.sleep(6)
+        _complete_sandbox_task(cape.id, 'cape')
         api.tool_metadata_create(instance.id, 'cape_sandbox_v2', {
             'extracted_c2_ips': [ioc_ip],
             'extracted_c2_urls': ['www.mock-ioc.test'],
@@ -585,7 +594,6 @@ class ScanTestCaseV2(TestCase):
 
         # persist_external_metadata + ES update runs async via Celery; poll the
         # IOC view until the ioc_ip surfaces.
-        sha = '275a021bbfb6489e54d471899f7db9d1663fc695ec2fe2a2c4538aabf651fd0f'
         ips, ttps = [], []
         for _ in range(60):
             iocs = list(api.iocs_by_hash('sha256', sha))
@@ -714,23 +722,15 @@ class ScanTestCaseV2(TestCase):
         assert task.json['config']['network_enabled'] is False
 
     @vcr.use_cassette()
-    def ytest_sandboxtask_get(self):
-        v3api = PolyswarmAPI(self.test_api_key, uri='http://artifact-index-e2e:9696/v3', community='gamma')
-        task_id = 37385694435473303
-        status = v3api.sandbox_task_status(task_id)
-        assert status.id == task_id
-        assert status.sandbox == 'triage'
-        assert status.sha256 == 'a709f37b3a50608f2e9830f92ea25da04bfa4f34d2efecfd061de9f29af02427'
-        assert status.created == 'gamma'
-
-    @vcr.use_cassette()
     def test_sandboxtask_latest(self):
         v3api = PolyswarmAPI(self.test_api_key, uri='http://artifact-index-e2e:9696/v3', community='gamma')
-        # Submit + queue cape and triage tasks. There are no cape/triage analysis
-        # VMs in e2e, so each task is driven to SUCCEEDED by replaying the sandbox
-        # worker's HTTP calls (see _complete_sandbox_task) — that is what makes
-        # sandbox_task_latest resolve per sandbox.
-        instance = v3api.submit('test/malicious')
+        # Self-contained: submit our own artifact and drive cape + triage to
+        # SUCCEEDED by replaying the sandbox worker's HTTP calls (no analysis VMs
+        # in e2e). Completing a task creates its SandboxTaskSearchHash row, which
+        # is what sandbox_task_latest reads.
+        content, sha256 = malicious_artifact(self._testMethodName)
+        with artifact_file(content) as fpath:
+            instance = v3api.submit(fpath)
         cape = _dispatch_sandbox(v3api, instance.id, 'cape', 'win-10-build-19041', True)
         triage = _dispatch_sandbox(v3api, instance.id, 'triage', 'win10-build-15063', False)
 
@@ -741,7 +741,6 @@ class ScanTestCaseV2(TestCase):
         _complete_sandbox_task(cape.id, 'cape')
         _complete_sandbox_task(triage.id, 'triage')
 
-        sha256 = '275a021bbfb6489e54d471899f7db9d1663fc695ec2fe2a2c4538aabf651fd0f'
         latest_cape = _wait_for_sandbox_task(v3api, v3api.sandbox_task_latest, sha256, 'cape')
         latest_triage = _wait_for_sandbox_task(v3api, v3api.sandbox_task_latest, sha256, 'triage')
 
@@ -753,14 +752,13 @@ class ScanTestCaseV2(TestCase):
     @vcr.use_cassette()
     def test_sandboxtask_list(self):
         v3api = PolyswarmAPI(self.test_api_key, uri='http://artifact-index-e2e:9696/v3', community='gamma')
-        # Provision: submit + queue cape and triage tasks for a known sha256.
-        # Use relative assertions (>= 1, set inclusion) so prior runs that
-        # left tasks in place don't break the suite.
-        instance = v3api.submit('test/malicious')
+        # Self-contained: submit our own artifact and queue cape + triage for ITS
+        # sha. Assertions are scoped to our sha, so they're exact for this run.
+        content, sha256 = malicious_artifact(self._testMethodName)
+        with artifact_file(content) as fpath:
+            instance = v3api.submit(fpath)
         _dispatch_sandbox(v3api, instance.id, 'cape', 'win-10-build-19041', True)
         _dispatch_sandbox(v3api, instance.id, 'triage', 'win10-build-15063', False)
-
-        sha256 = '275a021bbfb6489e54d471899f7db9d1663fc695ec2fe2a2c4538aabf651fd0f'
 
         # Poll until the SandboxTaskSearchHash index sees both tasks.
         for _ in range(30):
@@ -788,9 +786,41 @@ class ScanTestCaseV2(TestCase):
     @vcr.use_cassette()
     def test_sample(self):
         api = PolyswarmAPI(self.test_api_key, uri=f'http://artifact-index-e2e:9696/{self.api_version}', community='gamma')
-        result = api.sample('275a021bbfb6489e54d471899f7db9d1663fc695ec2fe2a2c4538aabf651fd0f')
+        # Self-contained: submit our own artifact and drive cape + triage to
+        # COMPLETED, then GET the aggregated sample for OUR sha. Reaching the
+        # sample with a completed sandbox dep auto-triggers an LLM report; it
+        # cannot COMPLETE in e2e (no OPENAI_API_KEY), so we assert it was
+        # *triggered* (PENDING/etc.), not finished.
+        uid = self._testMethodName
+        content, sha = malicious_artifact(uid)
+        with artifact_file(content) as fpath:
+            instance = api.submit(fpath)
+        cape = _dispatch_sandbox(api, instance.id, 'cape', 'win-10-build-19041', True)
+        triage = _dispatch_sandbox(api, instance.id, 'triage', 'win10-build-15063', False)
+        time.sleep(6)
+        _complete_sandbox_task(cape.id, 'cape')
+        _complete_sandbox_task(triage.id, 'triage')
+
+        # Poll the sample until the LLM report has been auto-triggered. The view
+        # triggers it once a sandbox dep is COMPLETED, so the report's status
+        # moves NOT_TRIGGERED/WAITING_FOR_OTHER_TASKS -> PENDING (then FAILED here,
+        # since e2e has no OPENAI_API_KEY). We key off requested_status: the
+        # requested_id stays null until a report actually renders, which can't
+        # happen without an LLM. Reaching a triggered status also confirms the
+        # sandbox deps completed.
+        _PRE_TRIGGER = {None, 'NOT_TRIGGERED', 'WAITING_FOR_OTHER_TASKS'}
+        result = api.sample(sha)
+        for _ in range(90):
+            result = api.sample(sha)
+            if result.tasks.get('llm_report', {}).get('requested_status') not in _PRE_TRIGGER:
+                break
+            time.sleep(1)
         assert isinstance(result.artifact_instance, dict)
         assert isinstance(result.sandbox, dict)
         assert {'cape', 'triage'} <= set(result.sandbox.keys())
         assert isinstance(result.tasks, dict)
-        assert {'artifact_instance', 'llm_report', 'sandbox_cape', 'sandbox_triage'} <= set(result.tasks.keys())
+        assert result.tasks['sandbox_cape']['requested_status'] == 'COMPLETED'
+        assert result.tasks['sandbox_triage']['requested_status'] == 'COMPLETED'
+        # llm_report auto-triggered (PENDING -> ...); it cannot reach COMPLETED in
+        # e2e (no LLM), so assert it was triggered, not finished.
+        assert result.tasks['llm_report']['requested_status'] not in _PRE_TRIGGER

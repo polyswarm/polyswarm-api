@@ -168,9 +168,11 @@ if os.getenv('TESTS_VCR', 'on').lower() == 'off':
 
 
 # ── Shared constants ──────────────────────────────────────────────────────────
+# SHA256 is the EICAR fixture's sha, still used by the respx unit tests below
+# (which mock fixed responses); the live data-creating tests derive their own
+# unique shas via malicious_artifact(uid).
 
 SHA256 = '275a021bbfb6489e54d471899f7db9d1663fc695ec2fe2a2c4538aabf651fd0f'
-SHA256_ALT = 'a709f37b3a50608f2e9830f92ea25da04bfa4f34d2efecfd061de9f29af02427'
 
 
 class TestAsyncScanCase:
@@ -250,25 +252,29 @@ class TestAsyncScanCase:
     # ── IOCs ──────────────────────────────────────────────────────────────────
 
     @vcr.use_cassette()
-    async def test_async_iocs_by_hash(self):
-        # Forward IOC lookup via artificial cape_sandbox_v2 metadata on the
-        # shared EICAR fixture — see the sync test_iocs_by_hash for the full
-        # rationale (forward view needs a SandboxTaskSearchHash row, seeded
-        # only for EICAR; no live sandbox required; public IP survives
-        # filter_known_good_iocs; distinct IP from test_async_search_by_ioc).
-        ioc_ip = '9.42.0.3'
+    async def test_async_iocs_by_hash(self, uid):
+        # Self-contained: the forward view needs a SandboxTaskSearchHash row for
+        # the sha, created when a sandbox task is processed — so dispatch +
+        # complete one for our own artifact, then attach the mock cape_sandbox_v2
+        # IOC AFTER completion (so the task's report can't overwrite it). See the
+        # sync test_iocs_by_hash for the full rationale.
+        ioc_ip = uid_ip(uid)
+        content, sha = malicious_artifact(uid)
         async with self._api() as api:
-            instance = await api.submit('test/malicious')
+            with artifact_file(content) as fpath:
+                instance = await api.submit(fpath)
+            cape = await _dispatch_sandbox(api, instance.id, 'cape', 'win-10-build-19041', True)
+            await asyncio.sleep(6)
+            await _complete_sandbox_task(cape.id, 'cape')
             await api.tool_metadata_create(
                 instance.id, 'cape_sandbox_v2', {
                     'extracted_c2_ips': [ioc_ip],
                     'extracted_c2_urls': ['www.mock-ioc.test'],
                     'ttp': ['T1081', 'T1060', 'T1069'],
                 })
-            # persist_external_metadata is async via Celery.
             ips, ttps = [], []
             for _ in range(60):
-                iocs = [r async for r in api.iocs_by_hash('sha256', SHA256)]
+                iocs = [r async for r in api.iocs_by_hash('sha256', sha)]
                 if iocs:
                     ips = iocs[0].json.get('ips') or []
                     ttps = iocs[0].json.get('ttps') or []
@@ -376,50 +382,54 @@ class TestAsyncScanCase:
             assert task.json['config']['network_enabled'] is False
 
     @vcr.use_cassette()
-    async def test_async_sandboxtask_latest(self):
+    async def test_async_sandboxtask_latest(self, uid):
+        content, sha = malicious_artifact(uid)
         async with self._api() as api:
-            instance = await api.submit('test/malicious')
+            with artifact_file(content) as fpath:
+                instance = await api.submit(fpath)
             cape = await _dispatch_sandbox(api, instance.id, 'cape', 'win-10-build-19041', True)
             triage = await _dispatch_sandbox(api, instance.id, 'triage', 'win10-build-15063', False)
 
             # No cape/triage VMs in e2e — drive each task to SUCCEEDED by replaying
-            # the sandbox worker's HTTP calls (see sync test_sandboxtask_latest).
-            # The autouse fixture no-ops this sleep on VCR replay.
+            # the sandbox worker's HTTP calls. Completing a task creates its
+            # SandboxTaskSearchHash row, which sandbox_task_latest reads.
             await asyncio.sleep(6)
             await _complete_sandbox_task(cape.id, 'cape')
             await _complete_sandbox_task(triage.id, 'triage')
 
             latest_cape = await _wait_for_sandbox_task(
-                lambda: api.sandbox_task_latest(SHA256, 'cape'),
+                lambda: api.sandbox_task_latest(sha, 'cape'),
             )
             latest_triage = await _wait_for_sandbox_task(
-                lambda: api.sandbox_task_latest(SHA256, 'triage'),
+                lambda: api.sandbox_task_latest(sha, 'triage'),
             )
-        assert latest_cape.sha256 == SHA256
+        assert latest_cape.sha256 == sha
         assert latest_cape.sandbox == 'cape'
-        assert latest_triage.sha256 == SHA256
+        assert latest_triage.sha256 == sha
         assert latest_triage.sandbox == 'triage'
 
     @vcr.use_cassette()
-    async def test_async_sandboxtask_list(self):
+    async def test_async_sandboxtask_list(self, uid):
+        content, sha = malicious_artifact(uid)
         async with self._api() as api:
-            instance = await api.submit('test/malicious')
+            with artifact_file(content) as fpath:
+                instance = await api.submit(fpath)
             await _dispatch_sandbox(api, instance.id, 'cape', 'win-10-build-19041', True)
             await _dispatch_sandbox(api, instance.id, 'triage', 'win10-build-15063', False)
 
             # Poll until the SandboxTaskSearchHash index sees both tasks.
             for _ in range(30):
                 try:
-                    all_tasks = [r async for r in api.sandbox_task_list(SHA256)]
+                    all_tasks = [r async for r in api.sandbox_task_list(sha)]
                     if {'cape', 'triage'} <= {t.sandbox for t in all_tasks}:
                         break
                 except exceptions.NoResultsException:
                     pass
                 await asyncio.sleep(1)
 
-            cape_tasks = [r async for r in api.sandbox_task_list(SHA256, sandbox='cape')]
-            triage_tasks = [r async for r in api.sandbox_task_list(SHA256, sandbox='triage')]
-            all_tasks = [r async for r in api.sandbox_task_list(SHA256)]
+            cape_tasks = [r async for r in api.sandbox_task_list(sha, sandbox='cape')]
+            triage_tasks = [r async for r in api.sandbox_task_list(sha, sandbox='triage')]
+            all_tasks = [r async for r in api.sandbox_task_list(sha)]
         assert len(cape_tasks) >= 1
         assert all(t.sandbox == 'cape' for t in cape_tasks)
         assert len(triage_tasks) >= 1
@@ -429,14 +439,36 @@ class TestAsyncScanCase:
     # ── Sample (aggregated view) ──────────────────────────────────────────────
 
     @vcr.use_cassette()
-    async def test_async_sample(self):
+    async def test_async_sample(self, uid):
+        # Self-contained: submit our own artifact, drive cape + triage to
+        # COMPLETED, then poll the sample until it auto-triggers the LLM report.
+        # The report can't COMPLETE in e2e (no OPENAI_API_KEY), and requested_id
+        # stays null until a report renders, so we key off requested_status
+        # (NOT_TRIGGERED/WAITING_FOR_OTHER_TASKS -> PENDING). See sync test_sample.
+        content, sha = malicious_artifact(uid)
         async with self._api() as api:
-            result = await api.sample(SHA256)
+            with artifact_file(content) as fpath:
+                instance = await api.submit(fpath)
+            cape = await _dispatch_sandbox(api, instance.id, 'cape', 'win-10-build-19041', True)
+            triage = await _dispatch_sandbox(api, instance.id, 'triage', 'win10-build-15063', False)
+            await asyncio.sleep(6)
+            await _complete_sandbox_task(cape.id, 'cape')
+            await _complete_sandbox_task(triage.id, 'triage')
+
+            _PRE_TRIGGER = {None, 'NOT_TRIGGERED', 'WAITING_FOR_OTHER_TASKS'}
+            result = await api.sample(sha)
+            for _ in range(90):
+                result = await api.sample(sha)
+                if result.tasks.get('llm_report', {}).get('requested_status') not in _PRE_TRIGGER:
+                    break
+                await asyncio.sleep(1)
         assert isinstance(result.artifact_instance, dict)
         assert isinstance(result.sandbox, dict)
         assert {'cape', 'triage'} <= set(result.sandbox.keys())
         assert isinstance(result.tasks, dict)
-        assert {'artifact_instance', 'llm_report', 'sandbox_cape', 'sandbox_triage'} <= set(result.tasks.keys())
+        assert result.tasks['sandbox_cape']['requested_status'] == 'COMPLETED'
+        assert result.tasks['sandbox_triage']['requested_status'] == 'COMPLETED'
+        assert result.tasks['llm_report']['requested_status'] not in _PRE_TRIGGER
 
     # ── YARA Rulesets ─────────────────────────────────────────────────────────
 
