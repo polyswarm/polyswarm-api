@@ -194,9 +194,11 @@ class TestAsyncScanCase:
     # ── Submission ────────────────────────────────────────────────────────────
 
     @vcr.use_cassette()
-    async def test_async_submission(self):
+    async def test_async_submission(self, uid):
         async with self._api() as api:
-            result = await api.submit('test/malicious')
+            content, _ = malicious_artifact(uid)
+            with artifact_file(content) as fpath:
+                result = await api.submit(fpath)
         assert result.failed is False
         assert result.result is None
 
@@ -236,14 +238,14 @@ class TestAsyncScanCase:
         assert result and result[0].sha256 == sha
 
     @vcr.use_cassette()
-    async def test_async_metadata_search(self):
+    async def test_async_metadata_search(self, uid):
         async with self._api() as api:
-            await api.submit('test/malicious')
-            # Indexes in ~1s when idle but the ES metadata write lags badly
-            # under full-suite Celery load, so use a generous window.
+            content, sha = malicious_artifact(uid)
+            with artifact_file(content) as fpath:
+                await api.submit(fpath)
             result = await _poll_results(
-                lambda: api.search_by_metadata(f'artifact.sha256:{SHA256}'), tries=90)
-        assert result and result[0].sha256 == SHA256
+                lambda: api.search_by_metadata(f'artifact.sha256:{sha}'), tries=90)
+        assert result and result[0].sha256 == sha
 
     # ── IOCs ──────────────────────────────────────────────────────────────────
 
@@ -314,67 +316,41 @@ class TestAsyncScanCase:
     # ── Known Hosts ───────────────────────────────────────────────────────────
 
     @vcr.use_cassette()
-    async def test_async_add_known_good_host(self):
+    async def test_async_add_known_good_host(self, uid):
         async with self._api() as api:
-            # Provision: drop residue, capture the real id from the add response.
-            # ioc_cache divergence (see sync sibling) may leave stale entries;
-            # tolerate 404 in cleanup.
-            async for hit in api.check_known_hosts(domains=['polyswarm.network']):
-                try:
-                    await api.delete_known_good_host(hit.json['id'])
-                except exceptions.NotFoundException:
-                    pass
-            known = await api.add_known_good_host('domain', 'test', 'polyswarm.network')
-            try:
-                assert known.json['type'] == 'domain'
-                assert known.json['host'] == 'polyswarm.network'
-            finally:
-                try:
-                    await api.delete_known_good_host(known.json['id'])
-                except exceptions.NotFoundException:
-                    pass
+            host = uid_host(uid)
+            known = await api.add_known_good_host('domain', 'test', host)
+            assert known.json['type'] == 'domain'
+            assert known.json['host'] == host
 
     @vcr.use_cassette()
-    async def test_async_update_known_good_host(self):
+    async def test_async_update_known_good_host(self, uid):
         async with self._api() as api:
-            added = await api.add_known_good_host('domain', 'test', 'polyswarm.network')
-            try:
-                known = await api.update_known_good_host(
-                    added.json['id'], 'ip', 'test', '1.2.3.4', True,
-                )
-                assert known.json['type'] == 'ip'
-                assert known.json['host'] == '1.2.3.4'
-            finally:
-                try:
-                    await api.delete_known_good_host(added.json['id'])
-                except exceptions.NotFoundException:
-                    pass
+            host = uid_host(uid)
+            ip = uid_ip(uid)
+            added = await api.add_known_good_host('domain', 'test', host)
+            known = await api.update_known_good_host(
+                added.json['id'], 'ip', 'test', ip, True,
+            )
+            assert known.json['type'] == 'ip'
+            assert known.json['host'] == ip
 
     @vcr.use_cassette()
-    async def test_async_delete_known_good_host(self):
+    async def test_async_delete_known_good_host(self, uid):
         async with self._api() as api:
-            added = await api.add_known_good_host('ip', 'test', '1.2.3.4')
+            ip = uid_ip(uid)
+            added = await api.add_known_good_host('ip', 'test', ip)
             known = await api.delete_known_good_host(added.json['id'])
         assert known.json['type'] == 'ip'
-        assert known.json['host'] == '1.2.3.4'
+        assert known.json['host'] == ip
 
     @vcr.use_cassette()
-    async def test_async_check_known_host(self):
+    async def test_async_check_known_host(self, uid):
         async with self._api() as api:
-            async for hit in api.check_known_hosts(ips=['1.2.3.4']):
-                try:
-                    await api.delete_known_good_host(hit.json['id'])
-                except exceptions.NotFoundException:
-                    pass
-            added = await api.add_known_good_host('ip', 'test', '1.2.3.4')
-            try:
-                known = [r async for r in api.check_known_hosts(ips=['1.2.3.4'])]
-                assert any(h.json['host'] == '1.2.3.4' and h.json['type'] == 'ip' for h in known)
-            finally:
-                try:
-                    await api.delete_known_good_host(added.json['id'])
-                except exceptions.NotFoundException:
-                    pass
+            ip = uid_ip(uid)
+            added = await api.add_known_good_host('ip', 'test', ip)
+            known = [r async for r in api.check_known_hosts(ips=[ip])]
+            assert any(h.json['host'] == ip and h.json['type'] == 'ip' for h in known)
 
     # ── Sandbox ───────────────────────────────────────────────────────────────
 
@@ -388,9 +364,11 @@ class TestAsyncScanCase:
         assert response.json['result']['triage']['slug'] == 'triage'
 
     @vcr.use_cassette()
-    async def test_async_sandboxtask_submit(self):
+    async def test_async_sandboxtask_submit(self, uid):
         async with self._api() as api:
-            instance = await api.submit('test/malicious')
+            content, _ = malicious_artifact(uid)
+            with artifact_file(content) as fpath:
+                instance = await api.submit(fpath)
             task = await _dispatch_sandbox(api, instance.id, 'cape', 'win-10-build-19041', True)
             assert task.json['config']['network_enabled'] is True
             task = await _dispatch_sandbox(api, instance.id, 'triage', 'win10-build-15063', False)
@@ -494,10 +472,9 @@ class TestAsyncScanCase:
     # ── Historical Hunting ────────────────────────────────────────────────────
 
     @vcr.use_cassette()
-    async def test_async_historical(self):
+    async def test_async_historical(self, uid):
         async with self._api() as api:
-            with open('test/eicar.yara') as f:
-                historical_hunt = await api.historical_create(f.read())
+            historical_hunt = await api.historical_create(uid_yara(uid))
             assert historical_hunt.status == 'PENDING'
 
             get_historical_hunt = await api.historical_get(historical_hunt.id)
@@ -507,43 +484,40 @@ class TestAsyncScanCase:
             assert historical_hunt.id == deleted_historical_hunt.id
 
     @vcr.use_cassette()
-    async def test_async_list_historical(self):
+    async def test_async_list_historical(self, uid):
         async with self._api() as api:
-            with open('test/eicar.yara') as f:
-                yara_content = f.read()
+            yara_content = uid_yara(uid)
             historical_ids = []
             for _ in range(5):
                 historical = await api.historical_create(yara_content)
                 historical_ids.append(historical.id)
-            result = [r async for r in api.historical_list()]
-            assert len(result) >= 4
-            await api.historical_delete_list(historical_ids)
+            listed_ids = {h.id async for h in api.historical_list()}
+            assert set(historical_ids) <= listed_ids
 
     @vcr.use_cassette()
-    async def test_async_historical_results(self):
+    async def test_async_historical_results(self, uid):
         async with self._api() as api:
-            # Provision: create a hunt; the corpus on a fresh e2e is empty
-            # so we accept NoResultsException as a valid outcome.
-            with open('test/eicar.yara') as yara:
-                hunt = await api.historical_create(yara.read())
+            # Self-contained: our own unique hunt. The e2e historical scan is
+            # asynchronous and doesn't reliably populate results within a test
+            # window, so accept an empty set (end-to-end YARA matching is covered
+            # by the live hunt in test_async_live); every entry is shape-checked.
+            hunt = await api.historical_create(uid_yara(uid))
             try:
-                try:
-                    result = [r async for r in api.historical_results(hunt=hunt.id)]
-                    for entry in result:
-                        assert entry.sha256
-                        assert entry.rule_name
-                except (exceptions.NotFoundException, exceptions.NoResultsException):
-                    pass
-            finally:
-                await api.historical_delete(hunt.id)
+                async for entry in api.historical_results(hunt=hunt.id):
+                    assert entry.sha256
+                    assert entry.rule_name
+            except (exceptions.NotFoundException, exceptions.NoResultsException):
+                pass
 
     # ── Live Hunting ──────────────────────────────────────────────────────────
 
     @vcr.use_cassette()
-    async def test_async_live(self):
+    async def test_async_live(self, uid):
         async with self._api() as api:
-            with open('test/eicar.yara') as f:
-                rule = await api.ruleset_create('eicar', f.read())
+            # Per-test ruleset whose YARA matches only this run's artifact, so
+            # the live hunt surfaces just this submission (no cross-test feed).
+            content, _ = malicious_artifact(uid)
+            rule = await api.ruleset_create(f'sdk-{uid}', uid_yara(uid))
             rule_id = rule.id
             try:
                 await api.live_start(rule_id=rule_id)
@@ -557,7 +531,8 @@ class TestAsyncScanCase:
                 assert rule.livescan_id, 'livescan_id should land after live_start'
                 my_livescan_id = rule.livescan_id
 
-                await api.submit('test/malicious')
+                with artifact_file(content) as fpath:
+                    await api.submit(fpath)
 
                 # Bound the feed to this run's window (``since`` in seconds) so
                 # the cassette stays small regardless of accumulated global feed
@@ -609,9 +584,11 @@ class TestAsyncScanCase:
     # ── Tool Metadata ─────────────────────────────────────────────────────────
 
     @vcr.use_cassette()
-    async def test_async_tool_metadata(self):
+    async def test_async_tool_metadata(self, uid):
         async with self._api() as api:
-            instance = await api.submit('test/malicious')
+            content, _ = malicious_artifact(uid)
+            with artifact_file(content) as fpath:
+                instance = await api.submit(fpath)
             await api.tool_metadata_create(instance.id, 'test_tool_1', {'key': 'value'})
             await api.tool_metadata_create(instance.id, 'test_tool_2', {'key2': 'value2'})
             # persist_external_metadata runs asynchronously via Celery; poll
@@ -633,15 +610,23 @@ class TestAsyncScanCase:
     # ── Download ──────────────────────────────────────────────────────────────
 
     @vcr.use_cassette()
-    async def test_async_download_to_handle(self):
+    async def test_async_download_to_handle(self, uid):
         import tempfile, os
-        with tempfile.TemporaryDirectory() as tmp_dir:
-            fpath = os.path.join(tmp_dir, 'out')
-            with open(fpath, 'wb') as fh:
-                async with self._api() as api:
-                    await api.download_to_handle(SHA256, fh)
-            with open(fpath, 'rb') as fh:
-                assert fh.read() == b'X5O!P%@AP[4\\PZX54(P^)7CC)7}$EICAR-STANDARD-ANTIVIRUS-TEST-FILE!$H+H*'
+        content, sha = malicious_artifact(uid)
+        async with self._api() as api:
+            with artifact_file(content) as fpath:
+                await api.submit(fpath)
+            with tempfile.TemporaryDirectory() as tmp_dir:
+                out = os.path.join(tmp_dir, 'out')
+                for _ in range(60):
+                    try:
+                        with open(out, 'wb') as fh:
+                            await api.download_to_handle(sha, fh)
+                        break
+                    except (exceptions.NotFoundException, exceptions.NoResultsException):
+                        await asyncio.sleep(1)
+                with open(out, 'rb') as fh:
+                    assert fh.read() == content
 
 
 # ── Engine cache — no cassette, mirrors test_resolve_engine_name ──────────────

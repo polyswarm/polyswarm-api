@@ -173,7 +173,9 @@ class ScanTestCaseV2(TestCase):
     @vcr.use_cassette()
     def test_submission(self):
         api = PolyswarmAPI(self.test_api_key, uri=f'http://artifact-index-e2e:9696/{self.api_version}', community='gamma')
-        result = api.submit('test/malicious')
+        content, _ = malicious_artifact(self._testMethodName)
+        with artifact_file(content) as fpath:
+            result = api.submit(fpath)
         assert result.failed is False
         assert result.result is None
 
@@ -205,20 +207,37 @@ class ScanTestCaseV2(TestCase):
     @vcr.use_cassette()
     def test_download(self):
         api = PolyswarmAPI(self.test_api_key, uri=f'http://artifact-index-e2e:9696/{self.api_version}', community='gamma')
+        # Self-contained: submit this test's own artifact, then download ITS sha
+        # and assert the bytes round-trip.
+        content, sha = malicious_artifact(self._testMethodName)
+        with artifact_file(content) as fpath:
+            api.submit(fpath)
         with temp_dir({}) as (path, _):
-            api.download(path, '275a021bbfb6489e54d471899f7db9d1663fc695ec2fe2a2c4538aabf651fd0f')
-            with open(os.path.join(path, '275a021bbfb6489e54d471899f7db9d1663fc695ec2fe2a2c4538aabf651fd0f'), 'rb') as result:
-                content = result.read()
-                assert content == b'X5O!P%@AP[4\\PZX54(P^)7CC)7}$EICAR-STANDARD-ANTIVIRUS-TEST-FILE!$H+H*'
+            for _ in range(60):
+                try:
+                    api.download(path, sha)
+                    break
+                except (exceptions.NotFoundException, exceptions.NoResultsException):
+                    time.sleep(1)
+            with open(os.path.join(path, sha), 'rb') as result:
+                assert result.read() == content
 
     @vcr.use_cassette()
     def test_download_to_handle(self):
         api = PolyswarmAPI(self.test_api_key, uri=f'http://artifact-index-e2e:9696/{self.api_version}', community='gamma')
+        content, sha = malicious_artifact(self._testMethodName)
+        with artifact_file(content) as fpath:
+            api.submit(fpath)
         with temp_dir({}) as (path, _):
-            with open(os.path.join(path, 'temp_file_handle'), 'wb') as f:
-                api.download_to_handle('275a021bbfb6489e54d471899f7db9d1663fc695ec2fe2a2c4538aabf651fd0f', f)
+            for _ in range(60):
+                try:
+                    with open(os.path.join(path, 'temp_file_handle'), 'wb') as f:
+                        api.download_to_handle(sha, f)
+                    break
+                except (exceptions.NotFoundException, exceptions.NoResultsException):
+                    time.sleep(1)
             with open(os.path.join(path, 'temp_file_handle'), 'rb') as f:
-                assert f.read() == b'X5O!P%@AP[4\\PZX54(P^)7CC)7}$EICAR-STANDARD-ANTIVIRUS-TEST-FILE!$H+H*'
+                assert f.read() == content
 
     @vcr.use_cassette()
     def test_stream(self):
@@ -265,15 +284,15 @@ class ScanTestCaseV2(TestCase):
     @vcr.use_cassette()
     def test_metadata_search(self):
         api = PolyswarmAPI(self.test_api_key, uri=f'http://artifact-index-e2e:9696/{self.api_version}', community='gamma')
-        # Provision: metadata search hits the indexed corpus, which lags the
-        # submission on a cold e2e; poll until the ES metadata index catches up.
-        api.submit('test/malicious')
-        # Indexes in ~1s when idle but the ES metadata write lags badly under
-        # full-suite Celery load, so use a generous window.
-        result = _poll_results(lambda: api.search_by_metadata(
-            'artifact.sha256:275a021bbfb6489e54d471899f7db9d1663fc695ec2fe2a2c4538aabf651fd0f'),
-            tries=90)
-        assert result and result[0].sha256 == '275a021bbfb6489e54d471899f7db9d1663fc695ec2fe2a2c4538aabf651fd0f'
+        # Self-contained: submit this test's own unique artifact, then search the
+        # ES metadata index for ITS sha (the query is sha-scoped, so it returns
+        # only this artifact). The metadata write lags the submit, so poll.
+        content, sha = malicious_artifact(self._testMethodName)
+        with artifact_file(content) as fpath:
+            api.submit(fpath)
+        result = _poll_results(
+            lambda: api.search_by_metadata(f'artifact.sha256:{sha}'), tries=90)
+        assert result and result[0].sha256 == sha
 
     def test_resolve_engine_name(self):
         with respx.mock(assert_all_called=False) as router:
@@ -370,12 +389,13 @@ class ScanTestCaseV2(TestCase):
     @vcr.use_cassette()
     def test_live(self):
         api = PolyswarmAPI(self.test_api_key, uri=f'http://artifact-index-e2e:9696/{self.api_version}', community='gamma')
-        # Provision: create a ruleset, start the live hunt, submit EICAR.
-        # The pipeline assigns livescan_id asynchronously (the live_start
-        # response itself has livescan_id=None — engines pick up the rule
-        # within ~1s and the value lands on the ruleset).
-        with open('test/eicar.yara') as yara:
-            rule = api.ruleset_create('eicar', yara.read())
+        # Self-contained: a per-test ruleset whose YARA matches ONLY this test's
+        # artifact (uid_yara keys on the uid embedded by malicious_artifact), so
+        # the live hunt surfaces just this run's submission — no cross-test feed
+        # pollution. The pipeline assigns livescan_id asynchronously.
+        uid = self._testMethodName
+        content, _ = malicious_artifact(uid)
+        rule = api.ruleset_create(f'sdk-{uid}', uid_yara(uid))
         rule_id = rule.id
         try:
             api.live_start(rule_id=rule_id)
@@ -387,7 +407,8 @@ class ScanTestCaseV2(TestCase):
             assert rule.livescan_id, 'livescan_id should land after live_start'
             my_livescan_id = rule.livescan_id
 
-            api.submit('test/malicious')
+            with artifact_file(content) as fpath:
+                api.submit(fpath)
 
             # Bound the feed to this run's window (``since`` is in seconds) so
             # the cassette stays small regardless of how much global feed
@@ -445,8 +466,7 @@ class ScanTestCaseV2(TestCase):
     @vcr.use_cassette()
     def test_historical(self):
         api = PolyswarmAPI(self.test_api_key, uri=f'http://artifact-index-e2e:9696/{self.api_version}', community='gamma')
-        with open('test/eicar.yara') as yara:
-            historical_hunt = api.historical_create(yara.read())
+        historical_hunt = api.historical_create(uid_yara(self._testMethodName))
         assert historical_hunt.status == 'PENDING'
         get_historical_hunt = api.historical_get(historical_hunt.id)
         assert historical_hunt.id == get_historical_hunt.id
@@ -456,37 +476,32 @@ class ScanTestCaseV2(TestCase):
     @vcr.use_cassette()
     def test_list_historical(self):
         api = PolyswarmAPI(self.test_api_key, uri=f'http://artifact-index-e2e:9696/{self.api_version}', community='gamma')
-        with open('test/eicar.yara') as yara:
-            yara_content = yara.read()
+        # Create this test's own hunts and assert each created id is present in
+        # the list (subset check is isolation-safe: other tests' hunts may also
+        # be listed on the shared stack).
+        yara_content = uid_yara(self._testMethodName)
         historical_ids = []
         for _ in range(5):
             historical = api.historical_create(yara_content)
             historical_ids.append(historical.id)
-        result = list(api.historical_list())
-        assert len(result) >= 4
-        api.historical_delete_list(historical_ids)
+        listed_ids = {h.id for h in api.historical_list()}
+        assert set(historical_ids) <= listed_ids
 
     @vcr.use_cassette()
     def test_historical_results(self):
         api = PolyswarmAPI(self.test_api_key, uri=f'http://artifact-index-e2e:9696/{self.api_version}', community='gamma')
-        # Provision: create a fresh hunt and use its returned id rather than a
-        # hard-coded one. Results count depends on the indexed corpus, so the
-        # assertion is structural — every entry has the shape we expect.
-        with open('test/eicar.yara') as yara:
-            hunt = api.historical_create(yara.read())
+        # Self-contained: our own unique hunt (uid_yara). The e2e historical scan
+        # is asynchronous and does not reliably populate results within a test
+        # window, so accept an empty result set — end-to-end YARA matching is
+        # exercised by the live hunt in test_live. Every returned entry is still
+        # shape-checked, and the hunt is this test's own (no shared state).
+        hunt = api.historical_create(uid_yara(self._testMethodName))
         try:
-            try:
-                result = list(api.historical_results(hunt=hunt.id))
-                for entry in result:
-                    assert entry.sha256
-                    assert entry.rule_name
-            except (exceptions.NotFoundException, exceptions.NoResultsException):
-                # Empty corpus on a fresh e2e — no matches; the API surfaces
-                # this as NoResults / NotFound depending on the path taken.
-                # Accept as a valid outcome.
-                pass
-        finally:
-            api.historical_delete(hunt.id)
+            for entry in api.historical_results(hunt=hunt.id):
+                assert entry.sha256
+                assert entry.rule_name
+        except (exceptions.NotFoundException, exceptions.NoResultsException):
+            pass
 
     @vcr.use_cassette()
     def test_rules(self):
@@ -523,9 +538,12 @@ class ScanTestCaseV2(TestCase):
     @vcr.use_cassette()
     def test_tool_metadata(self):
         api = PolyswarmAPI(self.test_api_key, uri=f'http://artifact-index-e2e:9696/{self.api_version}', community='gamma')
-        # Provision: submit so we have a real instance to attach metadata to,
-        # then post two tool_metadata blobs.
-        instance = api.submit('test/malicious')
+        # Self-contained: submit this test's own artifact and attach two tool
+        # blobs. Tool metadata is instance-scoped, so the tool names need no
+        # namespacing — they can't collide across tests' distinct instances.
+        content, _ = malicious_artifact(self._testMethodName)
+        with artifact_file(content) as fpath:
+            instance = api.submit(fpath)
         api.tool_metadata_create(instance.id, 'test_tool_1', {'key': 'value'})
         api.tool_metadata_create(instance.id, 'test_tool_2', {'key2': 'value2'})
         # persist_external_metadata runs asynchronously via Celery; poll the
@@ -637,71 +655,41 @@ class ScanTestCaseV2(TestCase):
     @vcr.use_cassette()
     def test_add_known_good_host(self):
         v3api = PolyswarmAPI(self.test_api_key, uri='http://artifact-index-e2e:9696/v3', community='gamma')
-        # Provision: clean up any prior IOC for the test host so the add path
-        # exercises the create branch rather than 400-ing with "already exists".
-        # The check-vs-delete divergence (cache returns stale entries the
-        # delete-by-id no longer finds) means we tolerate 404 on cleanup.
-        for hit in list(v3api.check_known_hosts(domains=['polyswarm.network'])):
-            try:
-                v3api.delete_known_good_host(hit.json['id'])
-            except exceptions.NotFoundException:
-                pass
-
-        known = v3api.add_known_good_host("domain", "test", "polyswarm.network")
-        try:
-            assert known.json['type'] == "domain"
-            assert known.json['host'] == "polyswarm.network"
-        finally:
-            try:
-                v3api.delete_known_good_host(known.json['id'])
-            except exceptions.NotFoundException:
-                pass
+        # Unique per-test host on the ephemeral stack => the create branch with
+        # no prior cleanup needed.
+        host = uid_host(self._testMethodName)
+        known = v3api.add_known_good_host("domain", "test", host)
+        assert known.json['type'] == "domain"
+        assert known.json['host'] == host
 
     @vcr.use_cassette()
     def test_update_known_good_host(self):
         v3api = PolyswarmAPI(self.test_api_key, uri='http://artifact-index-e2e:9696/v3', community='gamma')
-        # Provision: add an IOC to update, capture its real id (auto-increment
-        # is past 1 on any non-fresh DB, so we can't hard-code that value).
-        added = v3api.add_known_good_host("domain", "test", "polyswarm.network")
-        try:
-            known = v3api.update_known_good_host(added.json['id'], "ip", "test", "1.2.3.4", True)
-            assert known.json['type'] == "ip"
-            assert known.json['host'] == "1.2.3.4"
-        finally:
-            try:
-                v3api.delete_known_good_host(added.json['id'])
-            except exceptions.NotFoundException:
-                pass
+        # Add a unique host, capture its real id, then update it to a unique IP.
+        host = uid_host(self._testMethodName)
+        ip = uid_ip(self._testMethodName)
+        added = v3api.add_known_good_host("domain", "test", host)
+        known = v3api.update_known_good_host(added.json['id'], "ip", "test", ip, True)
+        assert known.json['type'] == "ip"
+        assert known.json['host'] == ip
 
     @vcr.use_cassette()
     def test_delete_known_good_host(self):
         v3api = PolyswarmAPI(self.test_api_key, uri='http://artifact-index-e2e:9696/v3', community='gamma')
-        # Provision: add an IOC to delete; capture id.
-        added = v3api.add_known_good_host("domain", "test", "polyswarm.network")
+        host = uid_host(self._testMethodName)
+        added = v3api.add_known_good_host("domain", "test", host)
         known = v3api.delete_known_good_host(added.json['id'])
         assert known.json['type'] == "domain"
-        assert known.json['host'] == "polyswarm.network"
+        assert known.json['host'] == host
 
     @vcr.use_cassette()
     def test_check_known_host(self):
         v3api = PolyswarmAPI(self.test_api_key, uri='http://artifact-index-e2e:9696/v3', community='gamma')
-        # Provision: drop any leftover IOC for this ip, add a fresh known-good
-        # entry, list it back. The ioc_cache divergence (see above) can leave
-        # stale entries; tolerate 404 in cleanup.
-        for hit in list(v3api.check_known_hosts(ips=['1.2.3.4'])):
-            try:
-                v3api.delete_known_good_host(hit.json['id'])
-            except exceptions.NotFoundException:
-                pass
-        added = v3api.add_known_good_host('ip', 'test', '1.2.3.4')
-        try:
-            known = list(v3api.check_known_hosts(ips=["1.2.3.4"]))
-            assert any(h.json['host'] == '1.2.3.4' and h.json['type'] == 'ip' for h in known)
-        finally:
-            try:
-                v3api.delete_known_good_host(added.json['id'])
-            except exceptions.NotFoundException:
-                pass
+        # Add a unique known-good IP and list it back.
+        ip = uid_ip(self._testMethodName)
+        added = v3api.add_known_good_host('ip', 'test', ip)
+        known = list(v3api.check_known_hosts(ips=[ip]))
+        assert any(h.json['host'] == ip and h.json['type'] == 'ip' for h in known)
 
     @vcr.use_cassette()
     def test_sandbox_providers(self):
@@ -713,10 +701,11 @@ class ScanTestCaseV2(TestCase):
     @vcr.use_cassette()
     def test_sandboxtask_submit(self):
         v3api = PolyswarmAPI(self.test_api_key, uri='http://artifact-index-e2e:9696/v3', community='gamma')
-        # Provision: submit a fresh artifact and dispatch sandbox tasks
-        # against ITS instance id rather than a frozen one. The submit
-        # response carries the real id.
-        instance = v3api.submit('test/malicious')
+        # Self-contained: submit this test's own artifact and dispatch sandbox
+        # tasks against ITS instance id. The submit response carries the real id.
+        content, _ = malicious_artifact(self._testMethodName)
+        with artifact_file(content) as fpath:
+            instance = v3api.submit(fpath)
 
         task = _dispatch_sandbox(v3api, instance.id, 'cape', 'win-10-build-19041', True)
         assert task.json['config']['network_enabled'] is True

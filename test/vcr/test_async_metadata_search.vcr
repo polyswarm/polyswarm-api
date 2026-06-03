@@ -1,6 +1,6 @@
 interactions:
 - request:
-    body: '{"artifact_name":"malicious","artifact_type":"FILE","community":"gamma"}'
+    body: '{"artifact_name":"artifact","artifact_type":"FILE","community":"gamma"}'
     headers:
       accept:
       - '*/*'
@@ -11,7 +11,7 @@ interactions:
       connection:
       - keep-alive
       content-length:
-      - '72'
+      - '71'
       content-type:
       - application/json
       host:
@@ -22,7 +22,7 @@ interactions:
     uri: http://artifact-index-e2e:9696/v3/instance
   response:
     body:
-      string: '{"result":{"artifact_id":"43596464834401377","assertions":[],"bounty_state":0,"community":"gamma","country":"","created":"2026-06-02T21:28:10.440466+00:00","detections":null,"expiration_window":null,"expire_at":null,"extended_type":null,"failed":false,"filename":"malicious","first_seen":"2026-06-02T21:28:10.440466+00:00","id":"43596464834401377","last_scanned":null,"last_seen":null,"md5":null,"metadata":[],"mimetype":null,"permalink":"https://polyswarm.network/scan/results/file/None/43596464834401377","polyscore":null,"result":null,"sha1":null,"sha256":null,"size":null,"type":"FILE","upload_url":"http://minio:9000/artifact-index/instances/a9/b9/2c/a9b92cc5-996e-4af5-826d-b52cd258a39d?X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Credential=AKIAIOSFODNN7EXAMPLE%2F20260602%2Fus-east-1%2Fs3%2Faws4_request&X-Amz-Date=20260602T212810Z&X-Amz-Expires=300&X-Amz-SignedHeaders=host&X-Amz-Signature=abc23aa44e470b3236a97e46418b35e49c05c2666519f11ef9313ba4d2a5f219","votes":[],"window_closed":false},"status":"OK"}
+      string: '{"result":{"artifact_id":"10773687396715179","assertions":[],"bounty_state":0,"community":"gamma","country":"","created":"2026-06-03T22:36:50.152586+00:00","detections":null,"expiration_window":null,"expire_at":null,"extended_type":null,"failed":false,"filename":"artifact","first_seen":"2026-06-03T22:36:50.152586+00:00","id":"10773687396715179","last_scanned":null,"last_seen":null,"md5":null,"metadata":[],"mimetype":null,"permalink":"https://polyswarm.network/scan/results/file/None/10773687396715179","polyscore":null,"result":null,"sha1":null,"sha256":null,"size":null,"type":"FILE","upload_url":"http://minio:9000/artifact-index/instances/f4/83/f2/f483f213-3b18-4ed0-b8f0-fd5bbaab420f?X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Credential=AKIAIOSFODNN7EXAMPLE%2F20260603%2Fus-east-1%2Fs3%2Faws4_request&X-Amz-Date=20260603T223650Z&X-Amz-Expires=300&X-Amz-SignedHeaders=host&X-Amz-Signature=3b046811ec672463c26e1d9fb66df355dd297c5778c5e98cb961585014fad9db","votes":[],"window_closed":false},"status":"OK"}
 
         '
     headers:
@@ -33,11 +33,11 @@ interactions:
       Connection:
       - keep-alive
       Content-Length:
-      - '1009'
+      - '1008'
       Content-Type:
       - application/json
       Date:
-      - Tue, 02 Jun 2026 21:28:10 GMT
+      - Wed, 03 Jun 2026 22:36:50 GMT
       Server:
       - gunicorn
       X-Billing-ID:
@@ -46,7 +46,9 @@ interactions:
       code: 200
       message: OK
 - request:
-    body: X5O!P%@AP[4\PZX54(P^)7CC)7}$EICAR-STANDARD-ANTIVIRUS-TEST-FILE!$H+H*
+    body: 'X5O!P%@AP[4\PZX54(P^)7CC)7}$EICAR-STANDARD-ANTIVIRUS-TEST-FILE!$H+H*
+
+      test_async_metadata_search'
     headers:
       accept:
       - '*/*'
@@ -55,13 +57,13 @@ interactions:
       connection:
       - keep-alive
       content-length:
-      - '68'
+      - '95'
       host:
       - minio:9000
       user-agent:
       - polyswarm_api/3.21.0 (x86_64-Linux-CPython-3.14.4)
     method: PUT
-    uri: http://minio:9000/artifact-index/instances/a9/b9/2c/a9b92cc5-996e-4af5-826d-b52cd258a39d?X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Credential=AKIAIOSFODNN7EXAMPLE%2F20260602%2Fus-east-1%2Fs3%2Faws4_request&X-Amz-Date=20260602T212810Z&X-Amz-Expires=300&X-Amz-SignedHeaders=host&X-Amz-Signature=abc23aa44e470b3236a97e46418b35e49c05c2666519f11ef9313ba4d2a5f219
+    uri: http://minio:9000/artifact-index/instances/f4/83/f2/f483f213-3b18-4ed0-b8f0-fd5bbaab420f?X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Credential=AKIAIOSFODNN7EXAMPLE%2F20260603%2Fus-east-1%2Fs3%2Faws4_request&X-Amz-Date=20260603T223650Z&X-Amz-Expires=300&X-Amz-SignedHeaders=host&X-Amz-Signature=3b046811ec672463c26e1d9fb66df355dd297c5778c5e98cb961585014fad9db
   response:
     body:
       string: ''
@@ -71,9 +73,9 @@ interactions:
       Content-Length:
       - '0'
       Date:
-      - Tue, 02 Jun 2026 21:28:10 GMT
+      - Wed, 03 Jun 2026 22:36:50 GMT
       ETag:
-      - '"44d88612fea8a8f36de82e1278abb02f"'
+      - '"0c1f216df4714fed5a330e73aefb626a"'
       Server:
       - MinIO
       Strict-Transport-Security:
@@ -84,17 +86,17 @@ interactions:
       X-Amz-Id-2:
       - dd9025bab4ad464b049177c95eb6ebf374d3b3fd1af9251148b658df7ac2e3e8
       X-Amz-Request-Id:
-      - 18B560D3CA80F45F
+      - 18B5B3278DC861D4
       X-Content-Type-Options:
       - nosniff
       X-Ratelimit-Limit:
-      - '10975'
+      - '13624'
       X-Ratelimit-Remaining:
-      - '10974'
+      - '13624'
       X-Xss-Protection:
       - 1; mode=block
       x-amz-expiration:
-      - expiry-date="Thu, 04 Jun 2026 00:00:00 GMT", rule-id="expiration-artifact-index_0-instances"
+      - expiry-date="Fri, 05 Jun 2026 00:00:00 GMT", rule-id="expiration-artifact-index_0-instances"
     status:
       code: 200
       message: OK
@@ -118,10 +120,10 @@ interactions:
       user-agent:
       - polyswarm_api/3.21.0 (x86_64-Linux-CPython-3.14.4)
     method: PUT
-    uri: http://artifact-index-e2e:9696/v3/instance?id=43596464834401377
+    uri: http://artifact-index-e2e:9696/v3/instance?id=10773687396715179
   response:
     body:
-      string: '{"result":{"artifact_id":"43596464834401377","assertions":[],"bounty_state":0,"community":"gamma","country":"","created":"2026-06-02T21:28:10.440466+00:00","detections":null,"expiration_window":null,"expire_at":null,"extended_type":null,"failed":false,"filename":"malicious","first_seen":"2026-06-02T21:28:10.440466+00:00","id":"43596464834401377","last_scanned":null,"last_seen":null,"md5":null,"metadata":[],"mimetype":null,"permalink":"https://polyswarm.network/scan/results/file/None/43596464834401377","polyscore":null,"result":null,"sha1":null,"sha256":null,"size":null,"type":"FILE","upload_url":"http://minio:9000/artifact-index/instances/a9/b9/2c/a9b92cc5-996e-4af5-826d-b52cd258a39d?X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Credential=AKIAIOSFODNN7EXAMPLE%2F20260602%2Fus-east-1%2Fs3%2Faws4_request&X-Amz-Date=20260602T212810Z&X-Amz-Expires=300&X-Amz-SignedHeaders=host&X-Amz-Signature=abc23aa44e470b3236a97e46418b35e49c05c2666519f11ef9313ba4d2a5f219","votes":[],"window_closed":false},"status":"OK"}
+      string: '{"result":{"artifact_id":"10773687396715179","assertions":[],"bounty_state":0,"community":"gamma","country":"","created":"2026-06-03T22:36:50.152586+00:00","detections":null,"expiration_window":null,"expire_at":null,"extended_type":null,"failed":false,"filename":"artifact","first_seen":"2026-06-03T22:36:50.152586+00:00","id":"10773687396715179","last_scanned":null,"last_seen":null,"md5":null,"metadata":[],"mimetype":null,"permalink":"https://polyswarm.network/scan/results/file/None/10773687396715179","polyscore":null,"result":null,"sha1":null,"sha256":null,"size":null,"type":"FILE","upload_url":"http://minio:9000/artifact-index/instances/f4/83/f2/f483f213-3b18-4ed0-b8f0-fd5bbaab420f?X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Credential=AKIAIOSFODNN7EXAMPLE%2F20260603%2Fus-east-1%2Fs3%2Faws4_request&X-Amz-Date=20260603T223650Z&X-Amz-Expires=300&X-Amz-SignedHeaders=host&X-Amz-Signature=3b046811ec672463c26e1d9fb66df355dd297c5778c5e98cb961585014fad9db","votes":[],"window_closed":false},"status":"OK"}
 
         '
     headers:
@@ -132,11 +134,11 @@ interactions:
       Connection:
       - keep-alive
       Content-Length:
-      - '1009'
+      - '1008'
       Content-Type:
       - application/json
       Date:
-      - Tue, 02 Jun 2026 21:28:10 GMT
+      - Wed, 03 Jun 2026 22:36:50 GMT
       Server:
       - gunicorn
       X-Billing-ID:
@@ -160,7 +162,7 @@ interactions:
       user-agent:
       - polyswarm_api/3.21.0 (x86_64-Linux-CPython-3.14.4)
     method: GET
-    uri: http://artifact-index-e2e:9696/v3/search/metadata/query?query=artifact.sha256%3A275a021bbfb6489e54d471899f7db9d1663fc695ec2fe2a2c4538aabf651fd0f&community=gamma
+    uri: http://artifact-index-e2e:9696/v3/search/metadata/query?query=artifact.sha256%3Aaac70fdc613bbb9dde083a8230cbf576dd8c68c02d8e47047420cd67f6ff4895&community=gamma
   response:
     body:
       string: ''
@@ -174,7 +176,7 @@ interactions:
       Content-Type:
       - text/html; charset=utf-8
       Date:
-      - Tue, 02 Jun 2026 21:28:10 GMT
+      - Wed, 03 Jun 2026 22:36:50 GMT
       Server:
       - gunicorn
     status:
@@ -196,7 +198,7 @@ interactions:
       user-agent:
       - polyswarm_api/3.21.0 (x86_64-Linux-CPython-3.14.4)
     method: GET
-    uri: http://artifact-index-e2e:9696/v3/search/metadata/query?query=artifact.sha256%3A275a021bbfb6489e54d471899f7db9d1663fc695ec2fe2a2c4538aabf651fd0f&community=gamma
+    uri: http://artifact-index-e2e:9696/v3/search/metadata/query?query=artifact.sha256%3Aaac70fdc613bbb9dde083a8230cbf576dd8c68c02d8e47047420cd67f6ff4895&community=gamma
   response:
     body:
       string: ''
@@ -210,7 +212,7 @@ interactions:
       Content-Type:
       - text/html; charset=utf-8
       Date:
-      - Tue, 02 Jun 2026 21:28:11 GMT
+      - Wed, 03 Jun 2026 22:36:51 GMT
       Server:
       - gunicorn
     status:
@@ -232,7 +234,7 @@ interactions:
       user-agent:
       - polyswarm_api/3.21.0 (x86_64-Linux-CPython-3.14.4)
     method: GET
-    uri: http://artifact-index-e2e:9696/v3/search/metadata/query?query=artifact.sha256%3A275a021bbfb6489e54d471899f7db9d1663fc695ec2fe2a2c4538aabf651fd0f&community=gamma
+    uri: http://artifact-index-e2e:9696/v3/search/metadata/query?query=artifact.sha256%3Aaac70fdc613bbb9dde083a8230cbf576dd8c68c02d8e47047420cd67f6ff4895&community=gamma
   response:
     body:
       string: ''
@@ -246,7 +248,7 @@ interactions:
       Content-Type:
       - text/html; charset=utf-8
       Date:
-      - Tue, 02 Jun 2026 21:28:12 GMT
+      - Wed, 03 Jun 2026 22:36:52 GMT
       Server:
       - gunicorn
     status:
@@ -268,7 +270,7 @@ interactions:
       user-agent:
       - polyswarm_api/3.21.0 (x86_64-Linux-CPython-3.14.4)
     method: GET
-    uri: http://artifact-index-e2e:9696/v3/search/metadata/query?query=artifact.sha256%3A275a021bbfb6489e54d471899f7db9d1663fc695ec2fe2a2c4538aabf651fd0f&community=gamma
+    uri: http://artifact-index-e2e:9696/v3/search/metadata/query?query=artifact.sha256%3Aaac70fdc613bbb9dde083a8230cbf576dd8c68c02d8e47047420cd67f6ff4895&community=gamma
   response:
     body:
       string: ''
@@ -282,7 +284,7 @@ interactions:
       Content-Type:
       - text/html; charset=utf-8
       Date:
-      - Tue, 02 Jun 2026 21:28:13 GMT
+      - Wed, 03 Jun 2026 22:36:53 GMT
       Server:
       - gunicorn
     status:
@@ -304,7 +306,7 @@ interactions:
       user-agent:
       - polyswarm_api/3.21.0 (x86_64-Linux-CPython-3.14.4)
     method: GET
-    uri: http://artifact-index-e2e:9696/v3/search/metadata/query?query=artifact.sha256%3A275a021bbfb6489e54d471899f7db9d1663fc695ec2fe2a2c4538aabf651fd0f&community=gamma
+    uri: http://artifact-index-e2e:9696/v3/search/metadata/query?query=artifact.sha256%3Aaac70fdc613bbb9dde083a8230cbf576dd8c68c02d8e47047420cd67f6ff4895&community=gamma
   response:
     body:
       string: ''
@@ -318,7 +320,7 @@ interactions:
       Content-Type:
       - text/html; charset=utf-8
       Date:
-      - Tue, 02 Jun 2026 21:28:14 GMT
+      - Wed, 03 Jun 2026 22:36:54 GMT
       Server:
       - gunicorn
     status:
@@ -340,7 +342,7 @@ interactions:
       user-agent:
       - polyswarm_api/3.21.0 (x86_64-Linux-CPython-3.14.4)
     method: GET
-    uri: http://artifact-index-e2e:9696/v3/search/metadata/query?query=artifact.sha256%3A275a021bbfb6489e54d471899f7db9d1663fc695ec2fe2a2c4538aabf651fd0f&community=gamma
+    uri: http://artifact-index-e2e:9696/v3/search/metadata/query?query=artifact.sha256%3Aaac70fdc613bbb9dde083a8230cbf576dd8c68c02d8e47047420cd67f6ff4895&community=gamma
   response:
     body:
       string: ''
@@ -354,7 +356,7 @@ interactions:
       Content-Type:
       - text/html; charset=utf-8
       Date:
-      - Tue, 02 Jun 2026 21:28:15 GMT
+      - Wed, 03 Jun 2026 22:36:55 GMT
       Server:
       - gunicorn
     status:
@@ -376,7 +378,7 @@ interactions:
       user-agent:
       - polyswarm_api/3.21.0 (x86_64-Linux-CPython-3.14.4)
     method: GET
-    uri: http://artifact-index-e2e:9696/v3/search/metadata/query?query=artifact.sha256%3A275a021bbfb6489e54d471899f7db9d1663fc695ec2fe2a2c4538aabf651fd0f&community=gamma
+    uri: http://artifact-index-e2e:9696/v3/search/metadata/query?query=artifact.sha256%3Aaac70fdc613bbb9dde083a8230cbf576dd8c68c02d8e47047420cd67f6ff4895&community=gamma
   response:
     body:
       string: ''
@@ -390,7 +392,7 @@ interactions:
       Content-Type:
       - text/html; charset=utf-8
       Date:
-      - Tue, 02 Jun 2026 21:28:16 GMT
+      - Wed, 03 Jun 2026 22:36:56 GMT
       Server:
       - gunicorn
     status:
@@ -412,7 +414,7 @@ interactions:
       user-agent:
       - polyswarm_api/3.21.0 (x86_64-Linux-CPython-3.14.4)
     method: GET
-    uri: http://artifact-index-e2e:9696/v3/search/metadata/query?query=artifact.sha256%3A275a021bbfb6489e54d471899f7db9d1663fc695ec2fe2a2c4538aabf651fd0f&community=gamma
+    uri: http://artifact-index-e2e:9696/v3/search/metadata/query?query=artifact.sha256%3Aaac70fdc613bbb9dde083a8230cbf576dd8c68c02d8e47047420cd67f6ff4895&community=gamma
   response:
     body:
       string: ''
@@ -426,7 +428,7 @@ interactions:
       Content-Type:
       - text/html; charset=utf-8
       Date:
-      - Tue, 02 Jun 2026 21:28:17 GMT
+      - Wed, 03 Jun 2026 22:36:57 GMT
       Server:
       - gunicorn
     status:
@@ -448,7 +450,7 @@ interactions:
       user-agent:
       - polyswarm_api/3.21.0 (x86_64-Linux-CPython-3.14.4)
     method: GET
-    uri: http://artifact-index-e2e:9696/v3/search/metadata/query?query=artifact.sha256%3A275a021bbfb6489e54d471899f7db9d1663fc695ec2fe2a2c4538aabf651fd0f&community=gamma
+    uri: http://artifact-index-e2e:9696/v3/search/metadata/query?query=artifact.sha256%3Aaac70fdc613bbb9dde083a8230cbf576dd8c68c02d8e47047420cd67f6ff4895&community=gamma
   response:
     body:
       string: ''
@@ -462,7 +464,7 @@ interactions:
       Content-Type:
       - text/html; charset=utf-8
       Date:
-      - Tue, 02 Jun 2026 21:28:18 GMT
+      - Wed, 03 Jun 2026 22:36:58 GMT
       Server:
       - gunicorn
     status:
@@ -484,7 +486,7 @@ interactions:
       user-agent:
       - polyswarm_api/3.21.0 (x86_64-Linux-CPython-3.14.4)
     method: GET
-    uri: http://artifact-index-e2e:9696/v3/search/metadata/query?query=artifact.sha256%3A275a021bbfb6489e54d471899f7db9d1663fc695ec2fe2a2c4538aabf651fd0f&community=gamma
+    uri: http://artifact-index-e2e:9696/v3/search/metadata/query?query=artifact.sha256%3Aaac70fdc613bbb9dde083a8230cbf576dd8c68c02d8e47047420cd67f6ff4895&community=gamma
   response:
     body:
       string: ''
@@ -498,7 +500,7 @@ interactions:
       Content-Type:
       - text/html; charset=utf-8
       Date:
-      - Tue, 02 Jun 2026 21:28:19 GMT
+      - Wed, 03 Jun 2026 22:36:59 GMT
       Server:
       - gunicorn
     status:
@@ -520,7 +522,7 @@ interactions:
       user-agent:
       - polyswarm_api/3.21.0 (x86_64-Linux-CPython-3.14.4)
     method: GET
-    uri: http://artifact-index-e2e:9696/v3/search/metadata/query?query=artifact.sha256%3A275a021bbfb6489e54d471899f7db9d1663fc695ec2fe2a2c4538aabf651fd0f&community=gamma
+    uri: http://artifact-index-e2e:9696/v3/search/metadata/query?query=artifact.sha256%3Aaac70fdc613bbb9dde083a8230cbf576dd8c68c02d8e47047420cd67f6ff4895&community=gamma
   response:
     body:
       string: ''
@@ -534,7 +536,7 @@ interactions:
       Content-Type:
       - text/html; charset=utf-8
       Date:
-      - Tue, 02 Jun 2026 21:28:20 GMT
+      - Wed, 03 Jun 2026 22:37:00 GMT
       Server:
       - gunicorn
     status:
@@ -556,7 +558,7 @@ interactions:
       user-agent:
       - polyswarm_api/3.21.0 (x86_64-Linux-CPython-3.14.4)
     method: GET
-    uri: http://artifact-index-e2e:9696/v3/search/metadata/query?query=artifact.sha256%3A275a021bbfb6489e54d471899f7db9d1663fc695ec2fe2a2c4538aabf651fd0f&community=gamma
+    uri: http://artifact-index-e2e:9696/v3/search/metadata/query?query=artifact.sha256%3Aaac70fdc613bbb9dde083a8230cbf576dd8c68c02d8e47047420cd67f6ff4895&community=gamma
   response:
     body:
       string: ''
@@ -570,7 +572,7 @@ interactions:
       Content-Type:
       - text/html; charset=utf-8
       Date:
-      - Tue, 02 Jun 2026 21:28:21 GMT
+      - Wed, 03 Jun 2026 22:37:01 GMT
       Server:
       - gunicorn
     status:
@@ -592,7 +594,7 @@ interactions:
       user-agent:
       - polyswarm_api/3.21.0 (x86_64-Linux-CPython-3.14.4)
     method: GET
-    uri: http://artifact-index-e2e:9696/v3/search/metadata/query?query=artifact.sha256%3A275a021bbfb6489e54d471899f7db9d1663fc695ec2fe2a2c4538aabf651fd0f&community=gamma
+    uri: http://artifact-index-e2e:9696/v3/search/metadata/query?query=artifact.sha256%3Aaac70fdc613bbb9dde083a8230cbf576dd8c68c02d8e47047420cd67f6ff4895&community=gamma
   response:
     body:
       string: ''
@@ -606,7 +608,7 @@ interactions:
       Content-Type:
       - text/html; charset=utf-8
       Date:
-      - Tue, 02 Jun 2026 21:28:22 GMT
+      - Wed, 03 Jun 2026 22:37:02 GMT
       Server:
       - gunicorn
     status:
@@ -628,7 +630,7 @@ interactions:
       user-agent:
       - polyswarm_api/3.21.0 (x86_64-Linux-CPython-3.14.4)
     method: GET
-    uri: http://artifact-index-e2e:9696/v3/search/metadata/query?query=artifact.sha256%3A275a021bbfb6489e54d471899f7db9d1663fc695ec2fe2a2c4538aabf651fd0f&community=gamma
+    uri: http://artifact-index-e2e:9696/v3/search/metadata/query?query=artifact.sha256%3Aaac70fdc613bbb9dde083a8230cbf576dd8c68c02d8e47047420cd67f6ff4895&community=gamma
   response:
     body:
       string: ''
@@ -642,7 +644,7 @@ interactions:
       Content-Type:
       - text/html; charset=utf-8
       Date:
-      - Tue, 02 Jun 2026 21:28:23 GMT
+      - Wed, 03 Jun 2026 22:37:03 GMT
       Server:
       - gunicorn
     status:
@@ -664,7 +666,7 @@ interactions:
       user-agent:
       - polyswarm_api/3.21.0 (x86_64-Linux-CPython-3.14.4)
     method: GET
-    uri: http://artifact-index-e2e:9696/v3/search/metadata/query?query=artifact.sha256%3A275a021bbfb6489e54d471899f7db9d1663fc695ec2fe2a2c4538aabf651fd0f&community=gamma
+    uri: http://artifact-index-e2e:9696/v3/search/metadata/query?query=artifact.sha256%3Aaac70fdc613bbb9dde083a8230cbf576dd8c68c02d8e47047420cd67f6ff4895&community=gamma
   response:
     body:
       string: ''
@@ -678,7 +680,7 @@ interactions:
       Content-Type:
       - text/html; charset=utf-8
       Date:
-      - Tue, 02 Jun 2026 21:28:24 GMT
+      - Wed, 03 Jun 2026 22:37:04 GMT
       Server:
       - gunicorn
     status:
@@ -700,7 +702,7 @@ interactions:
       user-agent:
       - polyswarm_api/3.21.0 (x86_64-Linux-CPython-3.14.4)
     method: GET
-    uri: http://artifact-index-e2e:9696/v3/search/metadata/query?query=artifact.sha256%3A275a021bbfb6489e54d471899f7db9d1663fc695ec2fe2a2c4538aabf651fd0f&community=gamma
+    uri: http://artifact-index-e2e:9696/v3/search/metadata/query?query=artifact.sha256%3Aaac70fdc613bbb9dde083a8230cbf576dd8c68c02d8e47047420cd67f6ff4895&community=gamma
   response:
     body:
       string: ''
@@ -714,7 +716,7 @@ interactions:
       Content-Type:
       - text/html; charset=utf-8
       Date:
-      - Tue, 02 Jun 2026 21:28:25 GMT
+      - Wed, 03 Jun 2026 22:37:05 GMT
       Server:
       - gunicorn
     status:
@@ -736,7 +738,7 @@ interactions:
       user-agent:
       - polyswarm_api/3.21.0 (x86_64-Linux-CPython-3.14.4)
     method: GET
-    uri: http://artifact-index-e2e:9696/v3/search/metadata/query?query=artifact.sha256%3A275a021bbfb6489e54d471899f7db9d1663fc695ec2fe2a2c4538aabf651fd0f&community=gamma
+    uri: http://artifact-index-e2e:9696/v3/search/metadata/query?query=artifact.sha256%3Aaac70fdc613bbb9dde083a8230cbf576dd8c68c02d8e47047420cd67f6ff4895&community=gamma
   response:
     body:
       string: ''
@@ -750,7 +752,7 @@ interactions:
       Content-Type:
       - text/html; charset=utf-8
       Date:
-      - Tue, 02 Jun 2026 21:28:26 GMT
+      - Wed, 03 Jun 2026 22:37:06 GMT
       Server:
       - gunicorn
     status:
@@ -772,7 +774,7 @@ interactions:
       user-agent:
       - polyswarm_api/3.21.0 (x86_64-Linux-CPython-3.14.4)
     method: GET
-    uri: http://artifact-index-e2e:9696/v3/search/metadata/query?query=artifact.sha256%3A275a021bbfb6489e54d471899f7db9d1663fc695ec2fe2a2c4538aabf651fd0f&community=gamma
+    uri: http://artifact-index-e2e:9696/v3/search/metadata/query?query=artifact.sha256%3Aaac70fdc613bbb9dde083a8230cbf576dd8c68c02d8e47047420cd67f6ff4895&community=gamma
   response:
     body:
       string: ''
@@ -786,7 +788,7 @@ interactions:
       Content-Type:
       - text/html; charset=utf-8
       Date:
-      - Tue, 02 Jun 2026 21:28:27 GMT
+      - Wed, 03 Jun 2026 22:37:07 GMT
       Server:
       - gunicorn
     status:
@@ -808,7 +810,7 @@ interactions:
       user-agent:
       - polyswarm_api/3.21.0 (x86_64-Linux-CPython-3.14.4)
     method: GET
-    uri: http://artifact-index-e2e:9696/v3/search/metadata/query?query=artifact.sha256%3A275a021bbfb6489e54d471899f7db9d1663fc695ec2fe2a2c4538aabf651fd0f&community=gamma
+    uri: http://artifact-index-e2e:9696/v3/search/metadata/query?query=artifact.sha256%3Aaac70fdc613bbb9dde083a8230cbf576dd8c68c02d8e47047420cd67f6ff4895&community=gamma
   response:
     body:
       string: ''
@@ -822,7 +824,7 @@ interactions:
       Content-Type:
       - text/html; charset=utf-8
       Date:
-      - Tue, 02 Jun 2026 21:28:29 GMT
+      - Wed, 03 Jun 2026 22:37:08 GMT
       Server:
       - gunicorn
     status:
@@ -844,7 +846,7 @@ interactions:
       user-agent:
       - polyswarm_api/3.21.0 (x86_64-Linux-CPython-3.14.4)
     method: GET
-    uri: http://artifact-index-e2e:9696/v3/search/metadata/query?query=artifact.sha256%3A275a021bbfb6489e54d471899f7db9d1663fc695ec2fe2a2c4538aabf651fd0f&community=gamma
+    uri: http://artifact-index-e2e:9696/v3/search/metadata/query?query=artifact.sha256%3Aaac70fdc613bbb9dde083a8230cbf576dd8c68c02d8e47047420cd67f6ff4895&community=gamma
   response:
     body:
       string: ''
@@ -858,7 +860,7 @@ interactions:
       Content-Type:
       - text/html; charset=utf-8
       Date:
-      - Tue, 02 Jun 2026 21:28:30 GMT
+      - Wed, 03 Jun 2026 22:37:09 GMT
       Server:
       - gunicorn
     status:
@@ -880,7 +882,7 @@ interactions:
       user-agent:
       - polyswarm_api/3.21.0 (x86_64-Linux-CPython-3.14.4)
     method: GET
-    uri: http://artifact-index-e2e:9696/v3/search/metadata/query?query=artifact.sha256%3A275a021bbfb6489e54d471899f7db9d1663fc695ec2fe2a2c4538aabf651fd0f&community=gamma
+    uri: http://artifact-index-e2e:9696/v3/search/metadata/query?query=artifact.sha256%3Aaac70fdc613bbb9dde083a8230cbf576dd8c68c02d8e47047420cd67f6ff4895&community=gamma
   response:
     body:
       string: ''
@@ -894,7 +896,7 @@ interactions:
       Content-Type:
       - text/html; charset=utf-8
       Date:
-      - Tue, 02 Jun 2026 21:28:31 GMT
+      - Wed, 03 Jun 2026 22:37:10 GMT
       Server:
       - gunicorn
     status:
@@ -916,7 +918,7 @@ interactions:
       user-agent:
       - polyswarm_api/3.21.0 (x86_64-Linux-CPython-3.14.4)
     method: GET
-    uri: http://artifact-index-e2e:9696/v3/search/metadata/query?query=artifact.sha256%3A275a021bbfb6489e54d471899f7db9d1663fc695ec2fe2a2c4538aabf651fd0f&community=gamma
+    uri: http://artifact-index-e2e:9696/v3/search/metadata/query?query=artifact.sha256%3Aaac70fdc613bbb9dde083a8230cbf576dd8c68c02d8e47047420cd67f6ff4895&community=gamma
   response:
     body:
       string: ''
@@ -930,7 +932,7 @@ interactions:
       Content-Type:
       - text/html; charset=utf-8
       Date:
-      - Tue, 02 Jun 2026 21:28:32 GMT
+      - Wed, 03 Jun 2026 22:37:11 GMT
       Server:
       - gunicorn
     status:
@@ -952,7 +954,7 @@ interactions:
       user-agent:
       - polyswarm_api/3.21.0 (x86_64-Linux-CPython-3.14.4)
     method: GET
-    uri: http://artifact-index-e2e:9696/v3/search/metadata/query?query=artifact.sha256%3A275a021bbfb6489e54d471899f7db9d1663fc695ec2fe2a2c4538aabf651fd0f&community=gamma
+    uri: http://artifact-index-e2e:9696/v3/search/metadata/query?query=artifact.sha256%3Aaac70fdc613bbb9dde083a8230cbf576dd8c68c02d8e47047420cd67f6ff4895&community=gamma
   response:
     body:
       string: ''
@@ -966,7 +968,7 @@ interactions:
       Content-Type:
       - text/html; charset=utf-8
       Date:
-      - Tue, 02 Jun 2026 21:28:33 GMT
+      - Wed, 03 Jun 2026 22:37:12 GMT
       Server:
       - gunicorn
     status:
@@ -988,7 +990,7 @@ interactions:
       user-agent:
       - polyswarm_api/3.21.0 (x86_64-Linux-CPython-3.14.4)
     method: GET
-    uri: http://artifact-index-e2e:9696/v3/search/metadata/query?query=artifact.sha256%3A275a021bbfb6489e54d471899f7db9d1663fc695ec2fe2a2c4538aabf651fd0f&community=gamma
+    uri: http://artifact-index-e2e:9696/v3/search/metadata/query?query=artifact.sha256%3Aaac70fdc613bbb9dde083a8230cbf576dd8c68c02d8e47047420cd67f6ff4895&community=gamma
   response:
     body:
       string: ''
@@ -1002,7 +1004,7 @@ interactions:
       Content-Type:
       - text/html; charset=utf-8
       Date:
-      - Tue, 02 Jun 2026 21:28:34 GMT
+      - Wed, 03 Jun 2026 22:37:13 GMT
       Server:
       - gunicorn
     status:
@@ -1024,7 +1026,7 @@ interactions:
       user-agent:
       - polyswarm_api/3.21.0 (x86_64-Linux-CPython-3.14.4)
     method: GET
-    uri: http://artifact-index-e2e:9696/v3/search/metadata/query?query=artifact.sha256%3A275a021bbfb6489e54d471899f7db9d1663fc695ec2fe2a2c4538aabf651fd0f&community=gamma
+    uri: http://artifact-index-e2e:9696/v3/search/metadata/query?query=artifact.sha256%3Aaac70fdc613bbb9dde083a8230cbf576dd8c68c02d8e47047420cd67f6ff4895&community=gamma
   response:
     body:
       string: ''
@@ -1038,7 +1040,7 @@ interactions:
       Content-Type:
       - text/html; charset=utf-8
       Date:
-      - Tue, 02 Jun 2026 21:28:35 GMT
+      - Wed, 03 Jun 2026 22:37:14 GMT
       Server:
       - gunicorn
     status:
@@ -1060,7 +1062,7 @@ interactions:
       user-agent:
       - polyswarm_api/3.21.0 (x86_64-Linux-CPython-3.14.4)
     method: GET
-    uri: http://artifact-index-e2e:9696/v3/search/metadata/query?query=artifact.sha256%3A275a021bbfb6489e54d471899f7db9d1663fc695ec2fe2a2c4538aabf651fd0f&community=gamma
+    uri: http://artifact-index-e2e:9696/v3/search/metadata/query?query=artifact.sha256%3Aaac70fdc613bbb9dde083a8230cbf576dd8c68c02d8e47047420cd67f6ff4895&community=gamma
   response:
     body:
       string: ''
@@ -1074,7 +1076,7 @@ interactions:
       Content-Type:
       - text/html; charset=utf-8
       Date:
-      - Tue, 02 Jun 2026 21:28:36 GMT
+      - Wed, 03 Jun 2026 22:37:15 GMT
       Server:
       - gunicorn
     status:
@@ -1096,7 +1098,7 @@ interactions:
       user-agent:
       - polyswarm_api/3.21.0 (x86_64-Linux-CPython-3.14.4)
     method: GET
-    uri: http://artifact-index-e2e:9696/v3/search/metadata/query?query=artifact.sha256%3A275a021bbfb6489e54d471899f7db9d1663fc695ec2fe2a2c4538aabf651fd0f&community=gamma
+    uri: http://artifact-index-e2e:9696/v3/search/metadata/query?query=artifact.sha256%3Aaac70fdc613bbb9dde083a8230cbf576dd8c68c02d8e47047420cd67f6ff4895&community=gamma
   response:
     body:
       string: ''
@@ -1110,7 +1112,7 @@ interactions:
       Content-Type:
       - text/html; charset=utf-8
       Date:
-      - Tue, 02 Jun 2026 21:28:37 GMT
+      - Wed, 03 Jun 2026 22:37:16 GMT
       Server:
       - gunicorn
     status:
@@ -1132,7 +1134,7 @@ interactions:
       user-agent:
       - polyswarm_api/3.21.0 (x86_64-Linux-CPython-3.14.4)
     method: GET
-    uri: http://artifact-index-e2e:9696/v3/search/metadata/query?query=artifact.sha256%3A275a021bbfb6489e54d471899f7db9d1663fc695ec2fe2a2c4538aabf651fd0f&community=gamma
+    uri: http://artifact-index-e2e:9696/v3/search/metadata/query?query=artifact.sha256%3Aaac70fdc613bbb9dde083a8230cbf576dd8c68c02d8e47047420cd67f6ff4895&community=gamma
   response:
     body:
       string: ''
@@ -1146,7 +1148,7 @@ interactions:
       Content-Type:
       - text/html; charset=utf-8
       Date:
-      - Tue, 02 Jun 2026 21:28:38 GMT
+      - Wed, 03 Jun 2026 22:37:17 GMT
       Server:
       - gunicorn
     status:
@@ -1168,228 +1170,12 @@ interactions:
       user-agent:
       - polyswarm_api/3.21.0 (x86_64-Linux-CPython-3.14.4)
     method: GET
-    uri: http://artifact-index-e2e:9696/v3/search/metadata/query?query=artifact.sha256%3A275a021bbfb6489e54d471899f7db9d1663fc695ec2fe2a2c4538aabf651fd0f&community=gamma
+    uri: http://artifact-index-e2e:9696/v3/search/metadata/query?query=artifact.sha256%3Aaac70fdc613bbb9dde083a8230cbf576dd8c68c02d8e47047420cd67f6ff4895&community=gamma
   response:
     body:
-      string: ''
-    headers:
-      Access-Control-Allow-Origin:
-      - '*'
-      Access-Control-Expose-Headers:
-      - Authorization
-      Connection:
-      - keep-alive
-      Content-Type:
-      - text/html; charset=utf-8
-      Date:
-      - Tue, 02 Jun 2026 21:28:39 GMT
-      Server:
-      - gunicorn
-    status:
-      code: 204
-      message: NO CONTENT
-- request:
-    body: ''
-    headers:
-      accept:
-      - '*/*'
-      accept-encoding:
-      - gzip, deflate
-      authorization:
-      - '11111111111111111111111111111111'
-      connection:
-      - keep-alive
-      host:
-      - artifact-index-e2e:9696
-      user-agent:
-      - polyswarm_api/3.21.0 (x86_64-Linux-CPython-3.14.4)
-    method: GET
-    uri: http://artifact-index-e2e:9696/v3/search/metadata/query?query=artifact.sha256%3A275a021bbfb6489e54d471899f7db9d1663fc695ec2fe2a2c4538aabf651fd0f&community=gamma
-  response:
-    body:
-      string: ''
-    headers:
-      Access-Control-Allow-Origin:
-      - '*'
-      Access-Control-Expose-Headers:
-      - Authorization
-      Connection:
-      - keep-alive
-      Content-Type:
-      - text/html; charset=utf-8
-      Date:
-      - Tue, 02 Jun 2026 21:28:40 GMT
-      Server:
-      - gunicorn
-    status:
-      code: 204
-      message: NO CONTENT
-- request:
-    body: ''
-    headers:
-      accept:
-      - '*/*'
-      accept-encoding:
-      - gzip, deflate
-      authorization:
-      - '11111111111111111111111111111111'
-      connection:
-      - keep-alive
-      host:
-      - artifact-index-e2e:9696
-      user-agent:
-      - polyswarm_api/3.21.0 (x86_64-Linux-CPython-3.14.4)
-    method: GET
-    uri: http://artifact-index-e2e:9696/v3/search/metadata/query?query=artifact.sha256%3A275a021bbfb6489e54d471899f7db9d1663fc695ec2fe2a2c4538aabf651fd0f&community=gamma
-  response:
-    body:
-      string: ''
-    headers:
-      Access-Control-Allow-Origin:
-      - '*'
-      Access-Control-Expose-Headers:
-      - Authorization
-      Connection:
-      - keep-alive
-      Content-Type:
-      - text/html; charset=utf-8
-      Date:
-      - Tue, 02 Jun 2026 21:28:41 GMT
-      Server:
-      - gunicorn
-    status:
-      code: 204
-      message: NO CONTENT
-- request:
-    body: ''
-    headers:
-      accept:
-      - '*/*'
-      accept-encoding:
-      - gzip, deflate
-      authorization:
-      - '11111111111111111111111111111111'
-      connection:
-      - keep-alive
-      host:
-      - artifact-index-e2e:9696
-      user-agent:
-      - polyswarm_api/3.21.0 (x86_64-Linux-CPython-3.14.4)
-    method: GET
-    uri: http://artifact-index-e2e:9696/v3/search/metadata/query?query=artifact.sha256%3A275a021bbfb6489e54d471899f7db9d1663fc695ec2fe2a2c4538aabf651fd0f&community=gamma
-  response:
-    body:
-      string: ''
-    headers:
-      Access-Control-Allow-Origin:
-      - '*'
-      Access-Control-Expose-Headers:
-      - Authorization
-      Connection:
-      - keep-alive
-      Content-Type:
-      - text/html; charset=utf-8
-      Date:
-      - Tue, 02 Jun 2026 21:28:42 GMT
-      Server:
-      - gunicorn
-    status:
-      code: 204
-      message: NO CONTENT
-- request:
-    body: ''
-    headers:
-      accept:
-      - '*/*'
-      accept-encoding:
-      - gzip, deflate
-      authorization:
-      - '11111111111111111111111111111111'
-      connection:
-      - keep-alive
-      host:
-      - artifact-index-e2e:9696
-      user-agent:
-      - polyswarm_api/3.21.0 (x86_64-Linux-CPython-3.14.4)
-    method: GET
-    uri: http://artifact-index-e2e:9696/v3/search/metadata/query?query=artifact.sha256%3A275a021bbfb6489e54d471899f7db9d1663fc695ec2fe2a2c4538aabf651fd0f&community=gamma
-  response:
-    body:
-      string: ''
-    headers:
-      Access-Control-Allow-Origin:
-      - '*'
-      Access-Control-Expose-Headers:
-      - Authorization
-      Connection:
-      - keep-alive
-      Content-Type:
-      - text/html; charset=utf-8
-      Date:
-      - Tue, 02 Jun 2026 21:28:43 GMT
-      Server:
-      - gunicorn
-    status:
-      code: 204
-      message: NO CONTENT
-- request:
-    body: ''
-    headers:
-      accept:
-      - '*/*'
-      accept-encoding:
-      - gzip, deflate
-      authorization:
-      - '11111111111111111111111111111111'
-      connection:
-      - keep-alive
-      host:
-      - artifact-index-e2e:9696
-      user-agent:
-      - polyswarm_api/3.21.0 (x86_64-Linux-CPython-3.14.4)
-    method: GET
-    uri: http://artifact-index-e2e:9696/v3/search/metadata/query?query=artifact.sha256%3A275a021bbfb6489e54d471899f7db9d1663fc695ec2fe2a2c4538aabf651fd0f&community=gamma
-  response:
-    body:
-      string: ''
-    headers:
-      Access-Control-Allow-Origin:
-      - '*'
-      Access-Control-Expose-Headers:
-      - Authorization
-      Connection:
-      - keep-alive
-      Content-Type:
-      - text/html; charset=utf-8
-      Date:
-      - Tue, 02 Jun 2026 21:28:44 GMT
-      Server:
-      - gunicorn
-    status:
-      code: 204
-      message: NO CONTENT
-- request:
-    body: ''
-    headers:
-      accept:
-      - '*/*'
-      accept-encoding:
-      - gzip, deflate
-      authorization:
-      - '11111111111111111111111111111111'
-      connection:
-      - keep-alive
-      host:
-      - artifact-index-e2e:9696
-      user-agent:
-      - polyswarm_api/3.21.0 (x86_64-Linux-CPython-3.14.4)
-    method: GET
-    uri: http://artifact-index-e2e:9696/v3/search/metadata/query?query=artifact.sha256%3A275a021bbfb6489e54d471899f7db9d1663fc695ec2fe2a2c4538aabf651fd0f&community=gamma
-  response:
-    body:
-      string: '{"has_more":false,"limit":50,"result":[{"artifact":{"created":"2026-06-02T21:28:09.811386+00:00","id":"82319899935296641","md5":"44d88612fea8a8f36de82e1278abb02f","sha1":"3395856ce81f2b7382dee72602f798b642f14140","sha256":"275a021bbfb6489e54d471899f7db9d1663fc695ec2fe2a2c4538aabf651fd0f","size":68},"exiftool":{"filesize":"68
-        bytes","filetype":"TXT","filetypeextension":"txt","mimetype":"text/plain"},"extension":"txt","hash":{"md5":"44d88612fea8a8f36de82e1278abb02f","sha1":"3395856ce81f2b7382dee72602f798b642f14140","sha256":"275a021bbfb6489e54d471899f7db9d1663fc695ec2fe2a2c4538aabf651fd0f","sha3_256":"8b4c4e204a8a039198e292d2291f4c451d80e4c38bf0cc04ad3841fea8755bd8","sha3_512":"a20290c6ebf01dc5182bb57718250f61ab11b418466714632a7d1474a02849641f7b78e4093e19ad12fdbedbe02f3bec4ca3ec3235557e82ab5ac02d061e7007","sha512":"cc805d5fab1fd71a4ab352a9c533e65fb2d5b885518f4e565e68847223b8e6b85cb48f3afad842726d99239c9e36505c64b0dc9a061d9e507d833277ada336ab","ssdeep":"3:a+JraNvsgzsVqSwHq9:tJuOgzsko","tlsh":"41a022003b0eee2ba20b00200032e8b00808020e2ce00a3820a020b8c83308803ec228"},"meta_community":"_public","modified":"2026-06-02T21:28:10.505676+00:00","scan":{"countries":[""],"filename":["malicious"],"first_scan":{"artifact_instance_id":"89285485968818896","assertions":{"engine-eicar":{"assertion":"malicious","metadata":{"malware_family":"EICAR"}}},"created":"2026-06-02T21:28:09.811386+00:00","filename":"malicious","votes":{}},"first_seen":"2026-06-02T21:28:09.811386+00:00","last_seen":"2026-06-02T21:28:09.811386+00:00","latest_scan":{"artifact_instance_id":"89285485968818896","assertions":{"engine-eicar":{"assertion":"malicious","metadata":{"malware_family":"EICAR"}}},"created":"2026-06-02T21:28:09.811386+00:00","filename":"malicious","votes":{}},"mimetype":{"extended":"EICAR
-        virus test files","mime":"text/plain"}},"updated":{"exiftool":"2026-06-02T21:28:10.505676+00:00","hash":"2026-06-02T21:28:10.235257+00:00"}}],"status":"OK"}
+      string: '{"has_more":false,"limit":50,"result":[{"artifact":{"created":"2026-06-03T22:36:50.152586+00:00","id":"76360090324548573","md5":"0c1f216df4714fed5a330e73aefb626a","sha1":"dec06c43c2c77a453860dd0663739e10c12ed47d","sha256":"aac70fdc613bbb9dde083a8230cbf576dd8c68c02d8e47047420cd67f6ff4895","size":95},"exiftool":{"filesize":"95
+        bytes","filetype":"TXT","filetypeextension":"txt","mimetype":"text/plain"},"extension":"txt","hash":{"md5":"0c1f216df4714fed5a330e73aefb626a","sha1":"dec06c43c2c77a453860dd0663739e10c12ed47d","sha256":"aac70fdc613bbb9dde083a8230cbf576dd8c68c02d8e47047420cd67f6ff4895","sha3_256":"ebb54d754da72c9fc728ba07ee4232c59fc3cf5952952d3b8380034a6d413812","sha3_512":"4727e4a0d351de65819a7caae36f92db64a4a4ee3b144aca341faecc69d1968d4cbf30af8ba84f8a8c984b2afe5671deeb365e85e9859dd6cf83d43e14e80f54","sha512":"3957c12227454a195835c2fe5494a14851f6350e6da785021ac20d8113bf19ef8cae2839c76d9ca8ccc373efc776868f4aa9c8c13036985b67e901b3a9909b6a","ssdeep":"3:a+JraNvsgzsVqSwHqDY9ARoERX:tJuOgzskTj4X","tlsh":"0bb012003b1feb1b551730200071f5601804411a1cd04a2812582074e82248402d8514"},"meta_community":"_public","modified":"2026-06-03T22:36:50.270745+00:00","scan":{"countries":[""],"filename":["artifact"],"first_scan":{"artifact_instance_id":"10773687396715179","assertions":{"engine-eicar":{"assertion":"malicious","metadata":{"malware_family":"EICAR"}}},"created":"2026-06-03T22:36:50.152586+00:00","filename":"artifact","votes":{}},"first_seen":"2026-06-03T22:36:50.152586+00:00","last_seen":"2026-06-03T22:36:50.152586+00:00","latest_scan":{"artifact_instance_id":"10773687396715179","assertions":{"engine-eicar":{"assertion":"malicious","metadata":{"malware_family":"EICAR"}}},"created":"2026-06-03T22:36:50.152586+00:00","filename":"artifact","votes":{}},"mimetype":{"extended":"EICAR
+        virus test files","mime":"text/plain"}},"updated":{"exiftool":"2026-06-03T22:36:50.270745+00:00","hash":"2026-06-03T22:36:50.223827+00:00"}}],"status":"OK"}
 
         '
     headers:
@@ -1400,11 +1186,11 @@ interactions:
       Connection:
       - keep-alive
       Content-Length:
-      - '1946'
+      - '1954'
       Content-Type:
       - application/json
       Date:
-      - Tue, 02 Jun 2026 21:28:45 GMT
+      - Wed, 03 Jun 2026 22:37:18 GMT
       Server:
       - gunicorn
       X-Billing-ID:

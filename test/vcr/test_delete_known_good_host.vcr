@@ -1,6 +1,6 @@
 interactions:
 - request:
-    body: '{"type":"domain","host":"polyswarm.network","source":"test","good":true}'
+    body: '{"type":"domain","host":"test-delete-known-good-host.sdk.test","source":"test","good":true}'
     headers:
       accept:
       - '*/*'
@@ -11,7 +11,7 @@ interactions:
       connection:
       - keep-alive
       content-length:
-      - '72'
+      - '91'
       content-type:
       - application/json
       host:
@@ -22,7 +22,7 @@ interactions:
     uri: http://artifact-index-e2e:9696/v3/ioc/known
   response:
     body:
-      string: '{"result":{"good":true,"host":"polyswarm.network","id":7,"source":"test","type":"domain"},"status":"OK"}
+      string: '{"result":{"good":true,"host":"test-delete-known-good-host.sdk.test","id":3,"source":"test","type":"domain"},"status":"OK"}
 
         '
     headers:
@@ -33,11 +33,11 @@ interactions:
       Connection:
       - keep-alive
       Content-Length:
-      - '105'
+      - '124'
       Content-Type:
       - application/json
       Date:
-      - Tue, 02 Jun 2026 21:30:57 GMT
+      - Wed, 03 Jun 2026 22:35:43 GMT
       Server:
       - gunicorn
       X-Billing-ID:
@@ -61,10 +61,10 @@ interactions:
       user-agent:
       - polyswarm_api/3.21.0 (x86_64-Linux-CPython-3.14.4)
     method: DELETE
-    uri: http://artifact-index-e2e:9696/v3/ioc/known?id=7
+    uri: http://artifact-index-e2e:9696/v3/ioc/known?id=3
   response:
     body:
-      string: '{"result":{"good":true,"host":"polyswarm.network","id":7,"source":"test","type":"domain"},"status":"OK"}
+      string: '{"result":{"good":true,"host":"test-delete-known-good-host.sdk.test","id":3,"source":"test","type":"domain"},"status":"OK"}
 
         '
     headers:
@@ -75,11 +75,11 @@ interactions:
       Connection:
       - keep-alive
       Content-Length:
-      - '105'
+      - '124'
       Content-Type:
       - application/json
       Date:
-      - Tue, 02 Jun 2026 21:30:57 GMT
+      - Wed, 03 Jun 2026 22:35:43 GMT
       Server:
       - gunicorn
       X-Billing-ID:

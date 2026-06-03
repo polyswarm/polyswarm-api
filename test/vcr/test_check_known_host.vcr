@@ -1,48 +1,6 @@
 interactions:
 - request:
-    body: ''
-    headers:
-      accept:
-      - '*/*'
-      accept-encoding:
-      - gzip, deflate
-      authorization:
-      - '11111111111111111111111111111111'
-      connection:
-      - keep-alive
-      host:
-      - artifact-index-e2e:9696
-      user-agent:
-      - polyswarm_api/3.21.0 (x86_64-Linux-CPython-3.14.4)
-    method: GET
-    uri: http://artifact-index-e2e:9696/v3/ioc/known?ip=1.2.3.4
-  response:
-    body:
-      string: '{"result":[],"status":"OK"}
-
-        '
-    headers:
-      Access-Control-Allow-Origin:
-      - '*'
-      Access-Control-Expose-Headers:
-      - Authorization
-      Connection:
-      - keep-alive
-      Content-Length:
-      - '28'
-      Content-Type:
-      - application/json
-      Date:
-      - Tue, 02 Jun 2026 21:30:57 GMT
-      Server:
-      - gunicorn
-      X-Billing-ID:
-      - '111'
-    status:
-      code: 200
-      message: OK
-- request:
-    body: '{"type":"ip","host":"1.2.3.4","source":"test","good":true}'
+    body: '{"type":"ip","host":"9.42.37.148","source":"test","good":true}'
     headers:
       accept:
       - '*/*'
@@ -53,7 +11,7 @@ interactions:
       connection:
       - keep-alive
       content-length:
-      - '58'
+      - '62'
       content-type:
       - application/json
       host:
@@ -64,7 +22,7 @@ interactions:
     uri: http://artifact-index-e2e:9696/v3/ioc/known
   response:
     body:
-      string: '{"result":{"good":true,"host":"1.2.3.4","id":6,"source":"test","type":"ip"},"status":"OK"}
+      string: '{"result":{"good":true,"host":"9.42.37.148","id":2,"source":"test","type":"ip"},"status":"OK"}
 
         '
     headers:
@@ -75,11 +33,11 @@ interactions:
       Connection:
       - keep-alive
       Content-Length:
-      - '91'
+      - '95'
       Content-Type:
       - application/json
       Date:
-      - Tue, 02 Jun 2026 21:30:57 GMT
+      - Wed, 03 Jun 2026 22:35:43 GMT
       Server:
       - gunicorn
       X-Billing-ID:
@@ -103,10 +61,10 @@ interactions:
       user-agent:
       - polyswarm_api/3.21.0 (x86_64-Linux-CPython-3.14.4)
     method: GET
-    uri: http://artifact-index-e2e:9696/v3/ioc/known?ip=1.2.3.4
+    uri: http://artifact-index-e2e:9696/v3/ioc/known?ip=9.42.37.148
   response:
     body:
-      string: '{"result":[{"good":true,"host":"1.2.3.4","id":6,"source":"test","type":"ip"}],"status":"OK"}
+      string: '{"result":[{"good":true,"host":"9.42.37.148","id":2,"source":"test","type":"ip"}],"status":"OK"}
 
         '
     headers:
@@ -117,53 +75,11 @@ interactions:
       Connection:
       - keep-alive
       Content-Length:
-      - '93'
+      - '97'
       Content-Type:
       - application/json
       Date:
-      - Tue, 02 Jun 2026 21:30:57 GMT
-      Server:
-      - gunicorn
-      X-Billing-ID:
-      - '111'
-    status:
-      code: 200
-      message: OK
-- request:
-    body: ''
-    headers:
-      accept:
-      - '*/*'
-      accept-encoding:
-      - gzip, deflate
-      authorization:
-      - '11111111111111111111111111111111'
-      connection:
-      - keep-alive
-      host:
-      - artifact-index-e2e:9696
-      user-agent:
-      - polyswarm_api/3.21.0 (x86_64-Linux-CPython-3.14.4)
-    method: DELETE
-    uri: http://artifact-index-e2e:9696/v3/ioc/known?id=6
-  response:
-    body:
-      string: '{"result":{"good":true,"host":"1.2.3.4","id":6,"source":"test","type":"ip"},"status":"OK"}
-
-        '
-    headers:
-      Access-Control-Allow-Origin:
-      - '*'
-      Access-Control-Expose-Headers:
-      - Authorization
-      Connection:
-      - keep-alive
-      Content-Length:
-      - '91'
-      Content-Type:
-      - application/json
-      Date:
-      - Tue, 02 Jun 2026 21:30:57 GMT
+      - Wed, 03 Jun 2026 22:35:43 GMT
       Server:
       - gunicorn
       X-Billing-ID:
