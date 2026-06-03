@@ -29,6 +29,10 @@ import vcr as vcr_
 from polyswarm_api.aio import PolySwarmAsyncAPI
 from polyswarm_api import exceptions
 
+from test._e2e_helpers import (
+    EICAR_STRING, malicious_artifact, artifact_file, uid_ip, uid_host, uid_yara,
+)
+
 
 @contextmanager
 def _unique_artifact(content):
@@ -199,12 +203,21 @@ class TestAsyncScanCase:
     # ── Rescans ───────────────────────────────────────────────────────────────
 
     @vcr.use_cassette()
-    async def test_async_rescans(self):
+    async def test_async_rescans(self, uid):
         async with self._api() as api:
-            # Provision: submit a fresh artifact so rescan has something to
-            # rescan. The EICAR sha256 is deterministic for test/malicious.
-            await api.submit('test/malicious')
-            result = await api.rescan(SHA256)
+            # Self-contained: submit this test's own unique (EICAR + uid)
+            # artifact and rescan ITS sha, polling until the artifact is indexed.
+            content, sha = malicious_artifact(uid)
+            with artifact_file(content) as fpath:
+                await api.submit(fpath)
+            result = None
+            for _ in range(60):
+                try:
+                    result = await api.rescan(sha)
+                    break
+                except (exceptions.NotFoundException, exceptions.NoResultsException):
+                    await asyncio.sleep(1)
+            assert result is not None, 'rescan should resolve once the artifact is indexed'
             assert result.failed is False
             assert result.result is None
             result = await api.rescan_id(result.id)
@@ -214,11 +227,13 @@ class TestAsyncScanCase:
     # ── Search ────────────────────────────────────────────────────────────────
 
     @vcr.use_cassette()
-    async def test_async_hash_search(self):
+    async def test_async_hash_search(self, uid):
         async with self._api() as api:
-            await api.submit('test/malicious')
-            result = [r async for r in api.search(SHA256)]
-        assert result[0].sha256 == SHA256
+            content, sha = malicious_artifact(uid)
+            with artifact_file(content) as fpath:
+                await api.submit(fpath)
+            result = await _poll_results(lambda: api.search(sha), tries=60)
+        assert result and result[0].sha256 == sha
 
     @vcr.use_cassette()
     async def test_async_metadata_search(self):
@@ -262,17 +277,16 @@ class TestAsyncScanCase:
         assert set(['T1081', 'T1060', 'T1069']) <= set(ttps)
 
     @vcr.use_cassette()
-    async def test_async_search_by_ioc(self):
-        # Reverse IOC search via the artificial cape_sandbox_v2 trick on a UNIQUE
-        # artifact (the reverse/ES view overwrites cape_sandbox_v2 for an
-        # EICAR-style sha that has a real sandbox task, and the submit response
-        # has sha256=None for a fresh artifact) — see the sync test_search_by_ioc
-        # for the full rationale. Distinct IP from the forward test.
-        ioc_ip = '9.42.0.7'
-        content = b'polyswarm-sdk async search_by_ioc fixture\n'
-        sha = hashlib.sha256(content).hexdigest()
+    async def test_async_search_by_ioc(self, uid):
+        # uid-unique IP -> the reverse ES search matches ONLY this test's one
+        # artifact (single page), so it can't hang on multi-page accumulation the
+        # way the old shared 9.42.0.x IPs did; iterate-and-break on our sha rather
+        # than materialising the feed. See the sync test_search_by_ioc for the
+        # cape_sandbox_v2 / fresh-sha rationale.
+        ioc_ip = uid_ip(uid)
+        content, sha = malicious_artifact(uid)
         async with self._api() as api:
-            with _unique_artifact(content) as fpath:
+            with artifact_file(content) as fpath:
                 instance = await api.submit(fpath)
             await api.tool_metadata_create(
                 instance.id, 'cape_sandbox_v2', {
@@ -281,17 +295,21 @@ class TestAsyncScanCase:
                     'ttp': ['T1081', 'T1060', 'T1069'],
                 })
             # persist_external_metadata (Celery) + the 5s ES flush; poll until
-            # OUR sha resolves (not merely any result).
-            iocs = []
+            # OUR sha resolves.
+            # Unique IP => single-page result, so materialising is bounded; the
+            # SDK's own pagination cap (see _consume_results) guards any caller
+            # against a misbehaving multi-page server.
+            found = False
             for _ in range(90):
                 try:
-                    iocs = [r async for r in api.search_by_ioc(ip=ioc_ip)]
-                    if sha in [i.json for i in iocs]:
+                    iocs = [item.json async for item in api.search_by_ioc(ip=ioc_ip)]
+                    if sha in iocs:
+                        found = True
                         break
                 except exceptions.NoResultsException:
                     pass
                 await asyncio.sleep(1)
-        assert sha in [i.json for i in iocs]
+        assert found, 'search_by_ioc should surface our sha for our unique IP'
 
     # ── Known Hosts ───────────────────────────────────────────────────────────
 

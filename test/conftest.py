@@ -30,6 +30,20 @@ _NOISY_LIBS = ("vcr", "httpx", "httpcore", "asyncio")
 _TESTS_VCR_ON = os.getenv("TESTS_VCR", "on").lower() != "off"
 
 
+@pytest.fixture
+def uid(request):
+    """A deterministic, test-unique namespace token for the async (pytest-style)
+    suite — the test's own node name (e.g. ``test_async_search_by_ioc``).
+
+    Deterministic per test so the request is reproducible and the recorded VCR
+    cassette replays; unique per test so created resources never collide on the
+    shared e2e stack (enabling ``pytest -n auto``). The sync ``unittest.TestCase``
+    suite can't take fixtures as params, so it uses ``self._testMethodName``
+    instead — same value, same guarantees.
+    """
+    return request.node.name
+
+
 def pytest_configure(config):
     # Honor an explicit --log-cli-level / --log-level on the CLI; otherwise drive
     # both the live and captured log level from TESTS_LOG_LEVEL.

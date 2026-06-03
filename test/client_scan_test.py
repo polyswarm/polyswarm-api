@@ -16,6 +16,10 @@ from polyswarm_api.api import PolyswarmAPI
 from polyswarm_api import core
 from polyswarm_api import exceptions
 
+from test._e2e_helpers import (
+    EICAR_STRING, malicious_artifact, artifact_file, uid_ip, uid_host, uid_yara,
+)
+
 from unittest import TestCase, mock
 
 
@@ -176,11 +180,22 @@ class ScanTestCaseV2(TestCase):
     @vcr.use_cassette()
     def test_rescans(self):
         api = PolyswarmAPI(self.test_api_key, uri=f'http://artifact-index-e2e:9696/{self.api_version}', community='gamma')
-        # Provision: rescan operates on an existing artifact, so submit one
-        # first against a fresh e2e and use the EICAR sha256 (deterministic
-        # for the malicious fixture under test/malicious).
-        api.submit('test/malicious')
-        result = api.rescan('275a021bbfb6489e54d471899f7db9d1663fc695ec2fe2a2c4538aabf651fd0f')
+        # Self-contained: submit this test's own unique (EICAR + uid) artifact,
+        # then rescan ITS sha. rescan needs the artifact indexed, which lags a
+        # fresh submit, so poll the rescan until it stops 404-ing (the autouse
+        # fixture no-ops the sleep on VCR replay).
+        uid = self._testMethodName
+        content, sha = malicious_artifact(uid)
+        with artifact_file(content) as fpath:
+            api.submit(fpath)
+        result = None
+        for _ in range(60):
+            try:
+                result = api.rescan(sha)
+                break
+            except (exceptions.NotFoundException, exceptions.NoResultsException):
+                time.sleep(1)
+        assert result is not None, 'rescan should resolve once the artifact is indexed'
         assert result.failed is False
         assert result.result is None
         result = api.rescan_id(result.id)
@@ -238,10 +253,14 @@ class ScanTestCaseV2(TestCase):
     @vcr.use_cassette()
     def test_hash_search(self):
         api = PolyswarmAPI(self.test_api_key, uri=f'http://artifact-index-e2e:9696/{self.api_version}', community='gamma')
-        # Provision: search is indexed off submissions.
-        api.submit('test/malicious')
-        result = list(api.search('275a021bbfb6489e54d471899f7db9d1663fc695ec2fe2a2c4538aabf651fd0f'))
-        assert result[0].sha256 == '275a021bbfb6489e54d471899f7db9d1663fc695ec2fe2a2c4538aabf651fd0f'
+        # Self-contained: submit this test's own unique artifact and search for
+        # ITS sha. The search index lags the submit, so poll until it surfaces.
+        uid = self._testMethodName
+        content, sha = malicious_artifact(uid)
+        with artifact_file(content) as fpath:
+            api.submit(fpath)
+        result = _poll_results(lambda: list(api.search(sha)), tries=60)
+        assert result and result[0].sha256 == sha
 
     @vcr.use_cassette()
     def test_metadata_search(self):
@@ -583,29 +602,37 @@ class ScanTestCaseV2(TestCase):
         # The ES doc sat behind the 600s production flush, which is why this was
         # skipped; e2e now runs ELASTICSEARCH_FLUSH_INTERVAL=5s so it resolves in
         # ~15-30s.
-        ioc_ip = '9.42.0.6'
-        content = b'polyswarm-sdk search_by_ioc fixture\n'
-        sha = hashlib.sha256(content).hexdigest()
-        with temp_dir({'search_by_ioc_fixture': content}) as (_, files):
-            instance = api.submit(files[0])
+        #
+        # uid-unique IP: the reverse search then matches ONLY this test's one
+        # artifact, so it's a single page regardless of how much the (shared,
+        # though ephemeral) stack accumulated — this is what kept the old shared
+        # 9.42.0.x IPs returning multi-page results and hanging the suite. We also
+        # iterate-and-break on our sha rather than materialising the whole feed.
+        uid = self._testMethodName
+        ioc_ip = uid_ip(uid)
+        content, sha = malicious_artifact(uid)
+        with artifact_file(content) as fpath:
+            instance = api.submit(fpath)
         api.tool_metadata_create(instance.id, 'cape_sandbox_v2', {
             'extracted_c2_ips': [ioc_ip],
             'extracted_c2_urls': ['www.mock-ioc.test'],
             'ttp': ['T1081', 'T1060', 'T1069'],
         })
         # persist_external_metadata (Celery) + the 5s ES flush; poll until OUR
-        # sha resolves (not merely any result — an ip reused across artifacts
-        # can transiently return a neighbour's doc before ours flushes).
-        iocs = []
+        # sha resolves. Unique IP => single-page result, so materialising is
+        # bounded; the SDK's own pagination cap (see _consume_results) guards any
+        # caller against a misbehaving multi-page server.
+        found = False
         for _ in range(90):
             try:
-                iocs = list(api.search_by_ioc(ip=ioc_ip))
-                if sha in [i.json for i in iocs]:
+                iocs = [item.json for item in api.search_by_ioc(ip=ioc_ip)]
+                if sha in iocs:
+                    found = True
                     break
             except exceptions.NoResultsException:
                 pass
             time.sleep(1)
-        assert sha in [i.json for i in iocs]
+        assert found, 'search_by_ioc should surface our sha for our unique IP'
 
     @vcr.use_cassette()
     def test_add_known_good_host(self):

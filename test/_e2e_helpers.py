@@ -1,0 +1,80 @@
+"""Shared, transport-agnostic helpers for the live e2e test suites.
+
+These give every data-creating test a *deterministic-per-test, unique-per-test*
+namespace so the suite is self-contained and parallel-safe:
+
+* deterministic per test  -> the request is reproducible, so a recorded VCR
+  cassette replays (the unit CI jobs run ``TESTS_VCR`` on / replay).
+* unique per test          -> nothing collides on the shared e2e stack, so tests
+  can run concurrently (``pytest -n auto``) without interfering.
+
+The e2e stack has only the ``eicar`` engine, which flags an artifact malicious
+iff the EICAR string is a *substring* of its bytes (``EICAR_STRING in contents``).
+So a unique malicious artifact is ``EICAR + uid`` — still detected, but a fresh
+sha (which also means no seeded sandbox task exists to overwrite a mock
+``cape_sandbox_v2`` blob in the reverse-IOC ES view).
+
+``uid`` is the test's own name: ``self._testMethodName`` for the sync
+``unittest.TestCase`` suite, or the ``uid`` fixture (``request.node.name``) for
+the async pytest-style suite.
+"""
+import hashlib
+import os
+import re
+import tempfile
+from contextlib import contextmanager
+
+# The raw EICAR string — read once from the fixture. The only thing the e2e
+# 'eicar' engine matches (substring), so unique content must embed it.
+with open(os.path.join(os.path.dirname(__file__), 'malicious'), 'rb') as _fh:
+    EICAR_STRING = _fh.read()
+
+
+def malicious_artifact(uid):
+    """Return ``(content, sha256)`` for a unique-but-still-malicious artifact.
+
+    ``EICAR + uid`` keeps ``EICAR_STRING in contents`` true (so the eicar engine
+    flags it) while making the sha unique per test. Deterministic in ``uid`` so
+    the recorded cassette replays.
+    """
+    content = EICAR_STRING + b'\n' + uid.encode()
+    return content, hashlib.sha256(content).hexdigest()
+
+
+@contextmanager
+def artifact_file(content):
+    """Write ``content`` to a temp file and yield its path (for ``api.submit``)."""
+    with tempfile.TemporaryDirectory() as tmp_dir:
+        path = os.path.join(tmp_dir, 'artifact')
+        with open(path, 'wb') as fh:
+            fh.write(content)
+        yield path
+
+
+def uid_ip(uid):
+    """A deterministic, test-unique, globally-routable IOC IP.
+
+    ``filter_known_good_iocs`` drops private/reserved addresses, so we stay in
+    the public 9.42.0.0/16 block (IBM netblock, as the original hard-coded
+    ``9.42.0.x`` IPs did). The last two octets derive from a hash of ``uid`` so
+    every test gets its own IP, stable across runs; avoids ``.0``/``.255``.
+    """
+    h = int(hashlib.sha256(uid.encode()).hexdigest(), 16)
+    return f'9.42.{(h >> 8) % 256}.{(h % 254) + 1}'
+
+
+def uid_host(uid):
+    """A deterministic, test-unique known-good-host domain."""
+    return f'{re.sub(r"[^a-z0-9]+", "-", uid.lower()).strip("-")}.sdk.test'
+
+
+def uid_yara(uid):
+    """A YARA ruleset that matches ONLY this test's artifact.
+
+    The artifact embeds ``uid`` (see ``malicious_artifact``), so a rule keying on
+    that literal matches just this run's submission — isolating a live/historical
+    hunt from every other test's EICAR artifact (the generic eicar.yara substring
+    rule would match them all).
+    """
+    ident = re.sub(r'\W', '_', uid)
+    return f'rule sdk_{ident} {{ strings: $u = "{uid}" condition: $u }}'
