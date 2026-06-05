@@ -25,13 +25,24 @@ ENV TESTS_LOG_LEVEL=INFO
 # appear live (the harness streams this command), not in one dump at the end.
 ENV PYTHONUNBUFFERED=1
 
+# -n 8 runs the suite 8-way against the live stack. The suite is isolation-safe
+# (each test owns uniquely-keyed resources via a deterministic per-test uid and
+# asserts only on its own data), so workers never collide. Scan settling is a
+# global chain event, so concurrent scans close together rather than serially —
+# a clean same-stack A/B (both runs VCR-off, full suite, same live stack) measured
+# ~2 min (125.77s) vs ~7 min serial (428.77s) = ~3.4x, 127/127 green with no
+# poll-window or serial-grouping mitigations needed. (Serial wall-clock varies
+# ~7-9 min with stack warmth/load; the ratio is quoted against the clean baseline.)
+# Default load distribution; if a test family ever needs pinning to one worker, add
+# @pytest.mark.xdist_group(...) and switch this to --dist loadgroup.
+#
 # --timeout is a backstop for the live run: VCR-off keeps real poll/sleep pacing,
 # so a non-terminating test (e.g. a pagination loop) would otherwise hang until the
 # CI job limit. The signal method does NOT reliably interrupt a hang inside the
 # asyncio event loop, so use --timeout-method=thread: a watchdog thread fires
 # regardless of event-loop state, dumps every thread's stack (showing exactly where
 # execution is stuck), then terminates the run. Note: thread method ends the whole
-# session rather than failing one test, so a hang fails the job in ~300s with a
-# stack dump instead of running to the CI job limit. Tune 300s if real e2e timings
-# push past it.
-CMD ["pytest", "test/", "--timeout=300", "--timeout-method=thread"]
+# session rather than failing one test, so a hang fails the job with a stack dump
+# instead of running to the CI job limit. 600s (raised from the serial 300s) gives
+# per-test headroom under 8x pipeline contention; tune if real e2e timings push past it.
+CMD ["pytest", "test/", "-n", "8", "--timeout=600", "--timeout-method=thread"]
