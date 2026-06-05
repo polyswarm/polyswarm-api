@@ -241,9 +241,26 @@ The runner uses `--dist worksteal` (idle workers steal queued tests from busy on
 
 A few tests submit/dispatch several artifacts in one body; `run_concurrently` / `run_concurrently_async` (in `_e2e_helpers.py`) fan those out **only on the live run** and stay serial on replay — vcrpy patches the transport via `mock.patch`, which isn't thread-safe, and replay no-ops the sleeps anyway, so serial replay is both deterministic and instant (no cassette re-record needed).
 
-**These are correctness/scheduling/cleanup wins, not wall-clock movers.** The suite's floor is the per-scan **~32s arbiter-vote settle** (`window_closed`), which every settle-bound test on a worker's serial chain pays in full; it's gated inside polyswarmd3 (the bounty/vote window), *not* by any e2e harness knob or by xdist scheduling. Lowering the e2e job-phase periodicity 10→3 provably did not move it (a single-scan settle stayed 32s), and a full `-n 8 --dist worksteal` run measured ~129s vs the ~126s `load` baseline (noise). Reducing that floor — the polyswarmd3 vote window — or sharing one settled artifact across read-only tests is the real lever for further speedup.
+**These are correctness/scheduling/cleanup wins, not the wall-clock lever.** The suite's floor is the per-scan settle (`window_closed`), which every settle-bound test on a worker's serial chain pays in full. That floor is **not** the xdist scheduling or the job-phase cadence (lowering the e2e periodicity 10→3 provably didn't move it — a single-scan settle stayed ~32s). It is set deterministically at bounty creation by **`bounty_duration`** (the assertion-window length, ~25s of the ~32s) **+ `ARBITER_VOTE_DELAY`** (~1s). `bounty_duration` is an **artifact-index `ScanConfig` field** — the `default` config the suite submits with — so the lever lives in the e2e/artifact-index config, not in this repo. The full bounty lifecycle and these knobs are documented authoritatively in artifact-index `specs/02-bounty-scan-lifecycle.md`.
+
+### The scan-settle floor (the real speedup lever)
+
+The e2e stack shrinks the floor for the live suite: `BOUNTY_DURATION=5` (seeds the `default`/`feed` `ScanConfig`s, via artifact-index `cli/db.py`) + `ARBITER_VOTE_DELAY=0` + the job-phase periodicity at 1s, collapsing the per-scan settle from ~32s to ~12s (measured: a single scan went 32s → 12.7s). For the full `-n 8 --dist worksteal` suite that took **~129s → ~63s** (and ~70s with the job-phase at 3s) — a ~2× cut on top of the parallelism, and ~6.8× versus the original ~429s serial. The floor stays comfortably above the eicar engine's ~2s assertion latency, so scans still produce real assertions **and** an arbiter vote; `assert_scanned` is the guardrail that fails loudly if the window is ever cut too short. Beyond this, the only further lever is sharing one settled artifact across read-only tests (per-worker fixture) to cut how many settles land on the critical chain.
 
 If a future test family must run on a single worker (a global-mechanism test that can't tolerate cross-worker concurrency), mark its tests `@pytest.mark.xdist_group("<name>")` and switch the CMD from `--dist worksteal` to `--dist loadgroup`.
+
+### Testing a paired server-side change locally (`build → tag latest → e2e run -pin`)
+
+Some SDK behaviour depends on the **server** (artifact-index / polyswarmd3), and a fix there (e.g. the `BOUNTY_DURATION`-driven seed, or a read-your-writes cache fix) can't be exercised against the registry image the e2e stack pulls by default. To run the live suite against **local, uncommitted** server changes — without pushing or waiting on CI:
+
+1. Build the service image from its repo, matching its CI `build` job (`extends: .build-docker`; image `${REGISTRY_URL}/<BASE_IMAGE_NAME>`, built from `docker/Dockerfile`). Private PolySwarm deps need the `PIP_INDEX_URL` build-arg from `~/.config/secrets/terminal.env` (interactive shells) or `~/.config/secrets/claude.env` / `~/.netrc`:
+   ```bash
+   set -a; . ~/.config/secrets/terminal.env; set +a
+   cd ../artifact-index && docker build -f docker/Dockerfile \
+     --build-arg PIP_INDEX_URL="$PIP_INDEX_URL" \
+     -t 077282062506.dkr.ecr.us-east-2.amazonaws.com/artifact-index:latest .
+   ```
+2. Boot the stack with `e2e run -pin` (`--skip-pull --image-default-tag --no-commands`): `-p` keeps your local `:latest` from being overwritten by an ECR pull, `-i` pins the compose default tag, `-n` skips the SDK command step so you run the suite yourself. Then `TESTS_VCR=off pytest test/ -n 8 --dist worksteal` against it. (All *other* images must already be cached locally — warm them with one normal run first.) The authoritative writeup lives in the e2e repo's `specs/04-images-and-registry.md`.
 
 ## Adding a new test
 
