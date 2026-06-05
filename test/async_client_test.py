@@ -31,7 +31,39 @@ from polyswarm_api import exceptions
 
 from test._e2e_helpers import (
     EICAR_STRING, malicious_artifact, artifact_file, uid_ip, uid_host, uid_yara,
+    assert_scanned,
 )
+
+
+async def submit_and_scan(api, uid, wait=True):
+    """Async counterpart of the sync ``submit_and_scan``: submit this test's
+    unique EICAR artifact and, by default, wait for the scan to complete and
+    assert it produced engine assertions and/or arbiter votes. ``wait=False``
+    just submits (provisioning for a different flow). Returns ``(instance, sha)``.
+    """
+    content, sha = malicious_artifact(uid)
+    with artifact_file(content) as fpath:
+        instance = await api.submit(fpath)
+    if wait:
+        instance = await api.wait_for(instance)
+        assert_scanned(instance)
+    return instance, sha
+
+
+async def rescan_and_scan(api, sha):
+    """Async counterpart: rescan a sha (polling until the artifact is indexed),
+    wait for the new scan to complete, and assert assertions/votes."""
+    instance = None
+    for _ in range(60):
+        try:
+            instance = await api.rescan(sha)
+            break
+        except (exceptions.NotFoundException, exceptions.NoResultsException):
+            await asyncio.sleep(1)
+    assert instance is not None, 'rescan should resolve once the artifact is indexed'
+    instance = await api.wait_for(instance)
+    assert_scanned(instance)
+    return instance
 
 
 @contextmanager
@@ -197,54 +229,38 @@ class TestAsyncScanCase:
 
     @vcr.use_cassette()
     async def test_async_submission(self, uid):
+        # Canonical "a file goes in and gets scanned" path (async): submit_and_scan
+        # waits for completion and asserts assertions/votes landed.
         async with self._api() as api:
-            content, _ = malicious_artifact(uid)
-            with artifact_file(content) as fpath:
-                result = await api.submit(fpath)
-        assert result.failed is False
-        assert result.result is None
+            instance, sha = await submit_and_scan(api, uid)
+        assert instance.sha256 == sha
 
     # ── Rescans ───────────────────────────────────────────────────────────────
 
     @vcr.use_cassette()
     async def test_async_rescans(self, uid):
         async with self._api() as api:
-            # Self-contained: submit this test's own unique (EICAR + uid)
-            # artifact and rescan ITS sha, polling until the artifact is indexed.
+            # Submit this test's own unique artifact, then rescan by hash and by
+            # id; rescan_and_scan confirms each rescan actually re-runs the scan.
             content, sha = malicious_artifact(uid)
             with artifact_file(content) as fpath:
                 await api.submit(fpath)
-            result = None
-            for _ in range(60):
-                try:
-                    result = await api.rescan(sha)
-                    break
-                except (exceptions.NotFoundException, exceptions.NoResultsException):
-                    await asyncio.sleep(1)
-            assert result is not None, 'rescan should resolve once the artifact is indexed'
-            assert result.failed is False
-            assert result.result is None
-            result = await api.rescan_id(result.id)
-            assert result.failed is False
-            assert result.result is None
+            rescanned = await rescan_and_scan(api, sha)
+            assert_scanned(await api.wait_for(await api.rescan_id(rescanned.id)))
 
     # ── Search ────────────────────────────────────────────────────────────────
 
     @vcr.use_cassette()
     async def test_async_hash_search(self, uid):
         async with self._api() as api:
-            content, sha = malicious_artifact(uid)
-            with artifact_file(content) as fpath:
-                await api.submit(fpath)
+            _, sha = await submit_and_scan(api, uid)
             result = await _poll_results(lambda: api.search(sha), tries=60)
         assert result and result[0].sha256 == sha
 
     @vcr.use_cassette()
     async def test_async_metadata_search(self, uid):
         async with self._api() as api:
-            content, sha = malicious_artifact(uid)
-            with artifact_file(content) as fpath:
-                await api.submit(fpath)
+            _, sha = await submit_and_scan(api, uid)
             result = await _poll_results(
                 lambda: api.search_by_metadata(f'artifact.sha256:{sha}'), tries=90)
         assert result and result[0].sha256 == sha

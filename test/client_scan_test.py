@@ -18,9 +18,45 @@ from polyswarm_api import exceptions
 
 from test._e2e_helpers import (
     EICAR_STRING, malicious_artifact, artifact_file, uid_ip, uid_host, uid_yara,
+    assert_scanned,
 )
 
 from unittest import TestCase, mock
+
+
+def submit_and_scan(api, uid, wait=True):
+    """Submit this test's unique EICAR artifact.
+
+    By default (``wait=True``) wait for the scan to complete and assert it
+    produced engine assertions and/or arbiter votes — the canonical "a file goes
+    in and gets scanned" path. With ``wait=False`` just submit, for tests that
+    only need an instance to drive a different flow (sandbox / IOC / hunt /
+    stream). Returns ``(instance, sha)`` — ``instance`` is the completed,
+    window-closed scan result when ``wait=True``, else the submit response.
+    """
+    content, sha = malicious_artifact(uid)
+    with artifact_file(content) as fpath:
+        instance = api.submit(fpath)
+    if wait:
+        instance = api.wait_for(instance)
+        assert_scanned(instance)
+    return instance, sha
+
+
+def rescan_and_scan(api, sha):
+    """Rescan an existing sha (polling until the artifact is indexed), wait for
+    the new scan to complete, and assert it produced assertions/votes."""
+    instance = None
+    for _ in range(60):
+        try:
+            instance = api.rescan(sha)
+            break
+        except (exceptions.NotFoundException, exceptions.NoResultsException):
+            time.sleep(1)
+    assert instance is not None, 'rescan should resolve once the artifact is indexed'
+    instance = api.wait_for(instance)
+    assert_scanned(instance)
+    return instance
 
 
 vcr = vcr_.VCR(cassette_library_dir='test/vcr',
@@ -173,36 +209,23 @@ class ScanTestCaseV2(TestCase):
     @vcr.use_cassette()
     def test_submission(self):
         api = PolyswarmAPI(self.test_api_key, uri=f'http://artifact-index-e2e:9696/{self.api_version}', community='gamma')
-        content, _ = malicious_artifact(self._testMethodName)
-        with artifact_file(content) as fpath:
-            result = api.submit(fpath)
-        assert result.failed is False
-        assert result.result is None
+        # Canonical "a file goes in and gets scanned" path: submit_and_scan waits
+        # for the scan to complete and asserts the entry carries assertions/votes.
+        instance, sha = submit_and_scan(api, self._testMethodName)
+        assert instance.sha256 == sha
 
     @vcr.use_cassette()
     def test_rescans(self):
         api = PolyswarmAPI(self.test_api_key, uri=f'http://artifact-index-e2e:9696/{self.api_version}', community='gamma')
-        # Self-contained: submit this test's own unique (EICAR + uid) artifact,
-        # then rescan ITS sha. rescan needs the artifact indexed, which lags a
-        # fresh submit, so poll the rescan until it stops 404-ing (the autouse
-        # fixture no-ops the sleep on VCR replay).
+        # Submit this test's own unique artifact, then rescan it by hash and by
+        # id. rescan_and_scan confirms each rescan actually re-runs the scan
+        # (assertions/votes land), not merely that the call was accepted.
         uid = self._testMethodName
         content, sha = malicious_artifact(uid)
         with artifact_file(content) as fpath:
             api.submit(fpath)
-        result = None
-        for _ in range(60):
-            try:
-                result = api.rescan(sha)
-                break
-            except (exceptions.NotFoundException, exceptions.NoResultsException):
-                time.sleep(1)
-        assert result is not None, 'rescan should resolve once the artifact is indexed'
-        assert result.failed is False
-        assert result.result is None
-        result = api.rescan_id(result.id)
-        assert result.failed is False
-        assert result.result is None
+        rescanned = rescan_and_scan(api, sha)
+        assert_scanned(api.wait_for(api.rescan_id(rescanned.id)))
 
     @vcr.use_cassette()
     def test_download(self):
@@ -289,24 +312,18 @@ class ScanTestCaseV2(TestCase):
     @vcr.use_cassette()
     def test_hash_search(self):
         api = PolyswarmAPI(self.test_api_key, uri=f'http://artifact-index-e2e:9696/{self.api_version}', community='gamma')
-        # Self-contained: submit this test's own unique artifact and search for
-        # ITS sha. The search index lags the submit, so poll until it surfaces.
-        uid = self._testMethodName
-        content, sha = malicious_artifact(uid)
-        with artifact_file(content) as fpath:
-            api.submit(fpath)
+        # Submit + scan this test's own artifact (confirms it scanned), then
+        # search for ITS sha. The search index can lag the scan, so poll.
+        _, sha = submit_and_scan(api, self._testMethodName)
         result = _poll_results(lambda: list(api.search(sha)), tries=60)
         assert result and result[0].sha256 == sha
 
     @vcr.use_cassette()
     def test_metadata_search(self):
         api = PolyswarmAPI(self.test_api_key, uri=f'http://artifact-index-e2e:9696/{self.api_version}', community='gamma')
-        # Self-contained: submit this test's own unique artifact, then search the
-        # ES metadata index for ITS sha (the query is sha-scoped, so it returns
-        # only this artifact). The metadata write lags the submit, so poll.
-        content, sha = malicious_artifact(self._testMethodName)
-        with artifact_file(content) as fpath:
-            api.submit(fpath)
+        # Submit + scan this test's own artifact, then search the ES metadata
+        # index for ITS sha (sha-scoped query). The metadata write can lag, so poll.
+        _, sha = submit_and_scan(api, self._testMethodName)
         result = _poll_results(
             lambda: api.search_by_metadata(f'artifact.sha256:{sha}'), tries=90)
         assert result and result[0].sha256 == sha

@@ -78,3 +78,23 @@ def uid_yara(uid):
     """
     ident = re.sub(r'\W', '_', uid)
     return f'rule sdk_{ident} {{ strings: $u = "{uid}" condition: $u }}'
+
+
+def assert_scanned(instance):
+    """Assert a submitted/rescanned artifact actually ran through the scan
+    pipeline: the entry isn't failed and carries engine **assertions and/or**
+    arbiter **votes**.
+
+    The e2e runs the single ``eicar`` microengine, so a scanned EICAR artifact
+    surfaces at least one assertion (and an arbiter vote once the bounty window
+    settles). Call this on a window-closed result (i.e. after
+    ``api.wait_for(...)``) — see ``submit_and_scan`` / ``rescan_and_scan`` in the
+    sync/async suites, which is where the "a file goes in and gets scanned" path
+    is exercised and verified.
+    """
+    assert instance is not None, 'expected a scan result, got None'
+    assert not instance.failed, (
+        'scan failed: %r' % getattr(instance, 'failed_reason', None))
+    assert instance.assertions or instance.votes, (
+        'a completed scan must carry engine assertions and/or arbiter votes — '
+        'got neither (is the scan pipeline running?)')
