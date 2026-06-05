@@ -31,7 +31,7 @@ from polyswarm_api import exceptions
 
 from test._e2e_helpers import (
     EICAR_STRING, malicious_artifact, artifact_file, uid_ip, uid_host, uid_yara,
-    assert_scanned,
+    assert_scanned, run_concurrently_async,
 )
 
 
@@ -163,14 +163,27 @@ async def _submit_sandbox_artifact(client, task_id, content, artifact_type, name
     (await client.patch(f'{SANDBOX_SERVICE_URI}/api/sandbox-artifact/{created["id"]}/')).raise_for_status()
 
 
-async def _complete_sandbox_task(task_id, sandbox):
+async def _complete_sandbox_task(task_id, sandbox, tries=30, delay=1):
     """Drive a queued SandboxTask to SUCCEEDED without a real VM: STARTED -> a
     REPORT artifact (whose JSON the backend records as the sandbox tool's
     metadata, which lets the task complete) -> COLLECTING_DATA. triage also
     requires a RECORDING artifact first. Status codes: STARTED=1,
-    COLLECTING_DATA=8. See client_scan_test.py for the full rationale."""
+    COLLECTING_DATA=8. See client_scan_test.py for the full rationale.
+
+    The opening STARTED post is retried: a just-dispatched task takes a moment to
+    register on the sandbox service, so we wait (event-driven) for the service to
+    accept the status instead of padding a fixed sleep before completing."""
     async with httpx.AsyncClient(timeout=60) as client:
-        await _post_sandbox_status(client, task_id, 1)
+        last = None
+        for _ in range(tries):
+            try:
+                await _post_sandbox_status(client, task_id, 1)
+                break
+            except httpx.HTTPStatusError as e:
+                last = e
+                await asyncio.sleep(delay)
+        else:
+            raise last
         await _submit_sandbox_artifact(client, task_id, {'malscore': 5.0},
                                        'report', f'{sandbox}_report.json')
         if sandbox == 'triage':
@@ -276,7 +289,6 @@ class TestAsyncScanCase:
         async with self._api() as api:
             instance, sha = await submit_and_scan(api, uid, wait=False)
             cape = await _dispatch_sandbox(api, instance.id, 'cape', 'win-10-build-19041', True)
-            await asyncio.sleep(6)
             await _complete_sandbox_task(cape.id, 'cape')
             # Wait until the task is fully processed before attaching our mock IOC,
             # so ours is the last write and isn't clobbered under load.
@@ -402,7 +414,6 @@ class TestAsyncScanCase:
             # No cape/triage VMs in e2e — drive each task to SUCCEEDED by replaying
             # the sandbox worker's HTTP calls. Completing a task creates its
             # SandboxTaskSearchHash row, which sandbox_task_latest reads.
-            await asyncio.sleep(6)
             await _complete_sandbox_task(cape.id, 'cape')
             await _complete_sandbox_task(triage.id, 'triage')
 
@@ -421,8 +432,11 @@ class TestAsyncScanCase:
     async def test_async_sandboxtask_list(self, uid):
         async with self._api() as api:
             instance, sha = await submit_and_scan(api, uid, wait=False)
-            await _dispatch_sandbox(api, instance.id, 'cape', 'win-10-build-19041', True)
-            await _dispatch_sandbox(api, instance.id, 'triage', 'win10-build-15063', False)
+            # Dispatch cape + triage concurrently (distinct sandbox slugs, independent).
+            await run_concurrently_async([
+                _dispatch_sandbox(api, instance.id, 'cape', 'win-10-build-19041', True),
+                _dispatch_sandbox(api, instance.id, 'triage', 'win10-build-15063', False),
+            ])
 
             # Poll until the SandboxTaskSearchHash index sees both tasks.
             for _ in range(30):
@@ -456,7 +470,6 @@ class TestAsyncScanCase:
             instance, sha = await submit_and_scan(api, uid, wait=False)
             cape = await _dispatch_sandbox(api, instance.id, 'cape', 'win-10-build-19041', True)
             triage = await _dispatch_sandbox(api, instance.id, 'triage', 'win10-build-15063', False)
-            await asyncio.sleep(6)
             await _complete_sandbox_task(cape.id, 'cape')
             await _complete_sandbox_task(triage.id, 'triage')
 

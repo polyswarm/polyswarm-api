@@ -18,7 +18,7 @@ from polyswarm_api import exceptions
 
 from test._e2e_helpers import (
     EICAR_STRING, malicious_artifact, artifact_file, uid_ip, uid_host, uid_yara,
-    assert_scanned,
+    assert_scanned, run_concurrently,
 )
 
 from unittest import TestCase, mock
@@ -167,13 +167,26 @@ def _submit_sandbox_artifact(task_id, content, artifact_type, name,
                 timeout=30).raise_for_status()
 
 
-def _complete_sandbox_task(task_id, sandbox):
+def _complete_sandbox_task(task_id, sandbox, tries=30, delay=1):
     """Drive a queued SandboxTask to SUCCEEDED without a real VM: STARTED -> a
     REPORT artifact (whose JSON the backend records as the sandbox tool's
     metadata, which is what lets the task complete) -> COLLECTING_DATA. triage
     additionally requires a RECORDING artifact before it will complete, so submit
-    one first. Status codes: STARTED=1, COLLECTING_DATA=8."""
-    _post_sandbox_status(task_id, 1)
+    one first. Status codes: STARTED=1, COLLECTING_DATA=8.
+
+    The opening STARTED post is retried: a just-dispatched task takes a moment to
+    register on the sandbox service, so we wait (event-driven) for the service to
+    accept the status instead of padding a fixed sleep before completing."""
+    last = None
+    for _ in range(tries):
+        try:
+            _post_sandbox_status(task_id, 1)
+            break
+        except httpx.HTTPStatusError as e:
+            last = e
+            time.sleep(delay)
+    else:
+        raise last
     _submit_sandbox_artifact(task_id, {'malscore': 5.0}, 'report', f'{sandbox}_report.json')
     if sandbox == 'triage':
         _submit_sandbox_artifact(task_id, b'recording-data', 'recording', 'recording.cast',
@@ -279,9 +292,16 @@ class ScanTestCaseV2(TestCase):
         for i in range(8):
             content, sha = malicious_artifact(f'{uid}-{i}')
             my[sha] = content
+        my_shas = set(my)
+
+        # Submit our batch concurrently — the live run pays ~one round-trip
+        # instead of eight serial submits. The submit responses are unused (each
+        # sha is re-derived from local content), so submission order is irrelevant.
+        def _submit(content):
             with artifact_file(content) as fpath:
                 api.submit(fpath)
-        my_shas = set(my)
+
+        run_concurrently([lambda c=c: _submit(c) for c in my.values()])
         found, seen = set(), set()
         with temp_dir({}) as (path, _):
             for _ in range(90):
@@ -612,7 +632,6 @@ class ScanTestCaseV2(TestCase):
         ioc_ip = uid_ip(uid)
         instance, sha = submit_and_scan(api, uid, wait=False)
         cape = _dispatch_sandbox(api, instance.id, 'cape', 'win-10-build-19041', True)
-        time.sleep(6)
         _complete_sandbox_task(cape.id, 'cape')
         # Wait until the task is fully processed (SandboxTaskSearchHash populated
         # and the completion's own async metadata write settled) BEFORE attaching
@@ -760,10 +779,8 @@ class ScanTestCaseV2(TestCase):
         cape = _dispatch_sandbox(v3api, instance.id, 'cape', 'win-10-build-19041', True)
         triage = _dispatch_sandbox(v3api, instance.id, 'triage', 'win10-build-15063', False)
 
-        # Let the sandbox service register the dispatched tasks (it creates the
-        # root artifact the status/result callbacks key off) before we complete
-        # them; the autouse fixture no-ops this sleep on VCR replay.
-        time.sleep(6)
+        # _complete_sandbox_task waits (event-driven) for the sandbox service to
+        # register each just-dispatched task before driving it to SUCCEEDED.
         _complete_sandbox_task(cape.id, 'cape')
         _complete_sandbox_task(triage.id, 'triage')
 
@@ -781,8 +798,11 @@ class ScanTestCaseV2(TestCase):
         # Self-contained: submit our own artifact and queue cape + triage for ITS
         # sha. Assertions are scoped to our sha, so they're exact for this run.
         instance, sha256 = submit_and_scan(v3api, self._testMethodName, wait=False)
-        _dispatch_sandbox(v3api, instance.id, 'cape', 'win-10-build-19041', True)
-        _dispatch_sandbox(v3api, instance.id, 'triage', 'win10-build-15063', False)
+        # Dispatch cape + triage concurrently (distinct sandbox slugs, independent).
+        run_concurrently([
+            lambda: _dispatch_sandbox(v3api, instance.id, 'cape', 'win-10-build-19041', True),
+            lambda: _dispatch_sandbox(v3api, instance.id, 'triage', 'win10-build-15063', False),
+        ])
 
         # Poll until the SandboxTaskSearchHash index sees both tasks.
         for _ in range(30):
@@ -819,7 +839,6 @@ class ScanTestCaseV2(TestCase):
         instance, sha = submit_and_scan(api, uid, wait=False)
         cape = _dispatch_sandbox(api, instance.id, 'cape', 'win-10-build-19041', True)
         triage = _dispatch_sandbox(api, instance.id, 'triage', 'win10-build-15063', False)
-        time.sleep(6)
         _complete_sandbox_task(cape.id, 'cape')
         _complete_sandbox_task(triage.id, 'triage')
 

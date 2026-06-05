@@ -18,10 +18,12 @@ sha (which also means no seeded sandbox task exists to overwrite a mock
 ``unittest.TestCase`` suite, or the ``uid`` fixture (``request.node.name``) for
 the async pytest-style suite.
 """
+import asyncio
 import hashlib
 import os
 import re
 import tempfile
+from concurrent.futures import ThreadPoolExecutor
 from contextlib import contextmanager
 
 # The raw EICAR string — read once from the fixture. The only thing the e2e
@@ -98,3 +100,35 @@ def assert_scanned(instance):
     assert instance.assertions or instance.votes, (
         'a completed scan must carry engine assertions and/or arbiter votes — '
         'got neither (is the scan pipeline running?)')
+
+
+def _vcr_off():
+    """True on the live run (``TESTS_VCR=off``). Test-internal concurrency is
+    gated on this. On VCR *replay* we stay serial: vcrpy patches the HTTP
+    transport with ``mock.patch``, which isn't thread-safe — concurrent requests
+    flake with ``'_patch' object has no attribute 'target'`` — and replay no-ops
+    the poll sleeps anyway, so serial replay is already instant and matches the
+    order the cassette was recorded in (so no re-record is needed). The
+    concurrency only buys wall-clock against the live stack.
+    """
+    return os.getenv('TESTS_VCR', 'on').lower() == 'off'
+
+
+def run_concurrently(fns):
+    """Run zero-arg callables concurrently on the live run, serially on replay
+    (see ``_vcr_off``). Results are returned in input order; exceptions
+    propagate. Use for independent same-test submits/dispatches whose ordering
+    doesn't matter to the assertions."""
+    if _vcr_off() and len(fns) > 1:
+        with ThreadPoolExecutor(max_workers=len(fns)) as pool:
+            return [f.result() for f in [pool.submit(fn) for fn in fns]]
+    return [fn() for fn in fns]
+
+
+async def run_concurrently_async(coros):
+    """Async counterpart of ``run_concurrently``: ``asyncio.gather`` on the live
+    run, awaited serially on replay. Consumes the passed coroutine objects
+    either way; results are returned in input order."""
+    if _vcr_off() and len(coros) > 1:
+        return await asyncio.gather(*coros)
+    return [await c for c in coros]
