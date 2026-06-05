@@ -204,7 +204,7 @@ This is also how cassettes get re-recorded en masse during major SDK changes —
 
 ## Running the suite in parallel (`pytest -n`)
 
-The VCR-off live run executes the full `test/` suite 8-way against the live e2e stack via `pytest-xdist`. This is the default in the test image — the `docker/Dockerfile` CMD is `pytest test/ -n 8 --timeout=600 --timeout-method=thread`. Measured A/B against the same live e2e stack (VCR off, full suite, 127 tests):
+The VCR-off live run executes the full `test/` suite 8-way against the live e2e stack via `pytest-xdist`. This is the default in the test image — the `docker/Dockerfile` CMD is `pytest test/ -n 8 --dist worksteal --timeout=600 --timeout-method=thread`. Measured A/B against the same live e2e stack (VCR off, full suite, 127 tests):
 
 | Mode | Wall clock | Result |
 |---|---|---|
@@ -233,11 +233,17 @@ An earlier plan hedged that `-n 8` might need (a) poll windows scaled by `PYTEST
 
 - The failure class that motivated poll-scaling (a `-n 3` flake where the `cape_sandbox_v2` metadata-persist lagged past the poll window) was already closed earlier in the same change by a **settle-then-attach + 90-iteration poll** fix on the forward `iocs_by_hash` path. With that in place the test is stable at 8× concurrency.
 - The global tests don't collide (each scoped to its own sha / `livescan_id`), so serial-grouping was unnecessary.
-- Default load distribution didn't starve the stack at 8 workers, so no capacity increase in the e2e harness was required.
+- The default distribution didn't starve the stack at 8 workers, so no capacity increase in the e2e harness was required.
 
-### Future knob: pinning a test family to one worker
+### Scheduling, ordering, and intra-test concurrency
 
-If a future test family ever needs to run on a single worker (e.g. a new global-mechanism test that genuinely can't tolerate cross-worker concurrency), mark its tests `@pytest.mark.xdist_group("<name>")` and switch the CMD from default load distribution to `--dist loadgroup`. That keeps the grouped tests on one worker while everything else stays parallel. It's not needed today.
+The runner uses `--dist worksteal` (idle workers steal queued tests from busy ones — ≥ static `load` for tail balance; `loadscope` is avoided because it groups by module and would *concentrate* the heavy live tests on fewer workers). `conftest.py`'s `pytest_collection_modifyitems` then front-loads the long-pole live tests so they start at t=0 and the ~100 unit/respx tests backfill the tail. Both are deterministic (keyed on `nodeid`) so every xdist worker collects the same order.
+
+A few tests submit/dispatch several artifacts in one body; `run_concurrently` / `run_concurrently_async` (in `_e2e_helpers.py`) fan those out **only on the live run** and stay serial on replay — vcrpy patches the transport via `mock.patch`, which isn't thread-safe, and replay no-ops the sleeps anyway, so serial replay is both deterministic and instant (no cassette re-record needed).
+
+**These are correctness/scheduling/cleanup wins, not wall-clock movers.** The suite's floor is the per-scan **~32s arbiter-vote settle** (`window_closed`), which every settle-bound test on a worker's serial chain pays in full; it's gated inside polyswarmd3 (the bounty/vote window), *not* by any e2e harness knob or by xdist scheduling. Lowering the e2e job-phase periodicity 10→3 provably did not move it (a single-scan settle stayed 32s), and a full `-n 8 --dist worksteal` run measured ~129s vs the ~126s `load` baseline (noise). Reducing that floor — the polyswarmd3 vote window — or sharing one settled artifact across read-only tests is the real lever for further speedup.
+
+If a future test family must run on a single worker (a global-mechanism test that can't tolerate cross-worker concurrency), mark its tests `@pytest.mark.xdist_group("<name>")` and switch the CMD from `--dist worksteal` to `--dist loadgroup`.
 
 ## Adding a new test
 
