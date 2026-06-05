@@ -86,3 +86,41 @@ def _skip_poll_sleep_on_replay(request, monkeypatch):
         return None
 
     monkeypatch.setattr(asyncio, "sleep", _noop_async_sleep)
+
+
+# Long-pole-first scheduling hint. The live (TESTS_VCR=off) run is bound by the
+# slowest xdist worker's serial chain, and a handful of tests block on real
+# pipeline latency (scan settle, sandbox completion, IOC/metadata/feed polls)
+# while the ~100 unit/respx tests finish near-instantly. Running the heavy tests
+# first (so they start at t=0 and the fast ones backfill the tail) keeps workers
+# from idling on a straggler. Fragments are ranked roughly by observed cost.
+#
+# This is a pure scheduling hint — tests are isolation-safe and order-independent,
+# so correctness doesn't depend on it. The sort key is derived only from nodeid,
+# so it's deterministic and identical across all xdist workers (xdist requires a
+# consistent collection order; a non-deterministic key would error). On replay
+# the sleeps are no-op'd anyway, so this only matters for the live run.
+_LONG_POLE_FRAGMENTS = (
+    "live",             # test_live / test_async_live — live-feed polling
+    "iocs_by_hash",     # forward-IOC settle + metadata poll
+    "search_by_ioc",    # reverse-IOC metadata poll
+    "metadata_search",  # ES index-lag poll
+    "sample",           # sandbox completion + metadata
+    "stream",           # global archiver batching
+    "rescan",           # rescan retry loop + settle
+    "hash_search",      # search-index lag
+    "sandboxtask",      # sandbox completion + index lag
+)
+
+
+def _long_pole_rank(item):
+    name = item.nodeid
+    for rank, frag in enumerate(_LONG_POLE_FRAGMENTS):
+        if frag in name:
+            return rank
+    return len(_LONG_POLE_FRAGMENTS)  # unit/respx tests backfill the tail
+
+
+def pytest_collection_modifyitems(config, items):
+    # Stable sort by long-pole rank so within-rank collection order is preserved.
+    items.sort(key=_long_pole_rank)

@@ -33,8 +33,11 @@ ENV PYTHONUNBUFFERED=1
 # ~2 min (125.77s) vs ~7 min serial (428.77s) = ~3.4x, 127/127 green with no
 # poll-window or serial-grouping mitigations needed. (Serial wall-clock varies
 # ~7-9 min with stack warmth/load; the ratio is quoted against the clean baseline.)
-# Default load distribution; if a test family ever needs pinning to one worker, add
-# @pytest.mark.xdist_group(...) and switch this to --dist loadgroup.
+# Uses --dist worksteal: idle workers steal queued tests from busy ones, so the
+# long-pole live tests don't leave fast workers idle (better tail balance than
+# static load). Test collection order (conftest.py) puts the heavy live tests
+# first so they start at t=0. If a test family ever needs pinning to one worker,
+# mark it @pytest.mark.xdist_group(...) and switch to --dist loadgroup.
 #
 # --timeout is a backstop for the live run: VCR-off keeps real poll/sleep pacing,
 # so a non-terminating test (e.g. a pagination loop) would otherwise hang until the
@@ -45,4 +48,4 @@ ENV PYTHONUNBUFFERED=1
 # session rather than failing one test, so a hang fails the job with a stack dump
 # instead of running to the CI job limit. 600s (raised from the serial 300s) gives
 # per-test headroom under 8x pipeline contention; tune if real e2e timings push past it.
-CMD ["pytest", "test/", "-n", "8", "--timeout=600", "--timeout-method=thread"]
+CMD ["pytest", "test/", "-n", "8", "--dist", "worksteal", "--timeout=600", "--timeout-method=thread"]
