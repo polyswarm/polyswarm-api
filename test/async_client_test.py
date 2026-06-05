@@ -1205,3 +1205,71 @@ async def test_async_pagination_bounded_when_cursor_never_advances():
         results = [r async for r in api.search(SHA256)]
     # Terminated with a bounded set instead of hanging.
     assert 0 < len(results) <= 5
+
+
+# ── Sandbox finalize request shape (no cassette) — guards the finalize regression ──
+
+def _sandbox_task_payload(task_id, community='gamma',
+                          upload_url='https://s3.example.com/sb-upload?sig=x'):
+    """Minimal valid SandboxTask response body for respx mocks."""
+    return {
+        'id': task_id, 'community': community, 'sandbox': 'cape',
+        'created': '2026-01-01T00:00:00', 'expiration': '2026-01-02T00:00:00',
+        'status': 'PENDING', 'account_number': 1, 'team_account_number': None,
+        'instance_id': '999', 'sha256': '0' * 64, 'report': None,
+        'upload_url': upload_url, 'config': {'network_enabled': True},
+        'artifact': None, 'sandbox_artifacts': [],
+    }
+
+
+@respx.mock
+async def test_async_sandbox_file_finalize_request_shape():
+    """``sandbox_file`` finalize must PUT ``id=<task>`` in the query string and
+    ``{"community": ...}`` in the body — the 3.x ``SandboxTask.update_file``
+    contract. Regression guard for the dropped ``community`` body.
+    """
+    import io as _io
+    upload_url = 'https://s3.example.com/sb-file-upload?sig=abc'
+    respx.post(f'{BASE_URL}/sandbox/sandboxtask/instance').mock(
+        return_value=httpx.Response(200, json={
+            'status': 'OK', 'result': _sandbox_task_payload('555', upload_url=upload_url)}))
+    respx.put(upload_url).mock(return_value=httpx.Response(200))
+    finalize = respx.put(f'{BASE_URL}/sandbox/sandboxtask/instance').mock(
+        return_value=httpx.Response(200, json={
+            'status': 'OK', 'result': _sandbox_task_payload('555')}))
+
+    async with PolySwarmAsyncAPI(API_KEY, uri=BASE_URL, community='gamma') as api:
+        await api.sandbox_file(_io.BytesIO(b'sample-bytes'), 'cape', 'win-10-build-19041')
+
+    req = finalize.calls[-1].request
+    assert req.url.params.get('id') == '555'
+    assert 'sandbox_task_id' not in req.url.params
+    assert json.loads(req.content) == {'community': 'gamma'}
+
+
+@respx.mock
+async def test_async_sandbox_url_create_and_finalize_request_shape():
+    """``sandbox_url`` must (a) carry ``community`` in the create body and
+    (b) finalize with ``id=<task>`` (not ``sandbox_task_id``) plus a
+    ``{"community": ...}`` body — same contract as ``sandbox_file``. Guards both
+    the create-body omission and the finalize param-name regression.
+    """
+    upload_url = 'https://s3.example.com/sb-url-upload?sig=abc'
+    create = respx.post(f'{BASE_URL}/sandbox/sandboxtask/instance').mock(
+        return_value=httpx.Response(200, json={
+            'status': 'OK', 'result': _sandbox_task_payload('777', upload_url=upload_url)}))
+    respx.put(upload_url).mock(return_value=httpx.Response(200))
+    finalize = respx.put(f'{BASE_URL}/sandbox/sandboxtask/instance').mock(
+        return_value=httpx.Response(200, json={
+            'status': 'OK', 'result': _sandbox_task_payload('777')}))
+
+    async with PolySwarmAsyncAPI(API_KEY, uri=BASE_URL, community='gamma') as api:
+        await api.sandbox_url('http://malicious.example', 'cape', 'win-10-build-19041')
+
+    create_body = json.loads(create.calls[-1].request.content)
+    assert create_body.get('community') == 'gamma'
+
+    req = finalize.calls[-1].request
+    assert req.url.params.get('id') == '777'
+    assert 'sandbox_task_id' not in req.url.params
+    assert json.loads(req.content) == {'community': 'gamma'}
