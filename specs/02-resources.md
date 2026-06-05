@@ -24,31 +24,31 @@ How resource classes work: the `BaseResource` / `BaseJsonResource` machinery, th
 BaseResource                          # holds .api, ._content, .parse_result classmethod
 └── BaseJsonResource                  # adds .json, RESOURCE_ENDPOINT, jmespath(), _get(),
                                       # CRUD classmethods (create/get/head/update/delete/list)
-    ├── ArtifactInstance              # /search/instances + .submit, .lookup_uuid
+    ├── ArtifactInstance              # /instance + .submit, .lookup_uuid
     ├── LocalArtifact                 # file handle wrapper (no upload method —
     │                                 #   callers use api.session.upload_file)
-    ├── Engine                        # /engines
-    ├── Metadata                      # /search/metadata
+    ├── Engine                        # /microengines
+    ├── Metadata                      # /search/metadata/query
     ├── MetadataFieldProperties       # /search/metadata/properties
     ├── MetadataMapping               # /search/metadata/mappings
-    ├── IOC                           # /ioc/* (known good / known bad / search)
+    ├── IOC                           # /ioc (known good / known bad / search)
     ├── LiveYaraRuleset               # /hunt/rule/live
     ├── HistoricalHunt                # /hunt/historical
-    ├── HistoricalHuntResult / List   # /hunt/historical/result(s)
-    ├── LiveHuntResult / List         # /hunt/live/result(s)
+    ├── HistoricalHuntResult / List   # /hunt/historical/results (+ /results/list)
+    ├── LiveHuntResult / List         # /hunt/live (+ /hunt/live/list)
     ├── YaraRuleset                   # /hunt/rule
-    ├── Tag, MalwareFamily, TagLink   # /tags, /families, /tag-link
-    ├── AssertionsJob, VotesJob       # /assertions, /votes
-    ├── SandboxTask, SandboxProvider  # /sandbox/*
-    ├── ArtifactArchive               # /stream
+    ├── Tag, MalwareFamily, TagLink   # /tags/tag, /tags/family, /tags/link
+    ├── AssertionsJob, VotesJob       # /consumer/assertions-job, /consumer/votes-job
+    ├── SandboxTask, SandboxProvider  # /sandbox/sandboxtask, /sandbox/provider
+    ├── ArtifactArchive               # /consumer/download/stream
     ├── BundleTask                    # /bundle
-    ├── ToolMetadata, Events          # /artifact/metadata/list, /events
+    ├── ToolMetadata, Events          # /artifact/metadata, /activity
     ├── Sample                        # /sample/{sha256}
-    ├── ReportTask, ReportTemplate    # /report/*, /report/template/*
-    ├── ReportLLMPostProcessing       # /report/llm
-    ├── LLMPromptConfig               # /prompt-config
-    ├── Webhook                       # /webhooks
-    └── WhoIs, AccountFeatures        # /account/whois, /account/features
+    ├── ReportTask, ReportTemplate    # /reports, /reports/templates
+    ├── ReportLLMPostProcessing       # /reports/llm
+    ├── LLMPromptConfig               # /prompt_config
+    ├── Webhook                       # /notification/webhook
+    └── WhoIs, AccountFeatures        # /public/accounts/whois, /public/accounts
 
 Hash                                  # mixin / standalone hash wrapper (Hashable)
 PolyswarmRequest                      # @dataclass — pure description, not a resource
@@ -351,6 +351,8 @@ unasync mirrors the body to sync mechanically — `async def` → `def`, `await`
 `LocalArtifact.parse_result(api, response, …)` (the default `parse_result` on `BaseResource`) is invoked on a 2xx response when the `result_parser` is `LocalArtifact` (or any non-`BaseJsonResource` parser). It expects `response.iter_content(chunk_size)` — a `requests.Response`-style streaming API.
 
 `httpx.Response` doesn't have `iter_content`; it has `iter_bytes`. `session.execute` detects this case (`not issubclass(result_parser, BaseJsonResource)`) and wraps the response in `HttpxResponseAdapter` before handing it to `parse_response`. The adapter exposes `iter_content(chunk_size)`, `status_code`, `headers`, `url`, `_content`, and `json()`.
+
+> **Buffering tradeoff:** the adapter eagerly reads `response.content` (the full body) and `iter_content` slices that in-memory buffer — so downloads buffer the whole artifact in RAM rather than streaming from the socket as the 3.x `requests` path did. This is an intentional, tracked simplification of the shared sync/async parse path (lazy streaming would require transport-specific async consumption); the regression and its migration path are documented in [`99-open-questions.md`](./99-open-questions.md) §"Streaming downloads".
 
 This wrap happens identically in sync and async — both transports produce `httpx.Response`, and the adapter is shared (defined in `core.py`).
 

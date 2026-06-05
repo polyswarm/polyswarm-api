@@ -116,7 +116,7 @@ class PolyswarmRequest:
     # raw_result, status_code, status, errors, _result, _paginated, total, limit,
     # offset, order_by, direction, has_more.
 
-def parse_response(response, request: PolyswarmRequest) -> None: ...
+def parse_response(response, request: PolyswarmRequest) -> PolyswarmRequest: ...
 
 class BaseResource: ...
 class BaseJsonResource(BaseResource):
@@ -186,18 +186,18 @@ Attachment happens at exception-construction time inside `parse_response` — `s
 
 ```python
 PolyswarmAPI(
-    key: str | None = None,                     # required unless `session=` is provided
+    key: str | None = None,                     # optional; omitting it builds a keyless session
     uri: str | None = None,                     # defaults to settings.DEFAULT_GLOBAL_API
     community: str | None = None,               # defaults to settings.DEFAULT_COMMUNITY
     timeout: float | None = None,               # defaults to settings.DEFAULT_HTTP_TIMEOUT
     verify: bool = True,
     *,
-    session: PolyswarmSession | None = None,    # pre-built session; mutually exclusive with `key=`
+    session: PolyswarmSession | None = None,    # pre-built session; mutually exclusive with `**httpx_kwargs`
     **httpx_kwargs,                             # forwarded to httpx.Client when constructing default session
 )
 ```
 
-If `session=` is provided, the api client uses it as-is (no construction). If `key=` is provided, the api client constructs a default `PolyswarmSession(key, retries=…, verify=verify, timeout=timeout, **httpx_kwargs)`. Providing neither raises `InvalidValueException`.
+If `session=` is provided, the api client uses it as-is (no construction) and `key=` is ignored; passing `session=` together with `**httpx_kwargs` raises `InvalidValueException` (configure the injected session directly). Otherwise the api client constructs a default `PolyswarmSession(key, retries=…, verify=verify, timeout=timeout, **httpx_kwargs)`. `key=` is optional — omitting it (and `session=`) builds a keyless session, valid for unauthenticated endpoints.
 
 Same shape for `PolySwarmAsyncAPI` with `AsyncPolyswarmSession`.
 
@@ -308,7 +308,7 @@ Migrating from 3.x to 4.0, callers retain:
 
 ### Constructor change (preserved with a tweak)
 
-`PolyswarmAPI(**kwargs)` / `PolySwarmAsyncAPI(**kwargs)` still accept `key`, `uri`, `community`, `timeout`, `verify`, `**httpx_kwargs`. New in 4.0: `session=` keyword-only parameter for injecting a pre-built session. `key=` is required unless `session=` is provided.
+`PolyswarmAPI(**kwargs)` / `PolySwarmAsyncAPI(**kwargs)` still accept `key`, `uri`, `community`, `timeout`, `verify`, `**httpx_kwargs`. New in 4.0: `session=` keyword-only parameter for injecting a pre-built session. `session=` and `**httpx_kwargs` are mutually exclusive (passing both raises); `key=` is optional and ignored when `session=` is given.
 
 ### Migration examples
 

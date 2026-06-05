@@ -36,7 +36,7 @@ How a call flows from the user's code through the SDK to the server and back. Co
 
 Hand-written. No I/O. Three sub-concerns:
 
-**Description**: `PolyswarmRequest` — a dataclass with fields for the request shape (method, url, headers, params, json, content, stream) and the parser (`result_parser`, `parser_kwargs`). It also carries mutable response-state fields (`raw_result`, `status_code`, `_result`, `_paginated`, pagination cursors, parsed JSON body) that the session populates after a call. The dataclass has no `execute` method; running the request is the session's job.
+**Description**: `PolyswarmRequest` — a dataclass with fields for the request shape (method, url, params, json, headers, content, data, files, timeout) and the parser (`result_parser`, `parser_kwargs`). It also carries mutable response-state fields (`raw_result`, `status_code`, `_result`, `_paginated`, pagination cursors, parsed JSON body) that the session populates after a call. The dataclass has no `execute` method; running the request is the session's job.
 
 **Parsing**: `parse_response(response, request)` — a pure function. Reads `response.status_code`, dispatches on `request.method` (HEAD → status as result), checks for 4xx/5xx (extract JSON body, raise typed exception), dispatches on `request.result_parser` (None → discard; `BaseJsonResource` subclass → JSON parse + pagination metadata; else → pass response to parser directly). Populates the request's mutable fields. No httpx-specific behaviour beyond reading `.status_code`, `.json()`, `.headers` — a fake response object works for unit testing.
 
@@ -163,9 +163,11 @@ async for instance in api.search(hash):
        │    else: yield singletons or unpack list
        ▼
 8. _consume_results / _next_page (in aio/api.py)
-       │  while has_more:
+       │  bounded loop (<= _MAX_PAGES), stops on has_more=False or a
+       │  non-advancing offset:
        │     yield items from current page
-       │     next_req = dataclasses.replace(req, params={offset, limit, ...})
+       │     next_req = PolyswarmRequest(...) cloned with offset/limit
+       │                advanced + json=_input_json, response-state cleared
        │     req = await self.session.execute(next_req)
 ```
 
@@ -194,7 +196,7 @@ Common customization targets:
 - `_put_off_domain` (the shared helper) — change the auth-strip behaviour applied to pre-signed-URL PUTs.
 - `__init__` — replace the underlying `httpx.{Async,}Client` with a custom one (alternate transport, mock, etc.).
 
-The api client's constructor accepts either `key=` (builds the default session) or `session=` (uses the pre-built one). Not both.
+The api client's constructor takes either `key=` (+ optional `httpx_kwargs`) to build the default session, or a pre-built `session=`. `session=` and `httpx_kwargs` are mutually exclusive — passing both raises `InvalidValueException` (configure the injected session directly). When `session=` is given, `key=` is ignored. Omitting `key=` is allowed and builds a keyless session (usable for unauthenticated endpoints).
 
 ## Request / response pipeline
 
@@ -232,11 +234,12 @@ async def _paginate(self, request):
         ...
 ```
 
-`_consume_results` is a fixed-shape loop:
+`_consume_results` is a bounded loop — capped at `_MAX_PAGES` and terminated early if the server returns a non-advancing offset, so a misbehaving endpoint (`has_more` stuck true, or a cursor that never moves) can't loop a client forever:
 
 ```python
 async def _consume_results(self, request):
-    while True:
+    seen_offsets = set()
+    for _page in range(self._MAX_PAGES):
         try:
             for item in request._result:
                 yield item
@@ -245,10 +248,14 @@ async def _consume_results(self, request):
             return
         if not request.has_more:
             return
+        offset = request.offset
+        if offset is not None and offset in seen_offsets:
+            return                      # offset didn't advance — stop
+        seen_offsets.add(offset)
         request = await self._next_page(request)
 ```
 
-`_next_page` constructs a new descriptor via `dataclasses.replace(...)` with updated `offset` / `limit` params and the response-state fields cleared, then awaits a fresh `session.execute`.
+`_next_page` constructs a **new** `PolyswarmRequest` (cloning the prior descriptor's method/url/headers/etc.) with the `offset` / `limit` query params advanced and `json` set to the original `_input_json` snapshot — not the parsed response body that overwrote `.json` — then awaits a fresh `session.execute`.
 
 ## Exception model
 

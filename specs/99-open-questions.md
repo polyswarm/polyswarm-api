@@ -14,20 +14,13 @@ The parametrised `ClientTestCase` harness in `test/metadata_field_properties_tes
 
 **Decision point:** when a test scenario does something inherently async (concurrency, cancellation, owned-vs-injected client lifecycle), it stays as a standalone `async def test_*` — those don't fit the parametrised harness. Document that in `04-testing.md` with worked examples once we have any.
 
-## `sandbox_url` finalize-param inconsistency
+## `sandbox_url` finalize-param inconsistency — RESOLVED
 
-**Status:** pre-existing behaviour preserved across the 4.0 redesign.
+**Status:** fixed in this PR.
 
-`sandbox_file` and `sandbox_url` both PUT to `{SandboxTask.RESOURCE_ENDPOINT}/instance` to finalize the submission, but they pass the task identifier under different param names:
+Earlier in PR #298 `sandbox_url` finalized with `params={"sandbox_task_id": ...}` while `sandbox_file` used `params={"id": ...}`, and **both** finalize PUTs dropped the `community` JSON body. That was a PR-introduced regression, not historical behaviour: 3.x finalized both flows via `SandboxTask.update_file(self, id=task.id, community=self.community)` — `id` in the query string and `community` in the body for *both*. `sandbox_task_id` is the param the GET *status* endpoint takes, not the finalize PUT; the two had been conflated.
 
-- `sandbox_file` → `params={"id": str(int(task))}`
-- `sandbox_url` → `params={"sandbox_task_id": str(int(task))}`
-
-Both shapes have shipped this way historically; no VCR cassette covers the `sandbox_url` finalize path, so we can't confirm from replay alone which (if either) is wrong.
-
-**Action:** record a cassette against the live e2e for `sandbox_url`'s full flow, then either confirm the divergence is required or reconcile on `id` (matching `sandbox_file`).
-
-**Decision point:** don't reconcile blindly — there's a real (if small) risk that the URL-sandbox endpoint variant rejects `id`.
+Both flows now share a single `_finalize_sandbox_task(task)` helper that PUTs `params={"id": str(int(task))}` with `json={"community": self.community}`, so the finalize shape can't drift between them again. (`sandbox_url`'s *create* body was also missing `community`; it now matches `sandbox_file`.) Covered by respx tests asserting the finalize request method/url/params/body for both methods.
 
 ## `sandbox_providers` executed-request quirk
 
@@ -71,15 +64,11 @@ There's no automatic detection — it's per-method. Documented in `03-endpoints.
 
 **Decision point:** doing nothing has zero risk; doing it costs the maintenance burden of `_normalise_bool_params`. The normalisation pays for itself the next time we change clients or transport library, so keep it.
 
-## VCR-off CI matrix
+## VCR-off CI matrix — RESOLVED
 
-**Status:** not configured.
+**Status:** configured.
 
-The invariant says "tests must pass against the live e2e stack with VCR off". There's no CI job that runs this; cassette-replay is the only mode CI exercises.
-
-**Action:** add a CI matrix entry that runs `pytest` with `test/vcr/` temporarily renamed. It exercises the SDK against the live e2e and catches drift early.
-
-**Decision point:** which e2e environment does CI hit, and how is the API key managed? Likely a secret + a stage-equivalent endpoint.
+The invariant "tests must pass against the live e2e stack with VCR off" is now exercised by the GitLab `e2e` CI job: it builds a `polyswarm-api` image (`docker/Dockerfile`, `ENV TESTS_VCR=off`) and runs the full suite against the running e2e stack with VCR bypassed — `TESTS_VCR=off` makes `@vcr.use_cassette` a no-op and keeps the real poll/sleep pacing (see `test/conftest.py`). The fast unit jobs still run cassette-replay; the live job catches drift the cassettes would mask.
 
 ## `requests` → `httpx` constructor kwarg translation
 
