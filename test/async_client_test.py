@@ -242,9 +242,7 @@ class TestAsyncScanCase:
         async with self._api() as api:
             # Submit this test's own unique artifact, then rescan by hash and by
             # id; rescan_and_scan confirms each rescan actually re-runs the scan.
-            content, sha = malicious_artifact(uid)
-            with artifact_file(content) as fpath:
-                await api.submit(fpath)
+            _, sha = await submit_and_scan(api, uid, wait=False)
             rescanned = await rescan_and_scan(api, sha)
             assert_scanned(await api.wait_for(await api.rescan_id(rescanned.id)))
 
@@ -275,10 +273,8 @@ class TestAsyncScanCase:
         # IOC AFTER completion (so the task's report can't overwrite it). See the
         # sync test_iocs_by_hash for the full rationale.
         ioc_ip = uid_ip(uid)
-        content, sha = malicious_artifact(uid)
         async with self._api() as api:
-            with artifact_file(content) as fpath:
-                instance = await api.submit(fpath)
+            instance, sha = await submit_and_scan(api, uid, wait=False)
             cape = await _dispatch_sandbox(api, instance.id, 'cape', 'win-10-build-19041', True)
             await asyncio.sleep(6)
             await _complete_sandbox_task(cape.id, 'cape')
@@ -311,10 +307,8 @@ class TestAsyncScanCase:
         # than materialising the feed. See the sync test_search_by_ioc for the
         # cape_sandbox_v2 / fresh-sha rationale.
         ioc_ip = uid_ip(uid)
-        content, sha = malicious_artifact(uid)
         async with self._api() as api:
-            with artifact_file(content) as fpath:
-                instance = await api.submit(fpath)
+            instance, sha = await submit_and_scan(api, uid, wait=False)
             await api.tool_metadata_create(
                 instance.id, 'cape_sandbox_v2', {
                     'extracted_c2_ips': [ioc_ip],
@@ -391,9 +385,7 @@ class TestAsyncScanCase:
     @vcr.use_cassette()
     async def test_async_sandboxtask_submit(self, uid):
         async with self._api() as api:
-            content, _ = malicious_artifact(uid)
-            with artifact_file(content) as fpath:
-                instance = await api.submit(fpath)
+            instance, _ = await submit_and_scan(api, uid, wait=False)
             task = await _dispatch_sandbox(api, instance.id, 'cape', 'win-10-build-19041', True)
             assert task.json['config']['network_enabled'] is True
             task = await _dispatch_sandbox(api, instance.id, 'triage', 'win10-build-15063', False)
@@ -402,10 +394,8 @@ class TestAsyncScanCase:
 
     @vcr.use_cassette()
     async def test_async_sandboxtask_latest(self, uid):
-        content, sha = malicious_artifact(uid)
         async with self._api() as api:
-            with artifact_file(content) as fpath:
-                instance = await api.submit(fpath)
+            instance, sha = await submit_and_scan(api, uid, wait=False)
             cape = await _dispatch_sandbox(api, instance.id, 'cape', 'win-10-build-19041', True)
             triage = await _dispatch_sandbox(api, instance.id, 'triage', 'win10-build-15063', False)
 
@@ -429,10 +419,8 @@ class TestAsyncScanCase:
 
     @vcr.use_cassette()
     async def test_async_sandboxtask_list(self, uid):
-        content, sha = malicious_artifact(uid)
         async with self._api() as api:
-            with artifact_file(content) as fpath:
-                instance = await api.submit(fpath)
+            instance, sha = await submit_and_scan(api, uid, wait=False)
             await _dispatch_sandbox(api, instance.id, 'cape', 'win-10-build-19041', True)
             await _dispatch_sandbox(api, instance.id, 'triage', 'win10-build-15063', False)
 
@@ -464,10 +452,8 @@ class TestAsyncScanCase:
         # The report can't COMPLETE in e2e (no OPENAI_API_KEY), and requested_id
         # stays null until a report renders, so we key off requested_status
         # (NOT_TRIGGERED/WAITING_FOR_OTHER_TASKS -> PENDING). See sync test_sample.
-        content, sha = malicious_artifact(uid)
         async with self._api() as api:
-            with artifact_file(content) as fpath:
-                instance = await api.submit(fpath)
+            instance, sha = await submit_and_scan(api, uid, wait=False)
             cape = await _dispatch_sandbox(api, instance.id, 'cape', 'win-10-build-19041', True)
             triage = await _dispatch_sandbox(api, instance.id, 'triage', 'win10-build-15063', False)
             await asyncio.sleep(6)
@@ -637,9 +623,7 @@ class TestAsyncScanCase:
     @vcr.use_cassette()
     async def test_async_tool_metadata(self, uid):
         async with self._api() as api:
-            content, _ = malicious_artifact(uid)
-            with artifact_file(content) as fpath:
-                instance = await api.submit(fpath)
+            instance, _ = await submit_and_scan(api, uid, wait=False)
             await api.tool_metadata_create(instance.id, 'test_tool_1', {'key': 'value'})
             await api.tool_metadata_create(instance.id, 'test_tool_2', {'key2': 'value2'})
             # persist_external_metadata runs asynchronously via Celery; poll

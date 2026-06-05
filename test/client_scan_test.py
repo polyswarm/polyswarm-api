@@ -221,9 +221,7 @@ class ScanTestCaseV2(TestCase):
         # id. rescan_and_scan confirms each rescan actually re-runs the scan
         # (assertions/votes land), not merely that the call was accepted.
         uid = self._testMethodName
-        content, sha = malicious_artifact(uid)
-        with artifact_file(content) as fpath:
-            api.submit(fpath)
+        _, sha = submit_and_scan(api, uid, wait=False)
         rescanned = rescan_and_scan(api, sha)
         assert_scanned(api.wait_for(api.rescan_id(rescanned.id)))
 
@@ -575,9 +573,7 @@ class ScanTestCaseV2(TestCase):
         # Self-contained: submit this test's own artifact and attach two tool
         # blobs. Tool metadata is instance-scoped, so the tool names need no
         # namespacing — they can't collide across tests' distinct instances.
-        content, _ = malicious_artifact(self._testMethodName)
-        with artifact_file(content) as fpath:
-            instance = api.submit(fpath)
+        instance, _ = submit_and_scan(api, self._testMethodName, wait=False)
         api.tool_metadata_create(instance.id, 'test_tool_1', {'key': 'value'})
         api.tool_metadata_create(instance.id, 'test_tool_2', {'key2': 'value2'})
         # persist_external_metadata runs asynchronously via Celery; poll the
@@ -614,9 +610,7 @@ class ScanTestCaseV2(TestCase):
         # can't overwrite it. uid-unique IP (public, survives filter_known_good).
         uid = self._testMethodName
         ioc_ip = uid_ip(uid)
-        content, sha = malicious_artifact(uid)
-        with artifact_file(content) as fpath:
-            instance = api.submit(fpath)
+        instance, sha = submit_and_scan(api, uid, wait=False)
         cape = _dispatch_sandbox(api, instance.id, 'cape', 'win-10-build-19041', True)
         time.sleep(6)
         _complete_sandbox_task(cape.id, 'cape')
@@ -674,9 +668,7 @@ class ScanTestCaseV2(TestCase):
         # iterate-and-break on our sha rather than materialising the whole feed.
         uid = self._testMethodName
         ioc_ip = uid_ip(uid)
-        content, sha = malicious_artifact(uid)
-        with artifact_file(content) as fpath:
-            instance = api.submit(fpath)
+        instance, sha = submit_and_scan(api, uid, wait=False)
         api.tool_metadata_create(instance.id, 'cape_sandbox_v2', {
             'extracted_c2_ips': [ioc_ip],
             'extracted_c2_urls': ['www.mock-ioc.test'],
@@ -749,9 +741,7 @@ class ScanTestCaseV2(TestCase):
         v3api = PolyswarmAPI(self.test_api_key, uri='http://artifact-index-e2e:9696/v3', community='gamma')
         # Self-contained: submit this test's own artifact and dispatch sandbox
         # tasks against ITS instance id. The submit response carries the real id.
-        content, _ = malicious_artifact(self._testMethodName)
-        with artifact_file(content) as fpath:
-            instance = v3api.submit(fpath)
+        instance, _ = submit_and_scan(v3api, self._testMethodName, wait=False)
 
         task = _dispatch_sandbox(v3api, instance.id, 'cape', 'win-10-build-19041', True)
         assert task.json['config']['network_enabled'] is True
@@ -766,9 +756,7 @@ class ScanTestCaseV2(TestCase):
         # SUCCEEDED by replaying the sandbox worker's HTTP calls (no analysis VMs
         # in e2e). Completing a task creates its SandboxTaskSearchHash row, which
         # is what sandbox_task_latest reads.
-        content, sha256 = malicious_artifact(self._testMethodName)
-        with artifact_file(content) as fpath:
-            instance = v3api.submit(fpath)
+        instance, sha256 = submit_and_scan(v3api, self._testMethodName, wait=False)
         cape = _dispatch_sandbox(v3api, instance.id, 'cape', 'win-10-build-19041', True)
         triage = _dispatch_sandbox(v3api, instance.id, 'triage', 'win10-build-15063', False)
 
@@ -792,9 +780,7 @@ class ScanTestCaseV2(TestCase):
         v3api = PolyswarmAPI(self.test_api_key, uri='http://artifact-index-e2e:9696/v3', community='gamma')
         # Self-contained: submit our own artifact and queue cape + triage for ITS
         # sha. Assertions are scoped to our sha, so they're exact for this run.
-        content, sha256 = malicious_artifact(self._testMethodName)
-        with artifact_file(content) as fpath:
-            instance = v3api.submit(fpath)
+        instance, sha256 = submit_and_scan(v3api, self._testMethodName, wait=False)
         _dispatch_sandbox(v3api, instance.id, 'cape', 'win-10-build-19041', True)
         _dispatch_sandbox(v3api, instance.id, 'triage', 'win10-build-15063', False)
 
@@ -830,9 +816,7 @@ class ScanTestCaseV2(TestCase):
         # cannot COMPLETE in e2e (no OPENAI_API_KEY), so we assert it was
         # *triggered* (PENDING/etc.), not finished.
         uid = self._testMethodName
-        content, sha = malicious_artifact(uid)
-        with artifact_file(content) as fpath:
-            instance = api.submit(fpath)
+        instance, sha = submit_and_scan(api, uid, wait=False)
         cape = _dispatch_sandbox(api, instance.id, 'cape', 'win-10-build-19041', True)
         triage = _dispatch_sandbox(api, instance.id, 'triage', 'win10-build-15063', False)
         time.sleep(6)
