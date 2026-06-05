@@ -234,9 +234,9 @@ class PolyswarmRequest:
                 params['headers'][k] = None
         return params
 
-    # Convenience accessors kept for backward compatibility with
-    # callers that read ``.json`` (the parsed JSON body) rather than
-    # ``.json_body``.
+    # Convenience accessors kept for backward compatibility. The parsed JSON
+    # body lives on ``.json``; there is no separate ``.json_body`` field (see
+    # specs/02-resources.md).
 
     @property
     def api_instance(self):

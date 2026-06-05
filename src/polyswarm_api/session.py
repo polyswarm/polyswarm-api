@@ -59,7 +59,9 @@ class PolyswarmSession:
     ):
         logger.debug("Creating %s (httpx-backed)", type(self).__name__)
         self.verify = verify
-        hdrs = httpx_kwargs.pop("headers", None) or {}
+        # Copy: we inject Authorization / User-Agent below and must not mutate a
+        # headers dict the caller passed in (it may be shared / reused).
+        hdrs = dict(httpx_kwargs.pop("headers", None) or {})
         if key:
             hdrs["Authorization"] = key
         if user_agent:
@@ -138,6 +140,13 @@ class PolyswarmSession:
         if not artifact:
             raise exceptions.InvalidValueException(
                 "A LocalArtifact must be provided in order to upload",
+            )
+        if attempts < 1:
+            # Guard: otherwise the retry loop never runs and `raise last_exc`
+            # below would be `raise None` (TypeError). attempts is part of the
+            # public override surface, so reject the nonsensical value clearly.
+            raise exceptions.InvalidValueException(
+                "attempts must be >= 1",
             )
 
         last_exc = None

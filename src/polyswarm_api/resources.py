@@ -530,6 +530,14 @@ class LocalArtifact(core.BaseResource, core.Hashable):
             elif os.path.basename(getattr(handle, 'name', '')):
                 # if there is no response and no artifact_name, try to get from the handle
                 self.artifact_name = os.path.basename(getattr(handle, 'name', ''))
+            else:
+                # Nameless in-memory handle (e.g. a BytesIO) with no explicit
+                # artifact_name and no response to derive one from — default to
+                # empty so reads of ``.artifact_name`` don't fall through
+                # ``__getattr__`` to the raw handle and raise AttributeError.
+                # (Pre-existing latent crash for a nameless artifact passed to
+                # submit / sandbox_file / sandbox_url.)
+                self.artifact_name = ''
 
         # resolve the handle to be used
         # only one of handle or folder can be provided (we checked for this above)
