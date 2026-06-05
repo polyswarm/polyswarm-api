@@ -1207,6 +1207,46 @@ async def test_async_pagination_bounded_when_cursor_never_advances():
     assert 0 < len(results) <= 5
 
 
+@respx.mock
+async def test_async_pagination_resends_original_request_body():
+    """``_next_page`` must re-send the *original* request body on page 2, not the
+    parsed page-1 response — ``parse_response`` overwrites ``request.json`` with
+    the parsed body, so without the ``_input_json`` snapshot the second page would
+    POST page 1's results back as its query. No shipped endpoint paginates with a
+    JSON body (search uses query params), so this drives a hand-built body-carrying
+    GET straight through the client's ``_paginate`` to exercise the guard.
+    """
+    from polyswarm_api.core import PolyswarmRequest
+    from polyswarm_api import resources
+
+    url = f'{BASE_URL}/search/hash/sha256'
+    original_body = {'q': 'original-query', 'marker': 'keep-me'}
+    route = respx.get(url).mock(side_effect=[
+        httpx.Response(200, json={
+            'status': 'OK', 'has_more': True, 'offset': 'cursor-2', 'limit': 50,
+            'result': [_instance(SHA256)],
+        }),
+        httpx.Response(200, json={
+            'status': 'OK', 'has_more': False,
+            'result': [_instance(SHA256)],
+        }),
+    ])
+    api = PolySwarmAsyncAPI(API_KEY, uri=BASE_URL, community='gamma')
+    try:
+        req = PolyswarmRequest(
+            api=api, method='GET', url=url,
+            json=dict(original_body), result_parser=resources.ArtifactInstance,
+        )
+        results = [r async for r in api._paginate(req)]
+    finally:
+        await api.aclose()
+    assert len(results) == 2            # both pages consumed
+    assert route.call_count == 2        # advanced to page 2
+    page2 = route.calls[-1].request
+    assert json.loads(page2.content) == original_body   # original body, not page-1 result
+    assert 'cursor-2' in str(page2.url)                  # advanced via the returned cursor
+
+
 # ── Sandbox finalize request shape (no cassette) — guards the finalize regression ──
 
 def _sandbox_task_payload(task_id, community='gamma',

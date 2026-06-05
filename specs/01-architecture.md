@@ -255,7 +255,12 @@ async def _consume_results(self, request):
         request = await self._next_page(request)
 ```
 
-`_next_page` constructs a **new** `PolyswarmRequest` (cloning the prior descriptor's method/url/headers/etc.) with the `offset` / `limit` query params advanced and `json` set to the original `_input_json` snapshot — not the parsed response body that overwrote `.json` — then awaits a fresh `session.execute`.
+`_next_page` constructs a **new** `PolyswarmRequest` (cloning the prior descriptor's method/url/headers/etc.) for the next page, then awaits a fresh `session.execute`. Two subtleties:
+
+- **Offset is the server's returned cursor, echoed back** — `new_params['offset'] = request.offset` (the `offset` the server put in the previous page's body, an opaque next-page cursor on the artifact-index side), **not** a client-computed `offset + limit`. This matches 3.x's `next_page`. The `seen_offsets` guard in `_consume_results` assumes this: if the server ever echoes the *same* offset instead of advancing, the loop stops rather than re-fetching forever.
+- **The body is the original `_input_json`, not the parsed response** — `parse_response` overwrites `request.json` with the parsed page body, so re-sending `request.json` would POST the previous page's results as the next request. `_next_page` uses the `_input_json` snapshot (taken in `__post_init__`) to re-send the caller's original body.
+
+Both paths are covered by respx tests (`test_async_pagination_*` in `async_client_test.py`): the multi-page walk + cursor echo, the `seen_offsets` early-stop, and the `_input_json` body re-send.
 
 ## Exception model
 

@@ -9,6 +9,7 @@ sibling classes for every subclass declared. The base subclass is
 hidden from pytest via ``__test__ = False``.
 """
 import asyncio
+import json
 from unittest import TestCase
 
 import httpx
@@ -63,6 +64,12 @@ class _MockBoundary:
     @property
     def last_request_url(self) -> str:
         return str(self._router.calls[0].request.url)
+
+    @property
+    def last_request_body(self):
+        """The JSON body of the most recent request (None if it carried none)."""
+        content = self._router.calls[-1].request.content
+        return json.loads(content) if content else None
 
 
 class _AsyncToSync:
@@ -152,6 +159,24 @@ class MetadataFieldPropertiesTestCase(ClientTestCase):
         assert result.description == row['description']
         assert result.example == row['example']
         assert result.category == row['category']
+
+    def test_write_omits_unset_optionals(self):
+        # 3.x dropped None-valued fields in _params; the 4.0 client must omit
+        # unset optionals from the POST body too, not send explicit nulls.
+        row = _sample_row()
+        self.mock.add('POST', _RESOURCE_URL, json={'result': row, 'status': 'OK'})
+        self.api.metadata_field_properties_write(
+            field_path=row['field_path'],
+            description=row['description'],
+            example=row['example'],
+            # category and aliases intentionally left unset (default None)
+        )
+        body = self.mock.last_request_body
+        assert body['field_path'] == row['field_path']
+        assert body['description'] == row['description']
+        assert body['example'] == row['example']
+        assert 'category' not in body, body
+        assert 'aliases' not in body, body
 
     def test_get(self):
         row = _sample_row()
