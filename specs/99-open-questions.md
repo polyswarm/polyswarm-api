@@ -14,28 +14,6 @@ The parametrised `ClientTestCase` harness in `test/metadata_field_properties_tes
 
 **Decision point:** when a test scenario does something inherently async (concurrency, cancellation, owned-vs-injected client lifecycle), it stays as a standalone `async def test_*` — those don't fit the parametrised harness. Document that in `04-testing.md` with worked examples once we have any.
 
-## Test parallelism against the live e2e (`pytest -n`)
-
-**Status:** planned — the suite is already isolation-safe; gated on e2e pipeline capacity.
-
-**Goal:** run ≥8 tests concurrently against the live stack so the VCR-off `e2e` CI job (currently ~9 min serial) finishes in ~2–3 min.
-
-**Why it's feasible.** The suite is self-contained: each test creates uniquely-identified resources (`malicious_artifact(uid)`, `uid_ip` / `uid_host` / `uid_yara`, all deterministic per `request.node.name`), asserts only on its own data, and shares no mutable test state. `pytest -n auto` on *replay* already passes (32 workers), and `pytest-xdist` is in the `[tests]` extra — so test-level isolation is done.
-
-**Why it isn't just `-n 8`.** The gating factor is the e2e stack's async-pipeline throughput, not the test code. A `-n 3` VCR-off live run flaked the forward `iocs_by_hash` test: the `cape_sandbox_v2` Celery metadata-persist lagged past the 90-iteration poll window under 3× concurrent load. The stack runs only a handful of Flask/Celery workers, so 8 concurrent test workers will starve the scan / metadata / sandbox / ES pipelines unless (a) poll windows scale with load and (b) the stack gets more worker capacity.
-
-**Upside.** Serial wall-clock is dominated by *sequential* waits — scan `window_closed` (~32s each), sandbox completion, IOC/metadata polls. Scan settling is a **global** event (the chain block advances for all in-flight scans at once via the periodic job-phase), so N concurrent scans wait for the *same* close and finish together. Parallelism collapses those sequential waits → an estimated 3–4× speedup.
-
-**Plan:**
-
-1. **Runner (this repo):** add `-n 8 --dist loadgroup` to the `docker/Dockerfile` CMD; keep `--timeout-method=thread` (the only pytest-timeout method that fires under xdist + asyncio). Unit/replay CI jobs stay unchanged (already parallel-safe).
-2. **Poll resilience (this repo):** centralize the poll budget and scale `tries` by `PYTEST_XDIST_WORKER_COUNT` (e.g. ×`max(1, workers // 2)`) so a 90s-serial metadata/IOC poll gets headroom under load — directly closing the `-n 3` forward-IOC failure class. Polls are no-ops on replay, so only the live run pays the cost.
-3. **Serial-group the global-mechanism tests (this repo):** mark `test_stream` (global archiver batching) and `test_live` (global live feed) `@pytest.mark.xdist_group("serial")` so they share one worker while everything else parallelizes. Both are already scoped to their own sha / livescan_id, so the grouping is defensive and can be relaxed after measuring.
-4. **Stack capacity (paired change in the e2e harness — not this repo):** raise the artifact-index Flask + Celery worker concurrency so 8 concurrent workloads don't queue. Without this, `-n 8` stays flaky regardless of the test-side work. Flag it for the harness owner.
-5. **Validate:** a full VCR-off `-n 8` run green + a measured speedup vs serial; iterate the poll-scaling factor if flaky. No cassette re-record needed — xdist changes only the live run; replay is deterministic and already `-n auto` green.
-
-**Risks / notes:** stack starvation → poll timeouts (mitigated by 2 + 4); global-mechanism contention (mitigated by 3); xdist + asyncio coexist (each worker gets its own event loop; `uid` is deterministic-per-test, so resources never collide across workers — proven on replay).
-
 ## `sandbox_url` finalize-param inconsistency — RESOLVED
 
 **Status:** fixed in this PR.

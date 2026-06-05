@@ -12,6 +12,7 @@ How the test suite is organised. Three layers: pure unit tests (no HTTP at all �
 4. **New endpoint tests use the parametrised `ClientTestCase` harness.** It auto-emits `<Name>Sync` and `<Name>Async` siblings so the same body runs against both clients. Don't write parallel sync / async test bodies for new endpoints.
 5. **The HTTP mocking library follows the transport.** Both clients use `httpx`, so `respx` is the mocking library.
 6. **Prefer the pure-unit tier for builder + parse logic.** `PolyswarmRequest` builders are pure data; `parse_response` is a pure function. They're testable without httpx, async, or fixtures. Use this tier for any bug that can be reproduced without network involvement.
+7. **The live VCR-off run is parallel (`pytest -n 8`).** New tests must be isolation-safe: own uniquely-keyed resources (deterministic per-test `uid` — `malicious_artifact(uid)`, `uid_ip` / `uid_host` / `uid_yara`), assert only on their own data, and share no mutable state, so xdist workers never collide. See "Running the suite in parallel" below.
 
 ## Files
 
@@ -200,6 +201,43 @@ mv test/vcr.disabled test/vcr
 This proves the SDK works without the cache. The invariant: **every test must pass in VCR-off mode against the live e2e stack**. If a test only works against a recorded cassette, it's a bug in the test.
 
 This is also how cassettes get re-recorded en masse during major SDK changes — delete the directory, run the suite, commit the new cassettes.
+
+## Running the suite in parallel (`pytest -n`)
+
+The VCR-off live run executes the full `test/` suite 8-way against the live e2e stack via `pytest-xdist`. This is the default in the test image — the `docker/Dockerfile` CMD is `pytest test/ -n 8 --timeout=600 --timeout-method=thread`. Measured A/B against the same live e2e stack (VCR off, full suite, 127 tests):
+
+| Mode | Wall clock | Result |
+|---|---|---|
+| Serial (no `-n`) | ~7 min (428.77s) | 127/127 passed |
+| Parallel (`-n 8`) | ~2 min (125.77s) | 127/127 passed |
+
+That's a **3.41× speedup** (~5 min saved), zero flaky failures — every test passed, including the global-state ones (`test_stream`, `test_live`) and the forward `iocs_by_hash` / `test_async_iocs_by_hash` pair. (Serial wall-clock varies ~7–9 min with stack warmth/load; the 3.41× is the clean same-session number.)
+
+### Why it's safe to parallelise
+
+The suite is isolation-safe by construction: each test creates uniquely-keyed resources (deterministic per-test `uid`, `uid_ip` / `uid_host` / `uid_yara`, `malicious_artifact(uid)`), asserts only on its own data, and shares no mutable state, so workers never collide. xdist and asyncio coexist fine — each worker gets its own event loop. The global-mechanism tests (`test_stream`, `test_live`) are each scoped to their own sha / `livescan_id`, so they don't collide across workers either.
+
+The speedup comes from collapsing *sequential* waits. Serial wall-clock is dominated by polling — scan `window_closed` settling, sandbox completion, IOC/metadata persistence. Scan settling is a **global** chain event (the block advances for all in-flight scans at once via the periodic job-phase), so N concurrent scans wait for the *same* close and finish together instead of serially.
+
+### Why `-n` lives on the runner CLI, not in `addopts`
+
+`-n` is deliberately kept out of `[tool.pytest.ini_options].addopts` in `pyproject.toml` and passed on the runner command line instead, so local and IDE runs stay serial (xdist scrambles `-s` live-log ordering and complicates breakpoints). Only the live CI image opts into parallelism. `pytest-xdist` and `pytest-timeout` are in the `[tests]` extra.
+
+### Why `--timeout-method=thread` and `--timeout=600`
+
+The timeout is a backstop for the live run: VCR-off keeps real poll/sleep pacing, so a non-terminating test would otherwise hang to the CI job limit. `--timeout-method=thread` is the only method that fires reliably here — the signal method can't interrupt a hang inside the asyncio event loop, whereas a watchdog thread fires regardless of loop state, dumps every thread's stack (showing where execution is stuck), then terminates. **Caveat:** the thread method ends the *whole session* on a per-test timeout rather than failing one test, so a hang fails the job with a stack dump instead of running to the job limit. The per-test budget was raised 300 → 600s to give headroom under 8× pipeline contention.
+
+### No mitigations were needed
+
+An earlier plan hedged that `-n 8` might need (a) poll windows scaled by `PYTEST_XDIST_WORKER_COUNT`, (b) the global-mechanism tests serial-grouped via `@pytest.mark.xdist_group`, and (c) more Flask/Celery worker capacity in the e2e harness. **None proved necessary** — `-n 8` passed 127/127 clean with default `--dist load` distribution:
+
+- The failure class that motivated poll-scaling (a `-n 3` flake where the `cape_sandbox_v2` metadata-persist lagged past the poll window) was already closed earlier in the same change by a **settle-then-attach + 90-iteration poll** fix on the forward `iocs_by_hash` path. With that in place the test is stable at 8× concurrency.
+- The global tests don't collide (each scoped to its own sha / `livescan_id`), so serial-grouping was unnecessary.
+- Default load distribution didn't starve the stack at 8 workers, so no capacity increase in the e2e harness was required.
+
+### Future knob: pinning a test family to one worker
+
+If a future test family ever needs to run on a single worker (e.g. a new global-mechanism test that genuinely can't tolerate cross-worker concurrency), mark its tests `@pytest.mark.xdist_group("<name>")` and switch the CMD from default load distribution to `--dist loadgroup`. That keeps the grouped tests on one worker while everything else stays parallel. It's not needed today.
 
 ## Adding a new test
 
