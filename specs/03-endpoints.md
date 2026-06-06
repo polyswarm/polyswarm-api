@@ -220,23 +220,18 @@ def wait_for(self, scan, timeout=settings.DEFAULT_SCAN_TIMEOUT):
 
 ## File-upload paths
 
-Canonical (`aio/api.py`):
+Canonical (`aio/api.py`) — `submit` builds the create/finalize calls from **inline request dicts** (not the `resources.*` builders), because the S3 upload step sits between them and needs the create response's `upload_url`:
 
 ```python
 async def submit(self, artifact, ...):
-    instance = await self._single(resources.ArtifactInstance.create(self, ...))
+    instance = await self._single(
+        {"method": "POST", "url": ".../v3/instance", "json": {...}})
     await self.session.upload_file(instance.upload_url, artifact)
-    return await self._single(resources.ArtifactInstance.update(self, id=instance.id, ...))
+    return await self._single(
+        {"method": "PUT", "url": ".../v3/instance", "params": {...}, "json": {...}})
 ```
 
-Generated (`api.py`):
-
-```python
-def submit(self, artifact, ...):
-    instance = self._single(resources.ArtifactInstance.create(self, ...))
-    self.session.upload_file(instance.upload_url, artifact)
-    return self._single(resources.ArtifactInstance.update(self, id=instance.id, ...))
-```
+Generated (`api.py`) is the same with `await`/`async` lowered. (`sandbox_file` / `sandbox_url` follow the same create → `upload_file` → finalize shape, finalizing via `_finalize_sandbox_task`.)
 
 `upload_file` is a method on the session class (`AsyncPolyswarmSession.upload_file` / `PolyswarmSession.upload_file`). Both strip the session-level `Authorization` header so the PolySwarm API key doesn't leak to the pre-signed S3 origin. Downstream consumers customize behaviour by subclassing the session — see [`05-downstream-contract.md`](./05-downstream-contract.md) §"Customizing transport behaviour".
 
