@@ -109,6 +109,22 @@ class TestPolyswarmRequest:
                                headers={'X': 'y'})
         assert req.suppressed_headers() == set()
 
+    def test_request_parameters_reports_sent_body_not_overwritten_response(self):
+        # parse_response overwrites .json with the parsed RESPONSE body for legacy
+        # compat; the request_parameters diagnostic (formatted into error messages)
+        # must still report the original SENT body via the _input_json snapshot.
+        req = PolyswarmRequest(api=_FakeApi(), method='POST', url='u',
+                               json={'sent': 'body'})
+        req.json = {'server': 'response'}      # what parse_response does post-send
+        assert req.request_parameters['json'] == {'sent': 'body'}
+
+    def test_request_parameters_omits_json_when_none_was_sent(self):
+        # A bodyless request whose .json got overwritten by a response body must
+        # not surface that response under the diagnostic 'json' key.
+        req = PolyswarmRequest(api=_FakeApi(), method='GET', url='u')
+        req.json = {'server': 'response'}
+        assert 'json' not in req.request_parameters
+
     def test_data_and_files_passthrough(self):
         req = PolyswarmRequest(
             api=_FakeApi(), method='POST', url='u',

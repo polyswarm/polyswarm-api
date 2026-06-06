@@ -883,6 +883,36 @@ async def test_async_upload_helper_strips_session_authorization():
 
 
 @respx.mock
+async def test_async_upload_file_retries_then_reraises_when_exhausted():
+    """``upload_file`` retries up to ``attempts`` times on HTTP/transport errors
+    and re-raises the last one when retries are exhausted — the failure path the
+    happy-path/auth-strip tests don't exercise."""
+    import io as _io
+    presigned = 'https://s3.example.com/upload-target?sig=abc'
+    put_route = respx.put(presigned).mock(return_value=httpx.Response(500))
+    api = PolySwarmAsyncAPI('secret-key-1234', uri=BASE_URL, community='gamma')
+    try:
+        with pytest.raises(httpx.HTTPStatusError):
+            await api.session.upload_file(presigned, _io.BytesIO(b'data'), attempts=3)
+    finally:
+        await api.aclose()
+    assert put_route.call_count == 3      # all attempts burned before re-raising
+
+
+async def test_async_upload_file_rejects_nonpositive_attempts():
+    """``attempts < 1`` is rejected up front: otherwise the retry loop never runs
+    and the final ``raise last_exc`` would be ``raise None`` (TypeError)."""
+    import io as _io
+    api = PolySwarmAsyncAPI('secret-key-1234', uri=BASE_URL, community='gamma')
+    try:
+        with pytest.raises(exceptions.InvalidValueException):
+            await api.session.upload_file(
+                'https://s3.example.com/x', _io.BytesIO(b'd'), attempts=0)
+    finally:
+        await api.aclose()
+
+
+@respx.mock
 async def test_async_download():
     """Single-step download: GET pre-signed URL, write into folder,
     close the local handle. Pins the simplest of the multi-statement
@@ -1218,6 +1248,26 @@ async def test_async_pagination_bounded_when_cursor_never_advances():
         results = [r async for r in api.search(SHA256)]
     # Terminated with a bounded set instead of hanging.
     assert 0 < len(results) <= 5
+
+
+@respx.mock
+async def test_async_pagination_bounded_when_cursor_absent():
+    """``has_more: true`` with **no** ``offset`` key (the live-feed envelope shape)
+    leaves the client no cursor to advance — re-sending ``offset=None`` is
+    byte-identical to the page just fetched, so ``_consume_results`` must stop
+    after the current page rather than re-fetch it up to ``_MAX_PAGES``. This is
+    the None/absent-cursor path the non-None stuck-cursor guard test above misses.
+    """
+    route = respx.get(f'{BASE_URL}/search/hash/sha256').mock(return_value=httpx.Response(
+        200, json={
+            'status': 'OK', 'has_more': True,   # deliberately no 'offset' key
+            'result': [_instance(SHA256)],
+        },
+    ))
+    async with PolySwarmAsyncAPI(API_KEY, uri=BASE_URL, community='gamma') as api:
+        results = [r async for r in api.search(SHA256)]
+    assert len(results) == 1          # only page 1's item
+    assert route.call_count == 1      # did NOT re-fetch the identical page
 
 
 @respx.mock
