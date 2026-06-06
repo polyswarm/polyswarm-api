@@ -156,9 +156,8 @@ class PolySwarmAsyncAPI:
                 yield result
 
     async def _consume_results(self, request):
-        # Bounded by _MAX_PAGES, and stops if the offset/cursor repeats, so a
-        # server that leaves has_more set (or returns a non-advancing cursor)
-        # can't loop the client forever.
+        # Bounded by _MAX_PAGES, and stops if the offset/cursor fails to advance,
+        # so a server that leaves has_more set can't loop the client forever.
         seen_offsets = set()
         for _page in range(self._MAX_PAGES):
             try:
@@ -170,9 +169,13 @@ class PolySwarmAsyncAPI:
             if not request.has_more:
                 return
             offset = request.offset
-            if offset is not None and offset in seen_offsets:
+            # A cursor that can't advance ends pagination: absent/None (re-sending
+            # offset=None is byte-identical to the page just fetched — e.g. a
+            # live-feed envelope with has_more but no offset) or a repeat of one
+            # already seen. Either way the next page would be identical.
+            if offset is None or offset in seen_offsets:
                 logger.warning(
-                    'Stopping pagination: offset %r did not advance while '
+                    'Stopping pagination: cursor %r did not advance while '
                     'has_more was still set.', offset)
                 return
             seen_offsets.add(offset)

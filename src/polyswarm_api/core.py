@@ -226,7 +226,15 @@ class PolyswarmRequest:
     @property
     def request_parameters(self) -> dict:
         params = {'method': self.method, 'url': self.url}
-        params.update(self.to_httpx_kwargs())
+        kwargs = self.to_httpx_kwargs()
+        # ``parse_response`` overwrites ``self.json`` with the *response* body for
+        # legacy compat, and ``to_httpx_kwargs`` reads ``self.json`` — so for this
+        # diagnostic projection (formatted into error messages) report the original
+        # *sent* body from the ``_input_json`` snapshot, not the response.
+        kwargs.pop('json', None)
+        if self._input_json is not None:
+            kwargs['json'] = self._input_json
+        params.update(kwargs)
         if self.headers and self.suppressed_headers():
             # Preserve the suppression sentinel for diagnostics.
             params.setdefault('headers', {})
