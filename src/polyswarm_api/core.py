@@ -143,6 +143,11 @@ class PolyswarmRequest:
     method: str
     url: str
     params: Any = None
+    # Constructor send-body kwarg (kept for back-compat). ``__post_init__`` moves
+    # it to ``input_json`` and resets this to ``None``; after execution
+    # ``parse_response`` fills ``json`` with the RESPONSE body. So post-construction
+    # ``request.json`` always means "the response", never the send body — the send
+    # body lives in ``input_json``.
     json: Any = None
     headers: Optional[Mapping[str, Any]] = None
     content: Optional[bytes] = None
@@ -166,15 +171,21 @@ class PolyswarmRequest:
     direction: Optional[str] = None
     has_more: Optional[bool] = None
 
-    # Snapshot of the input ``json`` taken at construction so cloning the
-    # descriptor (e.g. for pagination) doesn't accidentally re-send the
-    # parsed *response* body as the next request's body. ``parse_response``
-    # overwrites ``self.json`` with the response body for legacy compat;
-    # ``_input_json`` preserves the original send-body.
-    _input_json: Any = dataclasses.field(default=None, init=False, repr=False)
+    # The JSON body that actually goes on the wire. The constructor takes the send
+    # body as ``json=`` (back-compat); ``__post_init__`` moves it here. This is the
+    # canonical send body — ``to_httpx_kwargs`` and pagination cloning read it — and
+    # it stays put for the descriptor's whole life, so it never collides with the
+    # response that later lands in ``json``. Visible in ``repr`` as the honest
+    # record of what was sent.
+    input_json: Any = dataclasses.field(default=None, init=False)
 
     def __post_init__(self):
-        self._input_json = self.json
+        # Relocate the constructor's send body to ``input_json`` and reserve
+        # ``self.json`` for the response. Resolving the send/response overload here
+        # — once, at construction — means no reader has to depend on running before
+        # vs. after ``parse_response``.
+        self.input_json = self.json
+        self.json = None
 
     # ── Projections ────────────────────────────────────────────────
 
@@ -189,8 +200,10 @@ class PolyswarmRequest:
         kwargs: dict = {}
         if self.params is not None:
             kwargs['params'] = _normalise_bool_params(self.params)
-        if self.json is not None:
-            kwargs['json'] = self.json
+        # The wire body is ``input_json`` (the send body); ``self.json`` carries the
+        # response after execution and is never sent.
+        if self.input_json is not None:
+            kwargs['json'] = self.input_json
         if self.headers:
             clean = {k: v for k, v in self.headers.items() if v is not None}
             if clean:
@@ -225,16 +238,11 @@ class PolyswarmRequest:
 
     @property
     def request_parameters(self) -> dict:
+        # ``to_httpx_kwargs`` projects the send body from ``input_json``, so this
+        # diagnostic faithfully reports what was sent — even in error messages
+        # raised after ``parse_response`` has populated ``self.json``.
         params = {'method': self.method, 'url': self.url}
-        kwargs = self.to_httpx_kwargs()
-        # ``parse_response`` overwrites ``self.json`` with the *response* body for
-        # legacy compat, and ``to_httpx_kwargs`` reads ``self.json`` — so for this
-        # diagnostic projection (formatted into error messages) report the original
-        # *sent* body from the ``_input_json`` snapshot, not the response.
-        kwargs.pop('json', None)
-        if self._input_json is not None:
-            kwargs['json'] = self._input_json
-        params.update(kwargs)
+        params.update(self.to_httpx_kwargs())
         if self.headers and self.suppressed_headers():
             # Preserve the suppression sentinel for diagnostics.
             params.setdefault('headers', {})
@@ -359,9 +367,9 @@ def parse_response(response, request: 'PolyswarmRequest') -> 'PolyswarmRequest':
 
 def _extract_json_body(response, request):
     body = response.json()
-    # Legacy semantics: ``request.json`` after execution holds the
-    # parsed response body, overwriting the send-body kwarg of the
-    # same name. Callers read ``request.json['result']`` etc.
+    # ``request.json`` is the RESPONSE body after execution (the send body lives in
+    # ``request.input_json``, untouched). Callers read ``request.json['result']`` /
+    # ``exc.request.json[...]``; before this point ``json`` was ``None``.
     request.json = body
     request._result = body.get('result') if isinstance(body, dict) else None
     if isinstance(body, dict):

@@ -195,14 +195,12 @@ class PolyswarmAPI:
 
     def _next_page(self, request):
         """Build the next-page descriptor by cloning ``request`` with
-        updated ``params['offset' | 'limit']`` and clearing response
-        state, then dispatch it through the session.
+        updated ``params['offset' | 'limit']`` and dispatch it through
+        the session.
 
-        Uses ``request._input_json`` (the snapshot taken in
-        ``__post_init__``) rather than ``request.json`` — the latter
-        has been overwritten by ``parse_response`` with the parsed
-        response body, and re-sending that as the next request's
-        body would be wrong.
+        Re-sends ``request.input_json`` — the descriptor's send body.
+        ``request.json`` is the *response* body after execution, so it
+        must never be re-sent as the next request's body.
         """
         params = request.params
         if params is None:
@@ -219,7 +217,7 @@ class PolyswarmAPI:
             method=request.method,
             url=request.url,
             params=new_params,
-            json=request._input_json,
+            json=request.input_json,
             headers=request.headers,
             content=request.content,
             data=request.data,
