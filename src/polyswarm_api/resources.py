@@ -1006,16 +1006,6 @@ class SandboxTask(core.BaseJsonResource):
             result_parser=cls,
         )
 
-    @classmethod
-    def create_file(cls, api, **kwargs):
-        return cls._build_request(api, 'POST', cls._create_endpoint(api, **kwargs) + '/instance',
-                                  cls._create_headers(api), *cls._create_params(**kwargs))
-
-    @classmethod
-    def update_file(cls, api, **kwargs):
-        return cls._build_request(api, 'PUT', cls._update_endpoint(api, **kwargs) + '/instance',
-                                  cls._update_headers(api), *cls._update_params(**kwargs))
-
 
 class SandboxArtifact(core.BaseJsonResource):
     def __init__(self, content, api=None):
