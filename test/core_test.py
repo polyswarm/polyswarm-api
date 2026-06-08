@@ -109,18 +109,19 @@ class TestPolyswarmRequest:
                                headers={'X': 'y'})
         assert req.suppressed_headers() == set()
 
-    def test_request_parameters_reports_sent_body_not_overwritten_response(self):
-        # parse_response overwrites .json with the parsed RESPONSE body for legacy
-        # compat; the request_parameters diagnostic (formatted into error messages)
-        # must still report the original SENT body via the _input_json snapshot.
+    def test_request_parameters_reports_sent_body_not_response(self):
+        # The send body lives in input_json; parse_response fills .json with the
+        # RESPONSE. request_parameters (formatted into error messages) projects
+        # input_json, so it reports what was sent even after .json holds the response.
         req = PolyswarmRequest(api=_FakeApi(), method='POST', url='u',
                                json={'sent': 'body'})
-        req.json = {'server': 'response'}      # what parse_response does post-send
+        assert req.input_json == {'sent': 'body'} and req.json is None  # ctor split
+        req.json = {'server': 'response'}      # what parse_response does
         assert req.request_parameters['json'] == {'sent': 'body'}
 
     def test_request_parameters_omits_json_when_none_was_sent(self):
-        # A bodyless request whose .json got overwritten by a response body must
-        # not surface that response under the diagnostic 'json' key.
+        # A bodyless request: input_json is None, so even after .json holds a
+        # response the diagnostic surfaces no request 'json' key.
         req = PolyswarmRequest(api=_FakeApi(), method='GET', url='u')
         req.json = {'server': 'response'}
         assert 'json' not in req.request_parameters
@@ -140,20 +141,19 @@ class TestPolyswarmRequest:
                                content=b'raw-bytes')
         assert req.to_httpx_kwargs()['content'] == b'raw-bytes'
 
-    def test_input_json_is_snapshotted_at_construction(self):
-        # `parse_response` overwrites `.json` with the response body
-        # (legacy 3.x semantics). `_next_page` clones the descriptor
-        # for pagination — it must use the original send-body snapshot,
-        # not the post-execute `.json`, or the next-page GET would
-        # ship the previous page's response body as a request body.
+    def test_input_json_holds_send_body_json_holds_response(self):
+        # The constructor's json= is the send body; __post_init__ relocates it to
+        # input_json and resets .json to None, reserving .json for the response that
+        # parse_response later fills in. The two never collide: input_json stays put,
+        # .json is the response. (Pagination's _next_page re-sends input_json.)
         original_body = {'send': 'me'}
         req = PolyswarmRequest(api=_FakeApi(), method='POST', url='u',
                                json=original_body)
-        assert req._input_json == original_body
-        # Simulate parse_response overwriting .json with the response.
-        req.json = {'result': [], 'has_more': False}
-        # _input_json is unaffected.
-        assert req._input_json == original_body
+        assert req.input_json == original_body          # send body relocated here
+        assert req.json is None                         # reserved for the response
+        assert req.to_httpx_kwargs()['json'] == original_body  # wire body = send body
+        req.json = {'result': [], 'has_more': False}    # parse_response fills it
+        assert req.input_json == original_body          # send body unaffected
 
 
 # ── parse_response — happy paths ───────────────────────────────────

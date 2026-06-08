@@ -1273,11 +1273,11 @@ async def test_async_pagination_bounded_when_cursor_absent():
 @respx.mock
 async def test_async_pagination_resends_original_request_body():
     """``_next_page`` must re-send the *original* request body on page 2, not the
-    parsed page-1 response — ``parse_response`` overwrites ``request.json`` with
-    the parsed body, so without the ``_input_json`` snapshot the second page would
-    POST page 1's results back as its query. No shipped endpoint paginates with a
-    JSON body (search uses query params), so this drives a hand-built body-carrying
-    GET straight through the client's ``_paginate`` to exercise the guard.
+    parsed page-1 response. The send body lives in ``request.input_json`` and
+    ``request.json`` holds the *response* after execution, so ``_next_page`` clones
+    from ``input_json``. No shipped endpoint paginates with a JSON body (search uses
+    query params), so this drives a hand-built body-carrying GET straight through
+    the client's ``_paginate`` to exercise that.
     """
     from polyswarm_api.core import PolyswarmRequest
     from polyswarm_api import resources
