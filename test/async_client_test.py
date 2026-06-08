@@ -953,6 +953,41 @@ async def test_async_download():
 
 
 @respx.mock
+async def test_async_download_streams_in_chunks(monkeypatch):
+    """Regression guard for the streaming-download fix: the body is consumed via
+    the streaming API (``iter_bytes``) straight into the destination, not read
+    whole and then chunked over a buffer. Shrink ``DOWNLOAD_CHUNK_SIZE`` and
+    assert the handle received the body in multiple bounded writes — a single
+    write would mean the body was materialised first (the 4.0 buffering
+    regression this fix reverses)."""
+    import io as _io
+    import polyswarm_api.settings as _settings
+    monkeypatch.setattr(_settings, 'DOWNLOAD_CHUNK_SIZE', 4)
+
+    body = b'0123456789abcdef'  # 16 bytes -> 4 chunks at chunk size 4
+    respx.get(f'{BASE_URL}/consumer/download/sha256/{SHA256}').mock(
+        return_value=httpx.Response(200, content=body))
+
+    writes = []
+
+    class _CountingHandle(_io.BytesIO):
+        def write(self, b):
+            writes.append(bytes(b))
+            return super().write(b)
+
+    fh = _CountingHandle()
+    api = PolySwarmAsyncAPI(API_KEY, uri=BASE_URL, community='gamma')
+    try:
+        await api.download_to_handle(SHA256, fh)
+    finally:
+        await api.aclose()
+
+    assert fh.getvalue() == body
+    assert len(writes) >= 2, f'expected chunked writes, got {len(writes)}: {writes}'
+    assert all(len(w) <= 4 for w in writes), writes
+
+
+@respx.mock
 async def test_async_sample_bundle_download_multistep():
     """``sample_bundle_download`` is a multi-step canonical async
     method: GET bundle task → state branch (PENDING / FAILED raise) →

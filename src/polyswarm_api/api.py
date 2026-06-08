@@ -127,7 +127,6 @@ class PolyswarmAPI:
         rp = dict(request)
         method = rp.pop("method")
         url = rp.pop("url")
-        rp.pop("stream", None)  # legacy key; httpx doesn't accept it
         return PolyswarmRequest(
             api=self,
             method=method,

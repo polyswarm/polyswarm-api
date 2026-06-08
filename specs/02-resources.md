@@ -15,7 +15,7 @@ How resource classes work: the `BaseResource` / `BaseJsonResource` machinery, th
 
 ## Files
 
-- `src/polyswarm_api/core.py` — hand-written, transport-agnostic. Home of `BaseResource`, `BaseJsonResource`, `PolyswarmRequest` (dataclass descriptor), `parse_response` (pure function), `Hashable`, `Hash`, validators, `HttpxResponseAdapter`, helpers. Both transports import from here; not unasync-processed; single class identity across modules.
+- `src/polyswarm_api/core.py` — hand-written, transport-agnostic. Home of `BaseResource`, `BaseJsonResource`, `PolyswarmRequest` (dataclass descriptor), `parse_response` (pure function), `Hashable`, `Hash`, validators, helpers. Both transports import from here; not unasync-processed; single class identity across modules.
 - `src/polyswarm_api/resources.py` — every per-domain resource class. Transport-agnostic. Imports only from `core` and `exceptions`.
 
 ## The class hierarchy
@@ -82,7 +82,7 @@ parser_kwargs: dict = field(default_factory=dict)   # extra kwargs forwarded to 
 **Response state** (populated by `session.execute` via `parse_response`):
 
 ```python
-raw_result: Any = None                  # the httpx.Response (or HttpxResponseAdapter)
+raw_result: Any = None                  # the httpx.Response (the streaming response for downloads)
 status_code: int | None = None
 status: Any = None                      # JSON-body 'status' field
 errors: Any = None                      # JSON-body 'errors' field
@@ -153,7 +153,7 @@ Testable in isolation: pass a fake response object with `.status_code` / `.json(
 Tiny base. Constructor signature: `BaseResource(content, *args, api=None, **kwargs)`. Holds:
 
 - `self.api` — the API client that produced this resource. Resources can call back into it (e.g. `task.api.session.upload_file(task.upload_url, artifact)` if a caller needs the resource's owning api).
-- `self._content` — the raw payload (JSON dict for JSON resources, an HTTP response object for streaming ones).
+- `self._content` — the raw payload (JSON dict for JSON resources; empty for downloaded `LocalArtifact`s — the streamed body lives in the handle, not `_content`).
 
 `@classmethod parse_result(cls, api, content, **kwargs)` is what `parse_response` invokes on a successful 2xx. The default builds `cls(content, api=api, **kwargs)`.
 
@@ -352,13 +352,12 @@ unasync mirrors the body to sync mechanically — `async def` → `def`, `await`
 
 ## Streaming / non-JSON responses
 
-`LocalArtifact.parse_result(api, response, …)` (the default `parse_result` on `BaseResource`) is invoked on a 2xx response when the `result_parser` is `LocalArtifact` (or any non-`BaseJsonResource` parser). It expects `response.iter_content(chunk_size)` — a `requests.Response`-style streaming API.
+A non-`BaseJsonResource` `result_parser` (i.e. `LocalArtifact`) marks a **download**. `session.execute` routes these to its streaming branch (`_execute_download`) instead of `parse_response`: it opens the response with `send(req, stream=True)` (so the body isn't read into memory), maps non-2xx via the shared `core._raise_for_status` (identical typed exceptions to the JSON path), then drives the download through two `LocalArtifact` classmethods —
 
-`httpx.Response` doesn't have `iter_content`; it has `iter_bytes`. `session.execute` detects this case (`not issubclass(result_parser, BaseJsonResource)`) and wraps the response in `HttpxResponseAdapter` before handing it to `parse_response`. The adapter exposes `iter_content(chunk_size)`, `status_code`, `headers`, `url`, `_content`, and `json()`.
+- `open_destination(folder, handle, artifact_name, response)` resolves the filename (explicit > content-disposition > handle name > URL basename) and the destination handle (a file opened under `folder`, or the caller's handle / a `BytesIO`), **without** consuming any body, returning `(handle, name, created)`;
+- the session streams the body into that handle chunk by chunk (`response.aiter_bytes(DOWNLOAD_CHUNK_SIZE)`), then `from_written(api, handle, name, …)` wraps the written handle as a `LocalArtifact` (no re-consume).
 
-> **Buffering tradeoff:** the adapter eagerly reads `response.content` (the full body) and `iter_content` slices that in-memory buffer — so downloads buffer the whole artifact in RAM rather than streaming from the socket as the 3.x `requests` path did. This is an intentional, tracked simplification of the shared sync/async parse path (lazy streaming would require transport-specific async consumption); the regression and its migration path are documented in [`99-open-questions.md`](./99-open-questions.md) §"Streaming downloads".
-
-This wrap happens identically in sync and async — both transports produce `httpx.Response`, and the adapter is shared (defined in `core.py`).
+This keeps the body off the heap for `folder`/file-handle destinations — parity with the pre-4.0 `requests` path. The consume loop lives in the async-canonical session (it must drive an async stream; `LocalArtifact`'s sync loop can't) and is unasync-mirrored to the sync transport via the `aiter_bytes → iter_bytes` / `aread → read` token rewrites. The 4.0-era `HttpxResponseAdapter` that buffered `response.content` is gone. See [`01-architecture.md`](./01-architecture.md) and [`99-open-questions.md`](./99-open-questions.md) §"Streaming downloads".
 
 ## Exceptions thrown by parsing
 

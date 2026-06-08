@@ -45,6 +45,12 @@ REPLACEMENTS = {
     "AsyncIterable":         "Iterable",
     # asyncio primitives mapped to their sync analogues
     "aclose":                "close",
+    # httpx streaming-response read methods (used by the download path in
+    # session.execute): the async transport iterates ``aiter_bytes`` and reads
+    # error bodies with ``aread``; the sync transport uses ``iter_bytes`` /
+    # ``read``.
+    "aiter_bytes":           "iter_bytes",
+    "aread":                 "read",
     # Rewrite `asyncio` → `time` at the identifier level.
     # ``import asyncio`` → ``import time``; ``asyncio.sleep(s)`` →
     # ``time.sleep(s)``. unasync tokenises before rewriting so string

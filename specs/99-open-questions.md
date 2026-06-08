@@ -94,17 +94,19 @@ The server may move to OAuth / signed requests / per-request auth tokens in the 
 
 **Action:** if / when the auth model evolves, design the integration point on `PolyswarmSession` / `AsyncPolyswarmSession` (token refresh hook? credential plugin? `auth=` constructor parameter?) and update `05-downstream-contract.md`.
 
-## Streaming downloads — `HttpxResponseAdapter` fully buffers
+## Streaming downloads — ✅ resolved (streaming restored)
 
-**Status:** download responses buffer the entire body before chunking.
+**Status:** resolved. Downloads stream straight to their destination again — parity with the pre-4.0 `requests` path; no full-body buffering. `HttpxResponseAdapter` is gone.
 
-`core.py::HttpxResponseAdapter.__init__` reads `response.content` (the full body, eagerly) and then `iter_content(chunk_size)` slices that in-memory buffer. The session also goes through `client.request(...)` / `client.send(req)`, never `client.stream(...)`. So every download endpoint — `download`, `download_to_handle`, `download_archive`, `download_sandbox_artifact`, `download_zip` (bundle), `download_report` (report / LLM-report), `download_logo`, and the `stream` archive feed — spikes memory proportional to the artifact size before the destination file sees the first byte. Pre-4.0 (`requests`-backed) streamed straight from the socket.
+The 4.0 transport originally buffered (the adapter read `response.content` whole, then `iter_content` sliced the in-memory buffer). The fix moved the body-consume loop into the **session** — the async-canonical layer that unasync mirrors to sync — because it has to drive an async stream, which `LocalArtifact.__init__`'s sync loop could not. `session.execute` now:
 
-This is a regression in memory profile but not in correctness — small artifacts behave identically, and the bytes ultimately reach the destination handle.
+- detects a streaming parser (`request.result_parser is not None and not issubclass(request.result_parser, BaseJsonResource)`) and routes to `_execute_download`;
+- opens the response with `self._client.send(req, stream=True)` (status/headers available, body not read) — which also covers the auth-stripped off-domain S3 case (`download_archive`), since header suppression already goes through `build_request` + pop;
+- maps non-2xx via the shared `core._raise_for_status` (identical typed exceptions to the JSON path) after `aread()`-ing the small error body;
+- has the parser class resolve a destination handle (`LocalArtifact.open_destination`), streams the body in chunk by chunk (`response.aiter_bytes(DOWNLOAD_CHUNK_SIZE)`), wraps the written handle (`LocalArtifact.from_written`), and removes a partially-written file it created;
+- closes the response in a `finally` (`aclose`).
 
-**Action:** refactor the session to detect streaming parsers (`request.result_parser is not None and not issubclass(request.result_parser, BaseJsonResource)`), open the response via `await self._client.stream(method, url, **kwargs)` as an async context manager, wrap it in an async-aware adapter whose `iter_content` yields from `response.aiter_bytes(chunk_size)`, and close the response after `parse_response` finishes. The sync mirror gets the same shape via unasync rewrites of `aiter_bytes` → `iter_bytes`, `async with` → `with`, `aclose` → `close`.
-
-**Decision point:** the refactor crosses the sync/async boundary because `LocalArtifact.__init__` is currently sync-only and calls `iter_content` synchronously. Either keep the sync `iter_content` path (with the adapter caching chunks lazily) or split `LocalArtifact.parse_result` into an async-aware variant. Either is non-trivial; documenting + deferring is the right call for the 4.0 release.
+The sync mirror is generated via the unasync token additions `aiter_bytes → iter_bytes` and `aread → read` (`aclose → close` already existed). A `folder`/file-handle destination never holds the whole artifact in memory; a caller-supplied in-memory handle (e.g. `BytesIO`) still lands in memory by the caller's own choice of sink. Regression-guarded by `test_async_download_streams_in_chunks`. See `01-architecture.md` §helpers and `02-resources.md` §"Streaming / non-JSON responses".
 
 ## Tests blocked on upstream artifact-index issues
 

@@ -498,13 +498,6 @@ class LocalArtifact(core.BaseResource, core.Hashable):
         :param api: PolyswarmAPI instance
         :param analyze: Boolean, if True will run analyses on artifact on startup (Note: this may still run later if False)
         """
-        # check if we have a destination to store the file
-        # raise an error if we don't have exacltly one
-        if folder and handle:
-            raise exceptions.InvalidValueException('Only one of path or handle should be defined.')
-        if not (folder or handle):
-            raise exceptions.InvalidValueException('At least one of path or handle must be defined.')
-
         # initialize super classes and default values
         super().__init__(response, api=api, hash_type='sha256')
         self.sha256 = None
@@ -513,66 +506,67 @@ class LocalArtifact(core.BaseResource, core.Hashable):
         self.analyzed = False
         self.artifact_type = artifact_type or ArtifactType.FILE
 
-        # resolve the file name
+        # Resolve the destination handle + name. The download body is NOT
+        # consumed here — for downloads the session streams it straight into the
+        # handle (see ``open_destination`` / ``from_written`` and
+        # ``aio/session.py``), which is what keeps large downloads off the heap.
+        # Direct constructors (``from_handle`` / ``from_path`` / ``from_content``)
+        # pass a falsy ``response`` and an already-open handle.
+        self.handle, self.artifact_name, _created = self.open_destination(
+            folder, handle, artifact_name, response or None, **kwargs)
+        if analyze:
+            # analyze the artifact in case it is needed
+            self.analyze_artifact()
+
+    @staticmethod
+    def _resolve_artifact_name(artifact_name, handle, response):
+        """Pick the filename: explicit name > response content-disposition >
+        handle name > URL basename > '' (a nameless in-memory handle defaults to
+        '' so ``.artifact_name`` reads don't fall through ``__getattr__`` to the
+        raw handle and raise AttributeError)."""
         if artifact_name:
-            # prioritize explicitly provided name
-            self.artifact_name = artifact_name
-        else:
-            if response:
-                # respect content-disposition if there is a response
-                filename = response.headers.get('content-disposition', '').partition('filename=')[2]
-                if filename:
-                    self.artifact_name = filename
-                elif os.path.basename(getattr(handle, 'name', '')):
-                    self.artifact_name = os.path.basename(getattr(handle, 'name', ''))
-                else:
-                    self.artifact_name = os.path.basename(urlparse(response.url).path)
-            elif os.path.basename(getattr(handle, 'name', '')):
-                # if there is no response and no artifact_name, try to get from the handle
-                self.artifact_name = os.path.basename(getattr(handle, 'name', ''))
-            else:
-                # Nameless in-memory handle (e.g. a BytesIO) with no explicit
-                # artifact_name and no response to derive one from — default to
-                # empty so reads of ``.artifact_name`` don't fall through
-                # ``__getattr__`` to the raw handle and raise AttributeError.
-                # (Pre-existing latent crash for a nameless artifact passed to
-                # submit / sandbox_file / sandbox_url.)
-                self.artifact_name = ''
+            return artifact_name
+        if response is not None:
+            filename = response.headers.get('content-disposition', '').partition('filename=')[2]
+            if filename:
+                return filename
+            if os.path.basename(getattr(handle, 'name', '')):
+                return os.path.basename(getattr(handle, 'name', ''))
+            return os.path.basename(urlparse(str(response.url)).path)
+        if os.path.basename(getattr(handle, 'name', '')):
+            return os.path.basename(getattr(handle, 'name', ''))
+        return ''
 
-        # resolve the handle to be used
-        # only one of handle or folder can be provided (we checked for this above)
-        # if one was explicitly provided, use it
-        # if we have a folder, use a file named after file_name in that folder
-        # otherwise use an in-memory handle
-        remove_on_error = False
-        try:
-            if folder:
-                if not os.path.exists(folder):
-                    os.makedirs(folder, exist_ok=True)
-                remove_on_error = True
-                self.handle = open(os.path.join(folder, self.artifact_name), mode='wb+', **kwargs)
-            else:
-                self.handle = handle or io.BytesIO()
+    @classmethod
+    def open_destination(cls, folder, handle, artifact_name, response=None, **open_kwargs):
+        """Resolve the artifact filename and the destination handle for a
+        download **without consuming any response body**.
 
-            if response:
-                # process the content in the response if available, write to handle
-                for chunk in response.iter_content(settings.DOWNLOAD_CHUNK_SIZE):
-                    self.handle.write(chunk)
-                    if hasattr(self.handle, 'flush'):
-                        self.handle.flush()
-            if analyze:
-                # analyze the artifact in case it is needed
-                self.analyze_artifact()
-        except Exception:
-            try:
-                if remove_on_error and self.handle:
-                    # make sure we cleanup the handle
-                    # if an exception happened and this is a file we created
-                    self.handle.close()
-                    os.remove(self.handle.name)
-            except Exception:
-                logger.exception('Failed to cleanup the target file.')
-            raise
+        Returns ``(handle, artifact_name, created)`` where ``created`` is True
+        iff a new file was opened under ``folder`` (so the caller must remove it
+        if the subsequent streamed write fails). Part of the non-JSON download
+        contract the session drives: ``open_destination`` provides the sink, the
+        session streams the body into it, then ``from_written`` wraps it. See
+        ``specs/01-architecture.md``.
+        """
+        if folder and handle:
+            raise exceptions.InvalidValueException('Only one of path or handle should be defined.')
+        if not (folder or handle):
+            raise exceptions.InvalidValueException('At least one of path or handle must be defined.')
+        name = cls._resolve_artifact_name(artifact_name, handle, response)
+        if folder:
+            if not os.path.exists(folder):
+                os.makedirs(folder, exist_ok=True)
+            return open(os.path.join(folder, name), mode='wb+', **open_kwargs), name, True
+        return handle or io.BytesIO(), name, False
+
+    @classmethod
+    def from_written(cls, api, handle, artifact_name, artifact_type=None, analyze=False):
+        """Wrap a handle the session has already streamed the download body
+        into, as a ``LocalArtifact`` (no re-consume). Counterpart to
+        ``open_destination``."""
+        return cls(b'', api=api, handle=handle, artifact_name=artifact_name,
+                   artifact_type=artifact_type, analyze=analyze)
 
     @classmethod
     def download(cls, api, hash_value, hash_type, handle=None, folder=None, artifact_name=None):

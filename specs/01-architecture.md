@@ -12,7 +12,7 @@ How a call flows from the user's code through the SDK to the server and back. Co
 4. **Async is the source of truth; sync is generated.** Hand-written async sources live under `src/polyswarm_api/aio/`. `scripts/regenerate_sync.py` runs unasync to mirror them to `src/polyswarm_api/{session,api,…}.py`. Generated files carry a `# DO NOT EDIT` header and CI rejects stale mirrors.
 5. **The client owns the session and drives pagination.** `PolySwarmAsyncAPI` / `PolyswarmAPI` hold a session, expose ~80 endpoint methods + a small set of carve-outs, and orchestrate pagination through the session.
 6. **Customization is via session injection.** Subclass `AsyncPolyswarmSession` / `PolyswarmSession`, override the relevant method, pass via `PolySwarmAsyncAPI(session=…)`. There are no module-level monkey-patch sites.
-7. **Single class identity across transports for shared types.** `BaseJsonResource`, `Hashable`, `PolyswarmRequest`, `HttpxResponseAdapter`, etc. live in `core.py` (hand-written) — both transports import the same class, so `issubclass` checks work uniformly.
+7. **Single class identity across transports for shared types.** `BaseJsonResource`, `Hashable`, `PolyswarmRequest`, etc. live in `core.py` (hand-written) — both transports import the same class, so `issubclass` checks work uniformly.
 8. **Public method signatures and response-resource shapes do not change without a major version bump.** See [`05-downstream-contract.md`](./05-downstream-contract.md).
 
 ## Files
@@ -42,7 +42,7 @@ Hand-written. No I/O. Three sub-concerns:
 
 **Resource bases**: `BaseResource`, `BaseJsonResource`. The latter has classmethod builders (`create` / `get` / `head` / `update` / `delete` / `list`) that each return a `PolyswarmRequest` descriptor. Per-domain resources in `resources.py` inherit from `BaseJsonResource` and may add custom classmethods (`ArtifactInstance.search_hash`, `IOC.iocs_by_hash`, etc.) — all returning descriptors.
 
-**Helpers**: `HttpxResponseAdapter` (wraps `httpx.Response` to expose `iter_content`, used by non-JSON resource parsers — note: currently buffers the full body before chunking, see [`99-open-questions.md`](./99-open-questions.md) §"Streaming downloads"), `Hashable` + `Hash` + `is_valid_sha1/sha256/md5`, `parse_isoformat`, `_normalise_bool_params`, `RequestParamsEncoder`.
+**Helpers**: `Hashable` + `Hash` + `is_valid_sha1/sha256/md5`, `parse_isoformat`, `_normalise_bool_params`, `RequestParamsEncoder`, `_raise_for_status` (the shared non-2xx → typed-exception mapper, used by both `parse_response` and the session's streaming-download path). Downloads stream straight to their destination from the session — there is no response adapter; see [`99-open-questions.md`](./99-open-questions.md) §"Streaming downloads".
 
 ### Layer 2 — transport (`session.py` / `aio/session.py`)
 
@@ -205,8 +205,9 @@ The api client's constructor takes either `key=` (+ optional `httpx_kwargs`) to 
 1. `request.to_httpx_kwargs()` projects the descriptor into a kwargs dict httpx accepts.
 2. Extract any `Authorization: None`-style suppression from headers via `request.suppressed_headers()`.
 3. Either `client.request(method, url, **kwargs)` (no suppression) or `client.build_request(...)` + pop suppressed headers + `client.send(req)`.
-4. Wrap the response in `HttpxResponseAdapter` if the parser expects `iter_content` (file downloads).
-5. Call `parse_response(adapted_response, request)`. Typed exceptions raised inside `parse_response` already carry `.request = request` (set by `RequestException.__init__`); the session re-raises them as-is.
+4. Call `parse_response(response, request)`. Typed exceptions raised inside `parse_response` already carry `.request = request` (set by `RequestException.__init__`); the session re-raises them as-is.
+
+A non-`BaseJsonResource` parser is a **download** and instead takes the streaming branch (`_execute_download`): `send(req, stream=True)`, non-2xx mapped via the shared `_raise_for_status`, then `LocalArtifact.open_destination` → stream `aiter_bytes` into the handle → `LocalArtifact.from_written`, closing the response in a `finally`. See [`99-open-questions.md`](./99-open-questions.md) §"Streaming downloads".
 
 `parse_response(response, request)`:
 

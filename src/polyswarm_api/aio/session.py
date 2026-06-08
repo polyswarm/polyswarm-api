@@ -26,14 +26,15 @@ subclass and pass it as ``session=`` to the api client. See
 
 import io
 import logging
+import os
 
 import httpx
 
 from polyswarm_api import exceptions, settings  # noqa: F401  (exceptions re-exported by callers)
 from polyswarm_api.core import (
     BaseJsonResource,
-    HttpxResponseAdapter,
     parse_response,
+    _raise_for_status,
 )
 
 logger = logging.getLogger(__name__)
@@ -80,10 +81,18 @@ class AsyncPolyswarmSession:
     async def execute(self, request):
         """Send ``request`` and parse the response.
 
-        Pure delegation of request-projection / I/O / response-parsing
-        to the dataclass + ``parse_response``. The session is the
-        single place ``await`` and the httpx client meet.
+        JSON endpoints buffer the (small) body and delegate to the pure
+        ``parse_response``. A non-``BaseJsonResource`` parser is a download:
+        it takes the streaming branch (``_execute_download``) so the body is
+        streamed to its destination instead of read into memory. The session
+        is the single place ``await`` and the httpx client meet.
         """
+        if (
+            request.result_parser is not None
+            and not issubclass(request.result_parser, BaseJsonResource)
+        ):
+            return await self._execute_download(request)
+
         kwargs = request.to_httpx_kwargs()
         suppress = request.suppressed_headers()
 
@@ -100,19 +109,69 @@ class AsyncPolyswarmSession:
             response = await self._client.request(request.method, request.url, **kwargs)
 
         logger.debug('Request returned code %s', response.status_code)
+        parse_response(response, request)
+        return request
 
-        # Non-JSON parsers expect a ``requests.Response``-shaped object
-        # with ``iter_content``. Wrap the ``httpx.Response`` so file
-        # downloads etc. see the surface they expect.
-        response_for_parsing = response
-        if (
-            request.result_parser
-            and not issubclass(request.result_parser, BaseJsonResource)
-            and not hasattr(response, 'iter_content')
-        ):
-            response_for_parsing = HttpxResponseAdapter(response)
+    # ── Streaming downloads ───────────────────────────────────────
 
-        parse_response(response_for_parsing, request)
+    async def _execute_download(self, request):
+        """Stream a non-JSON download to its destination without buffering the
+        whole body in memory.
+
+        The body is opened in streaming mode via ``send(..., stream=True)``,
+        which also covers the auth-stripped off-domain S3 case (``download_archive``)
+        because header suppression goes through ``build_request`` + pop here.
+        Non-2xx responses are read and mapped through the shared
+        ``_raise_for_status`` (identical typed exceptions to the JSON path). On
+        2xx, the result-parser class resolves a destination handle
+        (``open_destination``), the body is streamed into it chunk by chunk, and
+        the parser wraps the written handle (``from_written``). A failed write to
+        a file the SDK created is cleaned up.
+
+        For a ``folder`` / file-handle destination this never holds the whole
+        artifact in memory; a caller-supplied in-memory handle (e.g. ``BytesIO``)
+        still lands in memory by the caller's own choice of sink.
+        """
+        kwargs = request.to_httpx_kwargs()
+        suppress = request.suppressed_headers()
+        req = self._client.build_request(request.method, request.url, **kwargs)
+        for header_name in suppress:
+            req.headers.pop(header_name, None)
+
+        response = await self._client.send(req, stream=True)
+        try:
+            logger.debug('Download returned code %s', response.status_code)
+            request.raw_result = response
+            request.status_code = response.status_code
+            if response.status_code // 100 != 2:
+                # Read the (small) error body so the shared mapping can parse it.
+                await response.aread()
+                _raise_for_status(response, request)
+
+            pk = request.parser_kwargs or {}
+            handle, name, created = request.result_parser.open_destination(
+                pk.get('folder'), pk.get('handle'), pk.get('artifact_name'), response,
+            )
+            try:
+                async for chunk in response.aiter_bytes(settings.DOWNLOAD_CHUNK_SIZE):
+                    handle.write(chunk)
+                    if hasattr(handle, 'flush'):
+                        handle.flush()
+            except Exception:
+                if created:
+                    try:
+                        handle.close()
+                        os.remove(handle.name)
+                    except Exception:
+                        logger.exception('Failed to clean up the partially-written download.')
+                raise
+            request._result = request.result_parser.from_written(
+                request.api, handle, name,
+                artifact_type=pk.get('artifact_type'),
+                analyze=pk.get('analyze', False),
+            )
+        finally:
+            await response.aclose()
         return request
 
     # ── Pre-signed-URL uploads ────────────────────────────────────

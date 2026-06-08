@@ -15,9 +15,6 @@ parsing logic have a single source of truth:
 - ``BaseResource`` / ``BaseJsonResource``: resource bases. Classmethod
   builders (``create``, ``get``, ``head``, ``update``, ``delete``,
   ``list``) construct ``PolyswarmRequest`` descriptors.
-- ``HttpxResponseAdapter``: adapts ``httpx.Response`` to the
-  ``requests.Response``-ish surface (``iter_content``) that non-JSON
-  resource parsers expect.
 - ``Hashable`` + ``is_valid_*`` validators, ``parse_isoformat``,
   ``_normalise_bool_params``, ``RequestParamsEncoder``.
 
@@ -70,30 +67,6 @@ class RequestParamsEncoder(json.JSONEncoder):
             return json.JSONEncoder.default(self, obj)
         except Exception:
             return str(obj)
-
-
-class HttpxResponseAdapter:
-    """Adapt ``httpx.Response`` to the ``requests.Response`` surface used by
-    non-JSON resource parsers (e.g. ``LocalArtifact``, which calls
-    ``response.iter_content(chunk_size)``).
-    """
-
-    def __init__(self, response):
-        self.status_code = response.status_code
-        self.headers = response.headers
-        self.url = str(response.url)
-        self._content = response.content
-
-    def iter_content(self, chunk_size=None):
-        content = self._content
-        if not chunk_size or len(content) <= chunk_size:
-            yield content
-        else:
-            for i in range(0, len(content), chunk_size):
-                yield content[i:i + chunk_size]
-
-    def json(self):
-        return json.loads(self._content)
 
 
 # ── Request descriptor ─────────────────────────────────────────────
@@ -291,22 +264,9 @@ def parse_response(response, request: 'PolyswarmRequest') -> 'PolyswarmRequest':
     try:
         if request.status_code // 100 != 2:
             # Non-2xx: map to the appropriate exception regardless of
-            # whether ``result_parser`` is set.
-            _extract_json_body(response, request)
-            if request.status_code == 429:
-                message = (
-                    f'{request._result} This may mean you need to purchase a '
-                    'larger package, or that you have exceeded '
-                    'rate limits. If you continue to have issues, '
-                    'please contact us at info@polyswarm.io.'
-                )
-                raise exceptions.UsageLimitsExceededException(request, message)
-            elif request.status_code == 404:
-                raise exceptions.NotFoundException(request, request._result)
-            elif request.status_code == 422:
-                raise exceptions.FailedInstanceException(request, request._result)
-            else:
-                raise exceptions.RequestException(request, _bad_status_message(request))
+            # whether ``result_parser`` is set. Shared with the session's
+            # streaming-download path via ``_raise_for_status`` (always raises).
+            _raise_for_status(response, request)
 
         if not request.result_parser:
             # 2xx without a parser: body is intentionally discarded
@@ -363,6 +323,42 @@ def parse_response(response, request: 'PolyswarmRequest') -> 'PolyswarmRequest':
             raise exceptions.RequestException(request, err_msg) from e
 
     return request
+
+
+def _raise_for_status(response, request):
+    """Map a non-2xx ``response`` to the appropriate typed exception.
+
+    Shared by ``parse_response`` (buffered/JSON path) and the session's
+    streaming-download path, so both raise identically (429/404/422/other,
+    plus the non-JSON-body fallbacks). The response body must already be
+    readable — streaming callers ``read()`` / ``aread()`` it first. **Always
+    raises; never returns.**
+    """
+    try:
+        _extract_json_body(response, request)
+    except JSONDecodeError as e:
+        if request.status_code == 404:
+            raise exceptions.NotFoundException(
+                request, 'The requested endpoint does not exist.',
+            ) from e
+        raise exceptions.RequestException(
+            request,
+            f'Server returned non-JSON response [{request.status_code}]: {response}',
+        ) from e
+    if request.status_code == 429:
+        message = (
+            f'{request._result} This may mean you need to purchase a '
+            'larger package, or that you have exceeded '
+            'rate limits. If you continue to have issues, '
+            'please contact us at info@polyswarm.io.'
+        )
+        raise exceptions.UsageLimitsExceededException(request, message)
+    elif request.status_code == 404:
+        raise exceptions.NotFoundException(request, request._result)
+    elif request.status_code == 422:
+        raise exceptions.FailedInstanceException(request, request._result)
+    else:
+        raise exceptions.RequestException(request, _bad_status_message(request))
 
 
 def _extract_json_body(response, request):

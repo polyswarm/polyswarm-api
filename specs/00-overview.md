@@ -76,7 +76,6 @@ polyswarm-api/
 │   ├── core.py                     # HAND-WRITTEN, transport-agnostic:
 │   │                               #   - PolyswarmRequest (dataclass descriptor)
 │   │                               #   - parse_response (pure function)
-│   │                               #   - HttpxResponseAdapter (pure adapter)
 │   │                               #   - BaseResource, BaseJsonResource
 │   │                               #   - Hashable, Hash, hash validators
 │   │                               #   - helpers (parse_isoformat, encoders, normalisers)

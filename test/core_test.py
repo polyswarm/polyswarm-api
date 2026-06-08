@@ -20,7 +20,6 @@ import pytest
 from polyswarm_api import exceptions, resources
 from polyswarm_api.core import (
     BaseJsonResource,
-    HttpxResponseAdapter,
     PolyswarmRequest,
     is_valid_md5,
     is_valid_sha1,
@@ -416,32 +415,3 @@ class TestHashValidators:
     def test_md5(self):
         assert is_valid_md5('a' * 32) is True
         assert is_valid_md5('a' * 31) is False
-
-
-class TestHttpxResponseAdapter:
-    def test_iter_content_single_chunk(self):
-        class _R:
-            status_code = 200
-            headers = {}
-            url = 'u'
-            content = b'short'
-        a = HttpxResponseAdapter(_R())
-        assert list(a.iter_content(64)) == [b'short']
-
-    def test_iter_content_multi_chunks(self):
-        class _R:
-            status_code = 200
-            headers = {}
-            url = 'u'
-            content = b'01234567'
-        a = HttpxResponseAdapter(_R())
-        assert list(a.iter_content(3)) == [b'012', b'345', b'67']
-
-    def test_json(self):
-        class _R:
-            status_code = 200
-            headers = {}
-            url = 'u'
-            content = b'{"k": 1}'
-        a = HttpxResponseAdapter(_R())
-        assert a.json() == {'k': 1}
