@@ -262,6 +262,14 @@ Some SDK behaviour depends on the **server** (artifact-index / polyswarmd3), and
    ```
 2. Boot the stack with `e2e run -pin` (`--skip-pull --image-default-tag --no-commands`): `-p` keeps your local `:latest` from being overwritten by an ECR pull, `-i` pins the compose default tag, `-n` skips the SDK command step so you run the suite yourself. Then `TESTS_VCR=off pytest test/ -n 8 --dist worksteal` against it. (All *other* images must already be cached locally — warm them with one normal run first.) The authoritative writeup lives in the e2e repo's `specs/04-images-and-registry.md`.
 
+## The e2e stack is not prod: no read replica, collapsed delays
+
+A live-stack difference that bites tests which drive server-side **read-after-write** flows. In production artifact-index reads through a real **read replica** (a separate, asynchronously-replicated DB behind `DB_URI_RO`) and sizes a family of `DELAYED_IN_REPLICA_*` delays to absorb the replication lag (notably `DELAYED_IN_REPLICA_RETRY_LONG_DELAY`, default **30s**). The e2e stack has **no replica** — `DB_URI_RO` points at the same Postgres as the primary — so it collapses those delays to **~1s** for speed. The authoritative writeup is artifact-index `specs/04-read-replica-and-environments.md`; what matters here is that **e2e's timing margins are much tighter than prod's**, so a server sequence that prod's 30s margin makes safe can race under e2e load.
+
+**Concrete impact — the synthetic sandbox completion must model a real sandbox's cadence.** With no cape/triage VMs in e2e, `_complete_sandbox_task` (`client_scan_test.py` / `async_client_test.py`) drives a SandboxTask to `SUCCEEDED` by replaying the sandbox worker's HTTP calls: upload a `report` artifact, then post `COLLECTING_DATA` (status=8). On the backend those two land as **independent, unordered** tasks on the same `ai_sandbox_done` queue — the report-create writes `SandboxTask.artifact_metadata_id`, and the `COLLECTING_DATA → SUCCEEDED` promotion only fires when it reads that FK as set. The promotion's safety net is dispatched with `eta = +DELAYED_IN_REPLICA_RETRY_LONG_DELAY` (30s prod / 1s e2e). A real sandbox has a natural gap between finishing its upload and signalling done; posting status=8 **back-to-back** does not, so under load both promotion attempts can evaluate the FK before it commits → `SUCCEEDED` never happens → the `SandboxTaskSearchHash` row is never written → `sandbox_task_latest` raises "No tasks found". That was the `test_async_iocs_by_hash` flake at `BOUNTY_DURATION=2`.
+
+The fix is a deliberate **~2s gap** (`time.sleep(2)` / `await asyncio.sleep(2)`) before the status=8 post in both `_complete_sandbox_task` helpers — it restores the real-world sequencing so the FK commits and the delayed promotion fires first, leaving status=8 a no-op backstop (exactly how prod's 30s margin behaves). **Don't remove it**, and apply the same modelling to any new helper that drives a server read-after-write flow. This sleep does **not** slow the replay suite: `conftest._skip_poll_sleep_on_replay` no-ops `time.sleep`/`asyncio.sleep` whenever a cassette is present, so it's real only on the live/recording run — which is the rule below ("don't `time.sleep()` in tests") read precisely: it bans gratuitous waits in test bodies, not live-pacing waits inside the poll/completion helpers.
+
 ## Adding a new test
 
 Decision tree:
@@ -274,7 +282,7 @@ Always:
 
 - Test method name matches the cassette filename (`@vcr.use_cassette()` auto-derives).
 - Assert on resource attributes, not raw JSON, except where the test is specifically about JSON shape.
-- Don't `time.sleep()` in tests — VCR replays instantly, so polling loops complete in microseconds. Live re-recording will block on real platform timing, which is expected.
+- Don't `time.sleep()` in **test bodies** — VCR replays instantly, so polling loops complete in microseconds. Live re-recording blocks on real platform timing, which is expected. (Live-pacing sleeps that belong inside the poll/completion *helpers* — e.g. the real-world gap in `_complete_sandbox_task`, see "The e2e stack is not prod" above — are fine: `conftest._skip_poll_sleep_on_replay` no-ops them on replay, so they're real only on the live run.)
 
 ## Outstanding test work
 
