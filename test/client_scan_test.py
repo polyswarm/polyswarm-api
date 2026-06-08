@@ -192,6 +192,17 @@ def _complete_sandbox_task(task_id, sandbox, tries=30, delay=1):
         _submit_sandbox_artifact(task_id, b'recording-data', 'recording', 'recording.cast',
                                  content_type='application/octet-stream',
                                  mimetype='application/octet-stream', extended_type='data')
+    # A real sandbox doesn't signal COLLECTING_DATA the instant it finishes
+    # uploading its report — there's a natural gap. That gap is what lets the
+    # backend's report-create task commit SandboxTask.artifact_metadata_id and its
+    # delayed COLLECTING_DATA->SUCCEEDED transition fire (the replica-lag safety net
+    # dispatched with eta=+DELAYED_IN_REPLICA_RETRY_LONG_DELAY — 1s in e2e, 30s in
+    # prod). Posting status=8 back-to-back races that commit under load (the
+    # report-create and the status transition land on the same ai_sandbox_done queue
+    # with no ordering), so the search row may never be written. The wait restores
+    # the real-world sequencing: by the time status=8 arrives the task is already
+    # SUCCEEDED, and status=8 is a no-op backstop.
+    time.sleep(2)
     _post_sandbox_status(task_id, 8)
 
 
