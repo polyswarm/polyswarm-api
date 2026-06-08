@@ -165,12 +165,19 @@ class PolyswarmSession:
                         handle.flush()
             except Exception:
                 if created:
+                    # Close and remove independently — a failing close() must not
+                    # leave the partially-written file behind.
                     try:
                         handle.close()
+                    except Exception:
+                        logger.exception(
+                            "Failed to close the partially-written download."
+                        )
+                    try:
                         os.remove(handle.name)
                     except Exception:
                         logger.exception(
-                            "Failed to clean up the partially-written download."
+                            "Failed to remove the partially-written download."
                         )
                 raise
             request._result = request.result_parser.from_written(

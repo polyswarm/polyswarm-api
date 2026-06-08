@@ -19,6 +19,8 @@ The full catalogue of methods on the public client surface and which transport h
 
 ## Classification — `_single` (returns a single resource)
 
+> `_single` returns the parsed resource directly — **unless** the GET response envelope carries a `has_more` key, in which case `parse_response` marks the request paginated and `_single` hands back the same async generator `_paginate` would (`_consume_results`). A list-shaped endpoint deliberately placed on `_single` (e.g. `tag_link_list`) therefore *yields* items rather than returning a single resource.
+
 ### Search / lookup
 
 | Method | Resource builder | Notes |
@@ -77,7 +79,7 @@ The full catalogue of methods on the public client surface and which transport h
 | `ruleset_delete(ruleset_id)` | `YaraRuleset.delete` |
 | `tag_link_get(sha256)` | `TagLink.get` |
 | `tag_link_update(sha256, tags=None, families=None, emerging=None, remove=False)` | `TagLink.update` |
-| `tag_link_list(tags=None, families=None, or_tags=None, or_families=None)` | `TagLink.list` — returns a single page (uses `_single`, not `_paginate`); the server's `/tags/link/list` endpoint already encodes the filter set in the query string. |
+| `tag_link_list(tags=None, families=None, or_tags=None, or_families=None)` | `TagLink.list` — **yields** the page's `TagLink`s: the envelope carries `has_more`, so `_single` returns a generator (see the classification note above). Uses `_single` not `_paginate` because the server's `/tags/link/list` already encodes the full filter set in the query string. |
 | `tag_create(name)` / `tag_get(name)` / `tag_delete(name)` | `Tag.{create,get,delete}` |
 | `family_create(name)` / `family_get(name)` / `family_delete(name)` / `family_update(family_name, emerging=True)` | `MalwareFamily.{create,get,delete,update}` |
 

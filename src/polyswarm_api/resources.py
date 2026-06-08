@@ -299,6 +299,10 @@ class ArtifactInstance(core.BaseJsonResource, core.Hashable):
             params={
                 'hash': hash_value,
                 'community': api.community,
+                # Lowercased intentionally (the recorded wire form for this param).
+                # NOT routed through _normalise_bool_params, which emits capitalized
+                # 'True'/'False' — changing it would alter the query value and force a
+                # cassette re-record, so don't copy this into new builders without that.
                 'require_scan': str(require_scan).lower(),
             },
         )

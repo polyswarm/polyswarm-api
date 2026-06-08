@@ -988,6 +988,24 @@ async def test_async_download_streams_in_chunks(monkeypatch):
 
 
 @respx.mock
+async def test_async_exists_maps_2xx_true_404_false():
+    """End-to-end ``exists`` (the path the bot flagged as untested): the HEAD
+    status drives the result — any 2xx is True, 404 is False. Also locks the 2xx
+    generalisation (not a brittle ``== 200``)."""
+    route = respx.head(f'{BASE_URL}/search/hash/sha256')
+    api = PolySwarmAsyncAPI(API_KEY, uri=BASE_URL, community='gamma')
+    try:
+        route.mock(return_value=httpx.Response(200))
+        assert await api.exists(SHA256) is True
+        route.mock(return_value=httpx.Response(204))   # 2xx-but-not-200 still "exists"
+        assert await api.exists(SHA256) is True
+        route.mock(return_value=httpx.Response(404))
+        assert await api.exists(SHA256) is False
+    finally:
+        await api.aclose()
+
+
+@respx.mock
 async def test_async_sample_bundle_download_multistep():
     """``sample_bundle_download`` is a multi-step canonical async
     method: GET bundle task → state branch (PENDING / FAILED raise) →

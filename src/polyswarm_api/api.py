@@ -874,7 +874,9 @@ class PolyswarmAPI:
         :param families: A list of families that must be associated with the TagLinks listed.
         :param or_tags: A list of tags where the TagLinks must be associated with at least one.
         :param or_families: A list of families where the TagLinks must be associated with at least one.
-        :return: A TagLink resource
+        :return: A generator of TagLink resources. (This is on ``_single``, but the
+            list envelope carries ``has_more``, so ``_single`` yields items rather
+            than a single resource — see ``specs/03-endpoints.md``.)
         """
         logger.info("List tag links")
         return self._single(
@@ -1938,4 +1940,7 @@ class PolyswarmAPI:
                 require_scan=require_scan,
             ),
         )
-        return str(result) == "200"
+        # exists_hash is a HEAD; ``result`` is the status code. Any 2xx means the
+        # artifact is known — the endpoint returns 200 for present / 404 for absent,
+        # so a 2xx check is correct and not brittle to a non-200 success code.
+        return int(result) // 100 == 2
