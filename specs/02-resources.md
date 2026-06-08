@@ -96,10 +96,14 @@ direction: str | None = None
 has_more: bool | None = None
 ```
 
-**Note on `json`**: the `json` field is overloaded. At build time it holds the
-JSON body to send. After execution, `parse_response` overwrites it with the
-parsed response body (legacy 3.x semantics). Callers read `request.json['result']`,
-`request.json['has_more']`, etc. There is no separate `.json_body` field.
+**Note on `json` vs `input_json`**: the send body and the response body are kept
+in separate fields, so neither masks the other. The constructor still takes the
+send body as `json=` (back-compat), but `__post_init__` relocates it to
+`input_json` and resets `.json` to `None`. `to_httpx_kwargs` and pagination cloning
+read `input_json`; after execution `parse_response` fills `.json` with the parsed
+**response** body, so `request.json['result']`, `request.json['has_more']`, and
+`exc.request.json[...]` all read the response. There is no in-place send→response
+overwrite of a single field (this de-conflicts the historic 3.x overload).
 
 Two methods:
 

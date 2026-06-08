@@ -36,7 +36,7 @@ How a call flows from the user's code through the SDK to the server and back. Co
 
 Hand-written. No I/O. Three sub-concerns:
 
-**Description**: `PolyswarmRequest` — a dataclass with fields for the request shape (method, url, params, json, headers, content, data, files, timeout) and the parser (`result_parser`, `parser_kwargs`). It also carries mutable response-state fields (`raw_result`, `status_code`, `_result`, `_paginated`, pagination cursors, parsed JSON body) that the session populates after a call. The dataclass has no `execute` method; running the request is the session's job.
+**Description**: `PolyswarmRequest` — a dataclass with fields for the request shape (method, url, params, headers, content, data, files, timeout, and the send body — taken as the `json=` kwarg and relocated to `input_json` in `__post_init__`) and the parser (`result_parser`, `parser_kwargs`). It also carries mutable response-state fields (`raw_result`, `status_code`, `_result`, `_paginated`, pagination cursors, and `json` — the parsed response body) that the session populates after a call. The dataclass has no `execute` method; running the request is the session's job.
 
 **Parsing**: `parse_response(response, request)` — a pure function. Reads `response.status_code`, dispatches on `request.method` (HEAD → status as result), checks for 4xx/5xx (extract JSON body, raise typed exception), dispatches on `request.result_parser` (None → discard; `BaseJsonResource` subclass → JSON parse + pagination metadata; else → pass response to parser directly). Populates the request's mutable fields. No httpx-specific behaviour beyond reading `.status_code`, `.json()`, `.headers` — a fake response object works for unit testing.
 
@@ -164,10 +164,10 @@ async for instance in api.search(hash):
        ▼
 8. _consume_results / _next_page (in aio/api.py)
        │  bounded loop (<= _MAX_PAGES), stops on has_more=False or a
-       │  non-advancing offset:
+       │  non-advancing/absent offset:
        │     yield items from current page
        │     next_req = PolyswarmRequest(...) cloned with offset/limit
-       │                advanced + json=_input_json, response-state cleared
+       │                advanced + json=input_json (the send body)
        │     req = await self.session.execute(next_req)
 ```
 
@@ -216,7 +216,7 @@ The api client's constructor takes either `key=` (+ optional `httpx_kwargs`) to 
 - 2xx with `BaseJsonResource` parser: extract JSON, populate pagination metadata (`total`, `limit`, `offset`, `has_more`, `_paginated`), dispatch on `result_parser.parse_result_list` (list) or `.parse_result` (single).
 - 2xx with non-`BaseJsonResource` parser: pass `(api, response)` directly to `result_parser.parse_result` (used for `LocalArtifact` file downloads).
 
-After parsing, `request.json` holds the parsed response body — legacy semantics that overload the same field name as the send-body kwarg (which the response body overwrites). Callers read `request.json['result']` etc.
+After parsing, `request.json` holds the parsed **response** body; callers read `request.json['result']` / `exc.request.json[...]`. The **send** body lives in a separate field, `input_json`: the constructor's `json=` kwarg is relocated there by `__post_init__`, which resets `.json` to `None`. So the two never collide — `to_httpx_kwargs` and pagination read `input_json`, while `.json` means "the response" for the descriptor's whole post-construction life. (This de-conflicts what 3.x carried in one overloaded field; there is no in-place send→response overwrite.)
 
 ## Pagination
 
@@ -258,9 +258,9 @@ async def _consume_results(self, request):
 `_next_page` constructs a **new** `PolyswarmRequest` (cloning the prior descriptor's method/url/headers/etc.) for the next page, then awaits a fresh `session.execute`. Two subtleties:
 
 - **Offset is the server's returned cursor, echoed back** — `new_params['offset'] = request.offset` (the `offset` the server put in the previous page's body, an opaque next-page cursor on the artifact-index side), **not** a client-computed `offset + limit`. This matches 3.x's `next_page`. The `seen_offsets` guard in `_consume_results` assumes this: if the server ever echoes the *same* offset instead of advancing, the loop stops rather than re-fetching forever.
-- **The body is the original `_input_json`, not the parsed response** — `parse_response` overwrites `request.json` with the parsed page body, so re-sending `request.json` would POST the previous page's results as the next request. `_next_page` uses the `_input_json` snapshot (taken in `__post_init__`) to re-send the caller's original body.
+- **The body is `input_json`, the send body, not the response** — after execution `request.json` holds the parsed page *response*, so re-sending it would POST the previous page's results as the next request. `_next_page` clones from `input_json` (the send body, set in `__post_init__`) to re-send the caller's original body.
 
-Both paths are covered by respx tests (`test_async_pagination_*` in `async_client_test.py`): the multi-page walk + cursor echo, the `seen_offsets` early-stop, and the `_input_json` body re-send.
+Both paths are covered by respx tests (`test_async_pagination_*` in `async_client_test.py`): the multi-page walk + cursor echo, the `seen_offsets`/absent-cursor early-stop, and the `input_json` body re-send.
 
 ## Exception model
 

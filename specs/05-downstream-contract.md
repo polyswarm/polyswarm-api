@@ -102,8 +102,10 @@ class PolyswarmRequest:
     method: str
     url: str
     params: Any = None                       # dict or list of (k, v) tuples
-    json: Any = None                         # request body initially; OVERWRITTEN by
-                                             # the parsed response body after execution
+    json: Any = None                         # constructor send-body kwarg; __post_init__
+                                             # relocates it to input_json, then this holds
+                                             # the parsed RESPONSE body after execution
+    input_json: Any = field(init=False)      # the send body (what goes on the wire)
     headers: Mapping[str, Any] | None = None # value `None` on a header = "drop this
                                              # session-level header on this request"
     content: bytes | None = None             # raw byte body (httpx 'content=')
@@ -176,7 +178,7 @@ class InvalidValueException(PolyswarmException): ...
 class TimeoutException(PolyswarmException): ...
 ```
 
-Each `RequestException` subclass carries a `.request` attribute holding the originating `PolyswarmRequest` (set by `RequestException.__init__`). Callers can read `exc.request.status_code`, `exc.request.json` (the parsed response body after execution), `exc.request.request_parameters` (the request kwargs that built the call), etc. `InvalidValueException` and `TimeoutException` are client-side errors and don't carry a request descriptor.
+Each `RequestException` subclass carries a `.request` attribute holding the originating `PolyswarmRequest` (set by `RequestException.__init__`). Callers can read `exc.request.status_code`, `exc.request.json` (the parsed response body after execution), `exc.request.input_json` (the body that was sent), `exc.request.request_parameters` (the request kwargs that built the call), etc. `InvalidValueException` and `TimeoutException` are client-side errors and don't carry a request descriptor.
 
 Attachment happens at exception-construction time inside `parse_response` — `session.execute` does not catch and rewrap.
 
