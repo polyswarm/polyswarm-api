@@ -17,8 +17,12 @@ dev-pypi:
 # .build-docker tags it :$CI_COMMIT_SHA and :$CI_COMMIT_REF_SLUG, so the e2e stack
 # (running on the same-named branch) resolves the matching image for its
 # `polyswarm-api` command, which runs this suite VCR-off against the live stack.
+# Not built on master: the test image tracks develop (see `release`); master is
+# the PyPI release only, so no :master image exists for any e2e cascade to pick.
 build:
   extends: .build-docker
+  except:
+    - master
 
 ###############################################################
 # Test Stage
@@ -79,8 +83,11 @@ test-unasync-mirror:
 
 # Bring up the full platform and run this suite (VCR-off) against it as the e2e
 # `polyswarm-api` command. Validates the SDK against the live stack on every MR.
+# Skipped on master (no test image is built there — see `build` / `release`).
 e2e:
   extends: .e2e
+  except:
+    - master
 
 ###############################################################
 # Release Stage
@@ -89,7 +96,13 @@ e2e:
 release-pypi:
   extends: .release-pypi-public
 
-# Promote the SHA-tagged image to :latest on master so the e2e master pipeline
-# keeps running this suite against the newest published image.
+# Promote the SHA-tagged image to :latest from DEVELOP (overriding the template's
+# master-only default). The polyswarm-api image is a TEST artifact, not a deployed
+# service: every other repo's e2e pipeline resolves `polyswarm-api:latest` by
+# default (the compose service is tagless), so :latest must track the latest
+# integrated SDK on develop — not the released package on master. Master ships the
+# PyPI package only (release-pypi); it builds no image.
 release:
   extends: .release-docker
+  only:
+    - develop

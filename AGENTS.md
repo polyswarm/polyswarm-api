@@ -57,6 +57,14 @@ If you ever omit `--base`, the gh CLI defaults to the repo's default branch — 
 
 PR #295 was merged directly to `master` and had to be reverted (#296) and re-opened against `develop`. The version file wasn't touched, so no PyPI release fired — but the rollback was still disruptive. Don't repeat it.
 
+### The e2e test image is published from `develop`, not master
+
+`.gitlab-ci.yml` builds a **test image** (`docker/Dockerfile` — the repo + its suite) that the e2e harness runs as its `polyswarm-api` command (this SDK suite, VCR-off, against the live stack). It's a **test artifact, not a deployed service**, and its `:latest` tag is promoted from **`develop`**:
+
+- `build` + `e2e` run on every branch **except `master`**; **`develop`** additionally promotes the freshly-built SHA image to **`:latest`** (the `release` job is overridden to `only: [develop]`).
+- Every other repo's e2e pipeline resolves `polyswarm-api:latest` by default (the e2e compose service is tagless), so merging to `develop` is what updates the image all those pipelines test against — the whole point of keeping it on develop.
+- **`master` builds no image** — it runs `release-pypi` only (the PyPI package). The package release (master) and the e2e test image (develop) are deliberately decoupled: master = the released package, develop = the SDK code under test. So `:latest` here means "latest integrated SDK," which is intentionally *not* the workspace-wide "`:latest` = released" convention.
+
 ## Architectural shape (the short version)
 
 Detailed treatment is in [`specs/01-architecture.md`](./specs/01-architecture.md). The summary:
