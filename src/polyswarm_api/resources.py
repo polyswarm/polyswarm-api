@@ -2,7 +2,6 @@ import logging
 import os
 import io
 import functools
-import requests
 from enum import Enum
 from hashlib import sha256 as _sha256, sha1 as _sha1, md5 as _md5
 from urllib.parse import urlparse
@@ -159,17 +158,15 @@ class IOC(core.BaseJsonResource):
     def iocs_by_hash(cls, api, hash_value, hash_type, hide_known_good=False, beta=False):
         path = 'ioc-beta' if beta else 'ioc'
         return core.PolyswarmRequest(
-            api,
-            {
-                'method': 'GET',
-                'url': f'{api.uri}/{path}/{hash_type}/{hash_value}',
-                'params': {
-                    'hide_known_good': hide_known_good,
-                    'community': api.community,
-                },
+            api=api,
+            method='GET',
+            url=f'{api.uri}/{path}/{hash_type}/{hash_value}',
+            params={
+                'hide_known_good': hide_known_good,
+                'community': api.community,
             },
             result_parser=cls,
-        ).execute()
+        )
 
     @classmethod
     def ioc_search(cls, api, ip=None, domain=None, ttp=None, imphash=None):
@@ -183,95 +180,68 @@ class IOC(core.BaseJsonResource):
         if imphash is not None:
             params['imphash'] = imphash
         return core.PolyswarmRequest(
-            api,
-            {
-                'method': 'GET',
-                'url': f'{api.uri}/ioc/search',
-                'params': params
-            },
+            api=api,
+            method='GET',
+            url=f'{api.uri}/ioc/search',
+            params=params,
             result_parser=cls,
-        ).execute()
+        )
 
     @classmethod
     def check_known_hosts(cls, api, ips, domains):
         return core.PolyswarmRequest(
-            api,
-            {
-                'method': 'GET',
-                'url': f'{api.uri}/ioc/known',
-                'params': {
-                    'ip': ips,
-                    'domain': domains
-                }
-            },
+            api=api,
+            method='GET',
+            url=f'{api.uri}/ioc/known',
+            params={'ip': ips, 'domain': domains},
             result_parser=cls,
-        ).execute()
+        )
 
     @classmethod
     def create_known_good(cls, api, type, host, source):
         return core.PolyswarmRequest(
-            api,
-            {
-                'method': 'POST',
-                'url': f'{api.uri}/ioc/known',
-                'json': {
-                    'type': type,
-                    'host': host,
-                    'source': source,
-                    'good': True
-                }
-            },
+            api=api,
+            method='POST',
+            url=f'{api.uri}/ioc/known',
+            json={'type': type, 'host': host, 'source': source, 'good': True},
             result_parser=cls,
-        ).execute()
+        )
 
     @classmethod
     def create_known_bad(cls, api, type, host, source):
         return core.PolyswarmRequest(
-            api,
-            {
-                'method': 'POST',
-                'url': f'{api.uri}/ioc/known',
-                'json': {
-                    'type': type,
-                    'host': host,
-                    'source': source,
-                    'good': False
-                }
-            },
+            api=api,
+            method='POST',
+            url=f'{api.uri}/ioc/known',
+            json={'type': type, 'host': host, 'source': source, 'good': False},
             result_parser=cls,
-        ).execute()
+        )
 
     @classmethod
     def update_known_good(cls, api, id, type, host, source, good):
         return core.PolyswarmRequest(
-            api,
-            {
-                'method': 'PUT',
-                'url': f'{api.uri}/ioc/known',
-                'json': {
-                    'id': id,
-                    'type': type,
-                    'host': host,
-                    'source': source,
-                    'good': good
-                }
+            api=api,
+            method='PUT',
+            url=f'{api.uri}/ioc/known',
+            json={
+                'id': id,
+                'type': type,
+                'host': host,
+                'source': source,
+                'good': good,
             },
             result_parser=cls,
-        ).execute()
+        )
 
     @classmethod
     def delete_known_good(cls, api, id):
         return core.PolyswarmRequest(
-            api,
-            {
-                'method': 'DELETE',
-                'url': f'{api.uri}/ioc/known',
-                'params': {
-                    'id': id
-                }
-            },
+            api=api,
+            method='DELETE',
+            url=f'{api.uri}/ioc/known',
+            params={'id': id},
             result_parser=cls,
-        ).execute()
+        )
 
 
 class ArtifactInstance(core.BaseJsonResource, core.Hashable):
@@ -320,163 +290,117 @@ class ArtifactInstance(core.BaseJsonResource, core.Hashable):
         self._benign_assertions = None
         self._valid_assertions = None
 
-    def upload_file(self, artifact, attempts=3, **kwargs):
-        if not self.upload_url:
-            raise exceptions.InvalidValueException('upload_url must be set to upload a file')
-        if not artifact:
-            raise exceptions.InvalidValueException('A LocalArtifact must be provided in order to upload')
-        r = None
-        while attempts > 0 and not r:
-            attempts -= 1
-            artifact.seek(0, io.SEEK_END)
-            length = artifact.tell()
-            artifact.seek(0)
-            # https://github.com/psf/requests/issues/4215#issuecomment-319521235
-            # We have to manually handle the case when the file is empty
-            # in a way that requests won't set Transfer-Encoding: chunked
-            if not length:
-                artifact = ''
-            r = requests.put(self.upload_url, data=artifact, **kwargs)
-            r.raise_for_status()
-        return r
-
     @classmethod
     def exists_hash(cls, api, hash_value, hash_type, require_scan=False):
         return core.PolyswarmRequest(
-            api,
-            {
-                'method': 'HEAD',
-                'url': f'{api.uri}/search/hash/{hash_type}',
-                'params': {
-                    'hash': hash_value,
-                    'community': api.community,
-                    'require_scan': str(require_scan).lower(),
-                },
+            api=api,
+            method='HEAD',
+            url=f'{api.uri}/search/hash/{hash_type}',
+            params={
+                'hash': hash_value,
+                'community': api.community,
+                # Lowercased intentionally (the recorded wire form for this param).
+                # NOT routed through _normalise_bool_params, which emits capitalized
+                # 'True'/'False' — changing it would alter the query value and force a
+                # cassette re-record, so don't copy this into new builders without that.
+                'require_scan': str(require_scan).lower(),
             },
-        ).execute()
+        )
 
     @classmethod
     def search_hash(cls, api, hash_value, hash_type):
         return core.PolyswarmRequest(
-            api,
-            {
-                'method': 'GET',
-                'url': f'{api.uri}/search/hash/{hash_type}',
-                'params': {
-                    'hash': hash_value,
-                    'community': api.community,
-                },
-            },
+            api=api,
+            method='GET',
+            url=f'{api.uri}/search/hash/{hash_type}',
+            params={'hash': hash_value, 'community': api.community},
             result_parser=cls,
-        ).execute()
+        )
 
     @classmethod
     def search_url(cls, api, url):
         return core.PolyswarmRequest(
-            api,
-            {
-                'method': 'GET',
-                'url': f'{api.uri}/search/url',
-                'params': {
-                    'url': url,
-                    'community': api.community,
-                },
-            },
+            api=api,
+            method='GET',
+            url=f'{api.uri}/search/url',
+            params={'url': url, 'community': api.community},
             result_parser=cls,
-        ).execute()
+        )
 
     @classmethod
     def list_scans(cls, api, hash_value):
         return core.PolyswarmRequest(
-            api,
-            {
-                'method': 'GET',
-                'url': f'{api.uri}/search/instances',
-                'params': {
-                    'hash': hash_value,
-                    'community': api.community,
-                },
-            },
+            api=api,
+            method='GET',
+            url=f'{api.uri}/search/instances',
+            params={'hash': hash_value, 'community': api.community},
             result_parser=cls,
-        ).execute()
+        )
 
     @classmethod
     def submit(cls, api, artifact, artifact_name, artifact_type, scan_config=None):
-        parameters = {
-            'method': 'POST',
-            'url': f'{api.uri}/consumer/submission/{api.community}',
-            'files': {
-                'file': (artifact_name, artifact),
-            },
-            # very oddly, when included in files parameter this errors out
-            'data': {
-                'artifact-type': artifact_type,
-            }
-        }
+        # very oddly, when included in files parameter this errors out
+        data = {'artifact-type': artifact_type}
         if scan_config:
-            parameters['data']['scan-config'] = scan_config
+            data['scan-config'] = scan_config
         return core.PolyswarmRequest(
-            api,
-            parameters,
+            api=api,
+            method='POST',
+            url=f'{api.uri}/consumer/submission/{api.community}',
+            files={'file': (artifact_name, artifact)},
+            data=data,
             result_parser=cls,
-        ).execute()
+        )
 
     @classmethod
     def rescan(cls, api, hash_value, hash_type, scan_config=None):
-        parameters = {
-            'method': 'POST',
-            'url': f'{api.uri}/consumer/submission/{api.community}/rescan/{hash_type}/{hash_value}',
-            'data': {'community': api.community}
-        }
+        data = {'community': api.community}
         if scan_config:
-            parameters['data']['scan-config'] = scan_config
+            data['scan-config'] = scan_config
         return core.PolyswarmRequest(
-            api,
-            parameters,
+            api=api,
+            method='POST',
+            url=f'{api.uri}/consumer/submission/{api.community}/rescan/{hash_type}/{hash_value}',
+            data=data,
             result_parser=cls,
-        ).execute()
+        )
 
     @classmethod
     def rescan_id(cls, api, submission_id, scan_config=None):
-        parameters = {
-            'method': 'POST',
-            'url': f'{api.uri}/consumer/submission/{api.community}/rescan/{int(submission_id)}',
-        }
+        data = None
         if scan_config:
-            parameters.setdefault('data', {})['scan-config'] = scan_config
+            data = {'scan-config': scan_config}
         return core.PolyswarmRequest(
-            api,
-            parameters,
+            api=api,
+            method='POST',
+            url=f'{api.uri}/consumer/submission/{api.community}/rescan/{int(submission_id)}',
+            data=data,
             result_parser=cls,
-        ).execute()
+        )
 
     @classmethod
     def lookup_uuid(cls, api, submission_id):
         return core.PolyswarmRequest(
-            api,
-            {
-                'method': 'GET',
-                'url': f'{api.uri}/consumer/submission/{api.community}/{int(submission_id)}',
-            },
+            api=api,
+            method='GET',
+            url=f'{api.uri}/consumer/submission/{api.community}/{int(submission_id)}',
             result_parser=cls,
-        ).execute()
+        )
 
     @classmethod
     def metadata_rerun(cls, api, hashes, analyses=None, skip_es=None):
-        parameters = {
-            'method': 'POST',
-            'url': f'{api.uri}/consumer/metadata',
-            'json': {'hashes': hashes},
-        }
+        body = {'hashes': hashes}
         if analyses:
-            parameters['json']['analyses'] = analyses
+            body['analyses'] = analyses
         if skip_es:
-            parameters['json']['skip_es'] = skip_es
+            body['skip_es'] = skip_es
         return core.PolyswarmRequest(
-            api,
-            parameters,
+            api=api,
+            method='POST',
+            url=f'{api.uri}/consumer/metadata',
+            json=body,
             result_parser=cls,
-        ).execute()
+        )
 
     def __str__(self):
         return "ArtifactInstance-<%s>" % self.hash
@@ -578,13 +502,6 @@ class LocalArtifact(core.BaseResource, core.Hashable):
         :param api: PolyswarmAPI instance
         :param analyze: Boolean, if True will run analyses on artifact on startup (Note: this may still run later if False)
         """
-        # check if we have a destination to store the file
-        # raise an error if we don't have exacltly one
-        if folder and handle:
-            raise exceptions.InvalidValueException('Only one of path or handle should be defined.')
-        if not (folder or handle):
-            raise exceptions.InvalidValueException('At least one of path or handle must be defined.')
-
         # initialize super classes and default values
         super().__init__(response, api=api, hash_type='sha256')
         self.sha256 = None
@@ -593,123 +510,132 @@ class LocalArtifact(core.BaseResource, core.Hashable):
         self.analyzed = False
         self.artifact_type = artifact_type or ArtifactType.FILE
 
-        # resolve the file name
+        # Resolve the destination handle + name. The download body is NOT
+        # consumed here — for downloads the session streams it straight into the
+        # handle (see ``open_destination`` / ``from_written`` and
+        # ``aio/session.py``), which is what keeps large downloads off the heap.
+        # Direct constructors (``from_handle`` / ``from_path`` / ``from_content``)
+        # pass a falsy ``response`` and an already-open handle.
+        self.handle, self.artifact_name, _created = self.open_destination(
+            folder, handle, artifact_name, response or None, **kwargs)
+        if analyze:
+            # analyze the artifact in case it is needed
+            self.analyze_artifact()
+
+    @staticmethod
+    def _resolve_artifact_name(artifact_name, handle, response):
+        """Pick the filename: explicit name > response content-disposition >
+        handle name > URL basename > '' (a nameless in-memory handle defaults to
+        '' so ``.artifact_name`` reads don't fall through ``__getattr__`` to the
+        raw handle and raise AttributeError)."""
         if artifact_name:
-            # prioritize explicitly provided name
-            self.artifact_name = artifact_name
-        else:
-            if response:
-                # respect content-disposition if there is a response
-                filename = response.headers.get('content-disposition', '').partition('filename=')[2]
-                if filename:
-                    self.artifact_name = filename
-                elif os.path.basename(getattr(handle, 'name', '')):
-                    self.artifact_name = os.path.basename(getattr(handle, 'name', ''))
-                else:
-                    self.artifact_name = os.path.basename(urlparse(response.url).path)
-            elif os.path.basename(getattr(handle, 'name', '')):
-                # if there is no response and no artifact_name, try to get from the handle
-                self.artifact_name = os.path.basename(getattr(handle, 'name', ''))
+            return artifact_name
+        if response is not None:
+            filename = response.headers.get('content-disposition', '').partition('filename=')[2]
+            if filename:
+                return filename
+            if os.path.basename(getattr(handle, 'name', '')):
+                return os.path.basename(getattr(handle, 'name', ''))
+            return os.path.basename(urlparse(str(response.url)).path)
+        if os.path.basename(getattr(handle, 'name', '')):
+            return os.path.basename(getattr(handle, 'name', ''))
+        return ''
 
-        # resolve the handle to be used
-        # only one of handle or folder can be provided (we checked for this above)
-        # if one was explicitly provided, use it
-        # if we have a folder, use a file named after file_name in that folder
-        # otherwise use an in-memory handle
-        remove_on_error = False
-        try:
-            if folder:
-                if not os.path.exists(folder):
-                    os.makedirs(folder, exist_ok=True)
-                remove_on_error = True
-                self.handle = open(os.path.join(folder, self.artifact_name), mode='wb+', **kwargs)
-            else:
-                self.handle = handle or io.BytesIO()
+    @classmethod
+    def open_destination(cls, folder, handle, artifact_name, response=None, **open_kwargs):
+        """Resolve the artifact filename and the destination handle for a
+        download **without consuming any response body**.
 
-            if response:
-                # process the content in the response if available, write to handle
-                for chunk in response.iter_content(settings.DOWNLOAD_CHUNK_SIZE):
-                    self.handle.write(chunk)
-                    if hasattr(self.handle, 'flush'):
-                        self.handle.flush()
-            if analyze:
-                # analyze the artifact in case it is needed
-                self.analyze_artifact()
-        except Exception:
-            try:
-                if remove_on_error and self.handle:
-                    # make sure we cleanup the handle
-                    # if an exception happened and this is a file we created
-                    self.handle.close()
-                    os.remove(self.handle.name)
-            except Exception:
-                logger.exception('Failed to cleanup the target file.')
-            raise
+        Returns ``(handle, artifact_name, created)`` where ``created`` is True
+        iff a new file was opened under ``folder`` (so the caller must remove it
+        if the subsequent streamed write fails). Part of the non-JSON download
+        contract the session drives: ``open_destination`` provides the sink, the
+        session streams the body into it, then ``from_written`` wraps it. See
+        ``specs/01-architecture.md``.
+        """
+        if folder and handle:
+            raise exceptions.InvalidValueException('Only one of path or handle should be defined.')
+        if not (folder or handle):
+            raise exceptions.InvalidValueException('At least one of path or handle must be defined.')
+        name = cls._resolve_artifact_name(artifact_name, handle, response)
+        if folder:
+            if not os.path.exists(folder):
+                os.makedirs(folder, exist_ok=True)
+            return open(os.path.join(folder, name), mode='wb+', **open_kwargs), name, True
+        return handle or io.BytesIO(), name, False
+
+    @classmethod
+    def from_written(cls, api, handle, artifact_name, artifact_type=None, analyze=False):
+        """Wrap a handle the session has already streamed the download body
+        into, as a ``LocalArtifact`` (no re-consume). Counterpart to
+        ``open_destination``."""
+        return cls(b'', api=api, handle=handle, artifact_name=artifact_name,
+                   artifact_type=artifact_type, analyze=analyze)
 
     @classmethod
     def download(cls, api, hash_value, hash_type, handle=None, folder=None, artifact_name=None):
         return core.PolyswarmRequest(
-            api,
-            {
-                'method': 'GET',
-                'url': f'{api.uri}/consumer/download/{hash_type}/{hash_value}',
-                'stream': True,
-                'params': { 'community': api.community },
-            },
+            api=api,
+            method='GET',
+            url=f'{api.uri}/consumer/download/{hash_type}/{hash_value}',
+            params={'community': api.community},
             result_parser=cls,
-            handle=handle,
-            folder=folder,
-            artifact_name=artifact_name,
-        ).execute()
+            parser_kwargs={
+                'handle': handle,
+                'folder': folder,
+                'artifact_name': artifact_name,
+            },
+        )
 
     @classmethod
     def download_id(cls, api, instance_id, handle=None, folder=None, artifact_name=None):
         return core.PolyswarmRequest(
-            api,
-            {
-                'method': 'GET',
-                'url': f'{api.uri}/instance/download',
-                'stream': True,
-                'params': { 'instance_id': instance_id, 'community': api.community },
-            },
+            api=api,
+            method='GET',
+            url=f'{api.uri}/instance/download',
+            params={'instance_id': instance_id, 'community': api.community},
             result_parser=cls,
-            handle=handle,
-            folder=folder,
-            artifact_name=artifact_name,
-        ).execute()
+            parser_kwargs={
+                'handle': handle,
+                'folder': folder,
+                'artifact_name': artifact_name,
+            },
+        )
 
     @classmethod
     def download_sandbox_artifact(cls, api, sandbox_task_id, instance_id, handle=None, folder=None, artifact_name=None):
         return core.PolyswarmRequest(
-            api,
-            {
-                'method': 'GET',
-                'url': f'{api.uri}/sandbox/sandboxtask/instance',
-                'stream': True,
-                'params': { 'id': sandbox_task_id, 'instance_id': instance_id, 'community': api.community },
+            api=api,
+            method='GET',
+            url=f'{api.uri}/sandbox/sandboxtask/instance',
+            params={
+                'id': sandbox_task_id,
+                'instance_id': instance_id,
+                'community': api.community,
             },
             result_parser=cls,
-            handle=handle,
-            folder=folder,
-            artifact_name=artifact_name,
-        ).execute()
+            parser_kwargs={
+                'handle': handle,
+                'folder': folder,
+                'artifact_name': artifact_name,
+            },
+        )
 
     @classmethod
     def download_archive(cls, api, u, handle=None, folder=None, artifact_name=None):
         """ This method is special, in that it is simply for downloading from S3 """
         return core.PolyswarmRequest(
-            api,
-            {
-                'method': 'GET',
-                'url': u,
-                'stream': True,
-                'headers': {'Authorization': None}
-            },
+            api=api,
+            method='GET',
+            url=u,
+            headers={'Authorization': None},
             result_parser=cls,
-            handle=handle,
-            folder=folder,
-            artifact_name=artifact_name,
-        ).execute()
+            parser_kwargs={
+                'handle': handle,
+                'folder': folder,
+                'artifact_name': artifact_name,
+            },
+        )
 
     # Inspired by
     # https://github.com/python/cpython/blob/29500737d45cbca9604d9ce845fb2acc3f531401/Lib/tempfile.py#L461
@@ -1054,26 +980,6 @@ class SandboxTask(core.BaseJsonResource):
         self.artifact = content['artifact']
         self.sandbox_artifacts = [SandboxArtifact(a, api=api) for a in content.get('sandbox_artifacts', [])]
 
-    def upload_file(self, artifact, attempts=3, **kwargs):
-        if not self.upload_url:
-            raise exceptions.InvalidValueException('upload_url must be set to upload a file')
-        if not artifact:
-            raise exceptions.InvalidValueException('A LocalArtifact must be provided in order to upload')
-        r = None
-        while attempts > 0 and not r:
-            attempts -= 1
-            artifact.seek(0, io.SEEK_END)
-            length = artifact.tell()
-            artifact.seek(0)
-            # https://github.com/psf/requests/issues/4215#issuecomment-319521235
-            # We have to manually handle the case when the file is empty
-            # in a way that requests won't set Transfer-Encoding: chunked
-            if not length:
-                artifact = ''
-            r = requests.put(self.upload_url, data=artifact, **kwargs)
-            r.raise_for_status()
-        return r
-
     @classmethod
     def get(cls, api, **kwargs):
         return super().get(api, community=api.community, **kwargs)
@@ -1081,26 +987,24 @@ class SandboxTask(core.BaseJsonResource):
     @classmethod
     def latest(cls, api, **kwargs):
         params, _ = cls._get_params(community=api.community, **kwargs)
-        url = cls._endpoint(api) + '/latest'
-        parameters = {'method': 'GET', 'url': url, 'params': params}
-        return core.PolyswarmRequest(api, parameters, result_parser=cls).execute()
+        return core.PolyswarmRequest(
+            api=api,
+            method='GET',
+            url=cls._endpoint(api) + '/latest',
+            params=params,
+            result_parser=cls,
+        )
 
     @classmethod
     def my_tasks(cls, api, **kwargs):
         params, _ = cls._get_params(community=api.community, **kwargs)
-        url = cls._endpoint(api) + '/my-tasks'
-        parameters = {'method': 'GET', 'url': url, 'params': params}
-        return core.PolyswarmRequest(api, parameters, result_parser=cls).execute()
-
-    @classmethod
-    def create_file(cls, api, **kwargs):
-        return cls._build_request(api, 'POST', cls._create_endpoint(api, **kwargs) + '/instance',
-                                  cls._create_headers(api), *cls._create_params(**kwargs)).execute()
-
-    @classmethod
-    def update_file(cls, api, **kwargs):
-        return cls._build_request(api, 'PUT', cls._update_endpoint(api, **kwargs) + '/instance',
-                                  cls._update_headers(api), *cls._update_params(**kwargs)).execute()
+        return core.PolyswarmRequest(
+            api=api,
+            method='GET',
+            url=cls._endpoint(api) + '/my-tasks',
+            params=params,
+            result_parser=cls,
+        )
 
 
 class SandboxArtifact(core.BaseJsonResource):
@@ -1177,16 +1081,13 @@ class BundleTask(core.BaseJsonResource):
         if self.state == 'FAILED':
             raise exceptions.InvalidValueException("Bundle is in FAILED state, won't be generated")
         return core.PolyswarmRequest(
-            self.api,
-            {
-                'method': 'GET',
-                'url': self.url,
-                'stream': True,
-                'headers': {'Authorization': None}
-            },
+            api=self.api,
+            method='GET',
+            url=self.url,
+            headers={'Authorization': None},
             result_parser=LocalArtifact,
-            folder=folder,
-        ).execute()
+            parser_kwargs={'folder': folder},
+        )
 
 class ReportTask(core.BaseJsonResource):
     RESOURCE_ENDPOINT = "/reports"
@@ -1212,16 +1113,13 @@ class ReportTask(core.BaseJsonResource):
         if self.state == 'FAILED':
             raise exceptions.InvalidValueException("Report is in FAILED state, won't be generated")
         return core.PolyswarmRequest(
-            self.api,
-            {
-                'method': 'GET',
-                'url': self.url,
-                'stream': True,
-                'headers': {'Authorization': None}
-            },
+            api=self.api,
+            method='GET',
+            url=self.url,
+            headers={'Authorization': None},
             result_parser=LocalArtifact,
-            folder=folder,
-        ).execute()
+            parser_kwargs={'folder': folder},
+        )
 
 
 class ReportLLMPostProcessing(core.BaseJsonResource):
@@ -1246,16 +1144,13 @@ class ReportLLMPostProcessing(core.BaseJsonResource):
         if self.state == 'FAILED':
             raise exceptions.InvalidValueException("Report is in FAILED state, won't be generated")
         return core.PolyswarmRequest(
-            self.api,
-            {
-                'method': 'GET',
-                'url': self.url,
-                'stream': True,
-                'headers': {'Authorization': None}
-            },
+            api=self.api,
+            method='GET',
+            url=self.url,
+            headers={'Authorization': None},
             result_parser=LocalArtifact,
-            folder=folder,
-        ).execute()
+            parser_kwargs={'folder': folder},
+        )
 
 class ReportTemplate(core.BaseJsonResource):
     RESOURCE_ENDPOINT = "/reports/templates"
@@ -1279,25 +1174,21 @@ class ReportTemplate(core.BaseJsonResource):
 
     def download_logo(self, folder):
         return core.PolyswarmRequest(
-            self.api,
-            {
-                'method': 'GET',
-                'url': self.logo_url,
-            },
+            api=self.api,
+            method='GET',
+            url=self.logo_url,
             result_parser=LocalArtifact,
-            folder=folder,
-        ).execute()
+            parser_kwargs={'folder': folder},
+        )
 
     def delete_logo(self):
         return core.PolyswarmRequest(
-            self.api,
-            {
-                'method': 'DELETE',
-                'url': self.logo_url,
-            },
-        ).execute()
+            api=self.api,
+            method='DELETE',
+            url=self.logo_url,
+        )
 
-    def upload_logo(self, logo_file, content_tpe):
+    def upload_logo(self, logo_file, content_type):
         if not logo_file:
             raise exceptions.InvalidValueException('A local file must be provided in order to upload')
         logo_file.seek(0, io.SEEK_END)
@@ -1305,19 +1196,19 @@ class ReportTemplate(core.BaseJsonResource):
         logo_file.seek(0)
         if not length:
             raise exceptions.InvalidValueException('Empty file')
-        # r = requests.put(self.upload_url, data=logo_file, **kwargs)
-        # r.raise_for_status()
-        # return r
+        # httpx ``data=`` is for Mapping form-encoded bodies. A raw
+        # file-like / bytes payload goes through ``content=``. Read the
+        # file into bytes here so the PolyswarmRequest carries a
+        # concrete body the transport can send verbatim.
+        content = logo_file.read()
         return core.PolyswarmRequest(
-            self.api,
-            {
-                'method': 'PUT',
-                'url': f'{self.api.uri}/reports/templates/logo?id={self.id}',
-                'data': logo_file,
-                'headers': {'Content-Type': content_tpe}
-            },
-            result_parser=self.__class__
-        ).execute()
+            api=self.api,
+            method='PUT',
+            url=f'{self.api.uri}/reports/templates/logo?id={self.id}',
+            content=content,
+            headers={'Content-Type': content_type},
+            result_parser=self.__class__,
+        )
 
 
 class AccountFeatures(core.BaseJsonResource):
@@ -1396,11 +1287,13 @@ class Webhook(core.BaseJsonResource):
 
     @classmethod
     def test(cls, api, webhook_id):
+        # No ``result_parser``: the server returns a generic OK envelope
+        # on success, not a Webhook-shaped payload. ``parse_result`` was
+        # updated so non-2xx still raises ``RequestException`` even
+        # without a parser.
         return core.PolyswarmRequest(
-            api,
-            {
-                'method': 'POST',
-                'url': f'{api.uri}{cls.RESOURCE_ENDPOINT}/test',
-                'params': {'id': webhook_id},
-            },
-        ).execute()
+            api=api,
+            method='POST',
+            url=f'{api.uri}{cls.RESOURCE_ENDPOINT}/test',
+            params={'id': webhook_id},
+        )

@@ -1,119 +1,282 @@
 interactions:
 - request:
-    body: '{"instance_id": "41782351738405672", "tool": "test_tool_1", "tool_metadata":
-      {"key": "value"}}'
+    body: '{"artifact_name":"artifact","artifact_type":"FILE","community":"gamma"}'
     headers:
-      Accept:
+      accept:
       - '*/*'
-      Accept-Encoding:
+      accept-encoding:
       - gzip, deflate
-      Authorization:
+      authorization:
       - '11111111111111111111111111111111'
-      Connection:
+      connection:
       - keep-alive
-      Content-Length:
-      - '94'
-      Content-Type:
+      content-length:
+      - '71'
+      content-type:
       - application/json
-      User-Agent:
-      - polyswarm-api/3.1.3 (x86_64-Linux-CPython-3.10.7)
+      host:
+      - artifact-index-e2e:9696
+      user-agent:
+      - polyswarm_api/3.21.0 (x86_64-Linux-CPython-3.14.4)
     method: POST
-    uri: http://localhost:9696/v3/artifact/metadata
+    uri: http://artifact-index-e2e:9696/v3/instance
   response:
     body:
-      string: '{"result":{"created":"2023-03-02T22:45:33.816759","tool":"test_tool_1","tool_metadata":{"key":"value"},"updated":"2023-03-02T22:45:33.816759"},"status":"OK"}
+      string: '{"result":{"artifact_id":"29849643211896425","assertions":[],"bounty_state":0,"community":"gamma","country":"","created":"2026-06-03T22:37:52.795919+00:00","detections":null,"expiration_window":null,"expire_at":null,"extended_type":null,"failed":false,"filename":"artifact","first_seen":"2026-06-03T22:37:52.795919+00:00","id":"29849643211896425","last_scanned":null,"last_seen":null,"md5":null,"metadata":[],"mimetype":null,"permalink":"https://polyswarm.network/scan/results/file/None/29849643211896425","polyscore":null,"result":null,"sha1":null,"sha256":null,"size":null,"type":"FILE","upload_url":"http://minio:9000/artifact-index/instances/12/cc/95/12cc955a-e8f5-4ab1-9804-bdc2b9986eea?X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Credential=AKIAIOSFODNN7EXAMPLE%2F20260603%2Fus-east-1%2Fs3%2Faws4_request&X-Amz-Date=20260603T223752Z&X-Amz-Expires=300&X-Amz-SignedHeaders=host&X-Amz-Signature=d6830b08c0f0cb4002aa8dc6598f7517407c5ce4a33aa43385efdfeb200990a1","votes":[],"window_closed":false},"status":"OK"}
 
         '
     headers:
+      Access-Control-Allow-Origin:
+      - '*'
+      Access-Control-Expose-Headers:
+      - Authorization
       Connection:
-      - close
+      - keep-alive
       Content-Length:
-      - '158'
+      - '1008'
       Content-Type:
       - application/json
       Date:
-      - Thu, 02 Mar 2023 22:45:33 GMT
+      - Wed, 03 Jun 2026 22:37:52 GMT
       Server:
-      - Werkzeug/2.2.2 Python/3.10.7
+      - gunicorn
       X-Billing-ID:
-      - '1'
+      - '111'
     status:
       code: 200
       message: OK
 - request:
-    body: '{"instance_id": "41782351738405672", "tool": "test_tool_2", "tool_metadata":
-      {"key2": "value2"}}'
+    body: 'X5O!P%@AP[4\PZX54(P^)7CC)7}$EICAR-STANDARD-ANTIVIRUS-TEST-FILE!$H+H*
+
+      test_async_tool_metadata'
     headers:
-      Accept:
+      accept:
       - '*/*'
-      Accept-Encoding:
+      accept-encoding:
       - gzip, deflate
-      Authorization:
-      - '11111111111111111111111111111111'
-      Connection:
+      connection:
       - keep-alive
-      Content-Length:
-      - '96'
-      Content-Type:
-      - application/json
-      User-Agent:
-      - polyswarm-api/3.1.3 (x86_64-Linux-CPython-3.10.7)
-    method: POST
-    uri: http://localhost:9696/v3/artifact/metadata
+      content-length:
+      - '93'
+      host:
+      - minio:9000
+      user-agent:
+      - polyswarm_api/3.21.0 (x86_64-Linux-CPython-3.14.4)
+    method: PUT
+    uri: http://minio:9000/artifact-index/instances/12/cc/95/12cc955a-e8f5-4ab1-9804-bdc2b9986eea?X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Credential=AKIAIOSFODNN7EXAMPLE%2F20260603%2Fus-east-1%2Fs3%2Faws4_request&X-Amz-Date=20260603T223752Z&X-Amz-Expires=300&X-Amz-SignedHeaders=host&X-Amz-Signature=d6830b08c0f0cb4002aa8dc6598f7517407c5ce4a33aa43385efdfeb200990a1
   response:
     body:
-      string: '{"result":{"created":"2023-03-02T22:45:33.886340","tool":"test_tool_2","tool_metadata":{"key2":"value2"},"updated":"2023-03-02T22:45:33.886340"},"status":"OK"}
-
-        '
+      string: ''
     headers:
-      Connection:
-      - close
+      Accept-Ranges:
+      - bytes
       Content-Length:
-      - '160'
-      Content-Type:
-      - application/json
+      - '0'
       Date:
-      - Thu, 02 Mar 2023 22:45:33 GMT
+      - Wed, 03 Jun 2026 22:37:52 GMT
+      ETag:
+      - '"7c6c95b69d4e0587bf268da4f18228b5"'
       Server:
-      - Werkzeug/2.2.2 Python/3.10.7
-      X-Billing-ID:
-      - '1'
+      - MinIO
+      Strict-Transport-Security:
+      - max-age=31536000; includeSubDomains
+      Vary:
+      - Origin
+      - Accept-Encoding
+      X-Amz-Id-2:
+      - dd9025bab4ad464b049177c95eb6ebf374d3b3fd1af9251148b658df7ac2e3e8
+      X-Amz-Request-Id:
+      - 18B5B33623A4D81E
+      X-Content-Type-Options:
+      - nosniff
+      X-Ratelimit-Limit:
+      - '13624'
+      X-Ratelimit-Remaining:
+      - '13624'
+      X-Xss-Protection:
+      - 1; mode=block
+      x-amz-expiration:
+      - expiry-date="Fri, 05 Jun 2026 00:00:00 GMT", rule-id="expiration-artifact-index_0-instances"
     status:
       code: 200
       message: OK
 - request:
-    body: null
+    body: '{"community":"gamma"}'
     headers:
-      Accept:
+      accept:
       - '*/*'
-      Accept-Encoding:
+      accept-encoding:
       - gzip, deflate
-      Authorization:
+      authorization:
       - '11111111111111111111111111111111'
+      connection:
+      - keep-alive
+      content-length:
+      - '21'
+      content-type:
+      - application/json
+      host:
+      - artifact-index-e2e:9696
+      user-agent:
+      - polyswarm_api/3.21.0 (x86_64-Linux-CPython-3.14.4)
+    method: PUT
+    uri: http://artifact-index-e2e:9696/v3/instance?id=29849643211896425
+  response:
+    body:
+      string: '{"result":{"artifact_id":"29849643211896425","assertions":[],"bounty_state":0,"community":"gamma","country":"","created":"2026-06-03T22:37:52.795919+00:00","detections":null,"expiration_window":null,"expire_at":null,"extended_type":null,"failed":false,"filename":"artifact","first_seen":"2026-06-03T22:37:52.795919+00:00","id":"29849643211896425","last_scanned":null,"last_seen":null,"md5":null,"metadata":[],"mimetype":null,"permalink":"https://polyswarm.network/scan/results/file/None/29849643211896425","polyscore":null,"result":null,"sha1":null,"sha256":null,"size":null,"type":"FILE","upload_url":"http://minio:9000/artifact-index/instances/12/cc/95/12cc955a-e8f5-4ab1-9804-bdc2b9986eea?X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Credential=AKIAIOSFODNN7EXAMPLE%2F20260603%2Fus-east-1%2Fs3%2Faws4_request&X-Amz-Date=20260603T223752Z&X-Amz-Expires=300&X-Amz-SignedHeaders=host&X-Amz-Signature=d6830b08c0f0cb4002aa8dc6598f7517407c5ce4a33aa43385efdfeb200990a1","votes":[],"window_closed":false},"status":"OK"}
+
+        '
+    headers:
+      Access-Control-Allow-Origin:
+      - '*'
+      Access-Control-Expose-Headers:
+      - Authorization
       Connection:
       - keep-alive
-      User-Agent:
-      - polyswarm-api/3.1.3 (x86_64-Linux-CPython-3.10.7)
+      Content-Length:
+      - '1008'
+      Content-Type:
+      - application/json
+      Date:
+      - Wed, 03 Jun 2026 22:37:52 GMT
+      Server:
+      - gunicorn
+      X-Billing-ID:
+      - '111'
+    status:
+      code: 200
+      message: OK
+- request:
+    body: '{"instance_id":"29849643211896425","tool":"test_tool_1","tool_metadata":{"key":"value"}}'
+    headers:
+      accept:
+      - '*/*'
+      accept-encoding:
+      - gzip, deflate
+      authorization:
+      - '11111111111111111111111111111111'
+      connection:
+      - keep-alive
+      content-length:
+      - '88'
+      content-type:
+      - application/json
+      host:
+      - artifact-index-e2e:9696
+      user-agent:
+      - polyswarm_api/3.21.0 (x86_64-Linux-CPython-3.14.4)
+    method: POST
+    uri: http://artifact-index-e2e:9696/v3/artifact/metadata
+  response:
+    body:
+      string: '{"result":{"created":"2026-06-03T22:37:52.838776+00:00","tool":"test_tool_1","tool_metadata":{"key":"value"},"updated":"2026-06-03T22:37:52.838776+00:00"},"status":"OK"}
+
+        '
+    headers:
+      Access-Control-Allow-Origin:
+      - '*'
+      Access-Control-Expose-Headers:
+      - Authorization
+      Connection:
+      - keep-alive
+      Content-Length:
+      - '170'
+      Content-Type:
+      - application/json
+      Date:
+      - Wed, 03 Jun 2026 22:37:52 GMT
+      Server:
+      - gunicorn
+      X-Billing-ID:
+      - '111'
+    status:
+      code: 200
+      message: OK
+- request:
+    body: '{"instance_id":"29849643211896425","tool":"test_tool_2","tool_metadata":{"key2":"value2"}}'
+    headers:
+      accept:
+      - '*/*'
+      accept-encoding:
+      - gzip, deflate
+      authorization:
+      - '11111111111111111111111111111111'
+      connection:
+      - keep-alive
+      content-length:
+      - '90'
+      content-type:
+      - application/json
+      host:
+      - artifact-index-e2e:9696
+      user-agent:
+      - polyswarm_api/3.21.0 (x86_64-Linux-CPython-3.14.4)
+    method: POST
+    uri: http://artifact-index-e2e:9696/v3/artifact/metadata
+  response:
+    body:
+      string: '{"result":{"created":"2026-06-03T22:37:52.855377+00:00","tool":"test_tool_2","tool_metadata":{"key2":"value2"},"updated":"2026-06-03T22:37:52.855377+00:00"},"status":"OK"}
+
+        '
+    headers:
+      Access-Control-Allow-Origin:
+      - '*'
+      Access-Control-Expose-Headers:
+      - Authorization
+      Connection:
+      - keep-alive
+      Content-Length:
+      - '172'
+      Content-Type:
+      - application/json
+      Date:
+      - Wed, 03 Jun 2026 22:37:52 GMT
+      Server:
+      - gunicorn
+      X-Billing-ID:
+      - '111'
+    status:
+      code: 200
+      message: OK
+- request:
+    body: ''
+    headers:
+      accept:
+      - '*/*'
+      accept-encoding:
+      - gzip, deflate
+      authorization:
+      - '11111111111111111111111111111111'
+      connection:
+      - keep-alive
+      host:
+      - artifact-index-e2e:9696
+      user-agent:
+      - polyswarm_api/3.21.0 (x86_64-Linux-CPython-3.14.4)
     method: GET
-    uri: http://localhost:9696/v3/artifact/metadata/list?instance_id=41782351738405672
+    uri: http://artifact-index-e2e:9696/v3/artifact/metadata/list?instance_id=29849643211896425
   response:
     body:
-      string: '{"has_more":false,"limit":2,"result":[{"created":"2023-03-02T22:45:33.891180","tool":"test_tool_2","tool_metadata":{"key2":"value2"},"updated":"2023-03-02T22:45:33.891180"},{"created":"2023-03-02T22:45:33.822265","tool":"test_tool_1","tool_metadata":{"key":"value"},"updated":"2023-03-02T22:45:33.822265"}],"status":"OK"}
+      string: '{"has_more":false,"limit":50,"result":[{"created":"2026-06-03T22:37:52.858234+00:00","tool":"test_tool_2","tool_metadata":{"key2":"value2"},"updated":"2026-06-03T22:37:52.858234+00:00"},{"created":"2026-06-03T22:37:52.843573+00:00","tool":"test_tool_1","tool_metadata":{"key":"value"},"updated":"2026-06-03T22:37:52.843573+00:00"}],"status":"OK"}
 
         '
     headers:
+      Access-Control-Allow-Origin:
+      - '*'
+      Access-Control-Expose-Headers:
+      - Authorization
       Connection:
-      - close
+      - keep-alive
       Content-Length:
-      - '322'
+      - '347'
       Content-Type:
       - application/json
       Date:
-      - Thu, 02 Mar 2023 22:45:33 GMT
+      - Wed, 03 Jun 2026 22:37:52 GMT
       Server:
-      - Werkzeug/2.2.2 Python/3.10.7
+      - gunicorn
       X-Billing-ID:
-      - '1'
+      - '111'
     status:
       code: 200
       message: OK

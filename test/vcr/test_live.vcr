@@ -1,230 +1,207 @@
 interactions:
 - request:
-    body: '{"yara": "rule eicar_av_test {\n    /*\n       Per standard, match only
-      if entire file is EICAR string plus optional trailing whitespace.\n       The
-      raw EICAR string to be matched is:\n       X5O!P%@AP[4\\PZX54(P^)7CC)7}$EICAR-STANDARD-ANTIVIRUS-TEST-FILE!$H+H*\n    */\n\n    meta:\n        description
-      = \"This is a standard AV test, intended to verify that BinaryAlert is working
-      correctly.\"\n        author = \"Austin Byers | Airbnb CSIRT\"\n        reference
-      = \"http://www.eicar.org/86-0-Intended-use.html\"\n\n    strings:\n        $eicar_regex
-      = /^X5O!P%@AP\\[4\\\\PZX54\\(P\\^\\)7CC\\)7\\}\\$EICAR-STANDARD-ANTIVIRUS-TEST-FILE!\\$H\\+H\\*\\s*$/\n\n    condition:\n        all
-      of them\n}\n\nrule eicar_substring_test {\n    /*\n       More generic - match
-      just the embedded EICAR string (e.g. in packed executables, PDFs, etc)\n    */\n\n    meta:\n        description
-      = \"Standard AV test, checking for an EICAR substring\"\n        author = \"Austin
-      Byers | Airbnb CSIRT\"\n\n    strings:\n        $eicar_substring = \"$EICAR-STANDARD-ANTIVIRUS-TEST-FILE!\"\n\n    condition:\n        all
-      of them\n}", "name": "eicar"}'
+    body: '{"yara":"rule sdk_test_live { strings: $u = \"test_live\" condition: $u
+      }","name":"sdk-test_live"}'
     headers:
-      Accept:
+      accept:
       - '*/*'
-      Accept-Encoding:
+      accept-encoding:
       - gzip, deflate
-      Authorization:
+      authorization:
       - '11111111111111111111111111111111'
-      Connection:
+      connection:
       - keep-alive
-      Content-Length:
-      - '1130'
-      Content-Type:
+      content-length:
+      - '98'
+      content-type:
       - application/json
-      User-Agent:
-      - polyswarm-api/3.0.0 (x86_64-Linux-CPython-3.6.5)
+      host:
+      - artifact-index-e2e:9696
+      user-agent:
+      - polyswarm_api/3.21.0 (x86_64-Linux-CPython-3.14.4)
     method: POST
-    uri: http://localhost:9696/v3/hunt/rule
+    uri: http://artifact-index-e2e:9696/v3/hunt/rule
   response:
     body:
-      string: '<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 3.2 Final//EN">
-
-        <title>Redirecting...</title>
-
-        <h1>Redirecting...</h1>
-
-        <p>You should be redirected automatically to target URL: <a href="http://localhost:9696/v3/hunt/rule/">http://localhost:9696/v3/hunt/rule/</a>.  If
-        not click the link.'
-    headers:
-      Content-Length:
-      - '277'
-      Content-Type:
-      - text/html; charset=utf-8
-      Date:
-      - Thu, 26 May 2022 18:48:37 GMT
-      Location:
-      - http://localhost:9696/v3/hunt/rule/
-      Server:
-      - Werkzeug/1.0.1 Python/3.9.6
-    status:
-      code: 308
-      message: PERMANENT REDIRECT
-- request:
-    body: '{"yara": "rule eicar_av_test {\n    /*\n       Per standard, match only
-      if entire file is EICAR string plus optional trailing whitespace.\n       The
-      raw EICAR string to be matched is:\n       X5O!P%@AP[4\\PZX54(P^)7CC)7}$EICAR-STANDARD-ANTIVIRUS-TEST-FILE!$H+H*\n    */\n\n    meta:\n        description
-      = \"This is a standard AV test, intended to verify that BinaryAlert is working
-      correctly.\"\n        author = \"Austin Byers | Airbnb CSIRT\"\n        reference
-      = \"http://www.eicar.org/86-0-Intended-use.html\"\n\n    strings:\n        $eicar_regex
-      = /^X5O!P%@AP\\[4\\\\PZX54\\(P\\^\\)7CC\\)7\\}\\$EICAR-STANDARD-ANTIVIRUS-TEST-FILE!\\$H\\+H\\*\\s*$/\n\n    condition:\n        all
-      of them\n}\n\nrule eicar_substring_test {\n    /*\n       More generic - match
-      just the embedded EICAR string (e.g. in packed executables, PDFs, etc)\n    */\n\n    meta:\n        description
-      = \"Standard AV test, checking for an EICAR substring\"\n        author = \"Austin
-      Byers | Airbnb CSIRT\"\n\n    strings:\n        $eicar_substring = \"$EICAR-STANDARD-ANTIVIRUS-TEST-FILE!\"\n\n    condition:\n        all
-      of them\n}", "name": "eicar"}'
-    headers:
-      Accept:
-      - '*/*'
-      Accept-Encoding:
-      - gzip, deflate
-      Authorization:
-      - '11111111111111111111111111111111'
-      Connection:
-      - keep-alive
-      Content-Length:
-      - '1130'
-      Content-Type:
-      - application/json
-      User-Agent:
-      - polyswarm-api/3.0.0 (x86_64-Linux-CPython-3.6.5)
-    method: POST
-    uri: http://localhost:9696/v3/hunt/rule/
-  response:
-    body:
-      string: '{"result":{"created":"2022-05-26T18:48:38.048514","deleted":false,"description":null,"id":"57989886451857569","livescan_created":null,"livescan_id":null,"modified":"2022-05-26T18:48:38.048514","name":"eicar","yara":"rule
-        eicar_av_test {\n    /*\n       Per standard, match only if entire file is
-        EICAR string plus optional trailing whitespace.\n       The raw EICAR string
-        to be matched is:\n       X5O!P%@AP[4\\PZX54(P^)7CC)7}$EICAR-STANDARD-ANTIVIRUS-TEST-FILE!$H+H*\n    */\n\n    meta:\n        description
-        = \"This is a standard AV test, intended to verify that BinaryAlert is working
-        correctly.\"\n        author = \"Austin Byers | Airbnb CSIRT\"\n        reference
-        = \"http://www.eicar.org/86-0-Intended-use.html\"\n\n    strings:\n        $eicar_regex
-        = /^X5O!P%@AP\\[4\\\\PZX54\\(P\\^\\)7CC\\)7\\}\\$EICAR-STANDARD-ANTIVIRUS-TEST-FILE!\\$H\\+H\\*\\s*$/\n\n    condition:\n        all
-        of them\n}\n\nrule eicar_substring_test {\n    /*\n       More generic - match
-        just the embedded EICAR string (e.g. in packed executables, PDFs, etc)\n    */\n\n    meta:\n        description
-        = \"Standard AV test, checking for an EICAR substring\"\n        author =
-        \"Austin Byers | Airbnb CSIRT\"\n\n    strings:\n        $eicar_substring
-        = \"$EICAR-STANDARD-ANTIVIRUS-TEST-FILE!\"\n\n    condition:\n        all
-        of them\n}"},"status":"OK"}
+      string: '{"result":{"created":"2026-06-03T22:35:46.641576+00:00","deleted":false,"description":null,"id":"63962466091392300","livescan_created":null,"livescan_id":null,"modified":"2026-06-03T22:35:46.641576+00:00","name":"sdk-test_live","yara":"rule
+        sdk_test_live { strings: $u = \"test_live\" condition: $u }"},"status":"OK"}
 
         '
     headers:
+      Access-Control-Allow-Origin:
+      - '*'
+      Access-Control-Expose-Headers:
+      - Authorization
+      Connection:
+      - keep-alive
       Content-Length:
-      - '1335'
+      - '318'
       Content-Type:
       - application/json
       Date:
-      - Thu, 26 May 2022 18:48:38 GMT
+      - Wed, 03 Jun 2026 22:35:46 GMT
       Server:
-      - Werkzeug/1.0.1 Python/3.9.6
+      - gunicorn
       X-Billing-ID:
-      - '1'
+      - '111'
     status:
       code: 200
       message: OK
 - request:
-    body: '{"rule_id": "57989886451857569"}'
+    body: '{"rule_id":"63962466091392300"}'
     headers:
-      Accept:
+      accept:
       - '*/*'
-      Accept-Encoding:
+      accept-encoding:
       - gzip, deflate
-      Authorization:
+      authorization:
       - '11111111111111111111111111111111'
-      Connection:
+      connection:
       - keep-alive
-      Content-Length:
-      - '32'
-      Content-Type:
+      content-length:
+      - '31'
+      content-type:
       - application/json
-      User-Agent:
-      - polyswarm-api/3.0.0 (x86_64-Linux-CPython-3.6.5)
+      host:
+      - artifact-index-e2e:9696
+      user-agent:
+      - polyswarm_api/3.21.0 (x86_64-Linux-CPython-3.14.4)
     method: POST
-    uri: http://localhost:9696/v3/hunt/rule/live
+    uri: http://artifact-index-e2e:9696/v3/hunt/rule/live
   response:
     body:
-      string: '{"result":{"created":"2022-05-26T18:48:38.048514","deleted":false,"description":null,"id":"57989886451857569","livescan_created":"2022-05-26T18:48:38.176758","livescan_id":57028981462665681,"modified":"2022-05-26T18:48:38.113148","name":"eicar","yara":"rule
-        eicar_av_test {\n    /*\n       Per standard, match only if entire file is
-        EICAR string plus optional trailing whitespace.\n       The raw EICAR string
-        to be matched is:\n       X5O!P%@AP[4\\PZX54(P^)7CC)7}$EICAR-STANDARD-ANTIVIRUS-TEST-FILE!$H+H*\n    */\n\n    meta:\n        description
-        = \"This is a standard AV test, intended to verify that BinaryAlert is working
-        correctly.\"\n        author = \"Austin Byers | Airbnb CSIRT\"\n        reference
-        = \"http://www.eicar.org/86-0-Intended-use.html\"\n\n    strings:\n        $eicar_regex
-        = /^X5O!P%@AP\\[4\\\\PZX54\\(P\\^\\)7CC\\)7\\}\\$EICAR-STANDARD-ANTIVIRUS-TEST-FILE!\\$H\\+H\\*\\s*$/\n\n    condition:\n        all
-        of them\n}\n\nrule eicar_substring_test {\n    /*\n       More generic - match
-        just the embedded EICAR string (e.g. in packed executables, PDFs, etc)\n    */\n\n    meta:\n        description
-        = \"Standard AV test, checking for an EICAR substring\"\n        author =
-        \"Austin Byers | Airbnb CSIRT\"\n\n    strings:\n        $eicar_substring
-        = \"$EICAR-STANDARD-ANTIVIRUS-TEST-FILE!\"\n\n    condition:\n        all
-        of them\n}"},"status":"OK"}
+      string: '{"result":{"created":"2026-06-03T22:35:46.641576+00:00","deleted":false,"description":null,"id":"63962466091392300","livescan_created":"2026-06-03T22:35:46.690992+00:00","livescan_id":null,"modified":"2026-06-03T22:35:46.641576+00:00","name":"sdk-test_live","yara":"rule
+        sdk_test_live { strings: $u = \"test_live\" condition: $u }"},"status":"OK"}
 
         '
     headers:
+      Access-Control-Allow-Origin:
+      - '*'
+      Access-Control-Expose-Headers:
+      - Authorization
+      Connection:
+      - keep-alive
       Content-Length:
-      - '1372'
+      - '348'
       Content-Type:
       - application/json
       Date:
-      - Thu, 26 May 2022 18:48:38 GMT
+      - Wed, 03 Jun 2026 22:35:46 GMT
       Server:
-      - Werkzeug/1.0.1 Python/3.9.6
+      - gunicorn
       X-Billing-ID:
-      - '1'
+      - '111'
     status:
       code: 200
       message: OK
 - request:
-    body: '{"artifact_name": "malicious", "artifact_type": "FILE", "community": "gamma"}'
+    body: ''
     headers:
-      Accept:
+      accept:
       - '*/*'
-      Accept-Encoding:
+      accept-encoding:
       - gzip, deflate
-      Authorization:
+      authorization:
       - '11111111111111111111111111111111'
-      Connection:
+      connection:
       - keep-alive
-      Content-Length:
-      - '77'
-      Content-Type:
-      - application/json
-      User-Agent:
-      - polyswarm-api/3.0.0 (x86_64-Linux-CPython-3.6.5)
-    method: POST
-    uri: http://localhost:9696/v3/instance
+      host:
+      - artifact-index-e2e:9696
+      user-agent:
+      - polyswarm_api/3.21.0 (x86_64-Linux-CPython-3.14.4)
+    method: GET
+    uri: http://artifact-index-e2e:9696/v3/hunt/rule?id=63962466091392300&community=gamma
   response:
     body:
-      string: '{"result":{"artifact_id":"80845414726025917","assertions":[],"community":"gamma","country":"","created":"2022-05-26T18:48:38.322949","detections":null,"extended_type":null,"failed":false,"filename":"malicious","first_seen":"2022-05-26T18:48:38.322949","id":"80845414726025917","last_scanned":null,"last_seen":null,"md5":null,"metadata":[],"mimetype":null,"polyscore":null,"result":null,"sha1":null,"sha256":null,"size":null,"type":"FILE","upload_url":"http://minio:9000/instances/f4/8b/64/f48b6453-e2fa-49fe-b908-a4d7b09ae9f1?X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Credential=AKIAIOSFODNN7EXAMPLE%2F20220526%2Fus-east-1%2Fs3%2Faws4_request&X-Amz-Date=20220526T184838Z&X-Amz-Expires=300&X-Amz-SignedHeaders=host&X-Amz-Signature=d1506110cac43c49904ff83465cc8ae593f062b6289fbb36a4cd36a7b8175d93","votes":[],"window_closed":false},"status":"OK"}
+      string: '{"result":{"created":"2026-06-03T22:35:46.641576+00:00","deleted":false,"description":null,"id":"63962466091392300","livescan_created":"2026-06-03T22:35:46.690992+00:00","livescan_id":68378491128619407,"modified":"2026-06-03T22:35:46.666460+00:00","name":"sdk-test_live","yara":"rule
+        sdk_test_live { strings: $u = \"test_live\" condition: $u }"},"status":"OK"}
 
         '
     headers:
+      Access-Control-Allow-Origin:
+      - '*'
+      Access-Control-Expose-Headers:
+      - Authorization
+      Connection:
+      - keep-alive
       Content-Length:
-      - '842'
+      - '361'
       Content-Type:
       - application/json
       Date:
-      - Thu, 26 May 2022 18:48:38 GMT
+      - Wed, 03 Jun 2026 22:35:47 GMT
       Server:
-      - Werkzeug/1.0.1 Python/3.9.6
+      - gunicorn
       X-Billing-ID:
-      - '1'
+      - '111'
     status:
       code: 200
       message: OK
 - request:
-    body: !!python/object/new:_io.BytesIO
-      state: !!python/tuple
-      - !!binary |
-        WDVPIVAlQEFQWzRcUFpYNTQoUF4pN0NDKTd9JEVJQ0FSLVNUQU5EQVJELUFOVElWSVJVUy1URVNU
-        LUZJTEUhJEgrSCo=
-      - 0
-      - null
+    body: '{"artifact_name":"artifact","artifact_type":"FILE","community":"gamma"}'
     headers:
-      Accept:
+      accept:
       - '*/*'
-      Accept-Encoding:
+      accept-encoding:
       - gzip, deflate
+      authorization:
+      - '11111111111111111111111111111111'
+      connection:
+      - keep-alive
+      content-length:
+      - '71'
+      content-type:
+      - application/json
+      host:
+      - artifact-index-e2e:9696
+      user-agent:
+      - polyswarm_api/3.21.0 (x86_64-Linux-CPython-3.14.4)
+    method: POST
+    uri: http://artifact-index-e2e:9696/v3/instance
+  response:
+    body:
+      string: '{"result":{"artifact_id":"27835191001619039","assertions":[],"bounty_state":0,"community":"gamma","country":"","created":"2026-06-03T22:35:47.744500+00:00","detections":null,"expiration_window":null,"expire_at":null,"extended_type":null,"failed":false,"filename":"artifact","first_seen":"2026-06-03T22:35:47.744500+00:00","id":"27835191001619039","last_scanned":null,"last_seen":null,"md5":null,"metadata":[],"mimetype":null,"permalink":"https://polyswarm.network/scan/results/file/None/27835191001619039","polyscore":null,"result":null,"sha1":null,"sha256":null,"size":null,"type":"FILE","upload_url":"http://minio:9000/artifact-index/instances/41/9e/e7/419ee76d-f760-45c0-bc48-f9c7f1cf44e6?X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Credential=AKIAIOSFODNN7EXAMPLE%2F20260603%2Fus-east-1%2Fs3%2Faws4_request&X-Amz-Date=20260603T223547Z&X-Amz-Expires=300&X-Amz-SignedHeaders=host&X-Amz-Signature=4a67c52be38b98e5fe6ccc916e1b8072e87fe9f0c266e81617c6969a74f14469","votes":[],"window_closed":false},"status":"OK"}
+
+        '
+    headers:
+      Access-Control-Allow-Origin:
+      - '*'
+      Access-Control-Expose-Headers:
+      - Authorization
       Connection:
       - keep-alive
       Content-Length:
-      - '68'
-      User-Agent:
-      - python-requests/2.22.0
+      - '1008'
+      Content-Type:
+      - application/json
+      Date:
+      - Wed, 03 Jun 2026 22:35:47 GMT
+      Server:
+      - gunicorn
+      X-Billing-ID:
+      - '111'
+    status:
+      code: 200
+      message: OK
+- request:
+    body: 'X5O!P%@AP[4\PZX54(P^)7CC)7}$EICAR-STANDARD-ANTIVIRUS-TEST-FILE!$H+H*
+
+      test_live'
+    headers:
+      accept:
+      - '*/*'
+      accept-encoding:
+      - gzip, deflate
+      connection:
+      - keep-alive
+      content-length:
+      - '78'
+      host:
+      - minio:9000
+      user-agent:
+      - polyswarm_api/3.21.0 (x86_64-Linux-CPython-3.14.4)
     method: PUT
-    uri: http://minio:9000/instances/f4/8b/64/f48b6453-e2fa-49fe-b908-a4d7b09ae9f1?X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Credential=AKIAIOSFODNN7EXAMPLE%2F20220526%2Fus-east-1%2Fs3%2Faws4_request&X-Amz-Date=20220526T184838Z&X-Amz-Expires=300&X-Amz-SignedHeaders=host&X-Amz-Signature=d1506110cac43c49904ff83465cc8ae593f062b6289fbb36a4cd36a7b8175d93
+    uri: http://minio:9000/artifact-index/instances/41/9e/e7/419ee76d-f760-45c0-bc48-f9c7f1cf44e6?X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Credential=AKIAIOSFODNN7EXAMPLE%2F20260603%2Fus-east-1%2Fs3%2Faws4_request&X-Amz-Date=20260603T223547Z&X-Amz-Expires=300&X-Amz-SignedHeaders=host&X-Amz-Signature=4a67c52be38b98e5fe6ccc916e1b8072e87fe9f0c266e81617c6969a74f14469
   response:
     body:
       string: ''
@@ -233,12 +210,10 @@ interactions:
       - bytes
       Content-Length:
       - '0'
-      Content-Security-Policy:
-      - block-all-mixed-content
       Date:
-      - Thu, 26 May 2022 18:48:38 GMT
+      - Wed, 03 Jun 2026 22:35:47 GMT
       ETag:
-      - '"44d88612fea8a8f36de82e1278abb02f"'
+      - '"564296ca17d5e063856e0b92c8ad6ca6"'
       Server:
       - MinIO
       Strict-Transport-Security:
@@ -246,331 +221,1463 @@ interactions:
       Vary:
       - Origin
       - Accept-Encoding
+      X-Amz-Id-2:
+      - dd9025bab4ad464b049177c95eb6ebf374d3b3fd1af9251148b658df7ac2e3e8
       X-Amz-Request-Id:
-      - 16F2BC2DDCFDAEDA
+      - 18B5B31905F65115
       X-Content-Type-Options:
       - nosniff
+      X-Ratelimit-Limit:
+      - '13624'
+      X-Ratelimit-Remaining:
+      - '13624'
       X-Xss-Protection:
       - 1; mode=block
       x-amz-expiration:
-      - expiry-date="Sat, 28 May 2022 00:00:00 GMT", rule-id="instances_0"
+      - expiry-date="Fri, 05 Jun 2026 00:00:00 GMT", rule-id="expiration-artifact-index_0-instances"
     status:
       code: 200
       message: OK
 - request:
-    body: null
+    body: '{"community":"gamma"}'
     headers:
-      Accept:
+      accept:
       - '*/*'
-      Accept-Encoding:
+      accept-encoding:
       - gzip, deflate
-      Authorization:
+      authorization:
       - '11111111111111111111111111111111'
-      Connection:
+      connection:
       - keep-alive
-      Content-Length:
-      - '0'
-      User-Agent:
-      - polyswarm-api/3.0.0 (x86_64-Linux-CPython-3.6.5)
+      content-length:
+      - '21'
+      content-type:
+      - application/json
+      host:
+      - artifact-index-e2e:9696
+      user-agent:
+      - polyswarm_api/3.21.0 (x86_64-Linux-CPython-3.14.4)
     method: PUT
-    uri: http://localhost:9696/v3/instance?id=80845414726025917
+    uri: http://artifact-index-e2e:9696/v3/instance?id=27835191001619039
   response:
     body:
-      string: '{"result":{"artifact_id":"80845414726025917","assertions":[],"community":"gamma","country":"","created":"2022-05-26T18:48:38.322949","detections":null,"extended_type":null,"failed":false,"filename":"malicious","first_seen":"2022-05-26T18:48:38.322949","id":"80845414726025917","last_scanned":null,"last_seen":null,"md5":null,"metadata":[],"mimetype":null,"polyscore":null,"result":null,"sha1":null,"sha256":null,"size":null,"type":"FILE","upload_url":"http://minio:9000/instances/f4/8b/64/f48b6453-e2fa-49fe-b908-a4d7b09ae9f1?X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Credential=AKIAIOSFODNN7EXAMPLE%2F20220526%2Fus-east-1%2Fs3%2Faws4_request&X-Amz-Date=20220526T184838Z&X-Amz-Expires=300&X-Amz-SignedHeaders=host&X-Amz-Signature=d1506110cac43c49904ff83465cc8ae593f062b6289fbb36a4cd36a7b8175d93","votes":[],"window_closed":false},"status":"OK"}
+      string: '{"result":{"artifact_id":"27835191001619039","assertions":[],"bounty_state":0,"community":"gamma","country":"","created":"2026-06-03T22:35:47.744500+00:00","detections":null,"expiration_window":null,"expire_at":null,"extended_type":null,"failed":false,"filename":"artifact","first_seen":"2026-06-03T22:35:47.744500+00:00","id":"27835191001619039","last_scanned":null,"last_seen":null,"md5":null,"metadata":[],"mimetype":null,"permalink":"https://polyswarm.network/scan/results/file/None/27835191001619039","polyscore":null,"result":null,"sha1":null,"sha256":null,"size":null,"type":"FILE","upload_url":"http://minio:9000/artifact-index/instances/41/9e/e7/419ee76d-f760-45c0-bc48-f9c7f1cf44e6?X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Credential=AKIAIOSFODNN7EXAMPLE%2F20260603%2Fus-east-1%2Fs3%2Faws4_request&X-Amz-Date=20260603T223547Z&X-Amz-Expires=300&X-Amz-SignedHeaders=host&X-Amz-Signature=4a67c52be38b98e5fe6ccc916e1b8072e87fe9f0c266e81617c6969a74f14469","votes":[],"window_closed":false},"status":"OK"}
 
         '
     headers:
+      Access-Control-Allow-Origin:
+      - '*'
+      Access-Control-Expose-Headers:
+      - Authorization
+      Connection:
+      - keep-alive
       Content-Length:
-      - '842'
+      - '1008'
       Content-Type:
       - application/json
       Date:
-      - Thu, 26 May 2022 18:48:38 GMT
+      - Wed, 03 Jun 2026 22:35:47 GMT
       Server:
-      - Werkzeug/1.0.1 Python/3.9.6
+      - gunicorn
       X-Billing-ID:
-      - '1'
+      - '111'
     status:
       code: 200
       message: OK
 - request:
-    body: null
+    body: ''
     headers:
-      Accept:
+      accept:
       - '*/*'
-      Accept-Encoding:
+      accept-encoding:
       - gzip, deflate
-      Authorization:
+      authorization:
       - '11111111111111111111111111111111'
-      Connection:
+      connection:
       - keep-alive
-      User-Agent:
-      - polyswarm-api/3.0.0 (x86_64-Linux-CPython-3.6.5)
+      host:
+      - artifact-index-e2e:9696
+      user-agent:
+      - polyswarm_api/3.21.0 (x86_64-Linux-CPython-3.14.4)
     method: GET
-    uri: http://localhost:9696/v3/hunt/live/list?community=gamma
+    uri: http://artifact-index-e2e:9696/v3/hunt/live/list?since=600&community=gamma
   response:
     body:
-      string: '{"has_more":false,"limit":2,"result":[{"created":"2022-05-26T18:49:08.759671","detections":{"benign":0,"malicious":1,"total":1},"download_url":null,"id":"81802828710018478","instance_id":"80845414726025917","livescan_id":"57028981462665681","malware_family":null,"polyscore":0.23213458159978606,"rule_name":"eicar_substring_test","sha256":"275a021bbfb6489e54d471899f7db9d1663fc695ec2fe2a2c4538aabf651fd0f","tags":"{}","yara":null},{"created":"2022-05-26T18:49:08.750640","detections":{"benign":0,"malicious":1,"total":1},"download_url":null,"id":"30070311633556152","instance_id":"80845414726025917","livescan_id":"57028981462665681","malware_family":null,"polyscore":0.23213458159978606,"rule_name":"eicar_av_test","sha256":"275a021bbfb6489e54d471899f7db9d1663fc695ec2fe2a2c4538aabf651fd0f","tags":"{}","yara":null}],"status":"OK"}
-
-        '
+      string: ''
     headers:
-      Content-Length:
-      - '833'
-      Content-Type:
-      - application/json
-      Date:
-      - Thu, 26 May 2022 18:49:14 GMT
-      Server:
-      - Werkzeug/1.0.1 Python/3.9.6
-      X-Billing-ID:
-      - '1'
-    status:
-      code: 200
-      message: OK
-- request:
-    body: null
-    headers:
-      Accept:
-      - '*/*'
-      Accept-Encoding:
-      - gzip, deflate
-      Authorization:
-      - '11111111111111111111111111111111'
+      Access-Control-Allow-Origin:
+      - '*'
+      Access-Control-Expose-Headers:
+      - Authorization
       Connection:
       - keep-alive
-      User-Agent:
-      - polyswarm-api/3.0.0 (x86_64-Linux-CPython-3.6.5)
-    method: GET
-    uri: http://localhost:9696/v3/hunt/live?id=81802828710018478
-  response:
-    body:
-      string: '<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 3.2 Final//EN">
-
-        <title>Redirecting...</title>
-
-        <h1>Redirecting...</h1>
-
-        <p>You should be redirected automatically to target URL: <a href="http://localhost:9696/v3/hunt/live/?id=81802828710018478">http://localhost:9696/v3/hunt/live/?id=81802828710018478</a>.  If
-        not click the link.'
-    headers:
-      Content-Length:
-      - '319'
       Content-Type:
       - text/html; charset=utf-8
       Date:
-      - Thu, 26 May 2022 18:49:15 GMT
-      Location:
-      - http://localhost:9696/v3/hunt/live/?id=81802828710018478
+      - Wed, 03 Jun 2026 22:35:48 GMT
       Server:
-      - Werkzeug/1.0.1 Python/3.9.6
+      - gunicorn
     status:
-      code: 308
-      message: PERMANENT REDIRECT
+      code: 204
+      message: NO CONTENT
 - request:
-    body: null
+    body: ''
     headers:
-      Accept:
+      accept:
       - '*/*'
-      Accept-Encoding:
+      accept-encoding:
       - gzip, deflate
-      Authorization:
+      authorization:
       - '11111111111111111111111111111111'
-      Connection:
+      connection:
       - keep-alive
-      User-Agent:
-      - polyswarm-api/3.0.0 (x86_64-Linux-CPython-3.6.5)
+      host:
+      - artifact-index-e2e:9696
+      user-agent:
+      - polyswarm_api/3.21.0 (x86_64-Linux-CPython-3.14.4)
     method: GET
-    uri: http://localhost:9696/v3/hunt/live/?id=81802828710018478
+    uri: http://artifact-index-e2e:9696/v3/hunt/live/list?since=600&community=gamma
   response:
     body:
-      string: '{"result":{"created":"2022-05-26T18:49:08.759671","detections":{"benign":0,"malicious":1,"total":1},"download_url":"http://minio:9000/cache-public/27/5a/02/275a021bbfb6489e54d471899f7db9d1663fc695ec2fe2a2c4538aabf651fd0f3395856ce81f2b7382dee72602f798b642f1414044d88612fea8a8f36de82e1278abb02f?response-content-disposition=attachment%3Bfilename%3Dinfected&response-content-type=application%2Foctet-stream&X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Credential=AKIAIOSFODNN7EXAMPLE%2F20220526%2Fus-east-1%2Fs3%2Faws4_request&X-Amz-Date=20220526T184915Z&X-Amz-Expires=3600&X-Amz-SignedHeaders=host&X-Amz-Signature=fee03dfd63a5e8aad480f4f6be28aab29cc39b1a54f19bbd842dd940183f739d","id":"81802828710018478","instance_id":"80845414726025917","livescan_id":"57028981462665681","malware_family":null,"polyscore":0.23213458159978606,"rule_name":"eicar_substring_test","sha256":"275a021bbfb6489e54d471899f7db9d1663fc695ec2fe2a2c4538aabf651fd0f","tags":"{}","yara":"rule
-        eicar_av_test {\n    /*\n       Per standard, match only if entire file is
-        EICAR string plus optional trailing whitespace.\n       The raw EICAR string
-        to be matched is:\n       X5O!P%@AP[4\\PZX54(P^)7CC)7}$EICAR-STANDARD-ANTIVIRUS-TEST-FILE!$H+H*\n    */\n\n    meta:\n        description
-        = \"This is a standard AV test, intended to verify that BinaryAlert is working
-        correctly.\"\n        author = \"Austin Byers | Airbnb CSIRT\"\n        reference
-        = \"http://www.eicar.org/86-0-Intended-use.html\"\n\n    strings:\n        $eicar_regex
-        = /^X5O!P%@AP\\[4\\\\PZX54\\(P\\^\\)7CC\\)7\\}\\$EICAR-STANDARD-ANTIVIRUS-TEST-FILE!\\$H\\+H\\*\\s*$/\n\n    condition:\n        all
-        of them\n}\n\nrule eicar_substring_test {\n    /*\n       More generic - match
-        just the embedded EICAR string (e.g. in packed executables, PDFs, etc)\n    */\n\n    meta:\n        description
-        = \"Standard AV test, checking for an EICAR substring\"\n        author =
-        \"Austin Byers | Airbnb CSIRT\"\n\n    strings:\n        $eicar_substring
-        = \"$EICAR-STANDARD-ANTIVIRUS-TEST-FILE!\"\n\n    condition:\n        all
-        of them\n}"},"status":"OK"}
+      string: ''
+    headers:
+      Access-Control-Allow-Origin:
+      - '*'
+      Access-Control-Expose-Headers:
+      - Authorization
+      Connection:
+      - keep-alive
+      Content-Type:
+      - text/html; charset=utf-8
+      Date:
+      - Wed, 03 Jun 2026 22:35:49 GMT
+      Server:
+      - gunicorn
+    status:
+      code: 204
+      message: NO CONTENT
+- request:
+    body: ''
+    headers:
+      accept:
+      - '*/*'
+      accept-encoding:
+      - gzip, deflate
+      authorization:
+      - '11111111111111111111111111111111'
+      connection:
+      - keep-alive
+      host:
+      - artifact-index-e2e:9696
+      user-agent:
+      - polyswarm_api/3.21.0 (x86_64-Linux-CPython-3.14.4)
+    method: GET
+    uri: http://artifact-index-e2e:9696/v3/hunt/live/list?since=600&community=gamma
+  response:
+    body:
+      string: ''
+    headers:
+      Access-Control-Allow-Origin:
+      - '*'
+      Access-Control-Expose-Headers:
+      - Authorization
+      Connection:
+      - keep-alive
+      Content-Type:
+      - text/html; charset=utf-8
+      Date:
+      - Wed, 03 Jun 2026 22:35:50 GMT
+      Server:
+      - gunicorn
+    status:
+      code: 204
+      message: NO CONTENT
+- request:
+    body: ''
+    headers:
+      accept:
+      - '*/*'
+      accept-encoding:
+      - gzip, deflate
+      authorization:
+      - '11111111111111111111111111111111'
+      connection:
+      - keep-alive
+      host:
+      - artifact-index-e2e:9696
+      user-agent:
+      - polyswarm_api/3.21.0 (x86_64-Linux-CPython-3.14.4)
+    method: GET
+    uri: http://artifact-index-e2e:9696/v3/hunt/live/list?since=600&community=gamma
+  response:
+    body:
+      string: ''
+    headers:
+      Access-Control-Allow-Origin:
+      - '*'
+      Access-Control-Expose-Headers:
+      - Authorization
+      Connection:
+      - keep-alive
+      Content-Type:
+      - text/html; charset=utf-8
+      Date:
+      - Wed, 03 Jun 2026 22:35:51 GMT
+      Server:
+      - gunicorn
+    status:
+      code: 204
+      message: NO CONTENT
+- request:
+    body: ''
+    headers:
+      accept:
+      - '*/*'
+      accept-encoding:
+      - gzip, deflate
+      authorization:
+      - '11111111111111111111111111111111'
+      connection:
+      - keep-alive
+      host:
+      - artifact-index-e2e:9696
+      user-agent:
+      - polyswarm_api/3.21.0 (x86_64-Linux-CPython-3.14.4)
+    method: GET
+    uri: http://artifact-index-e2e:9696/v3/hunt/live/list?since=600&community=gamma
+  response:
+    body:
+      string: ''
+    headers:
+      Access-Control-Allow-Origin:
+      - '*'
+      Access-Control-Expose-Headers:
+      - Authorization
+      Connection:
+      - keep-alive
+      Content-Type:
+      - text/html; charset=utf-8
+      Date:
+      - Wed, 03 Jun 2026 22:35:52 GMT
+      Server:
+      - gunicorn
+    status:
+      code: 204
+      message: NO CONTENT
+- request:
+    body: ''
+    headers:
+      accept:
+      - '*/*'
+      accept-encoding:
+      - gzip, deflate
+      authorization:
+      - '11111111111111111111111111111111'
+      connection:
+      - keep-alive
+      host:
+      - artifact-index-e2e:9696
+      user-agent:
+      - polyswarm_api/3.21.0 (x86_64-Linux-CPython-3.14.4)
+    method: GET
+    uri: http://artifact-index-e2e:9696/v3/hunt/live/list?since=600&community=gamma
+  response:
+    body:
+      string: ''
+    headers:
+      Access-Control-Allow-Origin:
+      - '*'
+      Access-Control-Expose-Headers:
+      - Authorization
+      Connection:
+      - keep-alive
+      Content-Type:
+      - text/html; charset=utf-8
+      Date:
+      - Wed, 03 Jun 2026 22:35:53 GMT
+      Server:
+      - gunicorn
+    status:
+      code: 204
+      message: NO CONTENT
+- request:
+    body: ''
+    headers:
+      accept:
+      - '*/*'
+      accept-encoding:
+      - gzip, deflate
+      authorization:
+      - '11111111111111111111111111111111'
+      connection:
+      - keep-alive
+      host:
+      - artifact-index-e2e:9696
+      user-agent:
+      - polyswarm_api/3.21.0 (x86_64-Linux-CPython-3.14.4)
+    method: GET
+    uri: http://artifact-index-e2e:9696/v3/hunt/live/list?since=600&community=gamma
+  response:
+    body:
+      string: ''
+    headers:
+      Access-Control-Allow-Origin:
+      - '*'
+      Access-Control-Expose-Headers:
+      - Authorization
+      Connection:
+      - keep-alive
+      Content-Type:
+      - text/html; charset=utf-8
+      Date:
+      - Wed, 03 Jun 2026 22:35:54 GMT
+      Server:
+      - gunicorn
+    status:
+      code: 204
+      message: NO CONTENT
+- request:
+    body: ''
+    headers:
+      accept:
+      - '*/*'
+      accept-encoding:
+      - gzip, deflate
+      authorization:
+      - '11111111111111111111111111111111'
+      connection:
+      - keep-alive
+      host:
+      - artifact-index-e2e:9696
+      user-agent:
+      - polyswarm_api/3.21.0 (x86_64-Linux-CPython-3.14.4)
+    method: GET
+    uri: http://artifact-index-e2e:9696/v3/hunt/live/list?since=600&community=gamma
+  response:
+    body:
+      string: ''
+    headers:
+      Access-Control-Allow-Origin:
+      - '*'
+      Access-Control-Expose-Headers:
+      - Authorization
+      Connection:
+      - keep-alive
+      Content-Type:
+      - text/html; charset=utf-8
+      Date:
+      - Wed, 03 Jun 2026 22:35:55 GMT
+      Server:
+      - gunicorn
+    status:
+      code: 204
+      message: NO CONTENT
+- request:
+    body: ''
+    headers:
+      accept:
+      - '*/*'
+      accept-encoding:
+      - gzip, deflate
+      authorization:
+      - '11111111111111111111111111111111'
+      connection:
+      - keep-alive
+      host:
+      - artifact-index-e2e:9696
+      user-agent:
+      - polyswarm_api/3.21.0 (x86_64-Linux-CPython-3.14.4)
+    method: GET
+    uri: http://artifact-index-e2e:9696/v3/hunt/live/list?since=600&community=gamma
+  response:
+    body:
+      string: ''
+    headers:
+      Access-Control-Allow-Origin:
+      - '*'
+      Access-Control-Expose-Headers:
+      - Authorization
+      Connection:
+      - keep-alive
+      Content-Type:
+      - text/html; charset=utf-8
+      Date:
+      - Wed, 03 Jun 2026 22:35:56 GMT
+      Server:
+      - gunicorn
+    status:
+      code: 204
+      message: NO CONTENT
+- request:
+    body: ''
+    headers:
+      accept:
+      - '*/*'
+      accept-encoding:
+      - gzip, deflate
+      authorization:
+      - '11111111111111111111111111111111'
+      connection:
+      - keep-alive
+      host:
+      - artifact-index-e2e:9696
+      user-agent:
+      - polyswarm_api/3.21.0 (x86_64-Linux-CPython-3.14.4)
+    method: GET
+    uri: http://artifact-index-e2e:9696/v3/hunt/live/list?since=600&community=gamma
+  response:
+    body:
+      string: ''
+    headers:
+      Access-Control-Allow-Origin:
+      - '*'
+      Access-Control-Expose-Headers:
+      - Authorization
+      Connection:
+      - keep-alive
+      Content-Type:
+      - text/html; charset=utf-8
+      Date:
+      - Wed, 03 Jun 2026 22:35:58 GMT
+      Server:
+      - gunicorn
+    status:
+      code: 204
+      message: NO CONTENT
+- request:
+    body: ''
+    headers:
+      accept:
+      - '*/*'
+      accept-encoding:
+      - gzip, deflate
+      authorization:
+      - '11111111111111111111111111111111'
+      connection:
+      - keep-alive
+      host:
+      - artifact-index-e2e:9696
+      user-agent:
+      - polyswarm_api/3.21.0 (x86_64-Linux-CPython-3.14.4)
+    method: GET
+    uri: http://artifact-index-e2e:9696/v3/hunt/live/list?since=600&community=gamma
+  response:
+    body:
+      string: ''
+    headers:
+      Access-Control-Allow-Origin:
+      - '*'
+      Access-Control-Expose-Headers:
+      - Authorization
+      Connection:
+      - keep-alive
+      Content-Type:
+      - text/html; charset=utf-8
+      Date:
+      - Wed, 03 Jun 2026 22:35:59 GMT
+      Server:
+      - gunicorn
+    status:
+      code: 204
+      message: NO CONTENT
+- request:
+    body: ''
+    headers:
+      accept:
+      - '*/*'
+      accept-encoding:
+      - gzip, deflate
+      authorization:
+      - '11111111111111111111111111111111'
+      connection:
+      - keep-alive
+      host:
+      - artifact-index-e2e:9696
+      user-agent:
+      - polyswarm_api/3.21.0 (x86_64-Linux-CPython-3.14.4)
+    method: GET
+    uri: http://artifact-index-e2e:9696/v3/hunt/live/list?since=600&community=gamma
+  response:
+    body:
+      string: ''
+    headers:
+      Access-Control-Allow-Origin:
+      - '*'
+      Access-Control-Expose-Headers:
+      - Authorization
+      Connection:
+      - keep-alive
+      Content-Type:
+      - text/html; charset=utf-8
+      Date:
+      - Wed, 03 Jun 2026 22:36:00 GMT
+      Server:
+      - gunicorn
+    status:
+      code: 204
+      message: NO CONTENT
+- request:
+    body: ''
+    headers:
+      accept:
+      - '*/*'
+      accept-encoding:
+      - gzip, deflate
+      authorization:
+      - '11111111111111111111111111111111'
+      connection:
+      - keep-alive
+      host:
+      - artifact-index-e2e:9696
+      user-agent:
+      - polyswarm_api/3.21.0 (x86_64-Linux-CPython-3.14.4)
+    method: GET
+    uri: http://artifact-index-e2e:9696/v3/hunt/live/list?since=600&community=gamma
+  response:
+    body:
+      string: ''
+    headers:
+      Access-Control-Allow-Origin:
+      - '*'
+      Access-Control-Expose-Headers:
+      - Authorization
+      Connection:
+      - keep-alive
+      Content-Type:
+      - text/html; charset=utf-8
+      Date:
+      - Wed, 03 Jun 2026 22:36:01 GMT
+      Server:
+      - gunicorn
+    status:
+      code: 204
+      message: NO CONTENT
+- request:
+    body: ''
+    headers:
+      accept:
+      - '*/*'
+      accept-encoding:
+      - gzip, deflate
+      authorization:
+      - '11111111111111111111111111111111'
+      connection:
+      - keep-alive
+      host:
+      - artifact-index-e2e:9696
+      user-agent:
+      - polyswarm_api/3.21.0 (x86_64-Linux-CPython-3.14.4)
+    method: GET
+    uri: http://artifact-index-e2e:9696/v3/hunt/live/list?since=600&community=gamma
+  response:
+    body:
+      string: ''
+    headers:
+      Access-Control-Allow-Origin:
+      - '*'
+      Access-Control-Expose-Headers:
+      - Authorization
+      Connection:
+      - keep-alive
+      Content-Type:
+      - text/html; charset=utf-8
+      Date:
+      - Wed, 03 Jun 2026 22:36:02 GMT
+      Server:
+      - gunicorn
+    status:
+      code: 204
+      message: NO CONTENT
+- request:
+    body: ''
+    headers:
+      accept:
+      - '*/*'
+      accept-encoding:
+      - gzip, deflate
+      authorization:
+      - '11111111111111111111111111111111'
+      connection:
+      - keep-alive
+      host:
+      - artifact-index-e2e:9696
+      user-agent:
+      - polyswarm_api/3.21.0 (x86_64-Linux-CPython-3.14.4)
+    method: GET
+    uri: http://artifact-index-e2e:9696/v3/hunt/live/list?since=600&community=gamma
+  response:
+    body:
+      string: ''
+    headers:
+      Access-Control-Allow-Origin:
+      - '*'
+      Access-Control-Expose-Headers:
+      - Authorization
+      Connection:
+      - keep-alive
+      Content-Type:
+      - text/html; charset=utf-8
+      Date:
+      - Wed, 03 Jun 2026 22:36:03 GMT
+      Server:
+      - gunicorn
+    status:
+      code: 204
+      message: NO CONTENT
+- request:
+    body: ''
+    headers:
+      accept:
+      - '*/*'
+      accept-encoding:
+      - gzip, deflate
+      authorization:
+      - '11111111111111111111111111111111'
+      connection:
+      - keep-alive
+      host:
+      - artifact-index-e2e:9696
+      user-agent:
+      - polyswarm_api/3.21.0 (x86_64-Linux-CPython-3.14.4)
+    method: GET
+    uri: http://artifact-index-e2e:9696/v3/hunt/live/list?since=600&community=gamma
+  response:
+    body:
+      string: ''
+    headers:
+      Access-Control-Allow-Origin:
+      - '*'
+      Access-Control-Expose-Headers:
+      - Authorization
+      Connection:
+      - keep-alive
+      Content-Type:
+      - text/html; charset=utf-8
+      Date:
+      - Wed, 03 Jun 2026 22:36:04 GMT
+      Server:
+      - gunicorn
+    status:
+      code: 204
+      message: NO CONTENT
+- request:
+    body: ''
+    headers:
+      accept:
+      - '*/*'
+      accept-encoding:
+      - gzip, deflate
+      authorization:
+      - '11111111111111111111111111111111'
+      connection:
+      - keep-alive
+      host:
+      - artifact-index-e2e:9696
+      user-agent:
+      - polyswarm_api/3.21.0 (x86_64-Linux-CPython-3.14.4)
+    method: GET
+    uri: http://artifact-index-e2e:9696/v3/hunt/live/list?since=600&community=gamma
+  response:
+    body:
+      string: ''
+    headers:
+      Access-Control-Allow-Origin:
+      - '*'
+      Access-Control-Expose-Headers:
+      - Authorization
+      Connection:
+      - keep-alive
+      Content-Type:
+      - text/html; charset=utf-8
+      Date:
+      - Wed, 03 Jun 2026 22:36:05 GMT
+      Server:
+      - gunicorn
+    status:
+      code: 204
+      message: NO CONTENT
+- request:
+    body: ''
+    headers:
+      accept:
+      - '*/*'
+      accept-encoding:
+      - gzip, deflate
+      authorization:
+      - '11111111111111111111111111111111'
+      connection:
+      - keep-alive
+      host:
+      - artifact-index-e2e:9696
+      user-agent:
+      - polyswarm_api/3.21.0 (x86_64-Linux-CPython-3.14.4)
+    method: GET
+    uri: http://artifact-index-e2e:9696/v3/hunt/live/list?since=600&community=gamma
+  response:
+    body:
+      string: ''
+    headers:
+      Access-Control-Allow-Origin:
+      - '*'
+      Access-Control-Expose-Headers:
+      - Authorization
+      Connection:
+      - keep-alive
+      Content-Type:
+      - text/html; charset=utf-8
+      Date:
+      - Wed, 03 Jun 2026 22:36:06 GMT
+      Server:
+      - gunicorn
+    status:
+      code: 204
+      message: NO CONTENT
+- request:
+    body: ''
+    headers:
+      accept:
+      - '*/*'
+      accept-encoding:
+      - gzip, deflate
+      authorization:
+      - '11111111111111111111111111111111'
+      connection:
+      - keep-alive
+      host:
+      - artifact-index-e2e:9696
+      user-agent:
+      - polyswarm_api/3.21.0 (x86_64-Linux-CPython-3.14.4)
+    method: GET
+    uri: http://artifact-index-e2e:9696/v3/hunt/live/list?since=600&community=gamma
+  response:
+    body:
+      string: ''
+    headers:
+      Access-Control-Allow-Origin:
+      - '*'
+      Access-Control-Expose-Headers:
+      - Authorization
+      Connection:
+      - keep-alive
+      Content-Type:
+      - text/html; charset=utf-8
+      Date:
+      - Wed, 03 Jun 2026 22:36:07 GMT
+      Server:
+      - gunicorn
+    status:
+      code: 204
+      message: NO CONTENT
+- request:
+    body: ''
+    headers:
+      accept:
+      - '*/*'
+      accept-encoding:
+      - gzip, deflate
+      authorization:
+      - '11111111111111111111111111111111'
+      connection:
+      - keep-alive
+      host:
+      - artifact-index-e2e:9696
+      user-agent:
+      - polyswarm_api/3.21.0 (x86_64-Linux-CPython-3.14.4)
+    method: GET
+    uri: http://artifact-index-e2e:9696/v3/hunt/live/list?since=600&community=gamma
+  response:
+    body:
+      string: ''
+    headers:
+      Access-Control-Allow-Origin:
+      - '*'
+      Access-Control-Expose-Headers:
+      - Authorization
+      Connection:
+      - keep-alive
+      Content-Type:
+      - text/html; charset=utf-8
+      Date:
+      - Wed, 03 Jun 2026 22:36:08 GMT
+      Server:
+      - gunicorn
+    status:
+      code: 204
+      message: NO CONTENT
+- request:
+    body: ''
+    headers:
+      accept:
+      - '*/*'
+      accept-encoding:
+      - gzip, deflate
+      authorization:
+      - '11111111111111111111111111111111'
+      connection:
+      - keep-alive
+      host:
+      - artifact-index-e2e:9696
+      user-agent:
+      - polyswarm_api/3.21.0 (x86_64-Linux-CPython-3.14.4)
+    method: GET
+    uri: http://artifact-index-e2e:9696/v3/hunt/live/list?since=600&community=gamma
+  response:
+    body:
+      string: ''
+    headers:
+      Access-Control-Allow-Origin:
+      - '*'
+      Access-Control-Expose-Headers:
+      - Authorization
+      Connection:
+      - keep-alive
+      Content-Type:
+      - text/html; charset=utf-8
+      Date:
+      - Wed, 03 Jun 2026 22:36:09 GMT
+      Server:
+      - gunicorn
+    status:
+      code: 204
+      message: NO CONTENT
+- request:
+    body: ''
+    headers:
+      accept:
+      - '*/*'
+      accept-encoding:
+      - gzip, deflate
+      authorization:
+      - '11111111111111111111111111111111'
+      connection:
+      - keep-alive
+      host:
+      - artifact-index-e2e:9696
+      user-agent:
+      - polyswarm_api/3.21.0 (x86_64-Linux-CPython-3.14.4)
+    method: GET
+    uri: http://artifact-index-e2e:9696/v3/hunt/live/list?since=600&community=gamma
+  response:
+    body:
+      string: ''
+    headers:
+      Access-Control-Allow-Origin:
+      - '*'
+      Access-Control-Expose-Headers:
+      - Authorization
+      Connection:
+      - keep-alive
+      Content-Type:
+      - text/html; charset=utf-8
+      Date:
+      - Wed, 03 Jun 2026 22:36:10 GMT
+      Server:
+      - gunicorn
+    status:
+      code: 204
+      message: NO CONTENT
+- request:
+    body: ''
+    headers:
+      accept:
+      - '*/*'
+      accept-encoding:
+      - gzip, deflate
+      authorization:
+      - '11111111111111111111111111111111'
+      connection:
+      - keep-alive
+      host:
+      - artifact-index-e2e:9696
+      user-agent:
+      - polyswarm_api/3.21.0 (x86_64-Linux-CPython-3.14.4)
+    method: GET
+    uri: http://artifact-index-e2e:9696/v3/hunt/live/list?since=600&community=gamma
+  response:
+    body:
+      string: ''
+    headers:
+      Access-Control-Allow-Origin:
+      - '*'
+      Access-Control-Expose-Headers:
+      - Authorization
+      Connection:
+      - keep-alive
+      Content-Type:
+      - text/html; charset=utf-8
+      Date:
+      - Wed, 03 Jun 2026 22:36:11 GMT
+      Server:
+      - gunicorn
+    status:
+      code: 204
+      message: NO CONTENT
+- request:
+    body: ''
+    headers:
+      accept:
+      - '*/*'
+      accept-encoding:
+      - gzip, deflate
+      authorization:
+      - '11111111111111111111111111111111'
+      connection:
+      - keep-alive
+      host:
+      - artifact-index-e2e:9696
+      user-agent:
+      - polyswarm_api/3.21.0 (x86_64-Linux-CPython-3.14.4)
+    method: GET
+    uri: http://artifact-index-e2e:9696/v3/hunt/live/list?since=600&community=gamma
+  response:
+    body:
+      string: ''
+    headers:
+      Access-Control-Allow-Origin:
+      - '*'
+      Access-Control-Expose-Headers:
+      - Authorization
+      Connection:
+      - keep-alive
+      Content-Type:
+      - text/html; charset=utf-8
+      Date:
+      - Wed, 03 Jun 2026 22:36:12 GMT
+      Server:
+      - gunicorn
+    status:
+      code: 204
+      message: NO CONTENT
+- request:
+    body: ''
+    headers:
+      accept:
+      - '*/*'
+      accept-encoding:
+      - gzip, deflate
+      authorization:
+      - '11111111111111111111111111111111'
+      connection:
+      - keep-alive
+      host:
+      - artifact-index-e2e:9696
+      user-agent:
+      - polyswarm_api/3.21.0 (x86_64-Linux-CPython-3.14.4)
+    method: GET
+    uri: http://artifact-index-e2e:9696/v3/hunt/live/list?since=600&community=gamma
+  response:
+    body:
+      string: ''
+    headers:
+      Access-Control-Allow-Origin:
+      - '*'
+      Access-Control-Expose-Headers:
+      - Authorization
+      Connection:
+      - keep-alive
+      Content-Type:
+      - text/html; charset=utf-8
+      Date:
+      - Wed, 03 Jun 2026 22:36:13 GMT
+      Server:
+      - gunicorn
+    status:
+      code: 204
+      message: NO CONTENT
+- request:
+    body: ''
+    headers:
+      accept:
+      - '*/*'
+      accept-encoding:
+      - gzip, deflate
+      authorization:
+      - '11111111111111111111111111111111'
+      connection:
+      - keep-alive
+      host:
+      - artifact-index-e2e:9696
+      user-agent:
+      - polyswarm_api/3.21.0 (x86_64-Linux-CPython-3.14.4)
+    method: GET
+    uri: http://artifact-index-e2e:9696/v3/hunt/live/list?since=600&community=gamma
+  response:
+    body:
+      string: ''
+    headers:
+      Access-Control-Allow-Origin:
+      - '*'
+      Access-Control-Expose-Headers:
+      - Authorization
+      Connection:
+      - keep-alive
+      Content-Type:
+      - text/html; charset=utf-8
+      Date:
+      - Wed, 03 Jun 2026 22:36:14 GMT
+      Server:
+      - gunicorn
+    status:
+      code: 204
+      message: NO CONTENT
+- request:
+    body: ''
+    headers:
+      accept:
+      - '*/*'
+      accept-encoding:
+      - gzip, deflate
+      authorization:
+      - '11111111111111111111111111111111'
+      connection:
+      - keep-alive
+      host:
+      - artifact-index-e2e:9696
+      user-agent:
+      - polyswarm_api/3.21.0 (x86_64-Linux-CPython-3.14.4)
+    method: GET
+    uri: http://artifact-index-e2e:9696/v3/hunt/live/list?since=600&community=gamma
+  response:
+    body:
+      string: ''
+    headers:
+      Access-Control-Allow-Origin:
+      - '*'
+      Access-Control-Expose-Headers:
+      - Authorization
+      Connection:
+      - keep-alive
+      Content-Type:
+      - text/html; charset=utf-8
+      Date:
+      - Wed, 03 Jun 2026 22:36:15 GMT
+      Server:
+      - gunicorn
+    status:
+      code: 204
+      message: NO CONTENT
+- request:
+    body: ''
+    headers:
+      accept:
+      - '*/*'
+      accept-encoding:
+      - gzip, deflate
+      authorization:
+      - '11111111111111111111111111111111'
+      connection:
+      - keep-alive
+      host:
+      - artifact-index-e2e:9696
+      user-agent:
+      - polyswarm_api/3.21.0 (x86_64-Linux-CPython-3.14.4)
+    method: GET
+    uri: http://artifact-index-e2e:9696/v3/hunt/live/list?since=600&community=gamma
+  response:
+    body:
+      string: ''
+    headers:
+      Access-Control-Allow-Origin:
+      - '*'
+      Access-Control-Expose-Headers:
+      - Authorization
+      Connection:
+      - keep-alive
+      Content-Type:
+      - text/html; charset=utf-8
+      Date:
+      - Wed, 03 Jun 2026 22:36:16 GMT
+      Server:
+      - gunicorn
+    status:
+      code: 204
+      message: NO CONTENT
+- request:
+    body: ''
+    headers:
+      accept:
+      - '*/*'
+      accept-encoding:
+      - gzip, deflate
+      authorization:
+      - '11111111111111111111111111111111'
+      connection:
+      - keep-alive
+      host:
+      - artifact-index-e2e:9696
+      user-agent:
+      - polyswarm_api/3.21.0 (x86_64-Linux-CPython-3.14.4)
+    method: GET
+    uri: http://artifact-index-e2e:9696/v3/hunt/live/list?since=600&community=gamma
+  response:
+    body:
+      string: ''
+    headers:
+      Access-Control-Allow-Origin:
+      - '*'
+      Access-Control-Expose-Headers:
+      - Authorization
+      Connection:
+      - keep-alive
+      Content-Type:
+      - text/html; charset=utf-8
+      Date:
+      - Wed, 03 Jun 2026 22:36:17 GMT
+      Server:
+      - gunicorn
+    status:
+      code: 204
+      message: NO CONTENT
+- request:
+    body: ''
+    headers:
+      accept:
+      - '*/*'
+      accept-encoding:
+      - gzip, deflate
+      authorization:
+      - '11111111111111111111111111111111'
+      connection:
+      - keep-alive
+      host:
+      - artifact-index-e2e:9696
+      user-agent:
+      - polyswarm_api/3.21.0 (x86_64-Linux-CPython-3.14.4)
+    method: GET
+    uri: http://artifact-index-e2e:9696/v3/hunt/live/list?since=600&community=gamma
+  response:
+    body:
+      string: '{"has_more":false,"limit":50,"result":[{"community":"gamma","created":"2026-06-03T22:36:17.918027+00:00","detections":{"benign":0,"malicious":1,"total":1},"download_url":null,"first_seen":"2026-06-03T22:33:00.053959+00:00","id":"8018942810283908","instance_id":"27835191001619039","livescan_id":"68378491128619407","malware_family":"EICAR","md5":"564296ca17d5e063856e0b92c8ad6ca6","polyscore":null,"rule_name":"sdk_test_live","sha1":"adec7bf2f04d1b710cbc3304f8dccd0f8d09d34a","sha256":"14e3a40dc4da0e6d9b331976e9d5611d51b25e64f5010bbdfc6c8a32b23eb190","tags":"{}","yara":null}],"status":"OK"}
 
         '
     headers:
+      Access-Control-Allow-Origin:
+      - '*'
+      Access-Control-Expose-Headers:
+      - Authorization
+      Connection:
+      - keep-alive
       Content-Length:
-      - '2069'
+      - '593'
       Content-Type:
       - application/json
       Date:
-      - Thu, 26 May 2022 18:49:15 GMT
+      - Wed, 03 Jun 2026 22:36:18 GMT
       Server:
-      - Werkzeug/1.0.1 Python/3.9.6
+      - gunicorn
       X-Billing-ID:
-      - '1'
+      - '111'
     status:
       code: 200
       message: OK
 - request:
-    body: '{"result_ids": ["81802828710018478"]}'
+    body: ''
     headers:
-      Accept:
+      accept:
       - '*/*'
-      Accept-Encoding:
+      accept-encoding:
       - gzip, deflate
-      Authorization:
+      authorization:
       - '11111111111111111111111111111111'
+      connection:
+      - keep-alive
+      host:
+      - artifact-index-e2e:9696
+      user-agent:
+      - polyswarm_api/3.21.0 (x86_64-Linux-CPython-3.14.4)
+    method: GET
+    uri: http://artifact-index-e2e:9696/v3/hunt/live?id=8018942810283908
+  response:
+    body:
+      string: '{"result":{"community":"gamma","created":"2026-06-03T22:36:17.918027+00:00","detections":{"benign":0,"malicious":1,"total":1},"download_url":"http://minio:9000/public-cache/14/e3/a4/14e3a40dc4da0e6d9b331976e9d5611d51b25e64f5010bbdfc6c8a32b23eb190adec7bf2f04d1b710cbc3304f8dccd0f8d09d34a564296ca17d5e063856e0b92c8ad6ca6?response-content-disposition=attachment%3Bfilename%3Dinfected&response-content-type=application%2Foctet-stream&X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Credential=AKIAIOSFODNN7EXAMPLE%2F20260603%2Fus-east-1%2Fs3%2Faws4_request&X-Amz-Date=20260603T223618Z&X-Amz-Expires=3600&X-Amz-SignedHeaders=host&X-Amz-Signature=dc5cf083031090e9c5266463a7f34d3180cc5cde2fccfc6204cc23d4481b22a5","first_seen":"2026-06-03T22:33:00.053959+00:00","id":"8018942810283908","instance_id":"27835191001619039","livescan_id":"68378491128619407","malware_family":"EICAR","md5":"564296ca17d5e063856e0b92c8ad6ca6","polyscore":null,"rule_name":"sdk_test_live","sha1":"adec7bf2f04d1b710cbc3304f8dccd0f8d09d34a","sha256":"14e3a40dc4da0e6d9b331976e9d5611d51b25e64f5010bbdfc6c8a32b23eb190","tags":"{}","yara":"rule
+        sdk_test_live { strings: $u = \"test_live\" condition: $u }"},"status":"OK"}
+
+        '
+    headers:
+      Access-Control-Allow-Origin:
+      - '*'
+      Access-Control-Expose-Headers:
+      - Authorization
       Connection:
       - keep-alive
       Content-Length:
-      - '37'
+      - '1177'
       Content-Type:
       - application/json
-      User-Agent:
-      - polyswarm-api/3.0.0 (x86_64-Linux-CPython-3.6.5)
+      Date:
+      - Wed, 03 Jun 2026 22:36:18 GMT
+      Server:
+      - gunicorn
+      X-Billing-ID:
+      - '111'
+    status:
+      code: 200
+      message: OK
+- request:
+    body: '{"result_ids":["8018942810283908"]}'
+    headers:
+      accept:
+      - '*/*'
+      accept-encoding:
+      - gzip, deflate
+      authorization:
+      - '11111111111111111111111111111111'
+      connection:
+      - keep-alive
+      content-length:
+      - '35'
+      content-type:
+      - application/json
+      host:
+      - artifact-index-e2e:9696
+      user-agent:
+      - polyswarm_api/3.21.0 (x86_64-Linux-CPython-3.14.4)
     method: DELETE
-    uri: http://localhost:9696/v3/hunt/live/list
+    uri: http://artifact-index-e2e:9696/v3/hunt/live/list
   response:
     body:
-      string: '{"has_more":true,"limit":2,"result":[{"created":"2022-05-26T18:49:08.759671","detections":{"benign":0,"malicious":1,"total":1},"download_url":null,"id":"81802828710018478","instance_id":"80845414726025917","livescan_id":"57028981462665681","malware_family":null,"polyscore":0.23213458159978606,"rule_name":"eicar_substring_test","sha256":"275a021bbfb6489e54d471899f7db9d1663fc695ec2fe2a2c4538aabf651fd0f","tags":"{}","yara":null}],"status":"OK"}
+      string: '{"has_more":true,"limit":50,"result":[{"community":"gamma","created":"2026-06-03T22:36:17.918027+00:00","detections":{"benign":0,"malicious":1,"total":1},"download_url":null,"first_seen":"2026-06-03T22:33:00.053959+00:00","id":"8018942810283908","instance_id":"27835191001619039","livescan_id":"68378491128619407","malware_family":"EICAR","md5":"564296ca17d5e063856e0b92c8ad6ca6","polyscore":null,"rule_name":"sdk_test_live","sha1":"adec7bf2f04d1b710cbc3304f8dccd0f8d09d34a","sha256":"14e3a40dc4da0e6d9b331976e9d5611d51b25e64f5010bbdfc6c8a32b23eb190","tags":"{}","yara":null}],"status":"OK"}
 
         '
     headers:
+      Access-Control-Allow-Origin:
+      - '*'
+      Access-Control-Expose-Headers:
+      - Authorization
+      Connection:
+      - keep-alive
       Content-Length:
-      - '446'
+      - '592'
       Content-Type:
       - application/json
       Date:
-      - Thu, 26 May 2022 18:49:16 GMT
+      - Wed, 03 Jun 2026 22:36:18 GMT
       Server:
-      - Werkzeug/1.0.1 Python/3.9.6
+      - gunicorn
       X-Billing-ID:
-      - '1'
+      - '111'
     status:
       code: 200
       message: OK
 - request:
-    body: null
+    body: ''
     headers:
-      Accept:
+      accept:
       - '*/*'
-      Accept-Encoding:
+      accept-encoding:
       - gzip, deflate
-      Authorization:
+      authorization:
       - '11111111111111111111111111111111'
-      Connection:
+      connection:
       - keep-alive
-      User-Agent:
-      - polyswarm-api/3.0.0 (x86_64-Linux-CPython-3.6.5)
+      host:
+      - artifact-index-e2e:9696
+      user-agent:
+      - polyswarm_api/3.21.0 (x86_64-Linux-CPython-3.14.4)
     method: GET
-    uri: http://localhost:9696/v3/hunt/live?id=81802828710018478
-  response:
-    body:
-      string: '<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 3.2 Final//EN">
-
-        <title>Redirecting...</title>
-
-        <h1>Redirecting...</h1>
-
-        <p>You should be redirected automatically to target URL: <a href="http://localhost:9696/v3/hunt/live/?id=81802828710018478">http://localhost:9696/v3/hunt/live/?id=81802828710018478</a>.  If
-        not click the link.'
-    headers:
-      Content-Length:
-      - '319'
-      Content-Type:
-      - text/html; charset=utf-8
-      Date:
-      - Thu, 26 May 2022 18:49:17 GMT
-      Location:
-      - http://localhost:9696/v3/hunt/live/?id=81802828710018478
-      Server:
-      - Werkzeug/1.0.1 Python/3.9.6
-    status:
-      code: 308
-      message: PERMANENT REDIRECT
-- request:
-    body: null
-    headers:
-      Accept:
-      - '*/*'
-      Accept-Encoding:
-      - gzip, deflate
-      Authorization:
-      - '11111111111111111111111111111111'
-      Connection:
-      - keep-alive
-      User-Agent:
-      - polyswarm-api/3.0.0 (x86_64-Linux-CPython-3.6.5)
-    method: GET
-    uri: http://localhost:9696/v3/hunt/live/?id=81802828710018478
+    uri: http://artifact-index-e2e:9696/v3/hunt/live?id=8018942810283908
   response:
     body:
       string: '{"errors":null,"result":"Could not find requested live hunt result:
-        81802828710018478.","status":"error"}
+        8018942810283908.","status":"error"}
 
         '
     headers:
+      Access-Control-Allow-Origin:
+      - '*'
+      Access-Control-Expose-Headers:
+      - Authorization
+      Connection:
+      - keep-alive
       Content-Length:
-      - '106'
+      - '105'
       Content-Type:
       - application/json
       Date:
-      - Thu, 26 May 2022 18:49:17 GMT
+      - Wed, 03 Jun 2026 22:36:18 GMT
       Server:
-      - Werkzeug/1.0.1 Python/3.9.6
+      - gunicorn
     status:
       code: 404
       message: NOT FOUND
 - request:
-    body: '{"rule_id": "57989886451857569"}'
+    body: '{"rule_id":"63962466091392300"}'
     headers:
-      Accept:
+      accept:
       - '*/*'
-      Accept-Encoding:
+      accept-encoding:
       - gzip, deflate
-      Authorization:
+      authorization:
       - '11111111111111111111111111111111'
-      Connection:
+      connection:
       - keep-alive
-      Content-Length:
-      - '32'
-      Content-Type:
+      content-length:
+      - '31'
+      content-type:
       - application/json
-      User-Agent:
-      - polyswarm-api/3.0.0 (x86_64-Linux-CPython-3.6.5)
+      host:
+      - artifact-index-e2e:9696
+      user-agent:
+      - polyswarm_api/3.21.0 (x86_64-Linux-CPython-3.14.4)
     method: DELETE
-    uri: http://localhost:9696/v3/hunt/rule/live
+    uri: http://artifact-index-e2e:9696/v3/hunt/rule/live
   response:
     body:
-      string: '{"result":{"created":"2022-05-26T18:48:38.048514","deleted":false,"description":null,"id":"57989886451857569","livescan_created":"2022-05-26T18:48:38.176758","livescan_id":null,"modified":"2022-05-26T18:49:18.990421","name":"eicar","yara":"rule
-        eicar_av_test {\n    /*\n       Per standard, match only if entire file is
-        EICAR string plus optional trailing whitespace.\n       The raw EICAR string
-        to be matched is:\n       X5O!P%@AP[4\\PZX54(P^)7CC)7}$EICAR-STANDARD-ANTIVIRUS-TEST-FILE!$H+H*\n    */\n\n    meta:\n        description
-        = \"This is a standard AV test, intended to verify that BinaryAlert is working
-        correctly.\"\n        author = \"Austin Byers | Airbnb CSIRT\"\n        reference
-        = \"http://www.eicar.org/86-0-Intended-use.html\"\n\n    strings:\n        $eicar_regex
-        = /^X5O!P%@AP\\[4\\\\PZX54\\(P\\^\\)7CC\\)7\\}\\$EICAR-STANDARD-ANTIVIRUS-TEST-FILE!\\$H\\+H\\*\\s*$/\n\n    condition:\n        all
-        of them\n}\n\nrule eicar_substring_test {\n    /*\n       More generic - match
-        just the embedded EICAR string (e.g. in packed executables, PDFs, etc)\n    */\n\n    meta:\n        description
-        = \"Standard AV test, checking for an EICAR substring\"\n        author =
-        \"Austin Byers | Airbnb CSIRT\"\n\n    strings:\n        $eicar_substring
-        = \"$EICAR-STANDARD-ANTIVIRUS-TEST-FILE!\"\n\n    condition:\n        all
-        of them\n}"},"status":"OK"}
+      string: '{"result":{"created":"2026-06-03T22:35:46.641576+00:00","deleted":false,"description":null,"id":"63962466091392300","livescan_created":"2026-06-03T22:35:46.690992+00:00","livescan_id":68378491128619407,"modified":"2026-06-03T22:35:46.666460+00:00","name":"sdk-test_live","yara":"rule
+        sdk_test_live { strings: $u = \"test_live\" condition: $u }"},"status":"OK"}
 
         '
     headers:
+      Access-Control-Allow-Origin:
+      - '*'
+      Access-Control-Expose-Headers:
+      - Authorization
+      Connection:
+      - keep-alive
       Content-Length:
-      - '1359'
+      - '361'
       Content-Type:
       - application/json
       Date:
-      - Thu, 26 May 2022 18:49:19 GMT
+      - Wed, 03 Jun 2026 22:36:18 GMT
       Server:
-      - Werkzeug/1.0.1 Python/3.9.6
+      - gunicorn
       X-Billing-ID:
-      - '1'
+      - '111'
+    status:
+      code: 200
+      message: OK
+- request:
+    body: ''
+    headers:
+      accept:
+      - '*/*'
+      accept-encoding:
+      - gzip, deflate
+      authorization:
+      - '11111111111111111111111111111111'
+      connection:
+      - keep-alive
+      host:
+      - artifact-index-e2e:9696
+      user-agent:
+      - polyswarm_api/3.21.0 (x86_64-Linux-CPython-3.14.4)
+    method: GET
+    uri: http://artifact-index-e2e:9696/v3/hunt/rule?id=63962466091392300&community=gamma
+  response:
+    body:
+      string: '{"result":{"created":"2026-06-03T22:35:46.641576+00:00","deleted":false,"description":null,"id":"63962466091392300","livescan_created":"2026-06-03T22:35:46.690992+00:00","livescan_id":null,"modified":"2026-06-03T22:36:18.435557+00:00","name":"sdk-test_live","yara":"rule
+        sdk_test_live { strings: $u = \"test_live\" condition: $u }"},"status":"OK"}
+
+        '
+    headers:
+      Access-Control-Allow-Origin:
+      - '*'
+      Access-Control-Expose-Headers:
+      - Authorization
+      Connection:
+      - keep-alive
+      Content-Length:
+      - '348'
+      Content-Type:
+      - application/json
+      Date:
+      - Wed, 03 Jun 2026 22:36:18 GMT
+      Server:
+      - gunicorn
+      X-Billing-ID:
+      - '111'
+    status:
+      code: 200
+      message: OK
+- request:
+    body: '{"rule_id":"63962466091392300"}'
+    headers:
+      accept:
+      - '*/*'
+      accept-encoding:
+      - gzip, deflate
+      authorization:
+      - '11111111111111111111111111111111'
+      connection:
+      - keep-alive
+      content-length:
+      - '31'
+      content-type:
+      - application/json
+      host:
+      - artifact-index-e2e:9696
+      user-agent:
+      - polyswarm_api/3.21.0 (x86_64-Linux-CPython-3.14.4)
+    method: DELETE
+    uri: http://artifact-index-e2e:9696/v3/hunt/rule/live
+  response:
+    body:
+      string: '{"errors":null,"result":"Ruleset does not have an active live scan.","status":"error"}
+
+        '
+    headers:
+      Access-Control-Allow-Origin:
+      - '*'
+      Access-Control-Expose-Headers:
+      - Authorization
+      Connection:
+      - keep-alive
+      Content-Length:
+      - '87'
+      Content-Type:
+      - application/json
+      Date:
+      - Wed, 03 Jun 2026 22:36:18 GMT
+      Server:
+      - gunicorn
+    status:
+      code: 400
+      message: BAD REQUEST
+- request:
+    body: '{"community":"gamma"}'
+    headers:
+      accept:
+      - '*/*'
+      accept-encoding:
+      - gzip, deflate
+      authorization:
+      - '11111111111111111111111111111111'
+      connection:
+      - keep-alive
+      content-length:
+      - '21'
+      content-type:
+      - application/json
+      host:
+      - artifact-index-e2e:9696
+      user-agent:
+      - polyswarm_api/3.21.0 (x86_64-Linux-CPython-3.14.4)
+    method: DELETE
+    uri: http://artifact-index-e2e:9696/v3/hunt/rule?id=63962466091392300
+  response:
+    body:
+      string: '{"result":{"created":"2026-06-03T22:35:46.641576+00:00","deleted":true,"description":null,"id":"63962466091392300","livescan_created":"2026-06-03T22:35:46.690992+00:00","livescan_id":null,"modified":"2026-06-03T22:36:18.435557+00:00","name":"sdk-test_live","yara":"rule
+        sdk_test_live { strings: $u = \"test_live\" condition: $u }"},"status":"OK"}
+
+        '
+    headers:
+      Access-Control-Allow-Origin:
+      - '*'
+      Access-Control-Expose-Headers:
+      - Authorization
+      Connection:
+      - keep-alive
+      Content-Length:
+      - '347'
+      Content-Type:
+      - application/json
+      Date:
+      - Wed, 03 Jun 2026 22:36:18 GMT
+      Server:
+      - gunicorn
+      X-Billing-ID:
+      - '111'
     status:
       code: 200
       message: OK

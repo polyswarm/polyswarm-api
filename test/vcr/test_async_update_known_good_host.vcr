@@ -1,6 +1,6 @@
 interactions:
 - request:
-    body: '{"id":"1","type":"ip","host":"1.2.3.4","source":"test","good":1}'
+    body: '{"type":"domain","host":"test-async-update-known-good-host.sdk.test","source":"test","good":true}'
     headers:
       accept:
       - '*/*'
@@ -11,18 +11,18 @@ interactions:
       connection:
       - keep-alive
       content-length:
-      - '64'
+      - '97'
       content-type:
       - application/json
       host:
-      - localhost:9696
+      - artifact-index-e2e:9696
       user-agent:
-      - polyswarm_api/3.18.0 (x86_64-Linux-CPython-3.12.13)
-    method: PUT
-    uri: http://localhost:9696/v3/ioc/known
+      - polyswarm_api/3.21.0 (x86_64-Linux-CPython-3.14.4)
+    method: POST
+    uri: http://artifact-index-e2e:9696/v3/ioc/known
   response:
     body:
-      string: '{"result":{"good":1,"host":"1.2.3.4","id":1,"source":"test","type":"ip"},"status":"OK"}
+      string: '{"result":{"good":true,"host":"test-async-update-known-good-host.sdk.test","id":6,"source":"test","type":"domain"},"status":"OK"}
 
         '
     headers:
@@ -33,11 +33,57 @@ interactions:
       Connection:
       - keep-alive
       Content-Length:
-      - '88'
+      - '130'
       Content-Type:
       - application/json
       Date:
-      - Mon, 27 Apr 2026 23:59:21 GMT
+      - Wed, 03 Jun 2026 22:37:19 GMT
+      Server:
+      - gunicorn
+      X-Billing-ID:
+      - '111'
+    status:
+      code: 200
+      message: OK
+- request:
+    body: '{"id":6,"type":"ip","host":"9.42.182.192","source":"test","good":true}'
+    headers:
+      accept:
+      - '*/*'
+      accept-encoding:
+      - gzip, deflate
+      authorization:
+      - '11111111111111111111111111111111'
+      connection:
+      - keep-alive
+      content-length:
+      - '70'
+      content-type:
+      - application/json
+      host:
+      - artifact-index-e2e:9696
+      user-agent:
+      - polyswarm_api/3.21.0 (x86_64-Linux-CPython-3.14.4)
+    method: PUT
+    uri: http://artifact-index-e2e:9696/v3/ioc/known
+  response:
+    body:
+      string: '{"result":{"good":true,"host":"9.42.182.192","id":6,"source":"test","type":"ip"},"status":"OK"}
+
+        '
+    headers:
+      Access-Control-Allow-Origin:
+      - '*'
+      Access-Control-Expose-Headers:
+      - Authorization
+      Connection:
+      - keep-alive
+      Content-Length:
+      - '96'
+      Content-Type:
+      - application/json
+      Date:
+      - Wed, 03 Jun 2026 22:37:19 GMT
       Server:
       - gunicorn
       X-Billing-ID:

@@ -20,25 +20,31 @@ classifiers = [
   "Programming Language :: Python :: 3.12",
 ]
 dependencies = [
-  "requests>=2.31",
+  "httpx>=0.27",
   "python-dateutil>=2.9",
   "jmespath>=1.0",
 ]
 
 [project.optional-dependencies]
-async = [
-    "httpx>=0.27",
-]
+# Retained for backward compatibility; ``httpx`` is now a core dependency
+# so the ``[async]`` extra is a no-op. Downstream consumers can keep
+# pinning ``polyswarm-api[async]`` without change.
+async = []
 tests = [
     "bump-my-version~=1.2",
     "pytest~=7.4",
     "jsonschema~=3.0.2",
-    "responses~=0.23.3",
     "python-dateutil~=2.9.0",
     'vcrpy~=7.0',
     "pytest-asyncio>=0.23",
+    "pytest-timeout~=2.3",
+    "pytest-xdist~=3.6",
     "respx>=0.21",
     "httpx>=0.27",
+]
+dev = [
+    "unasync>=0.6",
+    "ruff>=0.6",
 ]
 
 [tool.setuptools]
@@ -71,7 +77,11 @@ replace = "__version__ = '{new_version}'"
 
 [tool.pytest.ini_options]
 log_cli = true
-log_cli_level = "DEBUG"
+# Default live-log level. INFO keeps the useful app request/response lines while
+# dropping the DEBUG firehose (VCR per-request match trace, parse traces) that
+# otherwise bloats CI logs ~1000x. Override per-run with the TESTS_LOG_LEVEL env
+# var (e.g. TESTS_LOG_LEVEL=DEBUG to log everything); see test/conftest.py.
+log_cli_level = "INFO"
 log_format = "%(asctime)s %(levelname)-2s [%(name)s:%(filename)s:%(lineno)d:%(funcName)1s()] %(message)s"
 python_files = ["test_*.py", "*_test.py"]
 testpaths = ["test"]
