@@ -34,7 +34,7 @@ The full catalogue of methods on the public client surface and which transport h
 
 | Method | Resource builder |
 |---|---|
-| `metadata_mapping()` | `MetadataMapping.get` |
+| `metadata_mapping()` | inline (GET) — parsed into `MetadataMapping` |
 | `metadata_field_properties_write(field_path, description, …)` | inline (POST) |
 | `metadata_field_properties_get(field_path)` | inline (GET) |
 | `metadata_field_properties_delete(field_path)` | inline (DELETE) |

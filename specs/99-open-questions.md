@@ -54,6 +54,17 @@ There's no automatic detection — it's per-method. Documented in `03-endpoints.
 
 **Action:** keep an eye on whether new endpoints add ambiguity. If a clear rule emerges (e.g. "any method whose docstring says 'Generator of X' is `_paginate`"), formalise it.
 
+## Pagination — the absent / non-advancing cursor guard
+
+**Status:** decided + verified safe.
+
+`_consume_results` stops paginating when the server reports `has_more` but the `offset` cursor is `None`/absent or repeats a value already seen (and it's also bounded by `_MAX_PAGES`). This is **strictly safer** than 3.x, and cannot truncate any feed that actually paginated before:
+
+- Offset-paginated feeds — including the `stream` archive feed (`/consumer/download/stream`) and the live-hunt feed, which go through artifact-index's `@paginated()` offset envelope — return an **advancing numeric `offset`**, so the guard never fires for them (offset semantics are identical to 3.x).
+- A `has_more`-with-no-`offset` (or repeating-`offset`) envelope would have made the 3.x `consume_results`/`next_page` re-send the **identical** request and loop forever; the guard turns that latent infinite loop into a clean stop. There is no "rolling feed advanced by re-sending an offset-less request" mode — 3.x had no mechanism for it (it only ever re-sent `offset=self.offset`).
+
+Covered by `test_async_pagination_bounded_when_cursor_absent` and the stuck-cursor / page-walk guards.
+
 ## Boolean param wire format
 
 **Status:** normalised via `_normalise_bool_params` in `core.py`.
