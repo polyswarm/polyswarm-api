@@ -1,0 +1,80 @@
+name: Claude Code Review
+
+# Auto-review every PR on open + each subsequent push.
+# To pause without removing the file: set `if: false` on the job.
+#
+# Requires repo (or org) secret ANTHROPIC_API_KEY — pay-as-you-go via
+# Anthropic Console, separate from any individual's Claude.com subscription.
+# OAuth-token variant: swap `anthropic_api_key` for `claude_code_oauth_token`.
+
+on:
+  pull_request:
+    types: [opened, synchronize]
+
+jobs:
+  claude-review:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pull-requests: read
+      issues: read
+      id-token: write
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
+
+      - name: Run Claude Code Review
+        id: claude-review
+        uses: anthropics/claude-code-action@v1
+        with:
+          anthropic_api_key: ${{ secrets.ANTHROPIC_API_KEY }}
+          prompt: |
+            REPO: ${{ github.repository }}
+            PR NUMBER: ${{ github.event.pull_request.number }}
+
+            Review this PR against the project's CLAUDE.md / AGENTS.md
+            and the `specs/` directory — they are authoritative on
+            conventions, contracts, architecture, and intent. Read the
+            spec for every area the PR touches before reviewing the
+            corresponding code.
+
+            Focus on real issues, ordered by severity:
+              1. Correctness — bugs, error-handling gaps, request /
+                 response shape mismatches, transport-boundary
+                 problems, broken state machines.
+              2. Spec drift — does the change match `AGENTS.md` and
+                 the relevant `specs/*.md`? Flag code that contradicts
+                 a documented invariant, and flag specs that need
+                 updating because the code rightly moved past them.
+                 The architecture rules, file roles, and "where does a
+                 new endpoint go" decisions all live in those docs —
+                 quote them when measuring.
+              3. Downstream contract — changes to the public surface
+                 (exported classes, method signatures, response
+                 shapes, exception classes, monkey-patch sites listed
+                 in the specs) need an explicit version-bump
+                 decision. The bump policy is in AGENTS.md.
+              4. Test coverage — does the test exercise the new path?
+                 Cite specific missing cases. Test conventions (mock
+                 layers, cassette workflow, parametrised harness) are
+                 in `specs/04-testing.md`.
+              5. Gitflow — `AGENTS.md` documents the branch base and
+                 version-bump rules; flag any PR that violates them.
+
+            Skip:
+              - Style nits any auto-formatter already enforces.
+              - "Consider adding tests" suggestions with no specific
+                missing case.
+              - Architectural rewrites for hypothetical future
+                requirements.
+
+            Be terse. Comment only on issues that need action. If the
+            PR is clean against the documented conventions, say so in
+            one line and stop.
+
+            Post your review via `gh pr comment`.
+
+          claude_args: '--allowed-tools "Bash(gh issue view:*),Bash(gh search:*),Bash(gh issue list:*),Bash(gh pr comment:*),Bash(gh pr diff:*),Bash(gh pr view:*),Bash(gh pr list:*)"'
