@@ -859,6 +859,27 @@ class Tag(core.BaseJsonResource):
         self.name = content.get('name')
 
 
+class KnownGood(core.BaseJsonResource):
+    RESOURCE_ENDPOINT = '/known-good'
+    RESOURCE_ID_KEYS = ['sha256']
+
+    def __init__(self, content, api=None):
+        super().__init__(content, api=api)
+        self.id = content.get('id')
+        self.sha256 = content.get('sha256')
+        self.artifact_instance_id = content.get('artifact_instance_id')
+        # feed names (metadata tools) that flagged this hash as known-good
+        self.sources = content.get('sources', [])
+        self.created = core.parse_isoformat(content.get('created'))
+
+    @classmethod
+    def _delete_params(cls, **kwargs):
+        # Route sha256 AND community into the query string for DELETE (GET-style)
+        # so we don't depend on a request body and the server reads community from
+        # the query, consistent with GET.
+        return cls._params('GET', *cls.RESOURCE_ID_KEYS, **kwargs)
+
+
 #####################################################################
 # Nested Resources
 #####################################################################
