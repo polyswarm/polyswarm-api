@@ -320,7 +320,7 @@ Several resources add domain-specific classmethods on top of the standard CRUD s
 - `SandboxTask` — `create_file`, `update_file`, `latest`, `my_tasks` for the various sandbox-submission shapes. **No `upload_file` instance method** in 4.0.
 - `Sample` — `create` with `endpoint_fmt={'sha256': sha256}` for the URL-parametrised path.
 - `Webhook` — `test(api, webhook_id)` for the test-payload endpoint.
-- `KnownGood` — `RESOURCE_ENDPOINT = '/known-good'`, `RESOURCE_ID_KEYS = ['sha256']`; standard `create`/`get`/`delete` (no update). Overrides `_delete_params` to route `sha256` **and** `community` into the query string (GET-style) so DELETE carries no body. Internal-only on the server (gated by the `known_good` feature). API methods: `known_good_create` / `known_good_get` / `known_good_delete`.
+- `KnownGood` — `RESOURCE_ENDPOINT = '/known-good'`, `RESOURCE_ID_KEYS = ['sha256']`; `create`/`get`-by-sha256/`delete`-by-id (no update). `get` routes `sha256` + `community` into the query string; `delete` overrides `_delete_params` to route the entry's `id` into the query string (like the other id-keyed delete endpoints — no community/body). Internal-only on the server (gated by the `known_good` feature). API methods: `known_good_create` / `known_good_get(sha256)` / `known_good_delete(known_good_id)`.
 
 These follow the same convention: build a `PolyswarmRequest`, return it.
 

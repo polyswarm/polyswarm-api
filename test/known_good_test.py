@@ -71,11 +71,11 @@ class KnownGoodTestCase(ClientTestCase):
         assert 'community=gamma' in url
 
     def test_delete(self):
-        row = _sample_row()
-        self.mock.add('DELETE', _RESOURCE_URL, json={'result': row, 'status': 'OK'})
-        result = self.api.known_good_delete(sha256=SHA)
-        assert result.sha256 == SHA
-        # sha256 AND community routed into the query string for DELETE (GET-style)
+        self.mock.add('DELETE', _RESOURCE_URL, json={'result': {'id': '777', 'deleted': True}, 'status': 'OK'})
+        result = self.api.known_good_delete(known_good_id='777')
+        assert result.id == '777'
+        # delete is by id (query string), like the other id-keyed delete endpoints;
+        # no community/body involved.
         url = self.mock.last_request_url
-        assert f'sha256={SHA}' in url
-        assert 'community=gamma' in url
+        assert 'id=777' in url
+        assert 'community=' not in url

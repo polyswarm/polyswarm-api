@@ -799,16 +799,16 @@ class PolySwarmAsyncAPI:
         return await self._single(resources.KnownGood.get(
             self, sha256=sha256, community=self.community))
 
-    async def known_good_delete(self, sha256):
+    async def known_good_delete(self, known_good_id):
         """
-        Delete a known-good entry by sha256. Leaves any existing instances intact;
-        only future submissions of that sha256 stop being short-circuited.
-        :param sha256: The sha256 to delete.
-        :return: A KnownGood resource
+        Delete a known-good entry by its id (from create/get). Leaves any existing
+        instances intact; only future submissions of that sha256 stop being
+        short-circuited.
+        :param known_good_id: The KnownGood id to delete.
+        :return: A KnownGood resource (the deletion result)
         """
-        logger.info('Delete known-good %s', sha256)
-        return await self._single(resources.KnownGood.delete(
-            self, sha256=sha256, community=self.community))
+        logger.info('Delete known-good %s', known_good_id)
+        return await self._single(resources.KnownGood.delete(self, id=known_good_id))
 
     async def family_create(self, name):
         """

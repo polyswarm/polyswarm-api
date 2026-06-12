@@ -874,10 +874,9 @@ class KnownGood(core.BaseJsonResource):
 
     @classmethod
     def _delete_params(cls, **kwargs):
-        # Route sha256 AND community into the query string for DELETE (GET-style)
-        # so we don't depend on a request body and the server reads community from
-        # the query, consistent with GET.
-        return cls._params('GET', *cls.RESOURCE_ID_KEYS, **kwargs)
+        # Delete by the entry's id, routed to the query string like the other
+        # id-keyed delete endpoints — no community/body needed.
+        return cls._params('GET', 'id', **kwargs)
 
 
 #####################################################################
