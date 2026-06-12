@@ -80,3 +80,5 @@ class KnownGoodTestCase(ClientTestCase):
         url = self.mock.last_request_url
         assert f'sha256={SHA}' in url
         assert 'community=' not in url
+        # delete carries no request body — sha256 rides entirely in the query string
+        assert self.mock.last_request_body is None
