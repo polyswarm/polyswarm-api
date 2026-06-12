@@ -860,6 +860,9 @@ class Tag(core.BaseJsonResource):
 
 
 class KnownGood(core.BaseJsonResource):
+    # sha256 is the natural unique key for a known-good entry, and it's the key
+    # for BOTH retrieve and delete — so RESOURCE_ID_KEYS=['sha256'] lets the base
+    # _get_params / _delete_params route it into the query string with no override.
     RESOURCE_ENDPOINT = '/known-good'
     RESOURCE_ID_KEYS = ['sha256']
 
@@ -871,12 +874,6 @@ class KnownGood(core.BaseJsonResource):
         # feed names (metadata tools) that flagged this hash as known-good
         self.sources = content.get('sources', [])
         self.created = core.parse_isoformat(content.get('created'))
-
-    @classmethod
-    def _delete_params(cls, **kwargs):
-        # Delete by the entry's id, routed to the query string like the other
-        # id-keyed delete endpoints — no community/body needed.
-        return cls._params('GET', 'id', **kwargs)
 
 
 #####################################################################
