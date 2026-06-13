@@ -1,0 +1,218 @@
+interactions:
+- request:
+    body: '{"sha256":"9c0258ed4cc98056773bcf0c57fe4bc79618802357f0703c503b4cb172a263df","source":"nsrl","filename":"kg-sample.exe","metadata":{"product":"Example","version":"1.0"},"community":"gamma"}'
+    headers:
+      accept:
+      - '*/*'
+      accept-encoding:
+      - gzip, deflate
+      authorization:
+      - '11111111111111111111111111111111'
+      connection:
+      - keep-alive
+      content-length:
+      - '189'
+      content-type:
+      - application/json
+      host:
+      - artifact-index-e2e:9696
+      user-agent:
+      - polyswarm_api/4.0.0 (x86_64-Linux-CPython-3.14.4)
+    method: POST
+    uri: http://artifact-index-e2e:9696/v3/known-good
+  response:
+    body:
+      string: '{"result":{"artifact_instance_id":"90917448071940878","created":"2026-06-12T22:01:46.572994+00:00","id":"18577785917417703","sha256":"9c0258ed4cc98056773bcf0c57fe4bc79618802357f0703c503b4cb172a263df","sources":["nsrl"]},"status":"OK"}
+
+        '
+    headers:
+      Access-Control-Allow-Origin:
+      - '*'
+      Access-Control-Expose-Headers:
+      - Authorization
+      Connection:
+      - keep-alive
+      Content-Length:
+      - '235'
+      Content-Type:
+      - application/json
+      Date:
+      - Fri, 12 Jun 2026 22:01:46 GMT
+      Server:
+      - gunicorn
+      X-Billing-ID:
+      - '111'
+    status:
+      code: 200
+      message: OK
+- request:
+    body: '{"sha256":"9c0258ed4cc98056773bcf0c57fe4bc79618802357f0703c503b4cb172a263df","source":"winget","community":"gamma"}'
+    headers:
+      accept:
+      - '*/*'
+      accept-encoding:
+      - gzip, deflate
+      authorization:
+      - '11111111111111111111111111111111'
+      connection:
+      - keep-alive
+      content-length:
+      - '115'
+      content-type:
+      - application/json
+      host:
+      - artifact-index-e2e:9696
+      user-agent:
+      - polyswarm_api/4.0.0 (x86_64-Linux-CPython-3.14.4)
+    method: POST
+    uri: http://artifact-index-e2e:9696/v3/known-good
+  response:
+    body:
+      string: '{"result":{"artifact_instance_id":"90917448071940878","created":"2026-06-12T22:01:46.572994+00:00","id":"18577785917417703","sha256":"9c0258ed4cc98056773bcf0c57fe4bc79618802357f0703c503b4cb172a263df","sources":["nsrl","winget"]},"status":"OK"}
+
+        '
+    headers:
+      Access-Control-Allow-Origin:
+      - '*'
+      Access-Control-Expose-Headers:
+      - Authorization
+      Connection:
+      - keep-alive
+      Content-Length:
+      - '244'
+      Content-Type:
+      - application/json
+      Date:
+      - Fri, 12 Jun 2026 22:01:46 GMT
+      Server:
+      - gunicorn
+      X-Billing-ID:
+      - '111'
+    status:
+      code: 200
+      message: OK
+- request:
+    body: ''
+    headers:
+      accept:
+      - '*/*'
+      accept-encoding:
+      - gzip, deflate
+      authorization:
+      - '11111111111111111111111111111111'
+      connection:
+      - keep-alive
+      host:
+      - artifact-index-e2e:9696
+      user-agent:
+      - polyswarm_api/4.0.0 (x86_64-Linux-CPython-3.14.4)
+    method: GET
+    uri: http://artifact-index-e2e:9696/v3/known-good?sha256=9c0258ed4cc98056773bcf0c57fe4bc79618802357f0703c503b4cb172a263df&community=gamma
+  response:
+    body:
+      string: '{"result":{"artifact_instance_id":"90917448071940878","created":"2026-06-12T22:01:46.572994+00:00","id":"18577785917417703","sha256":"9c0258ed4cc98056773bcf0c57fe4bc79618802357f0703c503b4cb172a263df","sources":["nsrl","winget"]},"status":"OK"}
+
+        '
+    headers:
+      Access-Control-Allow-Origin:
+      - '*'
+      Access-Control-Expose-Headers:
+      - Authorization
+      Connection:
+      - keep-alive
+      Content-Length:
+      - '244'
+      Content-Type:
+      - application/json
+      Date:
+      - Fri, 12 Jun 2026 22:01:46 GMT
+      Server:
+      - gunicorn
+      X-Billing-ID:
+      - '111'
+    status:
+      code: 200
+      message: OK
+- request:
+    body: ''
+    headers:
+      accept:
+      - '*/*'
+      accept-encoding:
+      - gzip, deflate
+      authorization:
+      - '11111111111111111111111111111111'
+      connection:
+      - keep-alive
+      host:
+      - artifact-index-e2e:9696
+      user-agent:
+      - polyswarm_api/4.0.0 (x86_64-Linux-CPython-3.14.4)
+    method: DELETE
+    uri: http://artifact-index-e2e:9696/v3/known-good?sha256=9c0258ed4cc98056773bcf0c57fe4bc79618802357f0703c503b4cb172a263df
+  response:
+    body:
+      string: '{"result":{"deleted":true,"sha256":"9c0258ed4cc98056773bcf0c57fe4bc79618802357f0703c503b4cb172a263df"},"status":"OK"}
+
+        '
+    headers:
+      Access-Control-Allow-Origin:
+      - '*'
+      Access-Control-Expose-Headers:
+      - Authorization
+      Connection:
+      - keep-alive
+      Content-Length:
+      - '118'
+      Content-Type:
+      - application/json
+      Date:
+      - Fri, 12 Jun 2026 22:01:46 GMT
+      Server:
+      - gunicorn
+      X-Billing-ID:
+      - '111'
+    status:
+      code: 200
+      message: OK
+- request:
+    body: ''
+    headers:
+      accept:
+      - '*/*'
+      accept-encoding:
+      - gzip, deflate
+      authorization:
+      - '11111111111111111111111111111111'
+      connection:
+      - keep-alive
+      host:
+      - artifact-index-e2e:9696
+      user-agent:
+      - polyswarm_api/4.0.0 (x86_64-Linux-CPython-3.14.4)
+    method: GET
+    uri: http://artifact-index-e2e:9696/v3/known-good?sha256=9c0258ed4cc98056773bcf0c57fe4bc79618802357f0703c503b4cb172a263df&community=gamma
+  response:
+    body:
+      string: '{"errors":null,"result":"No known-good entry found for sha256 9c0258ed4cc98056773bcf0c57fe4bc79618802357f0703c503b4cb172a263df.","status":"error"}
+
+        '
+    headers:
+      Access-Control-Allow-Origin:
+      - '*'
+      Access-Control-Expose-Headers:
+      - Authorization
+      Connection:
+      - keep-alive
+      Content-Length:
+      - '147'
+      Content-Type:
+      - application/json
+      Date:
+      - Fri, 12 Jun 2026 22:01:46 GMT
+      Server:
+      - gunicorn
+    status:
+      code: 404
+      message: NOT FOUND
+version: 1

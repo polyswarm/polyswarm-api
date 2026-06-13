@@ -760,6 +760,33 @@ class ScanTestCaseV2(TestCase):
         assert any(h.json['host'] == ip and h.json['type'] == 'ip' for h in known)
 
     @vcr.use_cassette()
+    def test_known_good_lifecycle(self):
+        # Full create → extend → get → delete round-trip against the real
+        # /known-good endpoint (internal-only; the e2e dev key is on the
+        # internal plan). The sha comes from this test's unique EICAR variant
+        # (same convention as the scan tests) => the create branch runs first;
+        # the trailing delete keeps live re-runs deterministic.
+        v3api = PolyswarmAPI(self.test_api_key, uri='http://artifact-index-e2e:9696/v3', community='gamma')
+        _content, sha = malicious_artifact(self._testMethodName)
+        created = v3api.known_good_create(
+            sha256=sha, source='nsrl', filename='kg-sample.exe',
+            metadata={'product': 'Example', 'version': '1.0'})
+        assert created.sha256 == sha
+        assert created.sources == ['nsrl']
+        assert created.artifact_instance_id
+        # A second feed flagging the same sha extends the same entry (no new row).
+        extended = v3api.known_good_create(sha256=sha, source='winget')
+        assert extended.id == created.id
+        assert extended.sources == ['nsrl', 'winget']
+        got = v3api.known_good_get(sha256=sha)
+        assert got.sha256 == sha
+        assert got.sources == ['nsrl', 'winget']
+        deleted = v3api.known_good_delete(sha256=sha)
+        assert deleted.sha256 == sha
+        with pytest.raises(exceptions.NotFoundException):
+            v3api.known_good_get(sha256=sha)
+
+    @vcr.use_cassette()
     def test_sandbox_providers(self):
         v3api = PolyswarmAPI(self.test_api_key, uri='http://artifact-index-e2e:9696/v3', community='gamma')
         response = v3api.sandbox_providers()
