@@ -6,13 +6,14 @@ How the test suite is organised. Three layers: pure unit tests (no HTTP at all �
 
 ## Invariants
 
-1. **Tests must pass against the live e2e stack with VCR off.** VCR is an efficiency cache, not a load-bearing requirement. Don't hardcode `record_mode='none'`. If a test only works against the recorded cassette, that's a test bug.
-2. **Cassette re-recording is delete-driven.** `rm test/vcr/<name>.vcr && pytest …<test>` re-records against the live e2e. `record_mode='once'` (the default) makes this work without flag-flipping.
-3. **One cassette serves both transports.** Sync and async tests targeting the same scenario use the same on-the-wire request shape (because both clients run on `httpx`). The VCR matcher is configured so cassettes survive `httpx`'s param-ordering differences from the original `requests`-recorded format — see "VCR matcher convention" below.
-4. **New endpoint tests use the parametrised `ClientTestCase` harness.** It auto-emits `<Name>Sync` and `<Name>Async` siblings so the same body runs against both clients. Don't write parallel sync / async test bodies for new endpoints.
-5. **The HTTP mocking library follows the transport.** Both clients use `httpx`, so `respx` is the mocking library.
-6. **Prefer the pure-unit tier for builder + parse logic.** `PolyswarmRequest` builders are pure data; `parse_response` is a pure function. They're testable without httpx, async, or fixtures. Use this tier for any bug that can be reproduced without network involvement.
-7. **The live VCR-off run is parallel (`pytest -n 8`).** New tests must be isolation-safe: own uniquely-keyed resources (deterministic per-test `uid` — `malicious_artifact(uid)`, `uid_ip` / `uid_host` / `uid_yara`), assert only on their own data, and share no mutable state, so xdist workers never collide. See "Running the suite in parallel" below.
+1. **E2e-first: endpoint behaviour is tested against the real server, not a mocked response.** New endpoint tests call the live e2e stack and record a VCR cassette so unit runs replay it offline. Mock the HTTP boundary (`respx`) **only** when exercising the scenario on the e2e stack is disproportionately costly (e.g. forcing transport-level failures, retry exhaustion, pagination-cursor pathologies the server won't produce) or the dependency is an external system that isn't part of the stack. A fabricated `respx` response asserts what we *think* the server returns; a cassette asserts what it *actually* returned.
+2. **Tests must pass against the live e2e stack with VCR off.** VCR is an efficiency cache, not a load-bearing requirement. Don't hardcode `record_mode='none'`. If a test only works against the recorded cassette, that's a test bug.
+3. **Cassette re-recording is delete-driven, and recording is live-only.** `rm test/vcr/<name>.vcr && pytest …<test>` re-records against the live e2e. `record_mode='once'` (the default) makes this work without flag-flipping. Cassettes are always produced by running the test against the live stack — never copied from a sibling test's cassette and never hand-edited (beyond scrubbing sensitive values).
+4. **One cassette serves both transports.** Sync and async tests targeting the same scenario use the same on-the-wire request shape (because both clients run on `httpx`). The VCR matcher is configured so cassettes survive `httpx`'s param-ordering differences from the original `requests`-recorded format — see "VCR matcher convention" below.
+5. **`respx` tests (where justified under invariant 1) use the parametrised `ClientTestCase` harness.** It auto-emits `<Name>Sync` and `<Name>Async` siblings so the same body runs against both clients. Don't write parallel sync / async respx bodies. (Live/VCR tests can't use this harness — `_AsyncToSync` is respx-only — so they follow the `client_scan_test.py` / `async_client_test.py` pattern instead.)
+6. **The HTTP mocking library follows the transport.** Both clients use `httpx`, so `respx` is the mocking library.
+7. **Prefer the pure-unit tier for builder + parse logic.** `PolyswarmRequest` builders are pure data; `parse_response` is a pure function. They're testable without httpx, async, or fixtures. Use this tier for any bug that can be reproduced without network involvement — including request-shape assertions (body vs query routing, None-omission, bodyless DELETE) that a cassette can't express directly.
+8. **The live VCR-off run is parallel (`pytest -n 8`).** New tests must be isolation-safe: own uniquely-keyed resources (deterministic per-test `uid` — `malicious_artifact(uid)`, `uid_ip` / `uid_host` / `uid_yara`; hash-keyed resources derive their sha from the test's own EICAR variant via `malicious_artifact(uid)`), assert only on their own data, and share no mutable state, so xdist workers never collide. See "Running the suite in parallel" below.
 
 ## Files
 
@@ -32,12 +33,17 @@ The SDK is tested at three levels:
 | Layer | Tool | What it covers | When to use |
 |---|---|---|---|
 | **Pure unit** | none | Resource-builder shape (`Foo.bar(api, ...)` returns a `PolyswarmRequest` with method/url/params as expected). `parse_response` behaviour (`parse_response(fake_response, request)` populates fields or raises). `jmespath`, helpers. | Anything that can be tested without HTTP. Fast, deterministic, no fixtures. |
-| **Mocked I/O** | `respx` | End-to-end call against a mocked httpx transport. The full pipeline runs (api → session → execute → parse_response → resource constructor), but no real network. | Endpoint behaviour that depends on full round-trip + parsing. |
-| **Cassette replay** | `vcrpy` | Records real HTTP exchanges against the live e2e; replays them on subsequent runs. | Real-server correctness, server-shape regression detection. |
+| **Mocked I/O** | `respx` | End-to-end call against a mocked httpx transport. The full pipeline runs (api → session → execute → parse_response → resource constructor), but no real network — the response is fabricated by the test. | **Only** when the live e2e stack can't reasonably produce the scenario: transport-level failures, retry exhaustion, pagination-cursor pathologies, external systems that aren't part of the stack. |
+| **Cassette replay** | `vcrpy` | Records real HTTP exchanges against the live e2e; replays them on subsequent runs. | **The default for endpoint behaviour.** Real-server correctness, server-shape regression detection. |
 
 The pure-unit tier exists because the 4.0 redesign made it possible: resource builders and `parse_response` are pure functions of their inputs. Use it aggressively — a unit test for "did this builder produce the right URL?" runs in microseconds and doesn't break when the test framework changes.
 
-`respx` is preferred for new endpoint tests at the mocked-I/O tier because it's deterministic and fast. VCR is for pinning the contract against the live server.
+**VCR-backed live-e2e tests are the default for new endpoint tests** (invariant 1): they exercise the real server implementation and the cassette pins the actual contract, while replay keeps unit runs fast and offline. `respx` is reserved for scenarios the e2e stack can't produce (or only at disproportionate cost); pure-unit covers request-shape and parse logic without any HTTP. The canonical split for a new endpoint: a live-e2e VCR lifecycle test (behaviour, real contract) + pure-unit builder tests (body-vs-query routing, None-omission) — see `test_known_good_lifecycle` + `test/known_good_test.py`.
+
+### E2e sample-generation conventions
+
+- **The EICAR variant is the default sample-generation strategy.** Any test that needs an artifact — or just a sha256 — derives it from its own EICAR variant via `malicious_artifact(uid)` (`EICAR + uid` → unique content + sha, deterministic per test so cassettes replay). Don't invent parallel strategies (digest-of-test-name, random bytes, checked-in binaries) — one convention keeps every sha attributable to a test and keeps the eicar engine able to flag every sample.
+- **All tests use only the `eicar` engine.** It's the single microengine (+ arbiter) in the e2e stack; tests must not depend on any other engine existing, and local stacks must not grow extra engines for testing. Anything that needs an assertion/verdict gets it from eicar flagging an EICAR-variant sample.
 
 ## The parametrised `ClientTestCase` harness
 
@@ -185,22 +191,19 @@ A single test method's cassette can hold multiple interactions (e.g. `test_submi
 
 Where a sync test and an async test exercise the same scenario, they can share a cassette. The naming convention is to keep two files (`test_X.vcr` and `test_async_X.vcr`) but the content is identical. The parametrised `ClientTestCase` harness sidesteps this entirely — one test name, both clients use it.
 
-For tests still split across `client_scan_test.py` / `async_client_test.py`, when both clients send the same request shape (which is increasingly true now that they share the endpoint surface), it's fine to copy the sync cassette to the async name during migration.
+For tests still split across `client_scan_test.py` / `async_client_test.py`, both clients send the same request shape — but each side still records its **own** cassette (per invariant 3, cassettes are produced by running the test live, never copied from the sibling). The shared matcher just means a sync-recorded cassette *would* replay for the async body; don't rely on that — record both.
 
-## VCR-off mode
+## VCR-off mode (`TESTS_VCR=off`)
 
-A CI matrix entry should run the suite with cassettes hidden, against the live e2e:
+The implemented switch is the `TESTS_VCR` env knob: when `TESTS_VCR=off`, both VCR-configured test modules replace `vcr.use_cassette` with a no-op decorator at import time, so the whole suite runs live — no replay, no recording. `test/conftest.py` also keys off it (real poll pacing, concurrent helpers fan out). This is what the e2e CI job runs (it's baked into the test image: `ENV TESTS_VCR=off` in `docker/Dockerfile`):
 
 ```bash
-pytest --vcr-disabled       # if vcr-pytest plugin is installed; otherwise:
-mv test/vcr test/vcr.disabled
-pytest
-mv test/vcr.disabled test/vcr
+TESTS_VCR=off pytest test/ -n 8 --dist worksteal --timeout=600 --timeout-method=thread
 ```
 
 This proves the SDK works without the cache. The invariant: **every test must pass in VCR-off mode against the live e2e stack**. If a test only works against a recorded cassette, it's a bug in the test.
 
-This is also how cassettes get re-recorded en masse during major SDK changes — delete the directory, run the suite, commit the new cassettes.
+En-masse re-recording during major SDK changes is delete-driven and stays in default (VCR-on) mode: delete the affected cassettes, run the suite against a **freshly booted** e2e stack, commit the new cassettes. (Fresh boot matters: create-style tests are first-run-safe — their deterministic per-test keys already exist on a reused stack.)
 
 ## Running the suite in parallel (`pytest -n`)
 
@@ -260,7 +263,8 @@ Some SDK behaviour depends on the **server** (artifact-index / polyswarmd3), and
      --build-arg PIP_INDEX_URL="$PIP_INDEX_URL" \
      -t 077282062506.dkr.ecr.us-east-2.amazonaws.com/artifact-index:latest .
    ```
-2. Boot the stack with `e2e run -pin` (`--skip-pull --image-default-tag --no-commands`): `-p` keeps your local `:latest` from being overwritten by an ECR pull, `-i` pins the compose default tag, `-n` skips the SDK command step so you run the suite yourself. Then `TESTS_VCR=off pytest test/ -n 8 --dist worksteal` against it. (All *other* images must already be cached locally — warm them with one normal run first.) The authoritative writeup lives in the e2e repo's `specs/04-images-and-registry.md`.
+2. Boot the stack with `e2e run -pine` (`--skip-pull --image-default-tag --no-commands --expose-ports`): `-p` keeps your local `:latest` from being overwritten by an ECR pull, `-i` pins the compose default tag, `-n` skips the SDK command step so you run the suite yourself, and `-e` publishes host ports — required for running the suite from the host (the tests target `artifact-index-e2e:9696`, which resolves to `127.0.0.1` via `/etc/hosts` but only answers when ports are published). Then `TESTS_VCR=off pytest test/ -n 8 --dist worksteal --timeout=600 --timeout-method=thread` against it. (All *other* images must already be cached locally — warm them with one normal run first.) The authoritative writeup lives in the e2e repo's `specs/04-images-and-registry.md`.
+3. Between iterations, tear down before re-booting — a leftover container collides with the fresh boot: `docker ps -aq --filter name=e2e | xargs -r docker rm -f`. **If the stack lands in a bad state, restart it whole** (teardown + fresh `e2e run -pine`) rather than repairing services in place — simpler and faster, and create-style tests are first-run-safe on a fresh DB.
 
 ## The e2e stack is not prod: no read replica, collapsed delays
 
@@ -272,11 +276,11 @@ The fix is a deliberate **~2s gap** (`time.sleep(2)` / `await asyncio.sleep(2)`)
 
 ## Adding a new test
 
-Decision tree:
+Decision tree (e2e-first — see invariant 1):
 
-1. **Pure logic test?** (No HTTP, no resource side effects.) → Plain unittest / pytest function. See `jmespath_test.py`.
-2. **Endpoint test with deterministic mocked response?** → Parametrised `ClientTestCase` with `_MockBoundary`. See `metadata_field_properties_test.py`. Body covers both sync and async automatically.
-3. **End-to-end correctness against the live server?** → VCR-backed test. Record once against e2e, commit the cassette. The test can be sync (in `client_scan_test.py`) or async (in `async_client_test.py`) for now; long-term these migrate to the parametrised harness.
+1. **Pure logic test?** (No HTTP, no resource side effects — including request-builder shape and `parse_response`.) → Plain unittest / pytest function. See `jmespath_test.py`, `core_test.py`, `known_good_test.py`.
+2. **Endpoint behaviour?** → **VCR-backed live-e2e test — the default.** Write the test against the real endpoint, record once against a fresh e2e stack, commit the cassette. Sync body in `client_scan_test.py`, async in `async_client_test.py`. Need a sample or a sha? Derive it from the test's own EICAR variant (`malicious_artifact(uid)`); anything needing a verdict gets it from the `eicar` engine.
+3. **Scenario the e2e stack can't produce** (transport failures, retry exhaustion, cursor pathologies, external systems)? → Parametrised `ClientTestCase` with `_MockBoundary` (`respx`). See `metadata_field_properties_test.py`. Body covers both sync and async automatically. Justify in the test docstring why the scenario can't run on e2e.
 
 Always:
 
