@@ -766,7 +766,7 @@ class ScanTestCaseV2(TestCase):
         # internal plan). The sha comes from this test's unique EICAR variant
         # (same convention as the scan tests) => the create branch runs first;
         # the trailing delete keeps live re-runs deterministic.
-        v3api = PolyswarmAPI(self.test_api_key, uri='http://artifact-index-e2e:9696/v3', community='gamma')
+        v3api = PolyswarmAPI(self.test_api_key, uri=f'http://artifact-index-e2e:9696/{self.api_version}', community='gamma')
         _content, sha = malicious_artifact(self._testMethodName)
         created = v3api.known_good_create(
             sha256=sha, source='nsrl', filename='kg-sample.exe',
