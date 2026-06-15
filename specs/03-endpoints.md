@@ -39,6 +39,16 @@ The full catalogue of methods on the public client surface and which transport h
 | `metadata_field_properties_get(field_path)` | inline (GET) |
 | `metadata_field_properties_delete(field_path)` | inline (DELETE) |
 
+### Known-good binaries
+
+Internal-only CRUD for the `/known-good` binary resource (distinct from the IOC known-*host* methods below). `sha256` is the natural key for both retrieve and delete, so all three route through the base `KnownGood` param helpers with no override.
+
+| Method | Resource builder |
+|---|---|
+| `known_good_create(sha256, source, sha1=None, md5=None, filename=None, mimetype=None, metadata=None)` | `KnownGood.create` (POST — all fields incl. `community` in the body) |
+| `known_good_get(sha256)` | `KnownGood.get` (GET — `sha256` + `community` in the query) |
+| `known_good_delete(sha256)` | `KnownGood.delete` (DELETE — `sha256` in the query, no community/body) |
+
 ### Known-host CRUD
 
 | Method | Resource builder |
