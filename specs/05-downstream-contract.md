@@ -251,7 +251,7 @@ The report-template logo upload does **not** go through a dedicated session meth
 
 ## Resource response shapes
 
-The resource classes (`ArtifactInstance`, `HistoricalHunt`, etc.) wrap server JSON. Their attribute names match the JSON keys returned by the server's REST API.
+The resource classes (`ArtifactInstance`, `HistoricalHunt`, etc.) wrap server JSON. Their attribute names match the JSON keys returned by the server's REST API. A few attributes are *derived* convenience views rather than direct keys (e.g. `ArtifactInstance.known_good_sources`, the sorted feed-name list derived from the `known_good` array); these are additive and don't replace the underlying key.
 
 What is part of the contract:
 

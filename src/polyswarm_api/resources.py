@@ -266,6 +266,15 @@ class ArtifactInstance(core.BaseJsonResource, core.Hashable):
         metadata_json = content.get('metadata') or []
         metadata = {metadata['tool']: metadata['tool_metadata'] for metadata in metadata_json}
         self.metadata = Metadata(metadata, api)
+        # Flagging-feed metadata for a known-good binary: a list of
+        # {tool, tool_metadata, created, updated} entries (one per feed that
+        # flagged this sha256 as known-good), or None for a normal artifact.
+        # Optional + additive — absent on responses from older servers, so use
+        # .get() (older recorded responses parse to None, no behaviour change).
+        self.known_good = content.get('known_good')
+        self.known_good_sources = sorted(
+            {feed['tool'] for feed in self.known_good if feed.get('tool')}
+        ) if self.known_good else []
 
         # ArtifactInstance fields
         self.id = content.get('id')

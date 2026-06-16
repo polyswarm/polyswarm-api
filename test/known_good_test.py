@@ -84,3 +84,45 @@ class TestKnownGoodParsing:
         assert kg.sources == []
         assert kg.created is None
         assert kg.id is None
+
+
+def _instance_content(**overrides):
+    """Minimal valid ArtifactInstance response row (required keys only)."""
+    content = {
+        'sha256': SHA, 'md5': 'c' * 32, 'sha1': 'b' * 40,
+        'mimetype': 'application/x-dosexec', 'size': 68, 'extended_type': '',
+        'first_seen': '2020-01-01T00:00:00', 'upload_url': '', 'metadata': [],
+    }
+    content.update(overrides)
+    return content
+
+
+class TestArtifactInstanceKnownGoodField:
+    """The known_good field on an artifact-instance response (the search/scan
+    result shape), distinct from the KnownGood CRUD resource above."""
+
+    def test_known_good_feeds_are_parsed_and_sources_derived(self):
+        feeds = [
+            {'tool': 'winget', 'tool_metadata': {'product': 'Example'},
+             'created': '2026-06-11T00:00:00', 'updated': '2026-06-11T00:00:00'},
+            {'tool': 'nsrl', 'tool_metadata': {},
+             'created': '2026-06-11T00:00:00', 'updated': '2026-06-11T00:00:00'},
+        ]
+        inst = resources.ArtifactInstance(_instance_content(known_good=feeds))
+        # The raw feed list is preserved verbatim...
+        assert inst.known_good == feeds
+        # ...and the feed (source) names are exposed sorted + de-duplicated.
+        assert inst.known_good_sources == ['nsrl', 'winget']
+
+    def test_absent_known_good_parses_to_none(self):
+        # Older servers omit the field entirely (additive, backward-compatible):
+        # it parses to None with no sources, not a KeyError.
+        inst = resources.ArtifactInstance(_instance_content())
+        assert inst.known_good is None
+        assert inst.known_good_sources == []
+
+    def test_null_known_good_parses_to_none(self):
+        # A normal (non-known-good) artifact has known_good explicitly null.
+        inst = resources.ArtifactInstance(_instance_content(known_good=None))
+        assert inst.known_good is None
+        assert inst.known_good_sources == []
