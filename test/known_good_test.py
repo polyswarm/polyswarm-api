@@ -126,3 +126,21 @@ class TestArtifactInstanceKnownGoodField:
         inst = resources.ArtifactInstance(_instance_content(known_good=None))
         assert inst.known_good is None
         assert inst.known_good_sources == []
+
+
+class TestArtifactInstanceStateField:
+    """The state field on an artifact-instance response — the friendly
+    bounty-state NAME, additive alongside the numeric bounty_state."""
+
+    def test_state_is_parsed(self):
+        inst = resources.ArtifactInstance(_instance_content(state='KNOWN_GOOD'))
+        assert inst.state == 'KNOWN_GOOD'
+
+    def test_absent_state_parses_to_none(self):
+        # Older servers omit the field entirely (additive, backward-compatible).
+        inst = resources.ArtifactInstance(_instance_content())
+        assert inst.state is None
+
+    def test_null_state_parses_to_none(self):
+        inst = resources.ArtifactInstance(_instance_content(state=None))
+        assert inst.state is None

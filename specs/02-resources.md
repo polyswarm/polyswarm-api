@@ -295,6 +295,13 @@ so older recorded responses parse to `None` with no behaviour change), and
 it (`[]` when not known-good). The field is **display-only** metadata; the
 known-good *state* rides in the per-resource status the server returns, not here.
 
+**`state`.** The friendly bounty-state NAME the server returns alongside the
+numeric `bounty_state` — a string such as `'KNOWN_GOOD'` / `'SETTLED'` / `'STORED'`,
+or `None`. Additive and optional (parsed with `.get()`, so a server too old to emit
+it parses to `None` with no behaviour change). It lets a consumer recognise a
+known-good-bypassed scan via `state == 'KNOWN_GOOD'` even when `known_good` above is
+`None` (the sha matched no `KnownGood`). The raw numeric `bounty_state` is unchanged.
+
 Classmethod builders (each returns a `PolyswarmRequest` descriptor):
 
 - `exists_hash(api, hash_value, hash_type, require_scan=False)` — HEAD request, returns the status code as the result.
