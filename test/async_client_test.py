@@ -394,6 +394,33 @@ class TestAsyncScanCase:
             known = [r async for r in api.check_known_hosts(ips=[ip])]
             assert any(h.json['host'] == ip and h.json['type'] == 'ip' for h in known)
 
+    @vcr.use_cassette()
+    async def test_async_known_good_lifecycle(self, uid):
+        # Full create → extend → get → delete round-trip against the real
+        # /known-good endpoint (internal-only; the e2e dev key is on the
+        # internal plan). The sha comes from this test's unique EICAR variant
+        # (same convention as the scan tests) => the create branch runs first;
+        # the trailing delete keeps live re-runs deterministic.
+        async with self._api() as api:
+            _content, sha = malicious_artifact(uid)
+            created = await api.known_good_create(
+                sha256=sha, source='nsrl', filename='kg-sample.exe',
+                metadata={'product': 'Example', 'version': '1.0'})
+            assert created.sha256 == sha
+            assert created.sources == ['nsrl']
+            assert created.artifact_instance_id
+            # A second feed flagging the same sha extends the same entry (no new row).
+            extended = await api.known_good_create(sha256=sha, source='winget')
+            assert extended.id == created.id
+            assert extended.sources == ['nsrl', 'winget']
+            got = await api.known_good_get(sha256=sha)
+            assert got.sha256 == sha
+            assert got.sources == ['nsrl', 'winget']
+            deleted = await api.known_good_delete(sha256=sha)
+            assert deleted.sha256 == sha
+            with pytest.raises(exceptions.NotFoundException):
+                await api.known_good_get(sha256=sha)
+
     # ── Sandbox ───────────────────────────────────────────────────────────────
 
     @vcr.use_cassette()

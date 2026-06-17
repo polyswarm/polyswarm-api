@@ -285,6 +285,23 @@ Supported hash types are listed in `Hashable.SUPPORTED_HASH_TYPES` (`sha1`, `sha
 
 Wraps a single scan instance. Carries `id`, `sha256`, `upload_url`, the assertion / detection counts, the scan metadata.
 
+**`known_good` / `known_good_sources`.** When the server flags this sha256 as a
+known-good binary, the response carries a `known_good` array — one
+`{tool, tool_metadata, created, updated}` entry per flagging feed (`nsrl`,
+`winbindex`, `winget`). `ArtifactInstance.known_good` is that raw list (or `None`
+for a normal artifact / a server too old to emit the field — parsed with `.get()`,
+so older recorded responses parse to `None` with no behaviour change), and
+`known_good_sources` is the sorted, de-duplicated list of feed names derived from
+it (`[]` when not known-good). The field is **display-only** metadata; the
+known-good *state* rides in the per-resource status the server returns, not here.
+
+**`state`.** The friendly bounty-state NAME the server returns alongside the
+numeric `bounty_state` — a string such as `'KNOWN_GOOD'` / `'SETTLED'` / `'STORED'`,
+or `None`. Additive and optional (parsed with `.get()`, so a server too old to emit
+it parses to `None` with no behaviour change). It lets a consumer recognise a
+known-good-bypassed scan via `state == 'KNOWN_GOOD'` even when `known_good` above is
+`None` (the sha matched no `KnownGood`). The raw numeric `bounty_state` is unchanged.
+
 Classmethod builders (each returns a `PolyswarmRequest` descriptor):
 
 - `exists_hash(api, hash_value, hash_type, require_scan=False)` — HEAD request, returns the status code as the result.
@@ -320,6 +337,7 @@ Several resources add domain-specific classmethods on top of the standard CRUD s
 - `SandboxTask` — `create_file`, `update_file`, `latest`, `my_tasks` for the various sandbox-submission shapes. **No `upload_file` instance method** in 4.0.
 - `Sample` — `create` with `endpoint_fmt={'sha256': sha256}` for the URL-parametrised path.
 - `Webhook` — `test(api, webhook_id)` for the test-payload endpoint.
+- `KnownGood` — `RESOURCE_ENDPOINT = '/known-good'`, `RESOURCE_ID_KEYS = ['sha256']`; `create`/`get`-by-sha256/`delete`-by-sha256 (no update). `sha256` is the resource's natural unique key and is the key for both retrieve and delete, so the base `_get_params`/`_delete_params` route it into the query string with **no override**: `get` sends `sha256` + `community`; `delete` sends just `sha256` (no community/body). Internal-only on the server (gated by the `known_good` feature). API methods: `known_good_create` / `known_good_get(sha256)` / `known_good_delete(sha256)`.
 
 These follow the same convention: build a `PolyswarmRequest`, return it.
 

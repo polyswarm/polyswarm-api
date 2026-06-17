@@ -266,6 +266,19 @@ class ArtifactInstance(core.BaseJsonResource, core.Hashable):
         metadata_json = content.get('metadata') or []
         metadata = {metadata['tool']: metadata['tool_metadata'] for metadata in metadata_json}
         self.metadata = Metadata(metadata, api)
+        # Flagging-feed metadata for a known-good binary: a list of
+        # {tool, tool_metadata, created, updated} entries (one per feed that
+        # flagged this sha256 as known-good), or None for a normal artifact.
+        # Optional + additive — absent on responses from older servers, so use
+        # .get() (older recorded responses parse to None, no behaviour change).
+        self.known_good = content.get('known_good')
+        self.known_good_sources = sorted(
+            {feed['tool'] for feed in self.known_good if feed.get('tool')}
+        ) if self.known_good else []
+        # Friendly bounty-state NAME (e.g. 'KNOWN_GOOD' / 'SETTLED' / 'STORED'),
+        # additive alongside the numeric bounty_state. Optional — older servers
+        # omit it, so .get() yields None (no behaviour change).
+        self.state = content.get('state')
 
         # ArtifactInstance fields
         self.id = content.get('id')
@@ -857,6 +870,23 @@ class Tag(core.BaseJsonResource):
         self.created = core.parse_isoformat(content.get('created'))
         self.updated = core.parse_isoformat(content.get('updated'))
         self.name = content.get('name')
+
+
+class KnownGood(core.BaseJsonResource):
+    # sha256 is the natural unique key for a known-good entry, and it's the key
+    # for BOTH retrieve and delete — so RESOURCE_ID_KEYS=['sha256'] lets the base
+    # _get_params / _delete_params route it into the query string with no override.
+    RESOURCE_ENDPOINT = '/known-good'
+    RESOURCE_ID_KEYS = ['sha256']
+
+    def __init__(self, content, api=None):
+        super().__init__(content, api=api)
+        self.id = content.get('id')
+        self.sha256 = content.get('sha256')
+        self.artifact_instance_id = content.get('artifact_instance_id')
+        # feed names (metadata tools) that flagged this hash as known-good
+        self.sources = content.get('sources', [])
+        self.created = core.parse_isoformat(content.get('created'))
 
 
 #####################################################################

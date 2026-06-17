@@ -767,6 +767,49 @@ class PolySwarmAsyncAPI:
         async for item in self._paginate(resources.Tag.list(self)):
             yield item
 
+    async def known_good_create(self, sha256, source, sha1=None, md5=None,
+                                filename=None, mimetype=None, metadata=None):
+        """
+        Record a hash as a known-good binary (internal-only). The first feed for a
+        sha256 creates the searchable reference; a different ``source`` for an
+        existing sha256 just records that feed.
+
+        :param sha256: The sha256 of the known-good binary.
+        :param source: The feed/source flagging this hash (becomes a metadata tool).
+        :param sha1: Optional sha1.
+        :param md5: Optional md5.
+        :param filename: Optional filename.
+        :param mimetype: Optional mimetype.
+        :param metadata: Optional dict of extra feed metadata.
+        :return: A KnownGood resource
+        """
+        logger.info('Create known-good %s from %s', sha256, source)
+        return await self._single(resources.KnownGood.create(
+            self, sha256=sha256, source=source, sha1=sha1, md5=md5,
+            filename=filename, mimetype=mimetype, metadata=metadata,
+            community=self.community))
+
+    async def known_good_get(self, sha256):
+        """
+        Fetch a known-good entry by sha256.
+        :param sha256: The sha256 to look up.
+        :return: A KnownGood resource
+        """
+        logger.info('Get known-good %s', sha256)
+        return await self._single(resources.KnownGood.get(
+            self, sha256=sha256, community=self.community))
+
+    async def known_good_delete(self, sha256):
+        """
+        Delete a known-good entry by sha256 (the same key used to retrieve it).
+        Leaves any existing instances intact; only future submissions of that
+        sha256 stop being short-circuited.
+        :param sha256: The sha256 of the known-good entry to delete.
+        :return: A KnownGood resource (the deletion result)
+        """
+        logger.info('Delete known-good %s', sha256)
+        return await self._single(resources.KnownGood.delete(self, sha256=sha256))
+
     async def family_create(self, name):
         """
         Create a Family.

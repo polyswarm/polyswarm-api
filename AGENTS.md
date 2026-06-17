@@ -90,12 +90,14 @@ Mirror the existing patterns (`LLMPromptConfig`, `MetadataFieldProperties`, `Yar
 1. `class FooBar(BaseJsonResource): RESOURCE_ENDPOINT = '/…'` in [`resources.py`](./src/polyswarm_api/resources.py). If the resource's identifier isn't `id`, set `RESOURCE_ID_KEYS = ['your_key']` so the base class routes it into the query string for `GET` / `DELETE` / `PUT`. Resources are transport-agnostic — only edit `resources.py`.
 2. Add convenience methods on **[`PolySwarmAsyncAPI`](./src/polyswarm_api/aio/api.py)** (the canonical async source). For a single resource: `return await self._single(resources.FooBar.<builder>(self, …))`. For paginated: `async for item in self._paginate(...): yield item`.
 3. Run `python scripts/regenerate_sync.py` (or rely on the pre-commit hook) to regenerate the sync mirror at `polyswarm_api/api.py`.
-4. Add unit tests for the resource builder (assert the resulting `PolyswarmRequest`'s shape) and `parse_response` behaviour where relevant — no httpx fixtures needed. For end-to-end coverage, add to the parametrised `ClientTestCase` harness in `test/metadata_field_properties_test.py`. See [`specs/04-testing.md`](./specs/04-testing.md).
+4. Add tests **e2e-first** (see [`specs/04-testing.md`](./specs/04-testing.md)): a live-e2e **VCR lifecycle test** against the real endpoint (sync body in `client_scan_test.py`, async in `async_client_test.py`; record the cassettes against a fresh e2e stack and commit them) plus **pure-unit builder tests** (assert the resulting `PolyswarmRequest`'s shape — body-vs-query routing, None-omission; no httpx fixtures needed). Reach for the respx `ClientTestCase` harness only when the scenario can't reasonably run on the e2e stack.
 5. Update [`specs/03-endpoints.md`](./specs/03-endpoints.md) (and any other relevant spec) in the same PR. Commit both `aio/api.py` and the regenerated `api.py`.
 
-## VCR cassette workflow
+## Testing: e2e-first, VCR cassettes for replay
 
-`client_scan_test.py` and `async_client_test.py` use VCR cassettes (`vcrpy`) for tests that hit real PolySwarm endpoints. Cassettes live in `test/vcr/` and use `record_mode='once'` (the default): the first run records, subsequent runs replay.
+**The rule: test against real artifact-index endpoints via the e2e stack; mock only as a last resort.** New endpoint tests are VCR-backed live-e2e tests (`client_scan_test.py` sync / `async_client_test.py` async) — the first run records the real exchange into `test/vcr/` (`record_mode='once'`), subsequent runs replay it offline, and the e2e CI job re-runs everything live with `TESTS_VCR=off`. The respx-mocked `ClientTestCase` tier is reserved for scenarios the e2e stack can't reasonably produce (transport failures, retry exhaustion, external systems); pure-unit covers builder/parse logic with no HTTP at all. Full treatment + decision tree: [`specs/04-testing.md`](./specs/04-testing.md).
+
+**E2e conventions:** the **EICAR variant is the default sample-generation strategy** — any test needing an artifact or a sha derives it from its own EICAR variant via `malicious_artifact(uid)` (deterministic per test, so cassettes replay and xdist workers never collide). And **all tests use only the `eicar` engine** — the stack's single microengine/arbiter pair; never depend on (or start) any other engine.
 
 **To re-record a cassette against the live e2e stack:**
 
@@ -104,7 +106,15 @@ rm test/vcr/<cassette_name>.vcr
 pytest test/<test_file>.py::TestClass::test_method
 ```
 
-The deletion makes VCR record a fresh cassette; the test runs against whatever e2e environment your settings point at.
+The deletion makes VCR record a fresh cassette against the live stack. Cassettes are always produced this way — **never copied from a sibling test** and never hand-edited. Record against a **freshly booted** stack: create-style tests are first-run-safe (their deterministic keys already exist on a reused stack).
+
+**Running against a local pinned stack** (required when pairing with a server-side change; full loop in [`specs/04-testing.md`](./specs/04-testing.md) and artifact-index `specs/03-local-e2e-testing.md`): build the server image locally tagged `:latest`, then `cd ../e2e && e2e init -f && e2e run -pine`, then run the suite from your working tree:
+
+```bash
+TESTS_VCR=off pytest test/ -n 8 --dist worksteal --timeout=600 --timeout-method=thread
+```
+
+`TESTS_VCR=off` makes `@vcr.use_cassette()` a no-op — live HTTP, no replay/record (it's what the e2e CI test image bakes in). If the stack misbehaves, restart it whole (`docker ps -aq --filter name=e2e | xargs -r docker rm -f`, then re-run) — simpler and faster than repairing state.
 
 **VCR matcher convention** (see [`specs/04-testing.md`](./specs/04-testing.md) for the full details): use `[method, scheme, host, port, path, query]` rather than the literal `uri` matcher — the `query` matcher compares params as a set, so cassettes survive httpx's different param-ordering.
 
