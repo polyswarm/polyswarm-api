@@ -275,6 +275,10 @@ class ArtifactInstance(core.BaseJsonResource, core.Hashable):
         self.known_good_sources = sorted(
             {feed['tool'] for feed in self.known_good if feed.get('tool')}
         ) if self.known_good else []
+        # Friendly bounty-state NAME (e.g. 'KNOWN_GOOD' / 'SETTLED' / 'STORED'),
+        # additive alongside the numeric bounty_state. Optional — older servers
+        # omit it, so .get() yields None (no behaviour change).
+        self.state = content.get('state')
 
         # ArtifactInstance fields
         self.id = content.get('id')
