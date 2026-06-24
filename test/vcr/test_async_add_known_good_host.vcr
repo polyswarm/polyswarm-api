@@ -1,6 +1,6 @@
 interactions:
 - request:
-    body: '{"type":"domain","host":"polyswarm.network","source":"test","good":true}'
+    body: '{"type":"domain","host":"test-async-add-known-good-host.sdk.test","source":"test","good":true}'
     headers:
       accept:
       - '*/*'
@@ -11,29 +11,37 @@ interactions:
       connection:
       - keep-alive
       content-length:
-      - '72'
+      - '94'
       content-type:
       - application/json
       host:
-      - localhost:9696
+      - artifact-index-e2e:9696
       user-agent:
-      - polyswarm_api/3.18.0 (x86_64-Linux-CPython-3.12.13)
+      - polyswarm_api/3.21.0 (x86_64-Linux-CPython-3.14.4)
     method: POST
-    uri: http://localhost:9696/v3/ioc/known
+    uri: http://artifact-index-e2e:9696/v3/ioc/known
   response:
     body:
-      string: '{"result":{"good":true,"host":"polyswarm.network","id":3,"source":"test","type":"domain"},"status":"OK"}
+      string: '{"result":{"good":true,"host":"test-async-add-known-good-host.sdk.test","id":5,"source":"test","type":"domain"},"status":"OK"}
 
         '
     headers:
+      Access-Control-Allow-Origin:
+      - '*'
+      Access-Control-Expose-Headers:
+      - Authorization
       Connection:
-      - Keep-Alive
+      - keep-alive
       Content-Length:
-      - '105'
+      - '127'
       Content-Type:
       - application/json
+      Date:
+      - Wed, 03 Jun 2026 22:37:18 GMT
+      Server:
+      - gunicorn
       X-Billing-ID:
-      - '1'
+      - '111'
     status:
       code: 200
       message: OK
