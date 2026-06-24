@@ -20,8 +20,6 @@ import json
 import os
 import tempfile
 from contextlib import contextmanager
-from urllib.parse import urlparse, parse_qs
-
 import pytest
 import httpx
 import respx
@@ -1285,96 +1283,6 @@ async def test_async_context_manager():
     async with PolySwarmAsyncAPI(API_KEY, uri=BASE_URL, community='gamma') as api:
         result = [r async for r in api.search(SHA256)]
     assert result[0].sha256 == SHA256
-
-
-# ── LLM Report regression tests (fixes 1 & 2) ───────────────────────────────
-
-_LLM_REPORT_RESULT = {
-    'id': 99,
-    'community': 'gamma',
-    'created': '2024-01-01T00:00:00',
-    'state': 'SUCCEEDED',
-    'url': 'https://s3.amazonaws.com/bucket/report.pdf?X-Amz-Signature=abc123',
-    'report': {},
-    'instance_id': '12345678901234567',
-    'cape_sandbox_task_id': None,
-    'triage_sandbox_task_id': None,
-}
-
-
-@respx.mock
-async def test_llm_report_create_includes_community():
-    """Regression for Fix 2: community must always be present in the
-    llm_report_create POST body, unconditionally.
-
-    The prior async code omitted community from the POST body entirely.
-    If a future change drops the field again, server-side community routing
-    silently breaks for any consumer that relies on community-scoped reports.
-    """
-    INSTANCE_ID = '12345678901234567'
-
-    post_route = respx.post(f'{BASE_URL}/reports/llm').mock(
-        return_value=httpx.Response(200, json={
-            'status': 'OK',
-            'result': _LLM_REPORT_RESULT,
-        })
-    )
-
-    async with PolySwarmAsyncAPI(API_KEY, uri=BASE_URL, community='gamma') as api:
-        await api.llm_report_create(instance_id=INSTANCE_ID)
-
-    sent_body = json.loads(post_route.calls[0].request.content)
-    assert 'community' in sent_body, (
-        'community key is missing from llm_report_create POST body'
-    )
-    assert sent_body['community'] == 'gamma', (
-        f"Expected community='gamma', got {sent_body.get('community')!r}"
-    )
-
-
-@respx.mock
-async def test_llm_report_download_no_community_on_s3_url():
-    """Regression for Fix 1: presigned-S3 download must NOT append extra query
-    params (e.g. ``community``) to the URL.
-
-    Appending query parameters after SigV4 signing invalidates the
-    ``X-Amz-Signature`` and causes ``SignatureDoesNotMatch`` from S3.
-    The community is already supplied on the metadata GET (``llm_report_get``);
-    the second hop to S3 must be a clean GET with no additional params.
-    """
-    PRESIGNED_URL = 'https://s3.amazonaws.com/bucket/report.pdf?X-Amz-Signature=abc123'
-    REPORT_TASK_ID = '99'
-
-    # Mock the metadata GET (llm_report_get)
-    respx.get(f'{BASE_URL}/reports/llm').mock(
-        return_value=httpx.Response(200, json={
-            'status': 'OK',
-            'result': _LLM_REPORT_RESULT,
-        })
-    )
-
-    # Mock the presigned S3 download — capture the request for inspection
-    s3_route = respx.get(PRESIGNED_URL).mock(
-        return_value=httpx.Response(
-            200,
-            content=b'%PDF-1.4 test',
-            headers={'content-disposition': 'attachment; filename=report.pdf'},
-        )
-    )
-
-    with tempfile.TemporaryDirectory() as tmp_dir:
-        async with PolySwarmAsyncAPI(API_KEY, uri=BASE_URL, community='gamma') as api:
-            await api.llm_report_download(REPORT_TASK_ID, tmp_dir)
-
-    assert s3_route.called, 'S3 presigned URL was never requested'
-
-    s3_request = s3_route.calls[0].request
-    parsed = urlparse(str(s3_request.url))
-    query_params = parse_qs(parsed.query)
-    assert 'community' not in query_params, (
-        f'community must not be appended to presigned S3 URL after SigV4 signing; '
-        f'got query params: {dict(query_params)}'
-    )
 
 
 # ── Pagination (no cassette) — multi-page walk + runaway safety bound ──────────

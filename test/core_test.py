@@ -398,6 +398,59 @@ class TestResourceBuilders:
         assert resources.LLMPromptConfig.update(api, id='1', name='n').method == 'PUT'
         assert resources.LLMPromptConfig.delete(api, id='1').method == 'DELETE'
 
+    def test_llm_report_create_community_in_post_body(self):
+        """community must be present in the llm_report_create POST body.
+
+        This is a pure-unit builder test: ``ReportLLMPostProcessing.create``
+        is a shared, transport-agnostic builder so a single assertion here
+        covers both the sync and async transports simultaneously. The respx
+        round-trip (removed from client_scan_test / async_client_test) added
+        nothing that this builder assertion doesn't express — and without the
+        fabricated 200 response.
+        """
+        api = _FakeApi()
+        req = resources.ReportLLMPostProcessing.create(
+            api,
+            instance_id='12345678901234567',
+            community='gamma',
+        )
+        assert req.method == 'POST'
+        assert req.result_parser is resources.ReportLLMPostProcessing
+        # community must land in the JSON body (POST), not the query string
+        assert req.input_json.get('community') == 'gamma'
+        assert req.params is None or 'community' not in (req.params or {})
+
+    def test_llm_report_download_strips_auth_and_sends_raw_url(self):
+        """download_report() must use the presigned URL verbatim with no
+        extra params, and must strip Authorization.
+
+        Appending params (e.g. ``community``) after SigV4 signing would
+        invalidate ``X-Amz-Signature``. This is a pure-unit shape test on
+        the resource-level builder, covering the request without any HTTP I/O.
+        """
+        api = _FakeApi()
+        presigned = 'https://s3.amazonaws.com/bucket/report.pdf?X-Amz-Signature=abc'
+        task = resources.ReportLLMPostProcessing(
+            {
+                'id': 99,
+                'community': 'gamma',
+                'created': '2024-01-01T00:00:00',
+                'state': 'SUCCEEDED',
+                'url': presigned,
+                'report': {},
+                'instance_id': '12345678901234567',
+                'cape_sandbox_task_id': None,
+                'triage_sandbox_task_id': None,
+            },
+            api=api,
+        )
+        req = task.download_report(folder='/tmp')
+        assert req.method == 'GET'
+        assert req.url == presigned          # exact URL, nothing appended
+        assert req.params is None            # community must NOT be in the query
+        assert req.headers == {'Authorization': None}
+        assert req.suppressed_headers() == {'Authorization'}
+
 
 # ── Helpers ────────────────────────────────────────────────────────
 
