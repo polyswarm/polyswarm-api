@@ -903,3 +903,4 @@ class ScanTestCaseV2(TestCase):
         # llm_report auto-triggered (PENDING -> ...); it cannot reach COMPLETED in
         # e2e (no LLM), so assert it was triggered, not finished.
         assert result.tasks['llm_report']['requested_status'] not in _PRE_TRIGGER
+

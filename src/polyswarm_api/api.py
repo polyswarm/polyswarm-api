@@ -1262,6 +1262,7 @@ class PolyswarmAPI:
                 instance_id=instance_id,
                 cape_sandbox_task_id=cape_sandbox_task_id,
                 triage_sandbox_task_id=triage_sandbox_task_id,
+                community=self.community,
             )
         )
         return report_task

@@ -20,7 +20,6 @@ import json
 import os
 import tempfile
 from contextlib import contextmanager
-
 import pytest
 import httpx
 import respx

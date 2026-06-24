@@ -1025,7 +1025,8 @@ class PolySwarmAsyncAPI:
         report_task = await self._single(resources.ReportLLMPostProcessing.create(self,
                                                                instance_id=instance_id,
                                                                cape_sandbox_task_id=cape_sandbox_task_id,
-                                                               triage_sandbox_task_id=triage_sandbox_task_id))
+                                                               triage_sandbox_task_id=triage_sandbox_task_id,
+                                                               community=self.community))
         return report_task
 
     async def llm_report_get(self, report_task_id):
