@@ -46,7 +46,7 @@ interactions:
       code: 200
       message: OK
 - request:
-    body: '{"sha256":"9c0258ed4cc98056773bcf0c57fe4bc79618802357f0703c503b4cb172a263df","source":"winget","community":"gamma"}'
+    body: '{"sha256":"9c0258ed4cc98056773bcf0c57fe4bc79618802357f0703c503b4cb172a263df","source":"commercial","community":"gamma"}'
     headers:
       accept:
       - '*/*'
@@ -68,7 +68,7 @@ interactions:
     uri: http://artifact-index-e2e:9696/v3/known-good
   response:
     body:
-      string: '{"result":{"artifact_instance_id":"90917448071940878","created":"2026-06-12T22:01:46.572994+00:00","id":"18577785917417703","sha256":"9c0258ed4cc98056773bcf0c57fe4bc79618802357f0703c503b4cb172a263df","sources":["nsrl","winget"]},"status":"OK"}
+      string: '{"result":{"artifact_instance_id":"90917448071940878","created":"2026-06-12T22:01:46.572994+00:00","id":"18577785917417703","sha256":"9c0258ed4cc98056773bcf0c57fe4bc79618802357f0703c503b4cb172a263df","sources":["nsrl","commercial"]},"status":"OK"}
 
         '
     headers:
@@ -110,7 +110,7 @@ interactions:
     uri: http://artifact-index-e2e:9696/v3/known-good?sha256=9c0258ed4cc98056773bcf0c57fe4bc79618802357f0703c503b4cb172a263df&community=gamma
   response:
     body:
-      string: '{"result":{"artifact_instance_id":"90917448071940878","created":"2026-06-12T22:01:46.572994+00:00","id":"18577785917417703","sha256":"9c0258ed4cc98056773bcf0c57fe4bc79618802357f0703c503b4cb172a263df","sources":["nsrl","winget"]},"status":"OK"}
+      string: '{"result":{"artifact_instance_id":"90917448071940878","created":"2026-06-12T22:01:46.572994+00:00","id":"18577785917417703","sha256":"9c0258ed4cc98056773bcf0c57fe4bc79618802357f0703c503b4cb172a263df","sources":["nsrl","commercial"]},"status":"OK"}
 
         '
     headers:

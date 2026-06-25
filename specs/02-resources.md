@@ -288,7 +288,7 @@ Wraps a single scan instance. Carries `id`, `sha256`, `upload_url`, the assertio
 **`known_good` / `known_good_sources`.** When the server flags this sha256 as a
 known-good binary, the response carries a `known_good` array — one
 `{tool, tool_metadata, created, updated}` entry per flagging feed (`nsrl`,
-`winbindex`, `winget`). `ArtifactInstance.known_good` is that raw list (or `None`
+`microsoft`, `commercial`). `ArtifactInstance.known_good` is that raw list (or `None`
 for a normal artifact / a server too old to emit the field — parsed with `.get()`,
 so older recorded responses parse to `None` with no behaviour change), and
 `known_good_sources` is the sorted, de-duplicated list of feed names derived from

@@ -775,12 +775,12 @@ class ScanTestCaseV2(TestCase):
         assert created.sources == ['nsrl']
         assert created.artifact_instance_id
         # A second feed flagging the same sha extends the same entry (no new row).
-        extended = v3api.known_good_create(sha256=sha, source='winget')
+        extended = v3api.known_good_create(sha256=sha, source='commercial')
         assert extended.id == created.id
-        assert extended.sources == ['nsrl', 'winget']
+        assert extended.sources == ['nsrl', 'commercial']
         got = v3api.known_good_get(sha256=sha)
         assert got.sha256 == sha
-        assert got.sources == ['nsrl', 'winget']
+        assert got.sources == ['nsrl', 'commercial']
         deleted = v3api.known_good_delete(sha256=sha)
         assert deleted.sha256 == sha
         with pytest.raises(exceptions.NotFoundException):
