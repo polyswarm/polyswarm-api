@@ -412,10 +412,10 @@ class TestAsyncScanCase:
             # A second feed flagging the same sha extends the same entry (no new row).
             extended = await api.known_good_create(sha256=sha, source='commercial')
             assert extended.id == created.id
-            assert extended.sources == ['commercial', 'nsrl']
+            assert extended.sources.sort() == ['commercial', 'nsrl']
             got = await api.known_good_get(sha256=sha)
             assert got.sha256 == sha
-            assert got.sources == ['commercial', 'nsrl']
+            assert got.sources.sort() == ['commercial', 'nsrl']
             deleted = await api.known_good_delete(sha256=sha)
             assert deleted.sha256 == sha
             with pytest.raises(exceptions.NotFoundException):
