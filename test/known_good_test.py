@@ -73,7 +73,7 @@ class TestKnownGoodParsing:
         assert kg.id == '12345678901234567'
         assert kg.sha256 == SHA
         assert kg.artifact_instance_id == '98765432109876543'
-        assert kg.sources.sort() == ['commercial', 'nsrl']
+        assert sorted(kg.sources) == ['commercial', 'nsrl']
         assert kg.created.year == 2026
 
     def test_parses_minimal_delete_row(self):
@@ -112,7 +112,7 @@ class TestArtifactInstanceKnownGoodField:
         # The raw feed list is preserved verbatim...
         assert inst.known_good == feeds
         # ...and the feed (source) names are exposed sorted + de-duplicated.
-        assert inst.known_good_sources.sort() == ['commercial', 'nsrl']
+        assert inst.known_good_sources == ['commercial', 'nsrl']
 
     def test_absent_known_good_parses_to_none(self):
         # Older servers omit the field entirely (additive, backward-compatible):
