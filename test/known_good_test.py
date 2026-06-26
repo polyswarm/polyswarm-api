@@ -112,7 +112,7 @@ class TestArtifactInstanceKnownGoodField:
         # The raw feed list is preserved verbatim...
         assert inst.known_good == feeds
         # ...and the feed (source) names are exposed sorted + de-duplicated.
-        assert inst.known_good_sources == ['nsrl', 'commercial']
+        assert inst.known_good_sources == ['commercial', 'nsrl']
 
     def test_absent_known_good_parses_to_none(self):
         # Older servers omit the field entirely (additive, backward-compatible):
