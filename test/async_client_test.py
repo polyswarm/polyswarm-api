@@ -510,11 +510,25 @@ class TestAsyncScanCase:
             await _complete_sandbox_task(cape.id, 'cape')
             await _complete_sandbox_task(triage.id, 'triage')
 
+            # Poll until BOTH sandbox deps read COMPLETED *and* the LLM report was
+            # auto-triggered — the exact postconditions asserted below, not a proxy.
+            # Keying off llm_report alone raced: the report auto-triggers on *any
+            # one* completed dep (the scan or a single sandbox), so a response can
+            # show it triggered while sandbox_cape still projects NOT_TRIGGERED (the
+            # per-task projection doesn't update atomically). This test drives both
+            # sandboxes to SUCCEEDED, so both projections reach COMPLETED; waiting on
+            # them directly closes the window. See sync test_sample.
             _PRE_TRIGGER = {None, 'NOT_TRIGGERED', 'WAITING_FOR_OTHER_TASKS'}
             result = await api.sample(sha)
             for _ in range(90):
                 result = await api.sample(sha)
-                if result.tasks.get('llm_report', {}).get('requested_status') not in _PRE_TRIGGER:
+                tasks = result.tasks or {}
+                sandboxes_completed = all(
+                    tasks.get(f'sandbox_{s}', {}).get('requested_status') == 'COMPLETED'
+                    for s in ('cape', 'triage')
+                )
+                llm_triggered = tasks.get('llm_report', {}).get('requested_status') not in _PRE_TRIGGER
+                if sandboxes_completed and llm_triggered:
                     break
                 await asyncio.sleep(1)
         assert isinstance(result.artifact_instance, dict)
