@@ -1025,7 +1025,8 @@ class PolySwarmAsyncAPI:
         report_task = await self._single(resources.ReportLLMPostProcessing.create(self,
                                                                instance_id=instance_id,
                                                                cape_sandbox_task_id=cape_sandbox_task_id,
-                                                               triage_sandbox_task_id=triage_sandbox_task_id))
+                                                               triage_sandbox_task_id=triage_sandbox_task_id,
+                                                               community=self.community))
         return report_task
 
     async def llm_report_get(self, report_task_id):
@@ -1651,8 +1652,11 @@ class PolySwarmAsyncAPI:
                 self, hash_.hash, hash_.hash_type, require_scan=require_scan,
             ),
         )
-        # exists_hash is a HEAD; ``result`` is the status code. Any 2xx means the
-        # artifact is known — the endpoint returns 200 for present / 404 for absent,
-        # so a 2xx check is correct and not brittle to a non-200 success code.
-        return int(result) // 100 == 2
+        # exists_hash is a HEAD; ``result`` is the status code. The endpoint returns
+        # 200 when the artifact is present and 204 when it is absent ("the request
+        # worked, but there was no matching artifact, so nothing was returned"). Only
+        # a 200 means the artifact exists — 204 (and 404) both mean "absent" → False.
+        # NB: this is deliberately ``== 200``, not a ``// 100 == 2`` 2xx check, because
+        # 204 is a successful 2xx that means the opposite of "exists".
+        return int(result) == 200
 

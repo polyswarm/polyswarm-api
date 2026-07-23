@@ -68,12 +68,12 @@ class TestKnownGoodParsing:
     def test_parses_full_row(self):
         row = {'id': '12345678901234567', 'sha256': SHA,
                'artifact_instance_id': '98765432109876543',
-               'sources': ['nsrl', 'winget'], 'created': '2026-06-11T00:00:00'}
+               'sources': ['nsrl', 'commercial'], 'created': '2026-06-11T00:00:00'}
         kg = resources.KnownGood(row)
         assert kg.id == '12345678901234567'
         assert kg.sha256 == SHA
         assert kg.artifact_instance_id == '98765432109876543'
-        assert kg.sources == ['nsrl', 'winget']
+        assert sorted(kg.sources) == ['commercial', 'nsrl']
         assert kg.created.year == 2026
 
     def test_parses_minimal_delete_row(self):
@@ -103,7 +103,7 @@ class TestArtifactInstanceKnownGoodField:
 
     def test_known_good_feeds_are_parsed_and_sources_derived(self):
         feeds = [
-            {'tool': 'winget', 'tool_metadata': {'product': 'Example'},
+            {'tool': 'commercial', 'tool_metadata': {'product': 'Example'},
              'created': '2026-06-11T00:00:00', 'updated': '2026-06-11T00:00:00'},
             {'tool': 'nsrl', 'tool_metadata': {},
              'created': '2026-06-11T00:00:00', 'updated': '2026-06-11T00:00:00'},
@@ -112,7 +112,7 @@ class TestArtifactInstanceKnownGoodField:
         # The raw feed list is preserved verbatim...
         assert inst.known_good == feeds
         # ...and the feed (source) names are exposed sorted + de-duplicated.
-        assert inst.known_good_sources == ['nsrl', 'winget']
+        assert inst.known_good_sources == ['commercial', 'nsrl']
 
     def test_absent_known_good_parses_to_none(self):
         # Older servers omit the field entirely (additive, backward-compatible):

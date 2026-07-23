@@ -775,12 +775,12 @@ class ScanTestCaseV2(TestCase):
         assert created.sources == ['nsrl']
         assert created.artifact_instance_id
         # A second feed flagging the same sha extends the same entry (no new row).
-        extended = v3api.known_good_create(sha256=sha, source='winget')
+        extended = v3api.known_good_create(sha256=sha, source='commercial')
         assert extended.id == created.id
-        assert extended.sources == ['nsrl', 'winget']
+        assert sorted(extended.sources) == ['commercial', 'nsrl']
         got = v3api.known_good_get(sha256=sha)
         assert got.sha256 == sha
-        assert got.sources == ['nsrl', 'winget']
+        assert sorted(got.sources) == ['commercial', 'nsrl']
         deleted = v3api.known_good_delete(sha256=sha)
         assert deleted.sha256 == sha
         with pytest.raises(exceptions.NotFoundException):
@@ -880,18 +880,35 @@ class ScanTestCaseV2(TestCase):
         _complete_sandbox_task(cape.id, 'cape')
         _complete_sandbox_task(triage.id, 'triage')
 
-        # Poll the sample until the LLM report has been auto-triggered. The view
-        # triggers it once a sandbox dep is COMPLETED, so the report's status
-        # moves NOT_TRIGGERED/WAITING_FOR_OTHER_TASKS -> PENDING (then FAILED here,
-        # since e2e has no OPENAI_API_KEY). We key off requested_status: the
-        # requested_id stays null until a report actually renders, which can't
-        # happen without an LLM. Reaching a triggered status also confirms the
-        # sandbox deps completed.
+        # Poll the sample until BOTH sandbox deps read COMPLETED *and* the LLM
+        # report has been auto-triggered — i.e. wait on the exact postconditions
+        # asserted below, not a proxy for them. The report's requested_status moves
+        # NOT_TRIGGERED/WAITING_FOR_OTHER_TASKS -> PENDING (then FAILED here, since
+        # e2e has no OPENAI_API_KEY); requested_id stays null until a report
+        # actually renders (impossible without an LLM), so requested_status is the
+        # trigger signal.
+        #
+        # Keying the loop off llm_report alone raced: the report auto-triggers as
+        # soon as *any one* dependency completes (the scan or a single sandbox), so
+        # a response can show it triggered while sandbox_cape still projects
+        # NOT_TRIGGERED — the delayed COLLECTING_DATA->SUCCEEDED transition (see
+        # _complete_sandbox_task) not yet folded into the per-task projection, which
+        # doesn't update atomically. That mismatch was the flake. This test drives
+        # BOTH sandboxes to SUCCEEDED before polling, so both projections do reach
+        # COMPLETED; waiting on them directly (not on the report as a proxy) closes
+        # the window. A 90x1s timeout here therefore means a dependency never
+        # settled — the scan's bounty window or a sandbox — not this loop.
         _PRE_TRIGGER = {None, 'NOT_TRIGGERED', 'WAITING_FOR_OTHER_TASKS'}
         result = api.sample(sha)
         for _ in range(90):
             result = api.sample(sha)
-            if result.tasks.get('llm_report', {}).get('requested_status') not in _PRE_TRIGGER:
+            tasks = result.tasks or {}
+            sandboxes_completed = all(
+                tasks.get(f'sandbox_{s}', {}).get('requested_status') == 'COMPLETED'
+                for s in ('cape', 'triage')
+            )
+            llm_triggered = tasks.get('llm_report', {}).get('requested_status') not in _PRE_TRIGGER
+            if sandboxes_completed and llm_triggered:
                 break
             time.sleep(1)
         assert isinstance(result.artifact_instance, dict)
@@ -903,3 +920,4 @@ class ScanTestCaseV2(TestCase):
         # llm_report auto-triggered (PENDING -> ...); it cannot reach COMPLETED in
         # e2e (no LLM), so assert it was triggered, not finished.
         assert result.tasks['llm_report']['requested_status'] not in _PRE_TRIGGER
+

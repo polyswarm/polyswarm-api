@@ -1,5 +1,5 @@
 include:
-  - project: 'externalci/ci-image'
+  - project: '$CI_TEMPLATE'
     ref: master
     file: '.gitlab-ci-default.yaml'
 

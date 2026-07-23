@@ -20,7 +20,6 @@ import json
 import os
 import tempfile
 from contextlib import contextmanager
-
 import pytest
 import httpx
 import respx
@@ -410,12 +409,12 @@ class TestAsyncScanCase:
             assert created.sources == ['nsrl']
             assert created.artifact_instance_id
             # A second feed flagging the same sha extends the same entry (no new row).
-            extended = await api.known_good_create(sha256=sha, source='winget')
+            extended = await api.known_good_create(sha256=sha, source='commercial')
             assert extended.id == created.id
-            assert extended.sources == ['nsrl', 'winget']
+            assert sorted(extended.sources) == ['commercial', 'nsrl']
             got = await api.known_good_get(sha256=sha)
             assert got.sha256 == sha
-            assert got.sources == ['nsrl', 'winget']
+            assert sorted(got.sources) == ['commercial', 'nsrl']
             deleted = await api.known_good_delete(sha256=sha)
             assert deleted.sha256 == sha
             with pytest.raises(exceptions.NotFoundException):
@@ -511,11 +510,25 @@ class TestAsyncScanCase:
             await _complete_sandbox_task(cape.id, 'cape')
             await _complete_sandbox_task(triage.id, 'triage')
 
+            # Poll until BOTH sandbox deps read COMPLETED *and* the LLM report was
+            # auto-triggered — the exact postconditions asserted below, not a proxy.
+            # Keying off llm_report alone raced: the report auto-triggers on *any
+            # one* completed dep (the scan or a single sandbox), so a response can
+            # show it triggered while sandbox_cape still projects NOT_TRIGGERED (the
+            # per-task projection doesn't update atomically). This test drives both
+            # sandboxes to SUCCEEDED, so both projections reach COMPLETED; waiting on
+            # them directly closes the window. See sync test_sample.
             _PRE_TRIGGER = {None, 'NOT_TRIGGERED', 'WAITING_FOR_OTHER_TASKS'}
             result = await api.sample(sha)
             for _ in range(90):
                 result = await api.sample(sha)
-                if result.tasks.get('llm_report', {}).get('requested_status') not in _PRE_TRIGGER:
+                tasks = result.tasks or {}
+                sandboxes_completed = all(
+                    tasks.get(f'sandbox_{s}', {}).get('requested_status') == 'COMPLETED'
+                    for s in ('cape', 'triage')
+                )
+                llm_triggered = tasks.get('llm_report', {}).get('requested_status') not in _PRE_TRIGGER
+                if sandboxes_completed and llm_triggered:
                     break
                 await asyncio.sleep(1)
         assert isinstance(result.artifact_instance, dict)
@@ -980,6 +993,28 @@ async def test_async_download():
 
 
 @respx.mock
+async def test_async_download_204_raises_no_results():
+    """A 204 on a download means "no matching artifact" (the request worked but
+    returned nothing), so the streaming path must raise ``NoResultsException``
+    rather than write out a successful *empty* file — mirroring the shared
+    ``parse_response`` 204 rule that the streaming path otherwise bypasses."""
+    import tempfile, os
+
+    respx.get(f'{BASE_URL}/consumer/download/sha256/{SHA256}').mock(
+        return_value=httpx.Response(204))
+
+    api = PolySwarmAsyncAPI(API_KEY, uri=BASE_URL, community='gamma')
+    try:
+        with tempfile.TemporaryDirectory() as tmp_dir:
+            with pytest.raises(exceptions.NoResultsException):
+                await api.download(tmp_dir, SHA256)
+            # No empty artifact file should have been left behind.
+            assert os.listdir(tmp_dir) == []
+    finally:
+        await api.aclose()
+
+
+@respx.mock
 async def test_async_download_streams_in_chunks(monkeypatch):
     """Regression guard for the streaming-download fix: the body is consumed via
     the streaming API (``iter_bytes``) straight into the destination, not read
@@ -1015,17 +1050,18 @@ async def test_async_download_streams_in_chunks(monkeypatch):
 
 
 @respx.mock
-async def test_async_exists_maps_2xx_true_404_false():
-    """End-to-end ``exists`` (the path the bot flagged as untested): the HEAD
-    status drives the result — any 2xx is True, 404 is False. Also locks the 2xx
-    generalisation (not a brittle ``== 200``)."""
+async def test_async_exists_maps_200_true_204_and_404_false():
+    """End-to-end ``exists``: the HEAD status drives the result. The endpoint
+    returns 200 when the artifact is present and 204 when it is absent ("request
+    worked, no matching artifact"), so only a 200 is True — a 204 is a successful
+    2xx that means the *opposite* of "exists" and must be False, as must a 404."""
     route = respx.head(f'{BASE_URL}/search/hash/sha256')
     api = PolySwarmAsyncAPI(API_KEY, uri=BASE_URL, community='gamma')
     try:
         route.mock(return_value=httpx.Response(200))
         assert await api.exists(SHA256) is True
-        route.mock(return_value=httpx.Response(204))   # 2xx-but-not-200 still "exists"
-        assert await api.exists(SHA256) is True
+        route.mock(return_value=httpx.Response(204))   # absent: "worked, nothing found"
+        assert await api.exists(SHA256) is False
         route.mock(return_value=httpx.Response(404))
         assert await api.exists(SHA256) is False
     finally:

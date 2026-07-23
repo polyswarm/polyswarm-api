@@ -17,12 +17,12 @@ interactions:
       host:
       - artifact-index-e2e:9696
       user-agent:
-      - polyswarm_api/4.0.0 (x86_64-Linux-CPython-3.14.4)
+      - polyswarm_api/4.1.0 (x86_64-Linux-CPython-3.12.3)
     method: POST
     uri: http://artifact-index-e2e:9696/v3/known-good
   response:
     body:
-      string: '{"result":{"artifact_instance_id":"71168226319048067","created":"2026-06-12T22:01:46.708413+00:00","id":"86356499935604495","sha256":"d474e08e835f8e538f8aeb6944b4bc73a31db2be96625b0bdfe0ab8bf239226b","sources":["nsrl"]},"status":"OK"}
+      string: '{"result":{"artifact_instance_id":"24417037636304243","created":"2026-06-29T18:29:53.872924+00:00","id":"7418765811658834","sha256":"d474e08e835f8e538f8aeb6944b4bc73a31db2be96625b0bdfe0ab8bf239226b","sources":["nsrl"]},"status":"OK"}
 
         '
     headers:
@@ -33,11 +33,11 @@ interactions:
       Connection:
       - keep-alive
       Content-Length:
-      - '235'
+      - '234'
       Content-Type:
       - application/json
       Date:
-      - Fri, 12 Jun 2026 22:01:46 GMT
+      - Mon, 29 Jun 2026 18:29:53 GMT
       Server:
       - gunicorn
       X-Billing-ID:
@@ -46,7 +46,7 @@ interactions:
       code: 200
       message: OK
 - request:
-    body: '{"sha256":"d474e08e835f8e538f8aeb6944b4bc73a31db2be96625b0bdfe0ab8bf239226b","source":"winget","community":"gamma"}'
+    body: '{"sha256":"d474e08e835f8e538f8aeb6944b4bc73a31db2be96625b0bdfe0ab8bf239226b","source":"commercial","community":"gamma"}'
     headers:
       accept:
       - '*/*'
@@ -57,18 +57,18 @@ interactions:
       connection:
       - keep-alive
       content-length:
-      - '115'
+      - '119'
       content-type:
       - application/json
       host:
       - artifact-index-e2e:9696
       user-agent:
-      - polyswarm_api/4.0.0 (x86_64-Linux-CPython-3.14.4)
+      - polyswarm_api/4.1.0 (x86_64-Linux-CPython-3.12.3)
     method: POST
     uri: http://artifact-index-e2e:9696/v3/known-good
   response:
     body:
-      string: '{"result":{"artifact_instance_id":"71168226319048067","created":"2026-06-12T22:01:46.708413+00:00","id":"86356499935604495","sha256":"d474e08e835f8e538f8aeb6944b4bc73a31db2be96625b0bdfe0ab8bf239226b","sources":["nsrl","winget"]},"status":"OK"}
+      string: '{"result":{"artifact_instance_id":"24417037636304243","created":"2026-06-29T18:29:53.872924+00:00","id":"7418765811658834","sha256":"d474e08e835f8e538f8aeb6944b4bc73a31db2be96625b0bdfe0ab8bf239226b","sources":["commercial","nsrl"]},"status":"OK"}
 
         '
     headers:
@@ -79,11 +79,11 @@ interactions:
       Connection:
       - keep-alive
       Content-Length:
-      - '244'
+      - '247'
       Content-Type:
       - application/json
       Date:
-      - Fri, 12 Jun 2026 22:01:46 GMT
+      - Mon, 29 Jun 2026 18:29:54 GMT
       Server:
       - gunicorn
       X-Billing-ID:
@@ -105,12 +105,12 @@ interactions:
       host:
       - artifact-index-e2e:9696
       user-agent:
-      - polyswarm_api/4.0.0 (x86_64-Linux-CPython-3.14.4)
+      - polyswarm_api/4.1.0 (x86_64-Linux-CPython-3.12.3)
     method: GET
     uri: http://artifact-index-e2e:9696/v3/known-good?sha256=d474e08e835f8e538f8aeb6944b4bc73a31db2be96625b0bdfe0ab8bf239226b&community=gamma
   response:
     body:
-      string: '{"result":{"artifact_instance_id":"71168226319048067","created":"2026-06-12T22:01:46.708413+00:00","id":"86356499935604495","sha256":"d474e08e835f8e538f8aeb6944b4bc73a31db2be96625b0bdfe0ab8bf239226b","sources":["nsrl","winget"]},"status":"OK"}
+      string: '{"result":{"artifact_instance_id":"24417037636304243","created":"2026-06-29T18:29:53.872924+00:00","id":"7418765811658834","sha256":"d474e08e835f8e538f8aeb6944b4bc73a31db2be96625b0bdfe0ab8bf239226b","sources":["commercial","nsrl"]},"status":"OK"}
 
         '
     headers:
@@ -121,11 +121,11 @@ interactions:
       Connection:
       - keep-alive
       Content-Length:
-      - '244'
+      - '247'
       Content-Type:
       - application/json
       Date:
-      - Fri, 12 Jun 2026 22:01:46 GMT
+      - Mon, 29 Jun 2026 18:29:54 GMT
       Server:
       - gunicorn
       X-Billing-ID:
@@ -147,7 +147,7 @@ interactions:
       host:
       - artifact-index-e2e:9696
       user-agent:
-      - polyswarm_api/4.0.0 (x86_64-Linux-CPython-3.14.4)
+      - polyswarm_api/4.1.0 (x86_64-Linux-CPython-3.12.3)
     method: DELETE
     uri: http://artifact-index-e2e:9696/v3/known-good?sha256=d474e08e835f8e538f8aeb6944b4bc73a31db2be96625b0bdfe0ab8bf239226b
   response:
@@ -167,7 +167,7 @@ interactions:
       Content-Type:
       - application/json
       Date:
-      - Fri, 12 Jun 2026 22:01:46 GMT
+      - Mon, 29 Jun 2026 18:29:54 GMT
       Server:
       - gunicorn
       X-Billing-ID:
@@ -189,7 +189,7 @@ interactions:
       host:
       - artifact-index-e2e:9696
       user-agent:
-      - polyswarm_api/4.0.0 (x86_64-Linux-CPython-3.14.4)
+      - polyswarm_api/4.1.0 (x86_64-Linux-CPython-3.12.3)
     method: GET
     uri: http://artifact-index-e2e:9696/v3/known-good?sha256=d474e08e835f8e538f8aeb6944b4bc73a31db2be96625b0bdfe0ab8bf239226b&community=gamma
   response:
@@ -209,7 +209,7 @@ interactions:
       Content-Type:
       - application/json
       Date:
-      - Fri, 12 Jun 2026 22:01:46 GMT
+      - Mon, 29 Jun 2026 18:29:54 GMT
       Server:
       - gunicorn
     status:

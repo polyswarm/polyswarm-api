@@ -114,6 +114,7 @@ The 4.0 transport originally buffered (the adapter read `response.content` whole
 - detects a streaming parser (`request.result_parser is not None and not issubclass(request.result_parser, BaseJsonResource)`) and routes to `_execute_download`;
 - opens the response with `self._client.send(req, stream=True)` (status/headers available, body not read) — which also covers the auth-stripped off-domain S3 case (`download_archive`), since header suppression already goes through `build_request` + pop;
 - maps non-2xx via the shared `core._raise_for_status` (identical typed exceptions to the JSON path) after `aread()`-ing the small error body;
+- treats a **204 as "no matching artifact"** (the request succeeded but returned nothing) and raises `NoResultsException` — mirroring the shared `parse_response` 204 rule that the streaming path otherwise bypasses, so an absent download surfaces "no results" instead of silently writing a successful empty file (regression-guarded by `test_async_download_204_raises_no_results`);
 - has the parser class resolve a destination handle (`LocalArtifact.open_destination`), streams the body in chunk by chunk (`response.aiter_bytes(DOWNLOAD_CHUNK_SIZE)`), wraps the written handle (`LocalArtifact.from_written`), and removes a partially-written file it created;
 - closes the response in a `finally` (`aclose`).
 
