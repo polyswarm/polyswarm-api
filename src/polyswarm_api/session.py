@@ -151,6 +151,20 @@ class PolyswarmSession:
                 response.read()
                 _raise_for_status(response, request)
 
+            if response.status_code == 204:
+                # A 204 is the "no data / absent" signal on a download: the request
+                # succeeded but there is nothing to write ("the request worked, but
+                # there was no matching artifact, so nothing was returned"). The
+                # shared ``parse_response`` maps a parser-backed 204 to
+                # ``NoResultsException``; the streaming path bypasses ``parse_response``,
+                # so mirror that rule explicitly here. Without it, an absent artifact
+                # would be written out as a successful *empty* file instead of
+                # surfacing "no results".
+                raise exceptions.NoResultsException(
+                    request,
+                    "The request returned no results.",
+                )
+
             pk = request.parser_kwargs or {}
             handle, name, created = request.result_parser.open_destination(
                 pk.get("folder"),

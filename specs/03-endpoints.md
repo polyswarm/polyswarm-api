@@ -25,7 +25,7 @@ The full catalogue of methods on the public client surface and which transport h
 
 | Method | Resource builder | Notes |
 |---|---|---|
-| `exists(hash_, hash_type=None, require_scan=False)` | `ArtifactInstance.exists_hash` | HEAD; returns `bool` from status code. |
+| `exists(hash_, hash_type=None, require_scan=False)` | `ArtifactInstance.exists_hash` | HEAD; `bool` from status code — `True` **only** for `200` (present). `204` means "absent" (the request succeeded but matched no artifact) and `404` also maps to absent, so both are `False`. Do **not** treat this as a generic `2xx` check: `204` is a successful status that means the opposite of "exists". |
 | `lookup(scan)` | `ArtifactInstance.lookup_uuid` | |
 | `rescan(hash_, hash_type=None, scan_config=None)` | `ArtifactInstance.rescan` | |
 | `rescan_id(scan, scan_config=None)` | `ArtifactInstance.rescan_id` | |

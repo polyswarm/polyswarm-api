@@ -270,7 +270,7 @@ Every HTTP-level error maps to a subclass of `PolyswarmException`:
 - 404 → `NotFoundException`
 - 422 → `FailedInstanceException`
 - 429 → `UsageLimitsExceededException`
-- 204 + JSON parser expected → `NoResultsException`
+- 204 on a request that expects data (JSON-parser GET **or** streaming download) → `NoResultsException` — the server did the work but matched nothing. **HEAD is exempt**: it returns the raw status code as the result (so `exists()` reads a 204 as "known-absent" rather than raising).
 - Other non-2xx → `RequestException`
 - Client-side validation failures (bad hash, missing kwarg) → `InvalidValueException`
 - Polling timeouts → `TimeoutException`
