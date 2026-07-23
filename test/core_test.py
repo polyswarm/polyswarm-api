@@ -181,6 +181,17 @@ class TestParseResponse:
         parse_response(_FakeResponse(status_code=404), req)
         assert req._result == 404
 
+    def test_head_204_does_not_raise(self):
+        # A 204 on a HEAD is the "absent" signal for ``exists_hash`` (the
+        # search/hash endpoint returns 200 present / 204 absent). The HEAD
+        # branch short-circuits before the 204 -> NoResultsException mapping
+        # that applies to parser-backed GETs, so ``exists`` receives the raw
+        # 204 as the result and reads it as "not present" (see
+        # ``PolySwarmAsyncAPI.exists``: only 200 is True).
+        req = PolyswarmRequest(api=_FakeApi(), method='HEAD', url='u')
+        parse_response(_FakeResponse(status_code=204), req)
+        assert req._result == 204
+
     def test_2xx_without_parser_is_fire_and_forget(self):
         # No result_parser → body intentionally discarded (e.g. Webhook.test)
         req = PolyswarmRequest(api=_FakeApi(), method='POST', url='u')
