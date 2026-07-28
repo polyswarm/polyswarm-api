@@ -212,7 +212,7 @@ A non-`BaseJsonResource` parser is a **download** and instead takes the streamin
 `parse_response(response, request)`:
 
 - HEAD: `request._result = response.status_code`; return.
-- Non-2xx: extract JSON body into `request.json` / `request.status` / `request.errors`; dispatch on status code to typed exception class (`NotFoundException`, `FailedInstanceException`, `UsageLimitsExceededException`, `RequestException`); raise.
+- Non-2xx: extract JSON body into `request.json` / `request.status` / `request.errors`; dispatch on status code to typed exception class (`NotFoundException`, `FailedInstanceException`, `UsageLimitsExceededException`, `RequestException`); raise. The 404 arm also reads the extracted `errors` payload: a dict carrying `code == 'KNOWN_GOOD_WITHHELD'` raises the `NotFoundException` subclass `KnownGoodWithheldException` instead.
 - 2xx without `result_parser`: return (fire-and-forget endpoints like `notification_webhook_test`).
 - 2xx with `BaseJsonResource` parser: extract JSON, populate pagination metadata (`total`, `limit`, `offset`, `has_more`, `_paginated`), dispatch on `result_parser.parse_result_list` (list) or `.parse_result` (single).
 - 2xx with non-`BaseJsonResource` parser: pass `(api, response)` directly to `result_parser.parse_result` (used for `LocalArtifact` file downloads).
@@ -267,7 +267,7 @@ Both paths are covered by respx tests (`test_async_pagination_*` in `async_clien
 
 Every HTTP-level error maps to a subclass of `PolyswarmException`:
 
-- 404 → `NotFoundException`
+- 404 → `NotFoundException` — or `KnownGoodWithheldException` (its subclass) when the body's `errors` dict carries `code == 'KNOWN_GOOD_WITHHELD'`: the artifact is a known-good binary whose bytes are never stored or served. Subclassing keeps every existing `except NotFoundException` caller working; the exception exposes the flagging feeds as `.sources`.
 - 422 → `FailedInstanceException`
 - 429 → `UsageLimitsExceededException`
 - 204 on a request that expects data (JSON-parser GET **or** streaming download) → `NoResultsException` — the server did the work but matched nothing. **HEAD is exempt**: it returns the raw status code as the result (so `exists()` reads a 204 as "known-absent" rather than raising).

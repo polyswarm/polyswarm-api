@@ -330,7 +330,9 @@ def _raise_for_status(response, request):
 
     Shared by ``parse_response`` (buffered/JSON path) and the session's
     streaming-download path, so both raise identically (429/404/422/other,
-    plus the non-JSON-body fallbacks). The response body must already be
+    plus the non-JSON-body fallbacks). A 404 whose ``errors`` payload carries the
+    ``KNOWN_GOOD_WITHHELD`` code raises the ``NotFoundException`` subclass
+    ``KnownGoodWithheldException``. The response body must already be
     readable — streaming callers ``read()`` / ``aread()`` it first. **Always
     raises; never returns.**
     """
@@ -354,6 +356,15 @@ def _raise_for_status(response, request):
         )
         raise exceptions.UsageLimitsExceededException(request, message)
     elif request.status_code == 404:
+        # A download refused because the artifact is a known-good binary carries a
+        # machine-readable code in the error envelope's ``errors`` slot. Raise the
+        # ``NotFoundException`` subclass so callers can tell "withheld by design"
+        # apart from a plain miss; every other 404 stays a plain NotFoundException.
+        errors = request.errors
+        if isinstance(errors, dict) and errors.get('code') == 'KNOWN_GOOD_WITHHELD':
+            raise exceptions.KnownGoodWithheldException(
+                request, request._result, sources=errors.get('sources'),
+            )
         raise exceptions.NotFoundException(request, request._result)
     elif request.status_code == 422:
         raise exceptions.FailedInstanceException(request, request._result)

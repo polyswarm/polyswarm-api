@@ -140,7 +140,7 @@ Behaviour:
 | Branch | Action |
 |---|---|
 | `request.method == 'HEAD'` | `request._result = response.status_code`; return. |
-| Non-2xx | Extract JSON body into `request.json` / `.status` / `.errors`. Dispatch on status code: 404 → `NotFoundException`, 422 → `FailedInstanceException`, 429 → `UsageLimitsExceededException`, else → `RequestException`. Raise. |
+| Non-2xx | Extract JSON body into `request.json` / `.status` / `.errors`. Dispatch on status code: 404 → `NotFoundException` (→ `KnownGoodWithheldException` when `errors['code'] == 'KNOWN_GOOD_WITHHELD'`), 422 → `FailedInstanceException`, 429 → `UsageLimitsExceededException`, else → `RequestException`. Raise. |
 | 2xx, no `result_parser` | Return (fire-and-forget endpoints). |
 | 2xx, `result_parser` is `BaseJsonResource` subclass, status 204 | Raise `NoResultsException`. |
 | 2xx, `BaseJsonResource` parser | Extract JSON. Populate pagination metadata (`_paginated` / `total` / `limit` / `offset` / `has_more`). Find `result` or `results` key in body. Dispatch on `result_parser.parse_result_list` (list) or `.parse_result` (single). |
@@ -302,9 +302,16 @@ it parses to `None` with no behaviour change). It lets a consumer recognise a
 known-good-bypassed scan via `state == 'KNOWN_GOOD'` even when `known_good` above is
 `None` (the sha matched no `KnownGood`). The raw numeric `bounty_state` is unchanged.
 
+`state == 'KNOWN_GOOD'` (equivalently the status the server reports for the instance)
+is also **the** signal that the artifact's bytes are withheld — the platform never
+stores or serves a known-good binary, and there is deliberately no separate
+"withheld" field to read. A download attempted anyway raises
+`KnownGoodWithheldException` (see §"Exceptions thrown by parsing"); the metadata —
+the flagging feeds plus any scan data already collected — stays readable.
+
 Classmethod builders (each returns a `PolyswarmRequest` descriptor):
 
-- `exists_hash(api, hash_value, hash_type, require_scan=False)` — HEAD request, returns the status code as the result.
+- `exists_hash(api, hash_value, hash_type, require_scan=False)` — HEAD request, returns the status code as the result. `require_scan=True` narrows the answer to scanned artifacts, **except** for a known-good sha256, which the server reports as present either way: a known-good hash is a decided terminal record, so it is never scanned and its binary is never stored.
 - `search_hash(api, hash_value, hash_type)` — GET `/search/hash/{hash_type}`.
 - `search_url(api, url)` — GET `/search/url`.
 - `list_scans(api, hash_value)` — GET `/search/instances`.
@@ -381,6 +388,7 @@ This keeps the body off the heap for `folder`/file-handle destinations — parit
 
 - `NoResultsException` — HTTP 204 with a typed `result_parser`.
 - `NotFoundException` — HTTP 404, or a JSON-decode failure on a 404.
+- `KnownGoodWithheldException` (a `NotFoundException` subclass) — HTTP 404 whose `errors` payload is a dict with `code == 'KNOWN_GOOD_WITHHELD'`: the artifact is a known-good binary and its bytes are withheld by design. Carries `.sources` (the flagging known-good feeds, `[]` when none were named). Any other 404 — a different code, a legacy list-shaped `errors`, or no `errors` at all — stays a plain `NotFoundException`.
 - `FailedInstanceException` — HTTP 422.
 - `UsageLimitsExceededException` — HTTP 429.
 - `RequestException` — any other non-2xx.

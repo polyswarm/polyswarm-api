@@ -1643,6 +1643,8 @@ class PolySwarmAsyncAPI:
         :param hash_: Hashable (Artifact, LocalArtifact, Hash) or hex-encoded SHA256/SHA1/MD5.
         :param hash_type: Hash type; auto-detected if not provided.
         :param require_scan: If True, only count artifacts that have been scanned.
+            A known-good hash still counts as present: it is a decided terminal
+            record, so the platform never scans it and never stores its binary.
         :return: ``True`` if the artifact exists in PolySwarm's index.
         """
         logger.info('Exists for hash %s', hash_)

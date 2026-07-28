@@ -4,8 +4,8 @@ No httpx, no async, no fixtures. Covers:
 
 - ``PolyswarmRequest`` dataclass construction and projections.
 - ``parse_response`` against fake response objects (HEAD, 2xx with
-  parser, 2xx without parser, 204, 404, 422, 429, 500, non-JSON 5xx,
-  non-JSON 404).
+  parser, 2xx without parser, 204, 404, known-good-withheld 404, 422,
+  429, 500, non-JSON 5xx, non-JSON 404).
 - A sampling of resource builders to confirm they produce the expected
   ``PolyswarmRequest`` shape.
 
@@ -260,6 +260,53 @@ class TestParseResponseErrors:
                 req,
             )
         assert ei.value.request is req
+
+    def test_404_known_good_withheld_raises_subclass(self):
+        req = PolyswarmRequest(api=_FakeApi(), method='GET', url='u',
+                               result_parser=_SampleResource)
+        body = {
+            'status': 'error',
+            'result': 'Unable to download the provided artifact, it is a '
+                      'known-good binary; its bytes are withheld by design.',
+            'errors': {'code': 'KNOWN_GOOD_WITHHELD', 'known_good': True,
+                       'sources': ['nsrl']},
+        }
+        with pytest.raises(exceptions.KnownGoodWithheldException) as ei:
+            parse_response(_FakeResponse(status_code=404, body=body), req)
+        # Existing ``except NotFoundException`` handlers must keep catching it.
+        assert isinstance(ei.value, exceptions.NotFoundException)
+        assert ei.value.sources == ['nsrl']
+        assert ei.value.request is req
+        assert req.errors == body['errors']
+
+    def test_404_known_good_withheld_without_sources(self):
+        req = PolyswarmRequest(api=_FakeApi(), method='GET', url='u',
+                               result_parser=_SampleResource)
+        with pytest.raises(exceptions.KnownGoodWithheldException) as ei:
+            parse_response(
+                _FakeResponse(status_code=404, body={
+                    'status': 'error', 'result': 'withheld',
+                    'errors': {'code': 'KNOWN_GOOD_WITHHELD'},
+                }),
+                req,
+            )
+        assert ei.value.sources == []
+
+    def test_404_other_error_code_stays_plain_not_found(self):
+        # Only the known-good code gets the subclass; every other 404 — including
+        # a differently-coded or legacy list-shaped ``errors`` payload — stays a
+        # plain NotFoundException.
+        for errors in ({'code': 'DELETED'}, ['not found'], None):
+            req = PolyswarmRequest(api=_FakeApi(), method='GET', url='u',
+                                   result_parser=_SampleResource)
+            with pytest.raises(exceptions.NotFoundException) as ei:
+                parse_response(
+                    _FakeResponse(status_code=404, body={
+                        'status': 'error', 'result': 'missing', 'errors': errors,
+                    }),
+                    req,
+                )
+            assert not isinstance(ei.value, exceptions.KnownGoodWithheldException)
 
     def test_422_raises_failed_instance(self):
         req = PolyswarmRequest(api=_FakeApi(), method='POST', url='u',
