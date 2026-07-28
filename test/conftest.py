@@ -13,6 +13,13 @@ _VCR_DIR = os.path.join(os.path.dirname(__file__), "vcr")
 # to log everything (including the replay/transport libraries below).
 _TESTS_LOG_LEVEL = os.getenv("TESTS_LOG_LEVEL", "INFO").upper()
 
+# Live-log streaming (log_cli). OFF by default: when on, pytest not only streams log
+# records but forces every test onto its own nodeid line (verbose-style) — ~130
+# lines of noise on a green xdist run. Off, the run prints dots + an end summary,
+# and a failing test still shows its captured logs at _TESTS_LOG_LEVEL plus the
+# traceback. Set TESTS_LOG_CLI=1 to stream live when debugging a live-stack run.
+_TESTS_LOG_CLI = os.getenv("TESTS_LOG_CLI", "").lower() in ("1", "true", "yes", "on")
+
 # Replay/transport libraries are extremely chatty at DEBUG — vcr.matchers alone
 # logs a full comparison for every recorded request on every call (~24% of the
 # old log) and vcr.cassette/vcr.request dump entire response bodies. Pin them to
@@ -45,12 +52,18 @@ def uid(request):
 
 
 def pytest_configure(config):
-    # Honor an explicit --log-cli-level / --log-level on the CLI; otherwise drive
-    # both the live and captured log level from TESTS_LOG_LEVEL.
-    if config.option.log_cli_level is None:
-        config.option.log_cli_level = _TESTS_LOG_LEVEL
+    # Captured-log level — what pytest records and then prints under a FAILING test
+    # ("Captured log call"). Drive it from TESTS_LOG_LEVEL so failures carry the
+    # app's request/response context while a green run stays quiet. Honors an
+    # explicit --log-level on the CLI.
     if config.option.log_level is None:
         config.option.log_level = _TESTS_LOG_LEVEL
+    # Live logging is enabled iff log_cli (ini, now false) is true OR this option is
+    # set — so setting it here is what turns on the verbose per-test streaming.
+    # Leave it None by default (dots + summary); opt in with TESTS_LOG_CLI=1. An
+    # explicit --log-cli-level on the CLI is honored (already non-None -> untouched).
+    if _TESTS_LOG_CLI and config.option.log_cli_level is None:
+        config.option.log_cli_level = _TESTS_LOG_LEVEL
     noisy_level = "DEBUG" if _TESTS_LOG_LEVEL == "DEBUG" else "WARNING"
     for name in _NOISY_LIBS:
         logging.getLogger(name).setLevel(noisy_level)

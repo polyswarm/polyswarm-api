@@ -76,11 +76,17 @@ search = "__version__ = '{current_version}'"
 replace = "__version__ = '{new_version}'"
 
 [tool.pytest.ini_options]
-log_cli = true
-# Default live-log level. INFO keeps the useful app request/response lines while
-# dropping the DEBUG firehose (VCR per-request match trace, parse traces) that
-# otherwise bloats CI logs ~1000x. Override per-run with the TESTS_LOG_LEVEL env
-# var (e.g. TESTS_LOG_LEVEL=DEBUG to log everything); see test/conftest.py.
+# Live logging OFF by default. When on, pytest streams log records as the run goes
+# AND forces every test onto its own nodeid line (verbose-style) — ~130 lines of
+# pure noise on a green xdist run. With it off the run prints dots + an end
+# summary, and a FAILING test still shows its captured logs (at log_level, below)
+# plus the traceback. Opt back into live streaming with TESTS_LOG_CLI=1 (or an
+# explicit --log-cli-level) when debugging a live run; see test/conftest.py.
+log_cli = false
+# Level used for live logging when it's opted into (TESTS_LOG_CLI=1). INFO keeps
+# the useful app request/response lines while dropping the DEBUG firehose (VCR
+# per-request match trace, parse traces) that otherwise bloats logs ~1000x.
+# TESTS_LOG_LEVEL overrides both this and the captured-log level (conftest.py).
 log_cli_level = "INFO"
 log_format = "%(asctime)s %(levelname)-2s [%(name)s:%(filename)s:%(lineno)d:%(funcName)1s()] %(message)s"
 python_files = ["test_*.py", "*_test.py"]
