@@ -95,7 +95,6 @@ filterwarnings = [
 asyncio_mode = "auto"
 addopts = [
     "--continue-on-collection-errors",
-    "-v",
     "-s",
-    "-rxXs",
+    "-ra",
 ]
