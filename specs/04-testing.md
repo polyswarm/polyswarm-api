@@ -226,6 +226,17 @@ The speedup comes from collapsing *sequential* waits. Serial wall-clock is domin
 
 `-n` is deliberately kept out of `[tool.pytest.ini_options].addopts` in `pyproject.toml` and passed on the runner command line instead, so local and IDE runs stay serial (xdist scrambles `-s` live-log ordering and complicates breakpoints). Only the live CI image opts into parallelism. `pytest-xdist` and `pytest-timeout` are in the `[tests]` extra.
 
+### Log output: dots by default, live logs opt-in
+
+The suite prints **one progress char per test** (xdist dots) plus an end-of-run summary — not a line per test. Two things must be off for that, and both were easy to get wrong:
+
+- **`-v` is not in `addopts`** — verbose mode prints every test's nodeid on its own line.
+- **Live logging (`log_cli`) is off by default** — `log_cli = false` in `pyproject.toml`, and `test/conftest.py` does **not** set the `log_cli_level` *option*. This is the subtle one: pytest enables live logging when `log_cli` is true **or** the `log_cli_level` option is set, and live logging *also* forces every test onto its own nodeid line (verbose-style) **regardless of `-v`**. So live logging on a green 8-way run added ~130 noise lines to the harness log even with `-v` removed — the option must be left unset, not just `-v` dropped.
+
+A **failing** test still prints its full traceback and its **captured** logs (the "Captured log call" section, rendered at `log_level` = `TESTS_LOG_LEVEL`, default `INFO`), plus the `-ra` short-summary recap. So the run is quiet on green and detailed on failure.
+
+Opt back into live streaming when debugging a live-stack run with **`TESTS_LOG_CLI=1`** (or an explicit `--log-cli-level=…` on the CLI). `TESTS_LOG_LEVEL=DEBUG` raises both the captured and the live level and unpins the noisy replay/transport libraries (`vcr`, `httpx`, `httpcore`, `asyncio`). See `test/conftest.py`.
+
 ### Why `--timeout-method=thread` and `--timeout=600`
 
 The timeout is a backstop for the live run: VCR-off keeps real poll/sleep pacing, so a non-terminating test would otherwise hang to the CI job limit. `--timeout-method=thread` is the only method that fires reliably here — the signal method can't interrupt a hang inside the asyncio event loop, whereas a watchdog thread fires regardless of loop state, dumps every thread's stack (showing where execution is stuck), then terminates. **Caveat:** the thread method ends the *whole session* on a per-test timeout rather than failing one test, so a hang fails the job with a stack dump instead of running to the job limit. The per-test budget was raised 300 → 600s to give headroom under 8× pipeline contention.
