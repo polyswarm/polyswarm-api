@@ -415,6 +415,8 @@ class TestAsyncScanCase:
             with tempfile.TemporaryDirectory() as out_dir:
                 with pytest.raises(exceptions.KnownGoodWithheldException) as ei:
                     await api.download(out_dir, sha)
+                # A refused download leaves nothing behind — see the sync twin.
+                assert os.listdir(out_dir) == []
             assert ei.value.sources == ['nsrl']
             # The require_scan semantics this SDK documents: a known-good hash is a decided
             # terminal record, so it reports present rather than "not scanned yet".

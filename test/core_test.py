@@ -293,20 +293,11 @@ class TestParseResponseErrors:
         assert ei.value.sources == []
 
     def test_404_known_good_sources_normalised_to_feed_names(self):
-        # Regression: the raise site passed the envelope's ``sources`` payload
-        # straight through, so any shape but a list of strings reached the caller
-        # — a bare 'nsrl' iterated as characters ('n', 's', 'r', 'l'), and the
-        # list-of-feed-dicts shape the instance-level ``known_good`` field uses
-        # iterated as dicts. ``.sources`` is documented as a list of feed-name
-        # strings, so normalise at the boundary: string → one-element list, list →
-        # feed names from either shape, anything else → [].
-        #
-        # The feed-dict entries yield names rather than being dropped: that is the
-        # OTHER shape the platform uses for this same concept (the instance-level
-        # ``known_good`` field, unpacked via ``feed['tool']`` into
-        # ``known_good_sources``). If the envelope ever reuses that serialiser,
-        # discarding it would silently empty ``.sources`` and take the exception's
-        # whole added value with it.
+        # ``.sources`` is documented as a list of feed-name strings, so the payload is
+        # normalised at the boundary rather than handed through: a bare 'nsrl' would
+        # iterate as characters. A feed-dict entry (the shape the instance-level
+        # ``known_good`` field uses) yields ``feed['tool']`` defensively; anything
+        # unrecognised yields [].
         shapes = [
             (['nsrl', 'commercial'], ['nsrl', 'commercial']),  # already correct
             ('nsrl', ['nsrl']),                                # bare string

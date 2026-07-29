@@ -781,6 +781,10 @@ class ScanTestCaseV2(TestCase):
         with tempfile.TemporaryDirectory() as out_dir:
             with pytest.raises(exceptions.KnownGoodWithheldException) as ei:
                 v3api.download(out_dir, sha)
+            # A refused download leaves nothing behind: the streaming path opens its
+            # destination before the response is read, so a truncated or empty file here
+            # would look to a caller like a download that worked.
+            assert os.listdir(out_dir) == []
         assert ei.value.sources == ['nsrl']
         # ...and the hash still reports PRESENT under require_scan, which is the semantics
         # the SDK now documents in four places: a known-good record is decided and terminal,

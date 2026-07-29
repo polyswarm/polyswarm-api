@@ -40,24 +40,12 @@ class NotFoundException(RequestException):
 def _normalise_sources(sources):
     """Coerce a server-supplied ``sources`` payload into a list of feed names.
 
-    ``.sources`` is published as a list of strings and consumers iterate it
-    (``for feed in exc.sources``), so the raw payload can't be handed through
-    untouched: a bare ``'nsrl'`` would iterate as characters.
-
-    Both shapes the platform uses for this one concept yield feed names. The
-    error envelope sends a list of strings; the instance-level ``known_good``
-    field sends a list of feed dicts, which ``resources.py`` unpacks via
-    ``feed['tool']`` into ``ArtifactInstance.known_good_sources``. If the
-    envelope ever reuses that serialiser, dropping the dicts would empty
-    ``.sources`` and take this exception's whole added value with it — with no
-    diagnostic, and no way for a caller to tell "the server named no feeds"
-    from "the server named feeds in a shape we discarded".
-
-    A string becomes a one-element list; anything else (mapping, ``None``,
-    number) becomes ``[]`` — and says so at debug level, because the argument
-    above cuts both ways: a discard nobody can see is the failure mode this
-    normalisation exists to avoid. Nothing is lost either way — the raw envelope
-    stays readable at ``exc.request.errors``.
+    ``.sources`` is published as a list of strings and consumers iterate it, so a
+    bare ``'nsrl'`` cannot be handed through — it would iterate as characters.
+    The server sends a list of strings today; a feed-dict entry (the shape the
+    instance-level ``known_good`` field uses) yields ``feed['tool']`` defensively
+    rather than being dropped. Anything unrecognised becomes ``[]`` and is logged,
+    so a discard is never silent. The raw payload stays at ``exc.request.errors``.
     """
     if isinstance(sources, str):
         return [sources]
