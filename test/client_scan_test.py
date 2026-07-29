@@ -774,12 +774,10 @@ class ScanTestCaseV2(TestCase):
         assert created.sha256 == sha
         assert created.sources == ['nsrl']
         assert created.artifact_instance_id
-        # The refusal, against the real server. Every assertion about the error envelope
-        # elsewhere in the suite reads a body this repo fabricated, which asserts what we
-        # *think* the server sends: a rename on the server side (KNOWN_GOOD_WITHHELD →
-        # KNOWN_GOOD, which really happened mid-review) would leave the fabricated tests
-        # green. Here the caller-visible outcome IS the contract — the typed exception and
-        # the feed names it carries.
+        # The refusal, against the real server. Every other assertion about the error
+        # envelope reads a body this repo fabricated, which pins what we *think* the server
+        # sends — a rename of the code string on the server side would leave those green.
+        # Here the caller-visible outcome IS the contract: the typed exception and its feeds.
         with tempfile.TemporaryDirectory() as out_dir:
             with pytest.raises(exceptions.KnownGoodWithheldException) as ei:
                 v3api.download(out_dir, sha)

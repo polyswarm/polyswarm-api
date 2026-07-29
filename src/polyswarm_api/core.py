@@ -404,10 +404,15 @@ def _bad_status_message(request):
         # introduced for. Iterating a mapping yields only its KEYS, so rendering it
         # like a list would drop every value from the message the caller sees —
         # render it as ``key=value`` lines instead.
+        # The same reasoning applies to a bare string: iterating it yields characters, so
+        # `"errors": "some prose"` would render one letter per line. Only genuinely
+        # sequence-shaped payloads get the line-per-entry treatment.
         if isinstance(request.errors, dict):
             errors = '\n'.join(f'{k}={v}' for k, v in request.errors.items())
-        else:
+        elif isinstance(request.errors, (list, tuple)):
             errors = '\n'.join(str(error) for error in request.errors)
+        else:
+            errors = str(request.errors)
         message = f'{message}\nErrors:\n{errors}'
     return message
 

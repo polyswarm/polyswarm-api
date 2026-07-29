@@ -52,7 +52,15 @@ class _MockBoundary:
 
     @property
     def last_request_url(self) -> str:
-        return str(self._router.calls[0].request.url)
+        """The URL of the most recent request.
+
+        Reads ``calls[-1]`` like ``last_request_body``: the two used to disagree (this one
+        read ``calls[0]``), which is invisible in a single-request test and silently wrong in
+        a multi-request one — a test would compare the first request's URL against the last
+        request's body. Harmless while this lived in one module; not once it is the shared
+        harness every respx test imports.
+        """
+        return str(self._router.calls[-1].request.url)
 
     @property
     def last_request_body(self):
