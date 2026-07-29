@@ -418,9 +418,12 @@ class TestAsyncScanCase:
                 # A refused download leaves nothing behind — see the sync twin.
                 assert os.listdir(out_dir) == []
             assert ei.value.sources == ['nsrl']
-            # The require_scan semantics this SDK documents: a known-good hash is a decided
-            # terminal record, so it reports present rather than "not scanned yet".
-            assert await api.exists(sha, hash_type='sha256', require_scan=True) is True
+            # The existence probe on the async transport — see the sync twin for why these two
+            # lines are the fleet's only live guard on a frozen status contract. Catalogued via
+            # the CRUD: present plain (the reference instance is a real record), absent under
+            # require_scan (nothing was ever scanned for it).
+            assert await api.exists(sha, hash_type='sha256') is True
+            assert await api.exists(sha, hash_type='sha256', require_scan=True) is False
             # A second feed flagging the same sha extends the same entry (no new row).
             extended = await api.known_good_create(sha256=sha, source='commercial')
             assert extended.id == created.id

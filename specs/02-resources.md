@@ -311,7 +311,7 @@ the flagging feeds plus any scan data already collected — stays readable.
 
 Classmethod builders (each returns a `PolyswarmRequest` descriptor):
 
-- `exists_hash(api, hash_value, hash_type, require_scan=False)` — HEAD request, returns the status code as the result. `require_scan=True` narrows the answer to scanned artifacts, **except** for a known-good sha256, which the server reports as present either way: a known-good hash is a decided terminal record, so it is never scanned and its binary is never stored.
+- `exists_hash(api, hash_value, hash_type, require_scan=False)` — HEAD request, returns the status code as the result. `require_scan=True` narrows the answer to artifacts that were actually scanned. Being catalogued as known-good is **not** a scan — a hash whose only record is a known-good reference answers present without `require_scan` (the reference is a real searchable record) and absent with it.
 - `search_hash(api, hash_value, hash_type)` — GET `/search/hash/{hash_type}`.
 - `search_url(api, url)` — GET `/search/url`.
 - `list_scans(api, hash_value)` — GET `/search/instances`.

@@ -787,11 +787,20 @@ class ScanTestCaseV2(TestCase):
             # indistinguishable from a download that worked.
             assert os.listdir(out_dir) == []
         assert ei.value.sources == ['nsrl']
-        # ...and the hash still reports PRESENT under require_scan, which is the semantics
-        # the SDK now documents in four places: a known-good record is decided and terminal,
-        # so "has it been scanned" must not answer "no, go and scan it" for a sample the
-        # platform will never scan.
-        assert v3api.exists(sha, hash_type='sha256', require_scan=True) is True
+        # The existence probe, against the real server — and the only LIVE coverage of it in
+        # the fleet. Its status codes are a frozen contract (artifact-index
+        # specs/09-hash-search-head-contract.md): 200 = found, 204 = not found. The probe
+        # carries no result parser, so a non-2xx never raises and every non-200 collapses to
+        # False — which means a server-side widening produces a wrong boolean with no error and
+        # no log line. That is exactly the 4.0 inversion this SDK shipped in 4.0.0/4.1.0.
+        # Everything else asserting these semantics is respx-mocked, so it pins the SDK's
+        # mapping and would stay green through such a flip. These two lines would not.
+        #
+        # Catalogued via the CRUD, which builds a searchable reference instance:
+        #   plain          -> present, because that reference IS a real record
+        #   require_scan   -> absent, because nothing was ever scanned for it
+        assert v3api.exists(sha, hash_type='sha256') is True
+        assert v3api.exists(sha, hash_type='sha256', require_scan=True) is False
         # A second feed flagging the same sha extends the same entry (no new row).
         extended = v3api.known_good_create(sha256=sha, source='commercial')
         assert extended.id == created.id

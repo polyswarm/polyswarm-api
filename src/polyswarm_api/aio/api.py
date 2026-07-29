@@ -1642,10 +1642,20 @@ class PolySwarmAsyncAPI:
 
         :param hash_: Hashable (Artifact, LocalArtifact, Hash) or hex-encoded SHA256/SHA1/MD5.
         :param hash_type: Hash type; auto-detected if not provided.
-        :param require_scan: If True, only count artifacts that have been scanned.
-            A known-good hash still counts as present: it is a decided terminal
-            record, so the platform never scans it and never stores its binary.
+        :param require_scan: If True, only count artifacts that have been *scanned*.
+            Being catalogued as known-good is **not** a scan: the platform never scans
+            such a sample, so a hash whose only record is a known-good reference reports
+            absent under ``require_scan`` (and present without it, because that reference
+            is a real searchable record).
         :return: ``True`` if the artifact exists in PolySwarm's index.
+
+        .. note::
+           This is an existence probe, and its status codes are a **frozen contract**:
+           ``200`` means found, ``204`` means not found, and anything else means the
+           *request* was wrong. Because the probe carries no result parser, a non-2xx
+           status never raises here — it collapses to ``False``. So a server error is
+           indistinguishable from a genuine "does not exist", which is why neither side
+           may widen what counts as found. See ``specs/03-endpoints.md``.
         """
         logger.info('Exists for hash %s', hash_)
         hash_ = resources.Hash.from_hashable(hash_, hash_type=hash_type)
