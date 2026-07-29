@@ -268,7 +268,7 @@ class TestParseResponseErrors:
             'status': 'error',
             'result': 'Unable to download the provided artifact, it is a '
                       'known-good binary; its bytes are withheld by design.',
-            'errors': {'code': 'KNOWN_GOOD_WITHHELD', 'known_good': True,
+            'errors': {'code': 'KNOWN_GOOD', 'known_good': True,
                        'sources': ['nsrl']},
         }
         with pytest.raises(exceptions.KnownGoodWithheldException) as ei:
@@ -286,7 +286,7 @@ class TestParseResponseErrors:
             parse_response(
                 _FakeResponse(status_code=404, body={
                     'status': 'error', 'result': 'withheld',
-                    'errors': {'code': 'KNOWN_GOOD_WITHHELD'},
+                    'errors': {'code': 'KNOWN_GOOD'},
                 }),
                 req,
             )

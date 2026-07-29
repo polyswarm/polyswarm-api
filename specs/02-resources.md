@@ -140,7 +140,7 @@ Behaviour:
 | Branch | Action |
 |---|---|
 | `request.method == 'HEAD'` | `request._result = response.status_code`; return. |
-| Non-2xx | Extract JSON body into `request.json` / `.status` / `.errors`. Dispatch on status code: 404 → `NotFoundException` (→ `KnownGoodWithheldException` when `errors['code'] == 'KNOWN_GOOD_WITHHELD'`), 422 → `FailedInstanceException`, 429 → `UsageLimitsExceededException`, else → `RequestException`. Raise. |
+| Non-2xx | Extract JSON body into `request.json` / `.status` / `.errors`. Dispatch on status code: 404 → `NotFoundException` (→ `KnownGoodWithheldException` when `errors['code'] == 'KNOWN_GOOD'`), 422 → `FailedInstanceException`, 429 → `UsageLimitsExceededException`, else → `RequestException`. Raise. |
 | 2xx, no `result_parser` | Return (fire-and-forget endpoints). |
 | 2xx, `result_parser` is `BaseJsonResource` subclass, status 204 | Raise `NoResultsException`. |
 | 2xx, `BaseJsonResource` parser | Extract JSON. Populate pagination metadata (`_paginated` / `total` / `limit` / `offset` / `has_more`). Find `result` or `results` key in body. Dispatch on `result_parser.parse_result_list` (list) or `.parse_result` (single). |
@@ -388,7 +388,7 @@ This keeps the body off the heap for `folder`/file-handle destinations — parit
 
 - `NoResultsException` — HTTP 204 with a typed `result_parser`.
 - `NotFoundException` — HTTP 404, or a JSON-decode failure on a 404.
-- `KnownGoodWithheldException` (a `NotFoundException` subclass) — HTTP 404 whose `errors` payload is a dict with `code == 'KNOWN_GOOD_WITHHELD'`: the artifact is a known-good binary and its bytes are withheld by design. Carries `.sources` (the flagging known-good feeds, `[]` when none were named). Any other 404 — a different code, a legacy list-shaped `errors`, or no `errors` at all — stays a plain `NotFoundException`.
+- `KnownGoodWithheldException` (a `NotFoundException` subclass) — HTTP 404 whose `errors` payload is a dict with `code == 'KNOWN_GOOD'`: the artifact is a known-good binary and its bytes are withheld by design. Carries `.sources` (the flagging known-good feeds, `[]` when none were named). Any other 404 — a different code, a legacy list-shaped `errors`, or no `errors` at all — stays a plain `NotFoundException`.
 - `FailedInstanceException` — HTTP 422.
 - `UsageLimitsExceededException` — HTTP 429.
 - `RequestException` — any other non-2xx.
