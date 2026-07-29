@@ -1,6 +1,7 @@
 """The parametrised ``ClientTestCase`` harness for the respx-mocked tier.
 
-Shared by every respx test module (see specs/04-testing.md, invariant 5): one
+Importable by any respx module that wants one body over both transports (see
+specs/04-testing.md, invariant 5, including the single-transport exemption): one
 test body runs against **both** transports, because ``__init_subclass__`` emits
 ``<Name>Sync`` and ``<Name>Async`` siblings for each subclass. That's what keeps
 the mocked tier from growing parallel sync / async bodies — and what keeps the
@@ -57,8 +58,8 @@ class _MockBoundary:
         Reads ``calls[-1]`` like ``last_request_body``: the two used to disagree (this one
         read ``calls[0]``), which is invisible in a single-request test and silently wrong in
         a multi-request one — a test would compare the first request's URL against the last
-        request's body. Harmless while this lived in one module; not once it is the shared
-        harness every respx test imports.
+        request's body. Harmless while this lived in one module; not once it is a shared
+        harness any respx module can import.
         """
         return str(self._router.calls[-1].request.url)
 

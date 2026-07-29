@@ -2001,14 +2001,17 @@ class PolyswarmAPI:
            ``200`` means found, ``204`` means not found, and anything else means the
            *request* was wrong.
 
-           A non-2xx status does not raise here, and the reason is the **method**, not the
-           missing result parser: ``parse_response`` short-circuits ``HEAD`` — setting the
-           status code as the result and returning — before it reaches the
-           non-2xx→exception mapping, which otherwise applies whether or not a parser is
-           set (see ``test_500_raises_even_without_parser``). So on this one endpoint a
-           server error collapses to ``False``, indistinguishable from a genuine "does not
-           exist", which is why neither side may widen what counts as found.
-           See ``specs/03-endpoints.md``.
+           Only ``200`` is ``True``. ``204`` and ``404`` are both ``False`` — the server
+           answers ``204`` for absent, and ``404`` is tolerated as absent for historical
+           reasons.
+
+           A non-2xx status does not raise here, and the reason is the **method**, not a
+           missing result parser: ``parse_response`` short-circuits ``HEAD``, setting the
+           status code as the result and returning before it reaches the non-2xx→exception
+           mapping (which otherwise applies whether or not a parser is set). So on this
+           endpoint a server error also collapses to ``False``, indistinguishable from a
+           genuine "does not exist" — which is why neither side may widen what counts as
+           found. See ``specs/03-endpoints.md``.
         """
         logger.info("Exists for hash %s", hash_)
         hash_ = resources.Hash.from_hashable(hash_, hash_type=hash_type)

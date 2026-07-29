@@ -445,6 +445,34 @@ class TestAsyncScanCase:
                 await api.known_good_get(sha256=sha)
             assert not isinstance(ei.value, exceptions.KnownGoodWithheldException)
 
+    @vcr.use_cassette()
+    async def test_async_hash_existence_probe_against_the_real_server(self, uid):
+        # Async twin of the sync probe test — see it for why this is asserted against the
+        # server rather than a mock: the probe is a HEAD with no result parser, so it has no
+        # error channel and a server-side widening of "found" is a silent wrong boolean.
+        async with self._api() as api:
+            # Two distinct variants: one submitted below, one nothing ever submits — which is
+            # what keeps this re-runnable against a reused stack.
+            _absent_content, absent_sha = malicious_artifact(f'{uid}-never-submitted')
+            _content, sha = malicious_artifact(uid)
+            assert absent_sha != sha
+
+            # ABSENT -> 204 -> False, in both forms.
+            assert await api.exists(absent_sha, hash_type='sha256') is False
+            assert await api.exists(absent_sha, hash_type='sha256', require_scan=True) is False
+
+            # PRESENT: submit it and let the scan settle.
+            instance, submitted_sha = await submit_and_scan(api, uid)
+            assert submitted_sha == sha
+            assert instance.window_closed
+
+            for _ in range(30):
+                if await api.exists(sha, hash_type='sha256'):
+                    break
+                await asyncio.sleep(1)
+            assert await api.exists(sha, hash_type='sha256') is True
+            assert await api.exists(sha, hash_type='sha256', require_scan=True) is True
+
     # ── Sandbox ───────────────────────────────────────────────────────────────
 
     @vcr.use_cassette()
@@ -1075,18 +1103,26 @@ async def test_async_download_streams_in_chunks(monkeypatch):
 
 
 @respx.mock
-async def test_async_exists_maps_200_true_204_and_404_false():
-    """End-to-end ``exists``: the HEAD status drives the result. The endpoint
-    returns 200 when the artifact is present and 204 when it is absent ("request
-    worked, no matching artifact"), so only a 200 is True — a 204 is a successful
-    2xx that means the *opposite* of "exists" and must be False, as must a 404."""
+async def test_async_exists_maps_404_false():
+    """``exists()`` maps a ``404`` to ``False`` — the one arm of this mapping the e2e stack
+    cannot produce, so the only one that stays mocked.
+
+    The ``200`` (present) and ``204`` (absent) arms are asserted against the **real server** on
+    resources the test provisions itself, in
+    ``test_async_hash_existence_probe_against_the_real_server`` and its sync twin. That is the
+    default (invariant 1) and it is the only thing that would catch a *server-side* flip, which
+    a mock cannot by construction — the 4.0 ``exists()`` inversion survived precisely because
+    this endpoint's coverage was entirely mocked.
+
+    ``404`` stays here because artifact-index never answers it for a well-formed probe: per its
+    ``specs/09-hash-search-head-contract.md`` that code is reserved for the *request* being
+    wrong, and a bad hash or hash type raises ``400``. The mapping is still worth pinning —
+    clients have tolerated ``404``-as-absent historically, so the SDK must not start raising if
+    a proxy or an older deployment in front of the API emits one.
+    """
     route = respx.head(f'{BASE_URL}/search/hash/sha256')
     api = PolySwarmAsyncAPI(API_KEY, uri=BASE_URL, community='gamma')
     try:
-        route.mock(return_value=httpx.Response(200))
-        assert await api.exists(SHA256) is True
-        route.mock(return_value=httpx.Response(204))   # absent: "worked, nothing found"
-        assert await api.exists(SHA256) is False
         route.mock(return_value=httpx.Response(404))
         assert await api.exists(SHA256) is False
     finally:

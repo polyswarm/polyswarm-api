@@ -57,10 +57,10 @@ def _normalise_sources(sources):
             elif isinstance(source, dict) and isinstance(source.get('tool'), str):
                 names.append(source['tool'])
             else:
-                logger.debug('Dropping unrecognised known-good sources entry: %r', source)
+                logger.warning('Dropping unrecognised known-good sources entry: %r', source)
         return names
     if sources is not None:
-        logger.debug('Dropping unrecognised known-good sources payload: %r', sources)
+        logger.warning('Dropping unrecognised known-good sources payload: %r', sources)
     return []
 
 

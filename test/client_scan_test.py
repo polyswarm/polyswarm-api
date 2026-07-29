@@ -824,6 +824,49 @@ class ScanTestCaseV2(TestCase):
         assert not isinstance(ei.value, exceptions.KnownGoodWithheldException)
 
     @vcr.use_cassette()
+    def test_hash_existence_probe_against_the_real_server(self):
+        # The hash existence probe, end to end, on resources this test provisions itself.
+        #
+        # Its status codes are a frozen contract — artifact-index
+        # specs/09-hash-search-head-contract.md: 200 = found, 204 = not found. The SDK sends
+        # this with no result parser AND as a HEAD, so parse_response short-circuits before the
+        # non-2xx mapping and hands `exists()` a bare status code. There is no error channel:
+        # a server-side widening of "found" produces a wrong boolean, silently. That is the
+        # shape of the inversion this SDK shipped in 4.0.0/4.1.0 — `int(result) // 100 == 2`
+        # made every artifact the index had never seen report present, and the suite stayed
+        # green because its probe coverage was entirely mocked.
+        #
+        # So this asserts the server's behaviour rather than the SDK's mapping, on both sides
+        # of the 200/204 boundary, using the ordinary provisioning path.
+        v3api = PolyswarmAPI(self.test_api_key, uri=f'http://artifact-index-e2e:9696/{self.api_version}', community='gamma')
+        # Two distinct EICAR variants, both deterministic: one this test submits, and one
+        # NOTHING ever submits. Deriving the absent case from its own uid is what keeps this
+        # test re-runnable against a reused stack — probing the sha we are about to submit
+        # would pass only on a freshly booted one.
+        _absent_content, absent_sha = malicious_artifact(f'{self._testMethodName}-never-submitted')
+        _content, sha = malicious_artifact(self._testMethodName)
+        assert absent_sha != sha
+
+        # ABSENT -> 204 -> False, in both forms.
+        assert v3api.exists(absent_sha, hash_type='sha256') is False
+        assert v3api.exists(absent_sha, hash_type='sha256', require_scan=True) is False
+
+        # PRESENT: submit the same sha and let the scan settle, so `last_scanned` lands in a
+        # scan state and both forms answer 200 -> True.
+        instance, submitted_sha = submit_and_scan(v3api, self._testMethodName)
+        assert submitted_sha == sha, 'the probe must be asked about the sha we just submitted'
+        assert instance.window_closed
+
+        # The search row is written by an async task, so allow for index lag — but assert the
+        # value rather than polling until it agrees.
+        for _ in range(30):
+            if v3api.exists(sha, hash_type='sha256'):
+                break
+            time.sleep(1)
+        assert v3api.exists(sha, hash_type='sha256') is True
+        assert v3api.exists(sha, hash_type='sha256', require_scan=True) is True
+
+    @vcr.use_cassette()
     def test_sandbox_providers(self):
         v3api = PolyswarmAPI(self.test_api_key, uri='http://artifact-index-e2e:9696/v3', community='gamma')
         response = v3api.sandbox_providers()
