@@ -781,9 +781,10 @@ class ScanTestCaseV2(TestCase):
         with tempfile.TemporaryDirectory() as out_dir:
             with pytest.raises(exceptions.KnownGoodWithheldException) as ei:
                 v3api.download(out_dir, sha)
-            # A refused download leaves nothing behind: the streaming path opens its
-            # destination before the response is read, so a truncated or empty file here
-            # would look to a caller like a download that worked.
+            # A refused download leaves nothing behind. `_execute_download` checks the
+            # status before it calls `open_destination`, and this pins that ordering: invert
+            # it and a refusal would leave an empty file, which to a caller is
+            # indistinguishable from a download that worked.
             assert os.listdir(out_dir) == []
         assert ei.value.sources == ['nsrl']
         # ...and the hash still reports PRESENT under require_scan, which is the semantics

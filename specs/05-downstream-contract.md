@@ -391,6 +391,8 @@ result = req._result          # the parsed resource (or list);
 | New endpoint method | minor |
 | New resource class | minor |
 | New field on a resource (mirror of a new server-side field) | minor |
+| **New exception class that subclasses an existing one** | **minor** — additive: every `except <base>` keeps catching it (invariant 3), so no consumer has to change. Raising the *base* class where a narrower one used to be raised is the major-bump direction |
+| **Narrowing which exception a status maps to** (same status code, more specific class) | **minor**, on the same reasoning — but only while the new class is a subclass of the old one. A sibling class is a behaviour change on a documented contract, i.e. major |
 | Bug fix in request/response handling | patch |
 | Signature change on a public method | major |
 | Rename / removal of a public symbol | major |

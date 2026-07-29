@@ -289,7 +289,7 @@ Decision tree (e2e-first — see invariant 1):
 
 1. **Pure logic test?** (No HTTP, no resource side effects — including request-builder shape and `parse_response`.) → Plain unittest / pytest function. See `jmespath_test.py`, `core_test.py`, `known_good_test.py`.
 2. **Endpoint behaviour?** → **VCR-backed live-e2e test — the default.** Write the test against the real endpoint, record once against a fresh e2e stack, commit the cassette. Sync body in `client_scan_test.py`, async in `async_client_test.py`. Need a sample or a sha? Derive it from the test's own EICAR variant (`malicious_artifact(uid)`); anything needing a verdict gets it from the `eicar` engine.
-3. **Scenario the e2e stack can't produce** (transport failures, retry exhaustion, cursor pathologies, external systems, an SDK transport arm)? → Parametrised `ClientTestCase` with `_MockBoundary` (`respx`), imported from `test/_client_harness.py`. See `metadata_field_properties_test.py` (endpoint shape). A transport arm is **not** automatically such a scenario — see §The transport arm. Body covers both sync and async automatically. Justify in the test docstring why the scenario can't run on e2e.
+3. **Scenario the e2e stack can't produce** (transport failures, retry exhaustion, cursor pathologies, external systems)? → Parametrised `ClientTestCase` with `_MockBoundary` (`respx`), imported from `test/_client_harness.py`. See `metadata_field_properties_test.py` (endpoint shape). A **transport arm is not on that list**: the stack drives one perfectly well, because the caller-visible outcome is the mapping — see §The transport arm. Body covers both sync and async automatically. Justify in the test docstring why the scenario can't run on e2e.
 
 Always:
 
