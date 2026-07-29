@@ -19,7 +19,7 @@ How the test suite is organised. Three layers: pure unit tests (no HTTP at all �
 
 - `test/conftest.py` — pytest configuration.
 - `test/core_test.py` — pure-unit tests for `parse_response`, `PolyswarmRequest`, and resource builders. No httpx, no fixtures.
-- `test/_client_harness.py` — the parametrised `ClientTestCase` harness (`_MockBoundary` / `_AsyncToSync`) every `respx` test module imports. Not collected itself (the `_` prefix keeps it out of `python_files`), same as `_e2e_helpers.py`.
+- `test/_client_harness.py` — the parametrised `ClientTestCase` harness (`_MockBoundary` / `_AsyncToSync`), importable by any `respx` module that wants one body to cover both transports (invariant 5). Not every `respx` user needs it: `client_scan_test.py` / `async_client_test.py` drive `respx` directly for a handful of cases that are already transport-specific. Not collected itself — it matches neither `*_test.py` nor `test_*.py`, so pytest never picks it up (the leading `_` is a naming convention, not the mechanism), same as `_e2e_helpers.py`.
 - `test/metadata_field_properties_test.py` — the canonical example of the parametrised `ClientTestCase` harness with `respx`-backed mocking.
 - `test/client_scan_test.py` — sync, VCR-backed integration tests (not yet on the parametrised harness — follow-up work).
 - `test/async_client_test.py` — async, VCR-backed integration tests (not yet on the parametrised harness — follow-up work).

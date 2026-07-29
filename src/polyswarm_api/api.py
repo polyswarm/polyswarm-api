@@ -1999,10 +1999,16 @@ class PolyswarmAPI:
         .. note::
            This is an existence probe, and its status codes are a **frozen contract**:
            ``200`` means found, ``204`` means not found, and anything else means the
-           *request* was wrong. Because the probe carries no result parser, a non-2xx
-           status never raises here — it collapses to ``False``. So a server error is
-           indistinguishable from a genuine "does not exist", which is why neither side
-           may widen what counts as found. See ``specs/03-endpoints.md``.
+           *request* was wrong.
+
+           A non-2xx status does not raise here, and the reason is the **method**, not the
+           missing result parser: ``parse_response`` short-circuits ``HEAD`` — setting the
+           status code as the result and returning — before it reaches the
+           non-2xx→exception mapping, which otherwise applies whether or not a parser is
+           set (see ``test_500_raises_even_without_parser``). So on this one endpoint a
+           server error collapses to ``False``, indistinguishable from a genuine "does not
+           exist", which is why neither side may widen what counts as found.
+           See ``specs/03-endpoints.md``.
         """
         logger.info("Exists for hash %s", hash_)
         hash_ = resources.Hash.from_hashable(hash_, hash_type=hash_type)

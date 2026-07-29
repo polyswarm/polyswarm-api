@@ -410,6 +410,22 @@ class TestParseResponseErrors:
             )
         assert 'Errors:\nfirst problem\nsecond problem' in str(ei.value)
 
+    def test_500_string_errors_render_on_one_line(self):
+        # The third arm. Iterating a bare string yields characters, so without it a prose
+        # `errors` rendered one letter per line — the same failure the mapping arm was added
+        # for. Both specs now promise this shape renders as-is, so pin it beside the other two.
+        req = PolyswarmRequest(api=_FakeApi(), method='POST', url='u',
+                               result_parser=_SampleResource)
+        with pytest.raises(exceptions.RequestException) as ei:
+            parse_response(
+                _FakeResponse(status_code=500, body={
+                    'status': 'error', 'result': 'boom', 'errors': 'some prose',
+                }),
+                req,
+            )
+        assert 'Errors:\nsome prose' in str(ei.value)
+        assert 'Errors:\ns\no\nm' not in str(ei.value)
+
     def test_500_raises_even_without_parser(self):
         # Regression: fire-and-forget endpoints (no result_parser) must
         # still surface non-2xx as exceptions, not swallow them.
