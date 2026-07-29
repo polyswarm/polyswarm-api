@@ -292,6 +292,40 @@ class TestParseResponseErrors:
             )
         assert ei.value.sources == []
 
+    def test_404_known_good_sources_normalised_to_feed_names(self):
+        # Regression: the raise site passed the envelope's ``sources`` payload
+        # straight through, so any shape but a list of strings reached the caller
+        # — a bare 'nsrl' iterated as characters ('n', 's', 'r', 'l'), and the
+        # list-of-feed-dicts shape the instance-level ``known_good`` field uses
+        # iterated as dicts. ``.sources`` is documented as a list of feed-name
+        # strings, so normalise at the boundary: string → one-element list, list →
+        # its string entries, anything else → [].
+        shapes = [
+            (['nsrl', 'commercial'], ['nsrl', 'commercial']),  # already correct
+            ('nsrl', ['nsrl']),                                # bare string
+            ([{'tool': 'nsrl'}], []),                          # feed-dict shape
+            (['nsrl', {'tool': 'other'}], ['nsrl']),           # mixed list
+            ({'tool': 'nsrl'}, []),                            # mapping
+            (None, []),                                        # explicit null
+            (7, []),                                           # nonsense
+        ]
+        for payload, expected in shapes:
+            errors = {'code': 'KNOWN_GOOD', 'known_good': True, 'sources': payload}
+            req = PolyswarmRequest(api=_FakeApi(), method='GET', url='u',
+                                   result_parser=_SampleResource)
+            with pytest.raises(exceptions.KnownGoodWithheldException) as ei:
+                parse_response(
+                    _FakeResponse(status_code=404, body={
+                        'status': 'error', 'result': 'withheld', 'errors': errors,
+                    }),
+                    req,
+                )
+            assert ei.value.sources == expected, payload
+            # Whatever the shape, iterating yields feed-name strings...
+            assert all(isinstance(source, str) for source in ei.value.sources)
+            # ...and the raw payload is still reachable for callers that want it.
+            assert req.errors['sources'] == payload
+
     def test_404_other_error_code_stays_plain_not_found(self):
         # Only the known-good code gets the subclass; every other 404 — including
         # a differently-coded or legacy list-shaped ``errors`` payload — stays a

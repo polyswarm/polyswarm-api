@@ -360,6 +360,8 @@ def _raise_for_status(response, request):
         # machine-readable code in the error envelope's ``errors`` slot. Raise the
         # ``NotFoundException`` subclass so callers can tell "withheld by design"
         # apart from a plain miss; every other 404 stays a plain NotFoundException.
+        # The raw ``sources`` payload goes in as-is — the exception normalises it
+        # into the documented list-of-feed-names shape.
         errors = request.errors
         if isinstance(errors, dict) and errors.get('code') == 'KNOWN_GOOD':
             raise exceptions.KnownGoodWithheldException(

@@ -388,7 +388,7 @@ This keeps the body off the heap for `folder`/file-handle destinations — parit
 
 - `NoResultsException` — HTTP 204 with a typed `result_parser`.
 - `NotFoundException` — HTTP 404, or a JSON-decode failure on a 404.
-- `KnownGoodWithheldException` (a `NotFoundException` subclass) — HTTP 404 whose `errors` payload is a dict with `code == 'KNOWN_GOOD'`: the artifact is a known-good binary and its bytes are withheld by design. Carries `.sources` (the flagging known-good feeds, `[]` when none were named). Any other 404 — a different code, a legacy list-shaped `errors`, or no `errors` at all — stays a plain `NotFoundException`.
+- `KnownGoodWithheldException` (a `NotFoundException` subclass) — HTTP 404 whose `errors` payload is a dict with `code == 'KNOWN_GOOD'`: the artifact is a known-good binary and its bytes are withheld by design. Carries `.sources` (the flagging known-good feeds, always a list of strings — normalised in the exception's constructor — and `[]` when none were named or the payload arrived in another shape). Any other 404 — a different code, a legacy list-shaped `errors`, or no `errors` at all — stays a plain `NotFoundException`.
 - `FailedInstanceException` — HTTP 422.
 - `UsageLimitsExceededException` — HTTP 429.
 - `RequestException` — any other non-2xx. Its message appends the envelope's `errors` slot rendered for whichever shape arrived: a **list** renders one entry per line (the legacy shape), a **mapping** renders `key=value` lines (the way-forward shape, which the server forwards on every status — not just the 404 the `code` contract was introduced for).

@@ -32,6 +32,25 @@ class NotFoundException(RequestException):
     pass
 
 
+def _normalise_sources(sources):
+    """Coerce a server-supplied ``sources`` payload into a list of feed names.
+
+    ``.sources`` is published as a list of strings and consumers iterate it
+    (``for feed in exc.sources``), so the raw payload can't be handed through
+    untouched: a bare ``'nsrl'`` would iterate as characters, and the
+    list-of-feed-dicts shape the instance-level ``known_good`` field uses would
+    yield dicts. A string becomes a one-element list, a list keeps only its
+    string entries, and any other shape (mapping, ``None``, number) becomes
+    ``[]``. Nothing is lost — the raw envelope stays readable at
+    ``exc.request.errors``.
+    """
+    if isinstance(sources, str):
+        return [sources]
+    if isinstance(sources, list):
+        return [source for source in sources if isinstance(source, str)]
+    return []
+
+
 class KnownGoodWithheldException(NotFoundException):
     """404 for a known-good binary: the platform never stores or serves its bytes.
 
@@ -44,9 +63,10 @@ class KnownGoodWithheldException(NotFoundException):
 
     def __init__(self, request, *args, sources=None):
         super().__init__(request, *args)
-        # Known-good feeds that flagged the hash (e.g. ``['nsrl']``); empty list
-        # when the server named none.
-        self.sources = sources or []
+        # Known-good feeds that flagged the hash (e.g. ``['nsrl']``); always a list
+        # of strings — normalised here, at the boundary, so the documented shape
+        # holds whatever the envelope carried. Empty when the server named none.
+        self.sources = _normalise_sources(sources)
 
 
 class NoResultsException(RequestException):

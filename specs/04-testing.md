@@ -19,7 +19,9 @@ How the test suite is organised. Three layers: pure unit tests (no HTTP at all �
 
 - `test/conftest.py` — pytest configuration.
 - `test/core_test.py` — pure-unit tests for `parse_response`, `PolyswarmRequest`, and resource builders. No httpx, no fixtures.
+- `test/_client_harness.py` — the parametrised `ClientTestCase` harness (`_MockBoundary` / `_AsyncToSync`) every `respx` test module imports. Not collected itself (the `_` prefix keeps it out of `python_files`), same as `_e2e_helpers.py`.
 - `test/metadata_field_properties_test.py` — the canonical example of the parametrised `ClientTestCase` harness with `respx`-backed mocking.
+- `test/download_refusal_test.py` — the same harness applied to a transport arm: the streaming-download refusal mapping, one body over both `_execute_download` implementations.
 - `test/client_scan_test.py` — sync, VCR-backed integration tests (not yet on the parametrised harness — follow-up work).
 - `test/async_client_test.py` — async, VCR-backed integration tests (not yet on the parametrised harness — follow-up work).
 - `test/jmespath_test.py` — unit tests for `BaseJsonResource.jmespath`.
@@ -40,7 +42,7 @@ The pure-unit tier exists because the 4.0 redesign made it possible: resource bu
 
 **VCR-backed live-e2e tests are the default for new endpoint tests** (invariant 1): they exercise the real server implementation and the cassette pins the actual contract, while replay keeps unit runs fast and offline. `respx` is reserved for scenarios the e2e stack can't produce (or only at disproportionate cost); pure-unit covers request-shape and parse logic without any HTTP. The canonical split for a new endpoint: a live-e2e VCR lifecycle test (behaviour, real contract) + pure-unit builder tests (body-vs-query routing, None-omission) — see `test_known_good_lifecycle` + `test/known_good_test.py`.
 
-A third slice is legitimate when the SDK's **transport arm** is what's under test rather than the endpoint. The streaming download path (`_execute_download`) never runs `parse_response` — it reads the error body itself and calls `_raise_for_status` — so its non-2xx mapping is reachable by neither a pure-unit parse test nor a cassette-backed endpoint test that only asserts the caller-visible outcome. Those go on the respx tier: `test_async_download_known_good_refusal_raises_withheld` pins that a refusal envelope arriving on the *streaming* arm still becomes the typed exception with its payload (`.sources`) and leaves nothing written to the destination.
+The SDK's own **transport arm** is one of the scenarios respx is reserved for. The streaming download path (`_execute_download`) never runs `parse_response` — it reads the error body itself and calls `_raise_for_status` — so its non-2xx mapping is reachable by neither a pure-unit parse test nor a cassette-backed endpoint test that only asserts the caller-visible outcome. That's still the respx tier, **not a slice of its own**: it rides the parametrised `ClientTestCase` harness like every other respx body (invariant 5). Which is the point — `_execute_download` exists twice (the canonical async source and its generated sync mirror), and a hand-written async-only body would leave the sync arm uncovered. `DownloadRefusalTestCase` (`test/download_refusal_test.py`) is the worked example: one body, auto-emitted `…Sync` / `…Async` siblings, pinning that a refusal envelope arriving on the streaming arm becomes the typed exception with its payload (`.sources`) and leaves nothing written to the destination.
 
 ### E2e sample-generation conventions
 
@@ -49,9 +51,10 @@ A third slice is legitimate when the SDK's **transport arm** is what's under tes
 
 ## The parametrised `ClientTestCase` harness
 
-Implemented in `test/metadata_field_properties_test.py`. The shape:
+Implemented in `test/_client_harness.py`; every `respx` test module imports `ClientTestCase` from it (`metadata_field_properties_test.py` is the canonical example of using it). The shape:
 
 ```python
+# test/_client_harness.py
 from polyswarm_api.api import PolyswarmAPI
 from polyswarm_api.aio import PolySwarmAsyncAPI
 
@@ -84,7 +87,8 @@ class ClientTestCase(TestCase):
         self.mock.__exit__(None, None, None)
 
 
-# A concrete test class — same body runs twice.
+# A concrete test class in any *_test.py module — same body runs twice.
+# from test._client_harness import BASE_URL, ClientTestCase
 
 class MetadataFieldPropertiesTestCase(ClientTestCase):
     def test_get(self):
@@ -282,7 +286,7 @@ Decision tree (e2e-first — see invariant 1):
 
 1. **Pure logic test?** (No HTTP, no resource side effects — including request-builder shape and `parse_response`.) → Plain unittest / pytest function. See `jmespath_test.py`, `core_test.py`, `known_good_test.py`.
 2. **Endpoint behaviour?** → **VCR-backed live-e2e test — the default.** Write the test against the real endpoint, record once against a fresh e2e stack, commit the cassette. Sync body in `client_scan_test.py`, async in `async_client_test.py`. Need a sample or a sha? Derive it from the test's own EICAR variant (`malicious_artifact(uid)`); anything needing a verdict gets it from the `eicar` engine.
-3. **Scenario the e2e stack can't produce** (transport failures, retry exhaustion, cursor pathologies, external systems)? → Parametrised `ClientTestCase` with `_MockBoundary` (`respx`). See `metadata_field_properties_test.py`. Body covers both sync and async automatically. Justify in the test docstring why the scenario can't run on e2e.
+3. **Scenario the e2e stack can't produce** (transport failures, retry exhaustion, cursor pathologies, external systems, an SDK transport arm)? → Parametrised `ClientTestCase` with `_MockBoundary` (`respx`), imported from `test/_client_harness.py`. See `metadata_field_properties_test.py` (endpoint shape) and `download_refusal_test.py` (a transport arm). Body covers both sync and async automatically. Justify in the test docstring why the scenario can't run on e2e.
 
 Always:
 
