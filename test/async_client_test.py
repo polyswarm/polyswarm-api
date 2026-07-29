@@ -1015,6 +1015,42 @@ async def test_async_download_204_raises_no_results():
 
 
 @respx.mock
+async def test_async_download_known_good_refusal_raises_withheld():
+    """A refused download is what ``KnownGoodWithheldException`` exists for, and a
+    refusal arrives on the **streaming** arm (``_execute_download`` reads the small
+    error body, then hands it to the shared ``_raise_for_status``) — not through
+    ``parse_response``. Pure-unit coverage of the envelope can't reach that arm, so
+    pin it here: the typed exception must come out of ``download`` carrying the
+    flagging feeds, and nothing may be written to the destination folder (a refusal
+    must not leave a truncated or empty artifact behind, the way a 204 must not).
+
+    respx rather than the live e2e stack because the refusal is a *transport-shape*
+    assertion on the streaming path; the endpoint behaviour itself belongs to the
+    VCR-backed lifecycle test.
+    """
+    respx.get(f'{BASE_URL}/consumer/download/sha256/{SHA256}').mock(
+        return_value=httpx.Response(404, json={
+            'status': 'error',
+            'result': 'Unable to download the provided artifact, it is a '
+                      'known-good binary; its bytes are withheld by design.',
+            'errors': {'code': 'KNOWN_GOOD', 'known_good': True,
+                       'sources': ['nsrl']},
+        }))
+
+    api = PolySwarmAsyncAPI(API_KEY, uri=BASE_URL, community='gamma')
+    try:
+        with tempfile.TemporaryDirectory() as tmp_dir:
+            with pytest.raises(exceptions.KnownGoodWithheldException) as ei:
+                await api.download(tmp_dir, SHA256)
+            assert ei.value.sources == ['nsrl']
+            # Still a NotFoundException, so existing handlers keep catching it.
+            assert isinstance(ei.value, exceptions.NotFoundException)
+            assert os.listdir(tmp_dir) == []
+    finally:
+        await api.aclose()
+
+
+@respx.mock
 async def test_async_download_streams_in_chunks(monkeypatch):
     """Regression guard for the streaming-download fix: the body is consumed via
     the streaming API (``iter_bytes``) straight into the destination, not read

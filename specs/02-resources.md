@@ -391,7 +391,7 @@ This keeps the body off the heap for `folder`/file-handle destinations — parit
 - `KnownGoodWithheldException` (a `NotFoundException` subclass) — HTTP 404 whose `errors` payload is a dict with `code == 'KNOWN_GOOD'`: the artifact is a known-good binary and its bytes are withheld by design. Carries `.sources` (the flagging known-good feeds, `[]` when none were named). Any other 404 — a different code, a legacy list-shaped `errors`, or no `errors` at all — stays a plain `NotFoundException`.
 - `FailedInstanceException` — HTTP 422.
 - `UsageLimitsExceededException` — HTTP 429.
-- `RequestException` — any other non-2xx.
+- `RequestException` — any other non-2xx. Its message appends the envelope's `errors` slot rendered for whichever shape arrived: a **list** renders one entry per line (the legacy shape), a **mapping** renders `key=value` lines (the way-forward shape, which the server forwards on every status — not just the 404 the `code` contract was introduced for).
 
 Each is raised by `parse_response`. `RequestException.__init__` attaches the descriptor as `.request`, so callers downstream read `exc.request.status_code`, `exc.request.json`, etc. The session does not catch and rewrap — attachment happens at construction time.
 

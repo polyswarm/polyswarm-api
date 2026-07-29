@@ -338,6 +338,44 @@ class TestParseResponseErrors:
                 req,
             )
 
+    def test_500_mapping_errors_keep_every_value_in_the_message(self):
+        # Regression: the diagnostic rendered ``errors`` by iterating it, which on a
+        # mapping-shaped envelope yields only its KEYS — the message came out as
+        # "code\nknown_good\nsources" with every value silently dropped. The mapping
+        # shape is the way-forward one and the server forwards it on every status
+        # (400 / 401 / 403 / 413 / 5xx all land here), so the values must survive.
+        req = PolyswarmRequest(api=_FakeApi(), method='POST', url='u',
+                               result_parser=_SampleResource)
+        errors = {'code': 'KNOWN_GOOD', 'known_good': True, 'sources': ['nsrl']}
+        with pytest.raises(exceptions.RequestException) as ei:
+            parse_response(
+                _FakeResponse(status_code=500, body={
+                    'status': 'error', 'result': 'boom', 'errors': errors,
+                }),
+                req,
+            )
+        message = str(ei.value)
+        assert 'code=KNOWN_GOOD' in message
+        assert 'known_good=True' in message
+        assert "sources=['nsrl']" in message
+        # The keys alone (the old, lossy rendering) must not be the whole story.
+        assert 'Errors:\ncode\n' not in message
+
+    def test_500_list_errors_still_render_one_entry_per_line(self):
+        # The legacy list shape must keep rendering exactly as before — one entry
+        # per line — now that the mapping shape is branched on separately.
+        req = PolyswarmRequest(api=_FakeApi(), method='POST', url='u',
+                               result_parser=_SampleResource)
+        with pytest.raises(exceptions.RequestException) as ei:
+            parse_response(
+                _FakeResponse(status_code=500, body={
+                    'status': 'error', 'result': 'boom',
+                    'errors': ['first problem', 'second problem'],
+                }),
+                req,
+            )
+        assert 'Errors:\nfirst problem\nsecond problem' in str(ei.value)
+
     def test_500_raises_even_without_parser(self):
         # Regression: fire-and-forget endpoints (no result_parser) must
         # still surface non-2xx as exceptions, not swallow them.

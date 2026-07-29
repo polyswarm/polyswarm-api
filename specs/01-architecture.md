@@ -271,7 +271,7 @@ Every HTTP-level error maps to a subclass of `PolyswarmException`:
 - 422 → `FailedInstanceException`
 - 429 → `UsageLimitsExceededException`
 - 204 on a request that expects data (JSON-parser GET **or** streaming download) → `NoResultsException` — the server did the work but matched nothing. **HEAD is exempt**: it returns the raw status code as the result (so `exists()` reads a 204 as "known-absent" rather than raising).
-- Other non-2xx → `RequestException`
+- Other non-2xx → `RequestException`. Its message renders the request diagnostics plus the envelope's `errors` slot, in **either** shape: the legacy **list** (one entry per line) or the way-forward **mapping** (`key=value` lines). The mapping shape is not 404-only — the server forwards it on every arm (400 / 401 / 403 / 413 / 5xx) — and iterating a mapping yields only its keys, so it must not be rendered like a list or every value is silently dropped from the message.
 - Client-side validation failures (bad hash, missing kwarg) → `InvalidValueException`
 - Polling timeouts → `TimeoutException`
 

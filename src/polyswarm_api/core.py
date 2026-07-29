@@ -394,7 +394,18 @@ def _bad_status_message(request):
         f'Message: {request._result}'
     )
     if request.errors:
-        errors = '\n'.join(str(error) for error in request.errors)
+        # Two ``errors`` shapes are in play. The legacy shape is a **list** of
+        # per-error entries — one rendered line each. The way-forward shape is a
+        # **mapping** carrying the machine-readable code plus its context
+        # (``{'code': 'KNOWN_GOOD', 'known_good': True, 'sources': [...]}``), and the
+        # server forwards it on every status, not just the 404 the code was
+        # introduced for. Iterating a mapping yields only its KEYS, so rendering it
+        # like a list would drop every value from the message the caller sees —
+        # render it as ``key=value`` lines instead.
+        if isinstance(request.errors, dict):
+            errors = '\n'.join(f'{k}={v}' for k, v in request.errors.items())
+        else:
+            errors = '\n'.join(str(error) for error in request.errors)
         message = f'{message}\nErrors:\n{errors}'
     return message
 
