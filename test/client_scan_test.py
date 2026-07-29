@@ -802,8 +802,12 @@ class ScanTestCaseV2(TestCase):
         assert sorted(ei.value.sources) == ['commercial', 'nsrl']
         deleted = v3api.known_good_delete(sha256=sha)
         assert deleted.sha256 == sha
-        with pytest.raises(exceptions.NotFoundException):
+        # A 404 with no known-good code must stay the BASE class: the subclass satisfies
+        # `pytest.raises(NotFoundException)` too, so without this the one place the real
+        # server returns a plain miss never checks that it wasn't mapped to the subclass.
+        with pytest.raises(exceptions.NotFoundException) as ei:
             v3api.known_good_get(sha256=sha)
+        assert not isinstance(ei.value, exceptions.KnownGoodWithheldException)
 
     @vcr.use_cassette()
     def test_sandbox_providers(self):

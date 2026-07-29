@@ -433,8 +433,12 @@ class TestAsyncScanCase:
             assert sorted(ei.value.sources) == ['commercial', 'nsrl']
             deleted = await api.known_good_delete(sha256=sha)
             assert deleted.sha256 == sha
-            with pytest.raises(exceptions.NotFoundException):
+            # A 404 with no known-good code must stay the BASE class — the subclass would
+            # satisfy this raises() too, so the plain-miss half of the mapping needs its own
+            # assertion against the real server.
+            with pytest.raises(exceptions.NotFoundException) as ei:
                 await api.known_good_get(sha256=sha)
+            assert not isinstance(ei.value, exceptions.KnownGoodWithheldException)
 
     # ── Sandbox ───────────────────────────────────────────────────────────────
 

@@ -1,3 +1,8 @@
+import logging
+
+logger = logging.getLogger(__name__)
+
+
 class PolyswarmException(Exception):
     pass
 
@@ -49,8 +54,10 @@ def _normalise_sources(sources):
     from "the server named feeds in a shape we discarded".
 
     A string becomes a one-element list; anything else (mapping, ``None``,
-    number) becomes ``[]``. Nothing is lost either way — the raw envelope stays
-    readable at ``exc.request.errors``.
+    number) becomes ``[]`` — and says so at debug level, because the argument
+    above cuts both ways: a discard nobody can see is the failure mode this
+    normalisation exists to avoid. Nothing is lost either way — the raw envelope
+    stays readable at ``exc.request.errors``.
     """
     if isinstance(sources, str):
         return [sources]
@@ -61,7 +68,11 @@ def _normalise_sources(sources):
                 names.append(source)
             elif isinstance(source, dict) and isinstance(source.get('tool'), str):
                 names.append(source['tool'])
+            else:
+                logger.debug('Dropping unrecognised known-good sources entry: %r', source)
         return names
+    if sources is not None:
+        logger.debug('Dropping unrecognised known-good sources payload: %r', sources)
     return []
 
 
