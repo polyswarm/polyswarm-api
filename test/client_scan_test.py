@@ -774,6 +774,21 @@ class ScanTestCaseV2(TestCase):
         assert created.sha256 == sha
         assert created.sources == ['nsrl']
         assert created.artifact_instance_id
+        # The refusal, against the real server. Every assertion about the error envelope
+        # elsewhere in the suite reads a body this repo fabricated, which asserts what we
+        # *think* the server sends: a rename on the server side (KNOWN_GOOD_WITHHELD →
+        # KNOWN_GOOD, which really happened mid-review) would leave the fabricated tests
+        # green. Here the caller-visible outcome IS the contract — the typed exception and
+        # the feed names it carries.
+        with tempfile.TemporaryDirectory() as out_dir:
+            with pytest.raises(exceptions.KnownGoodWithheldException) as ei:
+                v3api.download(out_dir, sha)
+        assert ei.value.sources == ['nsrl']
+        # ...and the hash still reports PRESENT under require_scan, which is the semantics
+        # the SDK now documents in four places: a known-good record is decided and terminal,
+        # so "has it been scanned" must not answer "no, go and scan it" for a sample the
+        # platform will never scan.
+        assert v3api.exists(sha, hash_type='sha256', require_scan=True) is True
         # A second feed flagging the same sha extends the same entry (no new row).
         extended = v3api.known_good_create(sha256=sha, source='commercial')
         assert extended.id == created.id
@@ -781,6 +796,12 @@ class ScanTestCaseV2(TestCase):
         got = v3api.known_good_get(sha256=sha)
         assert got.sha256 == sha
         assert sorted(got.sources) == ['commercial', 'nsrl']
+        # Both feeds now name themselves in the refusal — the exception's .sources tracks
+        # the catalogue rather than being a snapshot from the first flagging.
+        with tempfile.TemporaryDirectory() as out_dir:
+            with pytest.raises(exceptions.KnownGoodWithheldException) as ei:
+                v3api.download(out_dir, sha)
+        assert sorted(ei.value.sources) == ['commercial', 'nsrl']
         deleted = v3api.known_good_delete(sha256=sha)
         assert deleted.sha256 == sha
         with pytest.raises(exceptions.NotFoundException):

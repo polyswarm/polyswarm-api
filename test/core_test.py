@@ -299,13 +299,22 @@ class TestParseResponseErrors:
         # list-of-feed-dicts shape the instance-level ``known_good`` field uses
         # iterated as dicts. ``.sources`` is documented as a list of feed-name
         # strings, so normalise at the boundary: string → one-element list, list →
-        # its string entries, anything else → [].
+        # feed names from either shape, anything else → [].
+        #
+        # The feed-dict entries yield names rather than being dropped: that is the
+        # OTHER shape the platform uses for this same concept (the instance-level
+        # ``known_good`` field, unpacked via ``feed['tool']`` into
+        # ``known_good_sources``). If the envelope ever reuses that serialiser,
+        # discarding it would silently empty ``.sources`` and take the exception's
+        # whole added value with it.
         shapes = [
             (['nsrl', 'commercial'], ['nsrl', 'commercial']),  # already correct
             ('nsrl', ['nsrl']),                                # bare string
-            ([{'tool': 'nsrl'}], []),                          # feed-dict shape
-            (['nsrl', {'tool': 'other'}], ['nsrl']),           # mixed list
-            ({'tool': 'nsrl'}, []),                            # mapping
+            ([{'tool': 'nsrl'}], ['nsrl']),                    # feed-dict shape
+            ([{'tool': 'nsrl'}, {'tool': 'commercial'}], ['nsrl', 'commercial']),
+            (['nsrl', {'tool': 'other'}], ['nsrl', 'other']),  # mixed list
+            ([{'tool': None}, {}], []),                        # dicts naming nothing
+            ({'tool': 'nsrl'}, []),                            # a mapping, not a list
             (None, []),                                        # explicit null
             (7, []),                                           # nonsense
         ]

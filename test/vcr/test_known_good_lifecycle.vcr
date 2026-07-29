@@ -17,12 +17,12 @@ interactions:
       host:
       - artifact-index-e2e:9696
       user-agent:
-      - polyswarm_api/4.1.0 (x86_64-Linux-CPython-3.12.3)
+      - polyswarm_api/4.2.0 (x86_64-Linux-CPython-3.12.13)
     method: POST
     uri: http://artifact-index-e2e:9696/v3/known-good
   response:
     body:
-      string: '{"result":{"artifact_instance_id":"34363762993756881","created":"2026-06-29T18:30:01.431502+00:00","id":"25565696800926378","sha256":"9c0258ed4cc98056773bcf0c57fe4bc79618802357f0703c503b4cb172a263df","sources":["nsrl"]},"status":"OK"}
+      string: '{"result":{"artifact_instance_id":"90039023884233228","created":"2026-07-29T18:39:47.299724+00:00","id":"66682229801759442","sha256":"9c0258ed4cc98056773bcf0c57fe4bc79618802357f0703c503b4cb172a263df","sources":["nsrl"]},"status":"OK"}
 
         '
     headers:
@@ -37,7 +37,89 @@ interactions:
       Content-Type:
       - application/json
       Date:
-      - Mon, 29 Jun 2026 18:30:01 GMT
+      - Wed, 29 Jul 2026 18:39:47 GMT
+      Server:
+      - gunicorn
+      X-Billing-ID:
+      - '111'
+    status:
+      code: 200
+      message: OK
+- request:
+    body: ''
+    headers:
+      accept:
+      - '*/*'
+      accept-encoding:
+      - gzip, deflate
+      authorization:
+      - '11111111111111111111111111111111'
+      connection:
+      - keep-alive
+      host:
+      - artifact-index-e2e:9696
+      user-agent:
+      - polyswarm_api/4.2.0 (x86_64-Linux-CPython-3.12.13)
+    method: GET
+    uri: http://artifact-index-e2e:9696/v3/consumer/download/sha256/9c0258ed4cc98056773bcf0c57fe4bc79618802357f0703c503b4cb172a263df?community=gamma
+  response:
+    body:
+      string: '{"errors":{"code":"KNOWN_GOOD","known_good":true,"sources":["nsrl"]},"result":"Unable
+        to download the provided artifact, it is a known-good binary; its bytes are
+        withheld by design.","status":"error"}
+
+        '
+    headers:
+      Access-Control-Allow-Origin:
+      - '*'
+      Access-Control-Expose-Headers:
+      - Authorization
+      Connection:
+      - keep-alive
+      Content-Length:
+      - '201'
+      Content-Type:
+      - application/json
+      Date:
+      - Wed, 29 Jul 2026 18:39:47 GMT
+      Server:
+      - gunicorn
+    status:
+      code: 404
+      message: NOT FOUND
+- request:
+    body: ''
+    headers:
+      accept:
+      - '*/*'
+      accept-encoding:
+      - gzip, deflate
+      authorization:
+      - '11111111111111111111111111111111'
+      connection:
+      - keep-alive
+      host:
+      - artifact-index-e2e:9696
+      user-agent:
+      - polyswarm_api/4.2.0 (x86_64-Linux-CPython-3.12.13)
+    method: HEAD
+    uri: http://artifact-index-e2e:9696/v3/search/hash/sha256?hash=9c0258ed4cc98056773bcf0c57fe4bc79618802357f0703c503b4cb172a263df&community=gamma&require_scan=true
+  response:
+    body:
+      string: ''
+    headers:
+      Access-Control-Allow-Origin:
+      - '*'
+      Access-Control-Expose-Headers:
+      - Authorization
+      Connection:
+      - keep-alive
+      Content-Length:
+      - '57'
+      Content-Type:
+      - application/json
+      Date:
+      - Wed, 29 Jul 2026 18:39:47 GMT
       Server:
       - gunicorn
       X-Billing-ID:
@@ -63,12 +145,12 @@ interactions:
       host:
       - artifact-index-e2e:9696
       user-agent:
-      - polyswarm_api/4.1.0 (x86_64-Linux-CPython-3.12.3)
+      - polyswarm_api/4.2.0 (x86_64-Linux-CPython-3.12.13)
     method: POST
     uri: http://artifact-index-e2e:9696/v3/known-good
   response:
     body:
-      string: '{"result":{"artifact_instance_id":"34363762993756881","created":"2026-06-29T18:30:01.431502+00:00","id":"25565696800926378","sha256":"9c0258ed4cc98056773bcf0c57fe4bc79618802357f0703c503b4cb172a263df","sources":["commercial","nsrl"]},"status":"OK"}
+      string: '{"result":{"artifact_instance_id":"90039023884233228","created":"2026-07-29T18:39:47.299724+00:00","id":"66682229801759442","sha256":"9c0258ed4cc98056773bcf0c57fe4bc79618802357f0703c503b4cb172a263df","sources":["commercial","nsrl"]},"status":"OK"}
 
         '
     headers:
@@ -83,7 +165,7 @@ interactions:
       Content-Type:
       - application/json
       Date:
-      - Mon, 29 Jun 2026 18:30:01 GMT
+      - Wed, 29 Jul 2026 18:39:47 GMT
       Server:
       - gunicorn
       X-Billing-ID:
@@ -105,12 +187,12 @@ interactions:
       host:
       - artifact-index-e2e:9696
       user-agent:
-      - polyswarm_api/4.1.0 (x86_64-Linux-CPython-3.12.3)
+      - polyswarm_api/4.2.0 (x86_64-Linux-CPython-3.12.13)
     method: GET
     uri: http://artifact-index-e2e:9696/v3/known-good?sha256=9c0258ed4cc98056773bcf0c57fe4bc79618802357f0703c503b4cb172a263df&community=gamma
   response:
     body:
-      string: '{"result":{"artifact_instance_id":"34363762993756881","created":"2026-06-29T18:30:01.431502+00:00","id":"25565696800926378","sha256":"9c0258ed4cc98056773bcf0c57fe4bc79618802357f0703c503b4cb172a263df","sources":["commercial","nsrl"]},"status":"OK"}
+      string: '{"result":{"artifact_instance_id":"90039023884233228","created":"2026-07-29T18:39:47.299724+00:00","id":"66682229801759442","sha256":"9c0258ed4cc98056773bcf0c57fe4bc79618802357f0703c503b4cb172a263df","sources":["commercial","nsrl"]},"status":"OK"}
 
         '
     headers:
@@ -125,7 +207,7 @@ interactions:
       Content-Type:
       - application/json
       Date:
-      - Mon, 29 Jun 2026 18:30:01 GMT
+      - Wed, 29 Jul 2026 18:39:47 GMT
       Server:
       - gunicorn
       X-Billing-ID:
@@ -147,7 +229,49 @@ interactions:
       host:
       - artifact-index-e2e:9696
       user-agent:
-      - polyswarm_api/4.1.0 (x86_64-Linux-CPython-3.12.3)
+      - polyswarm_api/4.2.0 (x86_64-Linux-CPython-3.12.13)
+    method: GET
+    uri: http://artifact-index-e2e:9696/v3/consumer/download/sha256/9c0258ed4cc98056773bcf0c57fe4bc79618802357f0703c503b4cb172a263df?community=gamma
+  response:
+    body:
+      string: '{"errors":{"code":"KNOWN_GOOD","known_good":true,"sources":["commercial","nsrl"]},"result":"Unable
+        to download the provided artifact, it is a known-good binary; its bytes are
+        withheld by design.","status":"error"}
+
+        '
+    headers:
+      Access-Control-Allow-Origin:
+      - '*'
+      Access-Control-Expose-Headers:
+      - Authorization
+      Connection:
+      - keep-alive
+      Content-Length:
+      - '214'
+      Content-Type:
+      - application/json
+      Date:
+      - Wed, 29 Jul 2026 18:39:47 GMT
+      Server:
+      - gunicorn
+    status:
+      code: 404
+      message: NOT FOUND
+- request:
+    body: ''
+    headers:
+      accept:
+      - '*/*'
+      accept-encoding:
+      - gzip, deflate
+      authorization:
+      - '11111111111111111111111111111111'
+      connection:
+      - keep-alive
+      host:
+      - artifact-index-e2e:9696
+      user-agent:
+      - polyswarm_api/4.2.0 (x86_64-Linux-CPython-3.12.13)
     method: DELETE
     uri: http://artifact-index-e2e:9696/v3/known-good?sha256=9c0258ed4cc98056773bcf0c57fe4bc79618802357f0703c503b4cb172a263df
   response:
@@ -167,7 +291,7 @@ interactions:
       Content-Type:
       - application/json
       Date:
-      - Mon, 29 Jun 2026 18:30:01 GMT
+      - Wed, 29 Jul 2026 18:39:47 GMT
       Server:
       - gunicorn
       X-Billing-ID:
@@ -189,7 +313,7 @@ interactions:
       host:
       - artifact-index-e2e:9696
       user-agent:
-      - polyswarm_api/4.1.0 (x86_64-Linux-CPython-3.12.3)
+      - polyswarm_api/4.2.0 (x86_64-Linux-CPython-3.12.13)
     method: GET
     uri: http://artifact-index-e2e:9696/v3/known-good?sha256=9c0258ed4cc98056773bcf0c57fe4bc79618802357f0703c503b4cb172a263df&community=gamma
   response:
@@ -209,7 +333,7 @@ interactions:
       Content-Type:
       - application/json
       Date:
-      - Mon, 29 Jun 2026 18:30:01 GMT
+      - Wed, 29 Jul 2026 18:39:47 GMT
       Server:
       - gunicorn
     status:

@@ -408,6 +408,17 @@ class TestAsyncScanCase:
             assert created.sha256 == sha
             assert created.sources == ['nsrl']
             assert created.artifact_instance_id
+            # The refusal on the async transport, against the real server. It reaches the
+            # 404 arm by a different route than the sync parse path — the streaming
+            # download raises from `aread()` → `_raise_for_status` — so both transports
+            # need the live assertion, not just the fabricated respx one.
+            with tempfile.TemporaryDirectory() as out_dir:
+                with pytest.raises(exceptions.KnownGoodWithheldException) as ei:
+                    await api.download(out_dir, sha)
+            assert ei.value.sources == ['nsrl']
+            # The require_scan semantics this SDK documents: a known-good hash is a decided
+            # terminal record, so it reports present rather than "not scanned yet".
+            assert await api.exists(sha, hash_type='sha256', require_scan=True) is True
             # A second feed flagging the same sha extends the same entry (no new row).
             extended = await api.known_good_create(sha256=sha, source='commercial')
             assert extended.id == created.id
@@ -415,6 +426,11 @@ class TestAsyncScanCase:
             got = await api.known_good_get(sha256=sha)
             assert got.sha256 == sha
             assert sorted(got.sources) == ['commercial', 'nsrl']
+            # Both feeds name themselves in the refusal once the entry is extended.
+            with tempfile.TemporaryDirectory() as out_dir:
+                with pytest.raises(exceptions.KnownGoodWithheldException) as ei:
+                    await api.download(out_dir, sha)
+            assert sorted(ei.value.sources) == ['commercial', 'nsrl']
             deleted = await api.known_good_delete(sha256=sha)
             assert deleted.sha256 == sha
             with pytest.raises(exceptions.NotFoundException):

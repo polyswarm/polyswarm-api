@@ -8,7 +8,7 @@ Known follow-ups and unresolved questions that haven't been decided yet. Each it
 
 **Status:** partial.
 
-The parametrised `ClientTestCase` harness in `test/metadata_field_properties_test.py` is the canonical pattern for running each test against both sync and async clients. `client_scan_test.py` (sync) and `async_client_test.py` (async) still have parallel test bodies for the bulk of the endpoint surface.
+The parametrised `ClientTestCase` harness in `test/_client_harness.py` (originally written in, and still exercised by, `test/metadata_field_properties_test.py`) is the canonical pattern for running each test against both sync and async clients. `client_scan_test.py` (sync) and `async_client_test.py` (async) still have parallel test bodies for the bulk of the endpoint surface.
 
 **Action:** migrate each test pair into a `ClientTestCase` subclass, delete the original sync / async copies, re-record cassettes where the request shape differs. Mechanical work, ~one chunk per resource family.
 

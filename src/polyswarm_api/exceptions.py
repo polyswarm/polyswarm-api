@@ -37,17 +37,31 @@ def _normalise_sources(sources):
 
     ``.sources`` is published as a list of strings and consumers iterate it
     (``for feed in exc.sources``), so the raw payload can't be handed through
-    untouched: a bare ``'nsrl'`` would iterate as characters, and the
-    list-of-feed-dicts shape the instance-level ``known_good`` field uses would
-    yield dicts. A string becomes a one-element list, a list keeps only its
-    string entries, and any other shape (mapping, ``None``, number) becomes
-    ``[]``. Nothing is lost — the raw envelope stays readable at
-    ``exc.request.errors``.
+    untouched: a bare ``'nsrl'`` would iterate as characters.
+
+    Both shapes the platform uses for this one concept yield feed names. The
+    error envelope sends a list of strings; the instance-level ``known_good``
+    field sends a list of feed dicts, which ``resources.py`` unpacks via
+    ``feed['tool']`` into ``ArtifactInstance.known_good_sources``. If the
+    envelope ever reuses that serialiser, dropping the dicts would empty
+    ``.sources`` and take this exception's whole added value with it — with no
+    diagnostic, and no way for a caller to tell "the server named no feeds"
+    from "the server named feeds in a shape we discarded".
+
+    A string becomes a one-element list; anything else (mapping, ``None``,
+    number) becomes ``[]``. Nothing is lost either way — the raw envelope stays
+    readable at ``exc.request.errors``.
     """
     if isinstance(sources, str):
         return [sources]
     if isinstance(sources, list):
-        return [source for source in sources if isinstance(source, str)]
+        names = []
+        for source in sources:
+            if isinstance(source, str):
+                names.append(source)
+            elif isinstance(source, dict) and isinstance(source.get('tool'), str):
+                names.append(source['tool'])
+        return names
     return []
 
 
