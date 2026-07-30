@@ -802,7 +802,7 @@ class ScanTestCaseV2(TestCase):
 
         task = _dispatch_sandbox(v3api, instance.id, 'cape', 'win-10-build-19041', True)
         assert task.json['config']['network_enabled'] is True
-        task = _dispatch_sandbox(v3api, instance.id, 'triage', 'win10-build-15063', False)
+        task = _dispatch_sandbox(v3api, instance.id, 'triage', 'windows11-21h2-x64', False)
         assert task.sandbox == 'triage'
         assert task.json['config']['network_enabled'] is False
 
@@ -815,7 +815,7 @@ class ScanTestCaseV2(TestCase):
         # is what sandbox_task_latest reads.
         instance, sha256 = submit_and_scan(v3api, self._testMethodName, wait=False)
         cape = _dispatch_sandbox(v3api, instance.id, 'cape', 'win-10-build-19041', True)
-        triage = _dispatch_sandbox(v3api, instance.id, 'triage', 'win10-build-15063', False)
+        triage = _dispatch_sandbox(v3api, instance.id, 'triage', 'windows11-21h2-x64', False)
 
         # _complete_sandbox_task waits (event-driven) for the sandbox service to
         # register each just-dispatched task before driving it to SUCCEEDED.
@@ -839,7 +839,7 @@ class ScanTestCaseV2(TestCase):
         # Dispatch cape + triage concurrently (distinct sandbox slugs, independent).
         run_concurrently([
             lambda: _dispatch_sandbox(v3api, instance.id, 'cape', 'win-10-build-19041', True),
-            lambda: _dispatch_sandbox(v3api, instance.id, 'triage', 'win10-build-15063', False),
+            lambda: _dispatch_sandbox(v3api, instance.id, 'triage', 'windows11-21h2-x64', False),
         ])
 
         # Poll until the SandboxTaskSearchHash index sees both tasks.
@@ -876,7 +876,7 @@ class ScanTestCaseV2(TestCase):
         uid = self._testMethodName
         instance, sha = submit_and_scan(api, uid, wait=False)
         cape = _dispatch_sandbox(api, instance.id, 'cape', 'win-10-build-19041', True)
-        triage = _dispatch_sandbox(api, instance.id, 'triage', 'win10-build-15063', False)
+        triage = _dispatch_sandbox(api, instance.id, 'triage', 'windows11-21h2-x64', False)
         _complete_sandbox_task(cape.id, 'cape')
         _complete_sandbox_task(triage.id, 'triage')
 

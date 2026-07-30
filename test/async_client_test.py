@@ -437,7 +437,7 @@ class TestAsyncScanCase:
             instance, _ = await submit_and_scan(api, uid, wait=False)
             task = await _dispatch_sandbox(api, instance.id, 'cape', 'win-10-build-19041', True)
             assert task.json['config']['network_enabled'] is True
-            task = await _dispatch_sandbox(api, instance.id, 'triage', 'win10-build-15063', False)
+            task = await _dispatch_sandbox(api, instance.id, 'triage', 'windows11-21h2-x64', False)
             assert task.sandbox == 'triage'
             assert task.json['config']['network_enabled'] is False
 
@@ -446,7 +446,7 @@ class TestAsyncScanCase:
         async with self._api() as api:
             instance, sha = await submit_and_scan(api, uid, wait=False)
             cape = await _dispatch_sandbox(api, instance.id, 'cape', 'win-10-build-19041', True)
-            triage = await _dispatch_sandbox(api, instance.id, 'triage', 'win10-build-15063', False)
+            triage = await _dispatch_sandbox(api, instance.id, 'triage', 'windows11-21h2-x64', False)
 
             # No cape/triage VMs in e2e — drive each task to SUCCEEDED by replaying
             # the sandbox worker's HTTP calls. Completing a task creates its
@@ -472,7 +472,7 @@ class TestAsyncScanCase:
             # Dispatch cape + triage concurrently (distinct sandbox slugs, independent).
             await run_concurrently_async([
                 _dispatch_sandbox(api, instance.id, 'cape', 'win-10-build-19041', True),
-                _dispatch_sandbox(api, instance.id, 'triage', 'win10-build-15063', False),
+                _dispatch_sandbox(api, instance.id, 'triage', 'windows11-21h2-x64', False),
             ])
 
             # Poll until the SandboxTaskSearchHash index sees both tasks.
@@ -506,7 +506,7 @@ class TestAsyncScanCase:
         async with self._api() as api:
             instance, sha = await submit_and_scan(api, uid, wait=False)
             cape = await _dispatch_sandbox(api, instance.id, 'cape', 'win-10-build-19041', True)
-            triage = await _dispatch_sandbox(api, instance.id, 'triage', 'win10-build-15063', False)
+            triage = await _dispatch_sandbox(api, instance.id, 'triage', 'windows11-21h2-x64', False)
             await _complete_sandbox_task(cape.id, 'cape')
             await _complete_sandbox_task(triage.id, 'triage')
 
