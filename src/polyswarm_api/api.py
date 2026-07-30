@@ -1139,6 +1139,12 @@ class PolyswarmAPI:
         :param fh: A file-like object which we are going to write the contents of the artifact to.
         :param hash_type: Hash type of the provided hash_. Will attempt to auto-detect if not explicitly provided.
         :return: A LocalHandle resource
+        :raises KnownGoodWithheldException: the sha256 is catalogued as a known-good binary,
+            so its bytes are withheld by design. A ``NotFoundException`` subclass, so existing
+            ``except NotFoundException`` handling still catches it; catch it specifically to
+            tell a deliberate refusal apart from a missing artifact, and read
+            ``.sources`` for the feeds that flagged it. Nothing is written to the destination —
+            the status is checked before the file is opened.
         """
         logger.info("Downloading %s into handle", hash_)
         hash_ = resources.Hash.from_hashable(hash_, hash_type=hash_type)
@@ -1941,6 +1947,12 @@ class PolyswarmAPI:
         :param hash_: Hashable (Artifact, LocalArtifact, Hash) or hex-encoded SHA256/SHA1/MD5.
         :param hash_type: Hash type; auto-detected from the literal if not provided.
         :return: A ``LocalArtifact`` resource with its handle already closed.
+        :raises KnownGoodWithheldException: the sha256 is catalogued as a known-good binary,
+            so its bytes are withheld by design. A ``NotFoundException`` subclass, so existing
+            ``except NotFoundException`` handling still catches it; catch it specifically to
+            tell a deliberate refusal apart from a missing artifact, and read
+            ``.sources`` for the feeds that flagged it. Nothing is written to the destination —
+            the status is checked before the file is opened.
         """
         logger.info("Downloading %s into %s", hash_, out_dir)
         hash_ = resources.Hash.from_hashable(hash_, hash_type=hash_type)
@@ -1953,7 +1965,15 @@ class PolyswarmAPI:
         return artifact
 
     def download_id(self, out_dir, instance_id):
-        """Download an artifact by its instance id into ``out_dir``."""
+        """Download an artifact by its instance id into ``out_dir``.
+
+        :raises KnownGoodWithheldException: the sha256 is catalogued as a known-good binary,
+            so its bytes are withheld by design. A ``NotFoundException`` subclass, so existing
+            ``except NotFoundException`` handling still catches it; catch it specifically to
+            tell a deliberate refusal apart from a missing artifact, and read
+            ``.sources`` for the feeds that flagged it. Nothing is written to the destination —
+            the status is checked before the file is opened.
+        """
         logger.info("Downloading %s into %s", instance_id, out_dir)
         artifact = self._single(
             resources.LocalArtifact.download_id(self, instance_id, folder=out_dir),
@@ -1962,7 +1982,19 @@ class PolyswarmAPI:
         return artifact
 
     def download_sandbox_artifact(self, out_dir, sandbox_task_id, instance_id):
-        """Download a sandbox-produced artifact (e.g. PCAP, dropped file) into ``out_dir``."""
+        """Download a sandbox-produced artifact (e.g. PCAP, dropped file) into ``out_dir``.
+
+        Sandbox **evidence** (report / raw_report / screenshot / recording / pcap /
+        memory_dump) is exempt from the known-good policy server-side, so in practice only a
+        **dropped file** raises below — its sha256 is a real file's digest.
+
+        :raises KnownGoodWithheldException: the sha256 is catalogued as a known-good binary,
+            so its bytes are withheld by design. A ``NotFoundException`` subclass, so existing
+            ``except NotFoundException`` handling still catches it; catch it specifically to
+            tell a deliberate refusal apart from a missing artifact, and read
+            ``.sources`` for the feeds that flagged it. Nothing is written to the destination —
+            the status is checked before the file is opened.
+        """
         logger.info("Downloading sandbox artifact %s %s", sandbox_task_id, instance_id)
         sandbox_artifact = self._single(
             resources.LocalArtifact.download_sandbox_artifact(
