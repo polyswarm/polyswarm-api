@@ -19,6 +19,7 @@ How the test suite is organised. Three layers: pure unit tests (no HTTP at all �
 
 - `test/conftest.py` — pytest configuration.
 - `test/core_test.py` — pure-unit tests for `parse_response`, `PolyswarmRequest`, and resource builders. No httpx, no fixtures.
+- `test/exists_probe_mapping_test.py` — the `exists()` status mapping arms the e2e stack cannot produce (`404`→`False`, plus the fabricated-negative `5xx` case recorded as a decision), on the shared harness so both transports are covered. The `200`/`204` arms are live, in `client_scan_test.py` / `async_client_test.py`.
 - `test/_client_harness.py` — the parametrised `ClientTestCase` harness (`_MockBoundary` / `_AsyncToSync`), importable by any `respx` module that wants one body to cover both transports (invariant 5). Not every `respx` user needs it: `client_scan_test.py` / `async_client_test.py` drive `respx` directly for a number of cases (~27 bodies between them), most of which predate the harness — see invariant 5 for which of those are legitimately exempt and which are just older than the rule. Not collected itself — it matches neither `*_test.py` nor `test_*.py`, so pytest never picks it up (the leading `_` is a naming convention, not the mechanism), same as `_e2e_helpers.py`.
 - `test/metadata_field_properties_test.py` — the canonical example of the parametrised `ClientTestCase` harness with `respx`-backed mocking.
 - `test/client_scan_test.py` — sync, VCR-backed integration tests (not yet on the parametrised harness — follow-up work).
@@ -54,7 +55,7 @@ A respx body for that same arm was written first and deleted once the live cover
 
 ## The parametrised `ClientTestCase` harness
 
-Implemented in `test/_client_harness.py`, importable by any `respx` module that wants one body over both transports; `metadata_field_properties_test.py` is the canonical user (and currently the only one — the other `respx` bodies are the single-transport cases invariant 5 exempts). The shape:
+Implemented in `test/_client_harness.py`, importable by any `respx` module that wants one body over both transports; `metadata_field_properties_test.py` is the canonical user, joined by `exists_probe_mapping_test.py` (the `exists()` `404`→`False` arm, which was async-only until the harness existed — the mapping is transport-independent, so one body covers both). The remaining `respx` bodies are the single-transport cases invariant 5 exempts. The shape:
 
 ```python
 # test/_client_harness.py

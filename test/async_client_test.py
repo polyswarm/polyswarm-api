@@ -1116,33 +1116,6 @@ async def test_async_download_streams_in_chunks(monkeypatch):
 
 
 @respx.mock
-async def test_async_exists_maps_404_false():
-    """``exists()`` maps a ``404`` to ``False`` — the one arm of this mapping the e2e stack
-    cannot produce, so the only one that stays mocked.
-
-    The ``200`` (present) and ``204`` (absent) arms are asserted against the **real server** on
-    resources the test provisions itself, in
-    ``test_async_hash_existence_probe_against_the_real_server`` and its sync twin. That is the
-    default (invariant 1) and it is the only thing that would catch a *server-side* flip, which
-    a mock cannot by construction — the 4.0 ``exists()`` inversion survived precisely because
-    this endpoint's coverage was entirely mocked.
-
-    ``404`` stays here because artifact-index never answers it for a well-formed probe: per its
-    ``specs/09-hash-search-head-contract.md`` that code is reserved for the *request* being
-    wrong, and a bad hash or hash type raises ``400``. The mapping is still worth pinning —
-    clients have tolerated ``404``-as-absent historically, so the SDK must not start raising if
-    a proxy or an older deployment in front of the API emits one.
-    """
-    route = respx.head(f'{BASE_URL}/search/hash/sha256')
-    api = PolySwarmAsyncAPI(API_KEY, uri=BASE_URL, community='gamma')
-    try:
-        route.mock(return_value=httpx.Response(404))
-        assert await api.exists(SHA256) is False
-    finally:
-        await api.aclose()
-
-
-@respx.mock
 async def test_async_sample_bundle_download_multistep():
     """``sample_bundle_download`` is a multi-step canonical async
     method: GET bundle task → state branch (PENDING / FAILED raise) →
