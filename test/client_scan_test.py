@@ -799,7 +799,16 @@ class ScanTestCaseV2(TestCase):
         # Catalogued via the CRUD, which builds a searchable reference instance:
         #   plain          -> present, because that reference IS a real record
         #   require_scan   -> absent, because nothing was ever scanned for it
-        assert v3api.exists(sha, hash_type='sha256') is True
+        # Polled: known_good_create returns an artifact_instance_id, so it goes through the
+        # same async search-row write as a submission — asserting it unpolled is a flake under
+        # TESTS_VCR=off, by the same reasoning as the probe test below.
+        present = False
+        for _ in range(30):
+            present = v3api.exists(sha, hash_type='sha256')
+            if present:
+                break
+            time.sleep(1)
+        assert present is True
         assert v3api.exists(sha, hash_type='sha256', require_scan=True) is False
         # A second feed flagging the same sha extends the same entry (no new row).
         extended = v3api.known_good_create(sha256=sha, source='commercial')
@@ -857,14 +866,19 @@ class ScanTestCaseV2(TestCase):
         assert submitted_sha == sha, 'the probe must be asked about the sha we just submitted'
         assert instance.window_closed
 
-        # The search row is written by an async task, so allow for index lag — but assert the
-        # value rather than polling until it agrees.
+        # The search row and its last_scanned state are written by async tasks, so allow for
+        # index lag — but poll on the NARROWER condition. require_scan filters on the scan
+        # state of the row that the plain form only needs to exist, so it can only become true
+        # at the same time or later; polling the broad form and then asserting the narrow one
+        # is a race. Assert both once the strict one holds.
+        scanned = False
         for _ in range(30):
-            if v3api.exists(sha, hash_type='sha256'):
+            scanned = v3api.exists(sha, hash_type='sha256', require_scan=True)
+            if scanned:
                 break
             time.sleep(1)
+        assert scanned is True
         assert v3api.exists(sha, hash_type='sha256') is True
-        assert v3api.exists(sha, hash_type='sha256', require_scan=True) is True
 
     @vcr.use_cassette()
     def test_sandbox_providers(self):

@@ -422,7 +422,15 @@ class TestAsyncScanCase:
             # lines are the fleet's only live guard on a frozen status contract. Catalogued via
             # the CRUD: present plain (the reference instance is a real record), absent under
             # require_scan (nothing was ever scanned for it).
-            assert await api.exists(sha, hash_type='sha256') is True
+            # Polled — see the sync twin: known_good_create goes through the same async
+            # search-row write, so an unpolled assertion flakes under TESTS_VCR=off.
+            present = False
+            for _ in range(30):
+                present = await api.exists(sha, hash_type='sha256')
+                if present:
+                    break
+                await asyncio.sleep(1)
+            assert present is True
             assert await api.exists(sha, hash_type='sha256', require_scan=True) is False
             # A second feed flagging the same sha extends the same entry (no new row).
             extended = await api.known_good_create(sha256=sha, source='commercial')
@@ -466,12 +474,17 @@ class TestAsyncScanCase:
             assert submitted_sha == sha
             assert instance.window_closed
 
+            # Poll the NARROWER form — require_scan can only become true at the same time or
+            # later than the plain form, so polling the broad one and asserting the strict one
+            # is a race. See the sync twin.
+            scanned = False
             for _ in range(30):
-                if await api.exists(sha, hash_type='sha256'):
+                scanned = await api.exists(sha, hash_type='sha256', require_scan=True)
+                if scanned:
                     break
                 await asyncio.sleep(1)
+            assert scanned is True
             assert await api.exists(sha, hash_type='sha256') is True
-            assert await api.exists(sha, hash_type='sha256', require_scan=True) is True
 
     # ── Sandbox ───────────────────────────────────────────────────────────────
 
