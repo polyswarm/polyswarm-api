@@ -37,7 +37,7 @@ class ExistsProbeMappingTestCase(ClientTestCase):
         assert 'require_scan=false' not in self.mock.last_request_url
         assert 'require_scan=true' in self.mock.last_request_url
 
-    def test_a_server_error_is_not_reported_as_absent_silently(self):
+    def test_a_server_error_also_collapses_to_absent(self):
         # Documents the sharpest edge of having no error channel on this probe: a 5xx also
         # collapses to False, i.e. a *fabricated negative* (artifact-index's contract
         # invariant 6 names this as the reason never to repurpose these codes). Pinned so the

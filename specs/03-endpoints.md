@@ -108,11 +108,12 @@ Internal-only CRUD for the `/known-good` binary resource (distinct from the IOC 
 |---|---|---|
 | `download(out_dir, hash_, hash_type=None)` | `LocalArtifact.download` | Closes the handle before returning. Raises `KnownGoodWithheldException` (see below). |
 | `download_id(out_dir, instance_id)` | `LocalArtifact.download_id` | Same. |
-| `download_sandbox_artifact(out_dir, sandbox_task_id, instance_id)` | `LocalArtifact.download_sandbox_artifact` | Same — though only a **dropped file** can be withheld; sandbox evidence (report / raw_report / screenshot / recording / pcap / memory_dump) is exempt server-side. |
-| `download_archive(out_dir, s3_path)` | `LocalArtifact.download_archive` | Same. |
+| `download_sandbox_artifact(out_dir, sandbox_task_id, instance_id)` | `LocalArtifact.download_sandbox_artifact` | Same — and the gate applies to **every** sandbox artifact by its own sha256 (dropped file, screenshot, report, …); the server-side model has no sample-vs-evidence carve-out. |
+| `download_archive(out_dir, s3_path)` | `LocalArtifact.download_archive` | Closes the handle before returning. **Not** an artifact-index call (see below), so it never raises `KnownGoodWithheldException`. |
 | `download_to_handle(hash_, fh, hash_type=None)` | `LocalArtifact.download` | Streams to an existing file handle. Same refusal. |
 
-**Every `download*` method can refuse with `KnownGoodWithheldException`** — the sha256 is
+**Every artifact-index-served download** (`download`, `download_id`, `download_to_handle`,
+`download_sandbox_artifact`) **can refuse with `KnownGoodWithheldException`** — the sha256 is
 catalogued as a known-good binary, so its bytes are withheld by design rather than missing. It
 subclasses `NotFoundException` (raised from the shared `_raise_for_status` 404 arm), so existing
 `except NotFoundException` handling still catches it; catch it specifically to tell a deliberate
@@ -120,6 +121,12 @@ refusal apart from a gone artifact, and read `.sources` for the feeds that flagg
 **Nothing is written to the destination** — `_execute_download` checks the status before it opens
 the file, so a refusal never leaves a zero-byte file behind, which to a caller would be
 indistinguishable from a download that worked.
+
+`download_archive` is the exception because it is not an artifact-index request at all: it fetches
+the caller-supplied pre-signed object-store URL from the `stream()` feed, with the `Authorization`
+header suppressed. An error there is the store's own (XML body, no coded JSON envelope), so it
+surfaces as a plain `NotFoundException` / server error from the generic arms, never as the typed
+refusal.
 
 ### Sandbox
 
