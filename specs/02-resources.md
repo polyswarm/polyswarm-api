@@ -303,11 +303,14 @@ known-good-bypassed scan via `state == 'KNOWN_GOOD'` even when `known_good` abov
 `None` (the sha matched no `KnownGood`). The raw numeric `bounty_state` is unchanged.
 
 `state == 'KNOWN_GOOD'` (equivalently the status the server reports for the instance)
-is also **the** signal that the artifact's bytes are withheld — the platform never
-stores or serves a known-good binary, and there is deliberately no separate
-"withheld" field to read. A download attempted anyway raises
-`KnownGoodWithheldException` (see §"Exceptions thrown by parsing"); the metadata —
-the flagging feeds plus any scan data already collected — stays readable.
+is **the** signal for the *typed refusal* — the platform never stores or serves a
+known-good binary, there is deliberately no separate "withheld" field to read, and a
+download attempted anyway raises `KnownGoodWithheldException` (see §"Exceptions thrown
+by parsing"); the metadata — the flagging feeds plus any scan data already collected —
+stays readable. It is not the signal for "bytes are unavailable" in general:
+`state == 'NOT_STORED'` (below) also has no bytes — nothing was ever stored for that
+instance — but its download 404s **plainly**, without the `KNOWN_GOOD` code, because
+nothing is being withheld by policy any more.
 
 Classmethod builders (each returns a `PolyswarmRequest` descriptor):
 

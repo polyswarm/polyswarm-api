@@ -280,10 +280,9 @@ class ArtifactInstance(core.BaseJsonResource, core.Hashable):
         # (artifact-index specs/05): 'KNOWN_GOOD' while the file is currently known-good,
         # 'NOT_STORED' for a submission it declined as known-good whose hash is no longer
         # currently known-good (nothing was ever stored; a fresh submit works), otherwise
-        # the instance's own persisted state.
-        #
-        # additive alongside the numeric bounty_state. Optional — older servers
-        # omit it, so .get() yields None (no behaviour change).
+        # the instance's own persisted state. Additive alongside the numeric
+        # bounty_state, and optional — older servers omit it, so .get() yields None
+        # (no behaviour change).
         self.state = content.get('state')
 
         # ArtifactInstance fields

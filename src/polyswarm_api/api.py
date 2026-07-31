@@ -1984,9 +1984,11 @@ class PolyswarmAPI:
     def download_sandbox_artifact(self, out_dir, sandbox_task_id, instance_id):
         """Download a sandbox-produced artifact (e.g. PCAP, dropped file) into ``out_dir``.
 
-        Sandbox **evidence** (report / raw_report / screenshot / recording / pcap /
-        memory_dump) is exempt from the known-good policy server-side, so in practice only a
-        **dropped file** raises below — its sha256 is a real file's digest.
+        The known-good gate applies to **every** sandbox artifact by its own sha256 —
+        dropped file, screenshot, report, … — with no sample-vs-evidence carve-out
+        server-side, so any member whose digest is catalogued (and eligible) raises below.
+        In practice that is almost always a dropped file; evidence collides only on byte
+        identity, and the empty-file digest is refused at the catalogue boundary instead.
 
         :raises KnownGoodWithheldException: the sha256 is catalogued as a known-good binary,
             so its bytes are withheld by design. A ``NotFoundException`` subclass, so existing
