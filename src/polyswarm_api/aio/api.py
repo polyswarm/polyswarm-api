@@ -944,7 +944,8 @@ class PolySwarmAsyncAPI:
             ``except NotFoundException`` handling still catches it; catch it specifically to
             tell a deliberate refusal apart from a missing artifact, and read
             ``.sources`` for the feeds that flagged it. Nothing is written to the destination —
-            the status is checked before the file is opened.
+            the status is checked before any write (the handle is the caller's and arrives
+            already open, so "before the file is opened" would be the wrong reason here).
         """
         logger.info('Downloading %s into handle', hash_)
         hash_ = resources.Hash.from_hashable(hash_, hash_type=hash_type)
