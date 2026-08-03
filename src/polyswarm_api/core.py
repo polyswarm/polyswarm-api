@@ -330,7 +330,9 @@ def _raise_for_status(response, request):
 
     Shared by ``parse_response`` (buffered/JSON path) and the session's
     streaming-download path, so both raise identically (429/404/422/other,
-    plus the non-JSON-body fallbacks). The response body must already be
+    plus the non-JSON-body fallbacks). A 404 whose ``errors`` payload carries the
+    ``KNOWN_GOOD`` code raises the ``NotFoundException`` subclass
+    ``KnownGoodWithheldException``. The response body must already be
     readable — streaming callers ``read()`` / ``aread()`` it first. **Always
     raises; never returns.**
     """
@@ -354,6 +356,17 @@ def _raise_for_status(response, request):
         )
         raise exceptions.UsageLimitsExceededException(request, message)
     elif request.status_code == 404:
+        # A download refused because the artifact is a known-good binary carries a
+        # machine-readable code in the error envelope's ``errors`` slot. Raise the
+        # ``NotFoundException`` subclass so callers can tell "withheld by design"
+        # apart from a plain miss; every other 404 stays a plain NotFoundException.
+        # The raw ``sources`` payload goes in as-is — the exception normalises it
+        # into the documented list-of-feed-names shape.
+        errors = request.errors
+        if isinstance(errors, dict) and errors.get('code') == 'KNOWN_GOOD':
+            raise exceptions.KnownGoodWithheldException(
+                request, request._result, sources=errors.get('sources'),
+            )
         raise exceptions.NotFoundException(request, request._result)
     elif request.status_code == 422:
         raise exceptions.FailedInstanceException(request, request._result)
@@ -383,7 +396,23 @@ def _bad_status_message(request):
         f'Message: {request._result}'
     )
     if request.errors:
-        errors = '\n'.join(str(error) for error in request.errors)
+        # Two ``errors`` shapes are in play. The legacy shape is a **list** of
+        # per-error entries — one rendered line each. The way-forward shape is a
+        # **mapping** carrying the machine-readable code plus its context
+        # (``{'code': 'KNOWN_GOOD', 'known_good': True, 'sources': [...]}``), and the
+        # server forwards it on every status, not just the 404 the code was
+        # introduced for. Iterating a mapping yields only its KEYS, so rendering it
+        # like a list would drop every value from the message the caller sees —
+        # render it as ``key=value`` lines instead.
+        # The same reasoning applies to a bare string: iterating it yields characters, so
+        # `"errors": "some prose"` would render one letter per line. Only genuinely
+        # sequence-shaped payloads get the line-per-entry treatment.
+        if isinstance(request.errors, dict):
+            errors = '\n'.join(f'{k}={v}' for k, v in request.errors.items())
+        elif isinstance(request.errors, (list, tuple)):
+            errors = '\n'.join(str(error) for error in request.errors)
+        else:
+            errors = str(request.errors)
         message = f'{message}\nErrors:\n{errors}'
     return message
 

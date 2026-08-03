@@ -10,7 +10,7 @@ How the test suite is organised. Three layers: pure unit tests (no HTTP at all �
 2. **Tests must pass against the live e2e stack with VCR off.** VCR is an efficiency cache, not a load-bearing requirement. Don't hardcode `record_mode='none'`. If a test only works against the recorded cassette, that's a test bug.
 3. **Cassette re-recording is delete-driven, and recording is live-only.** `rm test/vcr/<name>.vcr && pytest …<test>` re-records against the live e2e. `record_mode='once'` (the default) makes this work without flag-flipping. Cassettes are always produced by running the test against the live stack — never copied from a sibling test's cassette and never hand-edited (beyond scrubbing sensitive values).
 4. **One cassette serves both transports.** Sync and async tests targeting the same scenario use the same on-the-wire request shape (because both clients run on `httpx`). The VCR matcher is configured so cassettes survive `httpx`'s param-ordering differences from the original `requests`-recorded format — see "VCR matcher convention" below.
-5. **`respx` tests (where justified under invariant 1) use the parametrised `ClientTestCase` harness.** It auto-emits `<Name>Sync` and `<Name>Async` siblings so the same body runs against both clients. Don't write parallel sync / async respx bodies. (Live/VCR tests can't use this harness — `_AsyncToSync` is respx-only — so they follow the `client_scan_test.py` / `async_client_test.py` pattern instead.)
+5. **`respx` tests (where justified under invariant 1) use the parametrised `ClientTestCase` harness** *when the scenario is transport-agnostic*. It auto-emits `<Name>Sync` and `<Name>Async` siblings so one body runs against both clients; don't hand-write parallel sync / async respx bodies for the same scenario. Two exemptions: live/VCR tests can't use it at all (`_AsyncToSync` is respx-only, so they follow the `client_scan_test.py` / `async_client_test.py` pattern), and a case that is *inherently* one-transport — an async-only streaming or cancellation behaviour, or a mapping arm asserted once because it is transport-independent — belongs beside its transport's own module. The direct-`respx` bodies in `client_scan_test.py` / `async_client_test.py` are those cases. Most predate the harness and do not argue their exemption — treat the rule as forward-looking: a **new** respx body that is transport-agnostic goes on the harness, and one that does not should say why in its docstring. Don't read the existing set as a worked example of the rule.
 6. **The HTTP mocking library follows the transport.** Both clients use `httpx`, so `respx` is the mocking library.
 7. **Prefer the pure-unit tier for builder + parse logic.** `PolyswarmRequest` builders are pure data; `parse_response` is a pure function. They're testable without httpx, async, or fixtures. Use this tier for any bug that can be reproduced without network involvement — including request-shape assertions (body vs query routing, None-omission, bodyless DELETE) that a cassette can't express directly.
 8. **The live VCR-off run is parallel (`pytest -n 8`).** New tests must be isolation-safe: own uniquely-keyed resources (deterministic per-test `uid` — `malicious_artifact(uid)`, `uid_ip` / `uid_host` / `uid_yara`; hash-keyed resources derive their sha from the test's own EICAR variant via `malicious_artifact(uid)`), assert only on their own data, and share no mutable state, so xdist workers never collide. See "Running the suite in parallel" below.
@@ -19,6 +19,8 @@ How the test suite is organised. Three layers: pure unit tests (no HTTP at all �
 
 - `test/conftest.py` — pytest configuration.
 - `test/core_test.py` — pure-unit tests for `parse_response`, `PolyswarmRequest`, and resource builders. No httpx, no fixtures.
+- `test/exists_probe_mapping_test.py` — the `exists()` status mapping arms the e2e stack cannot produce (`404`→`False`, plus the fabricated-negative `5xx` case recorded as a decision), on the shared harness so both transports are covered. The `200`/`204` arms are live, in `client_scan_test.py` / `async_client_test.py`.
+- `test/_client_harness.py` — the parametrised `ClientTestCase` harness (`_MockBoundary` / `_AsyncToSync`), importable by any `respx` module that wants one body to cover both transports (invariant 5). Not every `respx` user needs it: `client_scan_test.py` / `async_client_test.py` drive `respx` directly for a number of cases (~27 bodies between them), most of which predate the harness — see invariant 5 for which of those are legitimately exempt and which are just older than the rule. Not collected itself — it matches neither `*_test.py` nor `test_*.py`, so pytest never picks it up (the leading `_` is a naming convention, not the mechanism), same as `_e2e_helpers.py`.
 - `test/metadata_field_properties_test.py` — the canonical example of the parametrised `ClientTestCase` harness with `respx`-backed mocking.
 - `test/client_scan_test.py` — sync, VCR-backed integration tests (not yet on the parametrised harness — follow-up work).
 - `test/async_client_test.py` — async, VCR-backed integration tests (not yet on the parametrised harness — follow-up work).
@@ -40,6 +42,12 @@ The pure-unit tier exists because the 4.0 redesign made it possible: resource bu
 
 **VCR-backed live-e2e tests are the default for new endpoint tests** (invariant 1): they exercise the real server implementation and the cassette pins the actual contract, while replay keeps unit runs fast and offline. `respx` is reserved for scenarios the e2e stack can't produce (or only at disproportionate cost); pure-unit covers request-shape and parse logic without any HTTP. The canonical split for a new endpoint: a live-e2e VCR lifecycle test (behaviour, real contract) + pure-unit builder tests (body-vs-query routing, None-omission) — see `test_known_good_lifecycle` + `test/known_good_test.py`.
 
+### The transport arm
+
+The SDK's own **transport arm** is worth naming, because the obvious reading gets it wrong. The streaming download path (`_execute_download`) never runs `parse_response` — it reads the error body itself and calls `_raise_for_status` — so its non-2xx mapping *looks* like a scenario only respx can reach. It is not: a **cassette-backed** endpoint test drives it end to end, because the caller-visible outcome (the typed exception, its payload, and an empty destination directory) **is** the mapping. The known-good download refusal is covered exactly that way, in `client_scan_test.py` and `async_client_test.py`, so both `_execute_download` implementations — the canonical async source and its generated sync mirror — run against a real recorded envelope.
+
+A respx body for that same arm was written first and deleted once the live coverage existed: keeping both left a second tier whose stated justification ("unreachable at the e2e tier") was no longer true, which reads as licence to reach for respx on any transport arm. Reach for it when the stack genuinely cannot produce the response — a connection reset, a retry ladder, a truncated body.
+
 ### E2e sample-generation conventions
 
 - **The EICAR variant is the default sample-generation strategy.** Any test that needs an artifact — or just a sha256 — derives it from its own EICAR variant via `malicious_artifact(uid)` (`EICAR + uid` → unique content + sha, deterministic per test so cassettes replay). Don't invent parallel strategies (digest-of-test-name, random bytes, checked-in binaries) — one convention keeps every sha attributable to a test and keeps the eicar engine able to flag every sample.
@@ -47,9 +55,10 @@ The pure-unit tier exists because the 4.0 redesign made it possible: resource bu
 
 ## The parametrised `ClientTestCase` harness
 
-Implemented in `test/metadata_field_properties_test.py`. The shape:
+Implemented in `test/_client_harness.py`, importable by any `respx` module that wants one body over both transports; `metadata_field_properties_test.py` is the canonical user, joined by `exists_probe_mapping_test.py` (the `exists()` `404`→`False` arm, which was async-only until the harness existed — the mapping is transport-independent, so one body covers both). The remaining `respx` bodies are the single-transport cases invariant 5 exempts. The shape:
 
 ```python
+# test/_client_harness.py
 from polyswarm_api.api import PolyswarmAPI
 from polyswarm_api.aio import PolySwarmAsyncAPI
 
@@ -82,7 +91,8 @@ class ClientTestCase(TestCase):
         self.mock.__exit__(None, None, None)
 
 
-# A concrete test class — same body runs twice.
+# A concrete test class in any *_test.py module — same body runs twice.
+# from test._client_harness import BASE_URL, ClientTestCase
 
 class MetadataFieldPropertiesTestCase(ClientTestCase):
     def test_get(self):
@@ -291,7 +301,7 @@ Decision tree (e2e-first — see invariant 1):
 
 1. **Pure logic test?** (No HTTP, no resource side effects — including request-builder shape and `parse_response`.) → Plain unittest / pytest function. See `jmespath_test.py`, `core_test.py`, `known_good_test.py`.
 2. **Endpoint behaviour?** → **VCR-backed live-e2e test — the default.** Write the test against the real endpoint, record once against a fresh e2e stack, commit the cassette. Sync body in `client_scan_test.py`, async in `async_client_test.py`. Need a sample or a sha? Derive it from the test's own EICAR variant (`malicious_artifact(uid)`); anything needing a verdict gets it from the `eicar` engine.
-3. **Scenario the e2e stack can't produce** (transport failures, retry exhaustion, cursor pathologies, external systems)? → Parametrised `ClientTestCase` with `_MockBoundary` (`respx`). See `metadata_field_properties_test.py`. Body covers both sync and async automatically. Justify in the test docstring why the scenario can't run on e2e.
+3. **Scenario the e2e stack can't produce** (transport failures, retry exhaustion, cursor pathologies, external systems)? → Parametrised `ClientTestCase` with `_MockBoundary` (`respx`), imported from `test/_client_harness.py`. See `metadata_field_properties_test.py` (endpoint shape). A **transport arm is not on that list**: the stack drives one perfectly well, because the caller-visible outcome is the mapping — see §The transport arm. Body covers both sync and async automatically. Justify in the test docstring why the scenario can't run on e2e.
 
 Always:
 

@@ -122,6 +122,7 @@ _LONG_POLE_FRAGMENTS = (
     "stream",           # global archiver batching
     "rescan",           # rescan retry loop + settle
     "hash_search",      # search-index lag
+    "existence_probe",  # submit + settle + search-index lag (the HEAD probe tests)
     "sandboxtask",      # sandbox completion + index lag
 )
 

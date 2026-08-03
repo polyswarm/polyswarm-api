@@ -1139,6 +1139,13 @@ class PolyswarmAPI:
         :param fh: A file-like object which we are going to write the contents of the artifact to.
         :param hash_type: Hash type of the provided hash_. Will attempt to auto-detect if not explicitly provided.
         :return: A LocalHandle resource
+        :raises KnownGoodWithheldException: the sha256 is catalogued as a known-good binary,
+            so its bytes are withheld by design. A ``NotFoundException`` subclass, so existing
+            ``except NotFoundException`` handling still catches it; catch it specifically to
+            tell a deliberate refusal apart from a missing artifact, and read
+            ``.sources`` for the feeds that flagged it. Nothing is written to the destination —
+            the status is checked before any write (the handle is the caller's and arrives
+            already open, so "before the file is opened" would be the wrong reason here).
         """
         logger.info("Downloading %s into handle", hash_)
         hash_ = resources.Hash.from_hashable(hash_, hash_type=hash_type)
@@ -1941,6 +1948,12 @@ class PolyswarmAPI:
         :param hash_: Hashable (Artifact, LocalArtifact, Hash) or hex-encoded SHA256/SHA1/MD5.
         :param hash_type: Hash type; auto-detected from the literal if not provided.
         :return: A ``LocalArtifact`` resource with its handle already closed.
+        :raises KnownGoodWithheldException: the sha256 is catalogued as a known-good binary,
+            so its bytes are withheld by design. A ``NotFoundException`` subclass, so existing
+            ``except NotFoundException`` handling still catches it; catch it specifically to
+            tell a deliberate refusal apart from a missing artifact, and read
+            ``.sources`` for the feeds that flagged it. Nothing is written to the destination —
+            the status is checked before the file is opened.
         """
         logger.info("Downloading %s into %s", hash_, out_dir)
         hash_ = resources.Hash.from_hashable(hash_, hash_type=hash_type)
@@ -1953,7 +1966,15 @@ class PolyswarmAPI:
         return artifact
 
     def download_id(self, out_dir, instance_id):
-        """Download an artifact by its instance id into ``out_dir``."""
+        """Download an artifact by its instance id into ``out_dir``.
+
+        :raises KnownGoodWithheldException: the sha256 is catalogued as a known-good binary,
+            so its bytes are withheld by design. A ``NotFoundException`` subclass, so existing
+            ``except NotFoundException`` handling still catches it; catch it specifically to
+            tell a deliberate refusal apart from a missing artifact, and read
+            ``.sources`` for the feeds that flagged it. Nothing is written to the destination —
+            the status is checked before the file is opened.
+        """
         logger.info("Downloading %s into %s", instance_id, out_dir)
         artifact = self._single(
             resources.LocalArtifact.download_id(self, instance_id, folder=out_dir),
@@ -1962,7 +1983,21 @@ class PolyswarmAPI:
         return artifact
 
     def download_sandbox_artifact(self, out_dir, sandbox_task_id, instance_id):
-        """Download a sandbox-produced artifact (e.g. PCAP, dropped file) into ``out_dir``."""
+        """Download a sandbox-produced artifact (e.g. PCAP, dropped file) into ``out_dir``.
+
+        The known-good gate applies to **every** sandbox artifact by its own sha256 —
+        dropped file, screenshot, report, … — with no sample-vs-evidence carve-out
+        server-side, so any member whose digest is catalogued (and eligible) raises below.
+        In practice that is almost always a dropped file; evidence collides only on byte
+        identity, and the empty-file digest is refused at the catalogue boundary instead.
+
+        :raises KnownGoodWithheldException: the sha256 is catalogued as a known-good binary,
+            so its bytes are withheld by design. A ``NotFoundException`` subclass, so existing
+            ``except NotFoundException`` handling still catches it; catch it specifically to
+            tell a deliberate refusal apart from a missing artifact, and read
+            ``.sources`` for the feeds that flagged it. Nothing is written to the destination —
+            the status is checked before the file is opened.
+        """
         logger.info("Downloading sandbox artifact %s %s", sandbox_task_id, instance_id)
         sandbox_artifact = self._single(
             resources.LocalArtifact.download_sandbox_artifact(
@@ -1989,8 +2024,29 @@ class PolyswarmAPI:
 
         :param hash_: Hashable (Artifact, LocalArtifact, Hash) or hex-encoded SHA256/SHA1/MD5.
         :param hash_type: Hash type; auto-detected if not provided.
-        :param require_scan: If True, only count artifacts that have been scanned.
+        :param require_scan: If True, only count artifacts that have been *scanned*.
+            Being catalogued as known-good is **not** a scan: the platform never scans
+            such a sample, so a hash whose only record is a known-good reference reports
+            absent under ``require_scan`` (and present without it, because that reference
+            is a real searchable record).
         :return: ``True`` if the artifact exists in PolySwarm's index.
+
+        .. note::
+           This is an existence probe, and its status codes are a **frozen contract**:
+           ``200`` means found, ``204`` means not found, and anything else means the
+           *request* was wrong.
+
+           Only ``200`` is ``True``. ``204`` and ``404`` are both ``False`` — the server
+           answers ``204`` for absent, and ``404`` is tolerated as absent for historical
+           reasons.
+
+           A non-2xx status does not raise here, and the reason is the **method**, not a
+           missing result parser: ``parse_response`` short-circuits ``HEAD``, setting the
+           status code as the result and returning before it reaches the non-2xx→exception
+           mapping (which otherwise applies whether or not a parser is set). So on this
+           endpoint a server error also collapses to ``False``, indistinguishable from a
+           genuine "does not exist" — which is why neither side may widen what counts as
+           found. See ``specs/03-endpoints.md``.
         """
         logger.info("Exists for hash %s", hash_)
         hash_ = resources.Hash.from_hashable(hash_, hash_type=hash_type)

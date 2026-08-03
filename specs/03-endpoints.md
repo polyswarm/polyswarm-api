@@ -25,7 +25,7 @@ The full catalogue of methods on the public client surface and which transport h
 
 | Method | Resource builder | Notes |
 |---|---|---|
-| `exists(hash_, hash_type=None, require_scan=False)` | `ArtifactInstance.exists_hash` | HEAD; `bool` from status code — `True` **only** for `200` (present). `204` means "absent" (the request succeeded but matched no artifact) and `404` also maps to absent, so both are `False`. Do **not** treat this as a generic `2xx` check: `204` is a successful status that means the opposite of "exists". |
+| `exists(hash_, hash_type=None, require_scan=False)` | `ArtifactInstance.exists_hash` | HEAD; `bool` from status code — `True` **only** for `200` (present). `204` means "absent" (the request succeeded but matched no artifact) and `404` also maps to absent, so both are `False`. Do **not** treat this as a generic `2xx` check: `204` is a successful status that means the opposite of "exists". `require_scan=True` narrows *found* to artifacts that were actually **scanned**: being catalogued as known-good is not a scan, so a hash whose only record is a known-good reference reports absent under `require_scan` and present without it. **The server's codes here are a frozen contract** — see artifact-index `specs/09-hash-search-head-contract.md`; neither side may widen what counts as found, because a widening moves a caller's case from `False` to `True` with no error and no log line (that is the 4.0 `exists()` inversion, shipped in 4.0.0/4.1.0 and fixed in 4.2.0). |
 | `lookup(scan)` | `ArtifactInstance.lookup_uuid` | |
 | `rescan(hash_, hash_type=None, scan_config=None)` | `ArtifactInstance.rescan` | |
 | `rescan_id(scan, scan_config=None)` | `ArtifactInstance.rescan_id` | |
@@ -106,11 +106,27 @@ Internal-only CRUD for the `/known-good` binary resource (distinct from the IOC 
 
 | Method | Resource builder | Notes |
 |---|---|---|
-| `download(out_dir, hash_, hash_type=None)` | `LocalArtifact.download` | Closes the handle before returning. |
+| `download(out_dir, hash_, hash_type=None)` | `LocalArtifact.download` | Closes the handle before returning. Raises `KnownGoodWithheldException` (see below). |
 | `download_id(out_dir, instance_id)` | `LocalArtifact.download_id` | Same. |
-| `download_sandbox_artifact(out_dir, sandbox_task_id, instance_id)` | `LocalArtifact.download_sandbox_artifact` | Same. |
-| `download_archive(out_dir, s3_path)` | `LocalArtifact.download_archive` | Same. |
-| `download_to_handle(hash_, fh, hash_type=None)` | `LocalArtifact.download` | Streams to an existing file handle. |
+| `download_sandbox_artifact(out_dir, sandbox_task_id, instance_id)` | `LocalArtifact.download_sandbox_artifact` | Same — and the gate applies to **every** sandbox artifact by its own sha256 (dropped file, screenshot, report, …); the server-side model has no sample-vs-evidence carve-out. |
+| `download_archive(out_dir, s3_path)` | `LocalArtifact.download_archive` | Closes the handle before returning. **Not** an artifact-index call (see below), so it never raises `KnownGoodWithheldException`. |
+| `download_to_handle(hash_, fh, hash_type=None)` | `LocalArtifact.download` | Streams to an existing file handle. Same refusal. |
+
+**Every artifact-index-served download** (`download`, `download_id`, `download_to_handle`,
+`download_sandbox_artifact`) **can refuse with `KnownGoodWithheldException`** — the sha256 is
+catalogued as a known-good binary, so its bytes are withheld by design rather than missing. It
+subclasses `NotFoundException` (raised from the shared `_raise_for_status` 404 arm), so existing
+`except NotFoundException` handling still catches it; catch it specifically to tell a deliberate
+refusal apart from a gone artifact, and read `.sources` for the feeds that flagged the hash.
+**Nothing is written to the destination** — `_execute_download` checks the status before it opens
+the file, so a refusal never leaves a zero-byte file behind, which to a caller would be
+indistinguishable from a download that worked.
+
+`download_archive` is the exception because it is not an artifact-index request at all: it fetches
+the caller-supplied pre-signed object-store URL from the `stream()` feed, with the `Authorization`
+header suppressed. An error there is the store's own (XML body, no coded JSON envelope), so it
+surfaces as a plain `NotFoundException` / server error from the generic arms, never as the typed
+refusal.
 
 ### Sandbox
 

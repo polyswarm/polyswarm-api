@@ -275,9 +275,14 @@ class ArtifactInstance(core.BaseJsonResource, core.Hashable):
         self.known_good_sources = sorted(
             {feed['tool'] for feed in self.known_good if feed.get('tool')}
         ) if self.known_good else []
-        # Friendly bounty-state NAME (e.g. 'KNOWN_GOOD' / 'SETTLED' / 'STORED'),
-        # additive alongside the numeric bounty_state. Optional — older servers
-        # omit it, so .get() yields None (no behaviour change).
+        # Friendly REPORTED-state NAME (e.g. 'KNOWN_GOOD' / 'SETTLED' / 'STORED' /
+        # 'NOT_STORED'). The server derives it from its two-predicate known-good model
+        # (artifact-index specs/05): 'KNOWN_GOOD' while the file is currently known-good,
+        # 'NOT_STORED' for a submission it declined as known-good whose hash is no longer
+        # currently known-good (nothing was ever stored; a fresh submit works), otherwise
+        # the instance's own persisted state. Additive alongside the numeric
+        # bounty_state, and optional — older servers omit it, so .get() yields None
+        # (no behaviour change).
         self.state = content.get('state')
 
         # ArtifactInstance fields
