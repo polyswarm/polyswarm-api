@@ -4,8 +4,8 @@ No httpx, no async, no fixtures. Covers:
 
 - ``PolyswarmRequest`` dataclass construction and projections.
 - ``parse_response`` against fake response objects (HEAD, 2xx with
-  parser, 2xx without parser, 204, 404, 422, 429, 500, non-JSON 5xx,
-  non-JSON 404).
+  parser, 2xx without parser, 204, 404, known-good-withheld 404, 422,
+  429, 500, non-JSON 5xx, non-JSON 404).
 - A sampling of resource builders to confirm they produce the expected
   ``PolyswarmRequest`` shape.
 
@@ -261,6 +261,87 @@ class TestParseResponseErrors:
             )
         assert ei.value.request is req
 
+    def test_404_known_good_withheld_raises_subclass(self):
+        req = PolyswarmRequest(api=_FakeApi(), method='GET', url='u',
+                               result_parser=_SampleResource)
+        body = {
+            'status': 'error',
+            'result': 'Unable to download the provided artifact, it is a '
+                      'known-good binary; its bytes are withheld by design.',
+            'errors': {'code': 'KNOWN_GOOD', 'known_good': True,
+                       'sources': ['nsrl']},
+        }
+        with pytest.raises(exceptions.KnownGoodWithheldException) as ei:
+            parse_response(_FakeResponse(status_code=404, body=body), req)
+        # Existing ``except NotFoundException`` handlers must keep catching it.
+        assert isinstance(ei.value, exceptions.NotFoundException)
+        assert ei.value.sources == ['nsrl']
+        assert ei.value.request is req
+        assert req.errors == body['errors']
+
+    def test_404_known_good_withheld_without_sources(self):
+        req = PolyswarmRequest(api=_FakeApi(), method='GET', url='u',
+                               result_parser=_SampleResource)
+        with pytest.raises(exceptions.KnownGoodWithheldException) as ei:
+            parse_response(
+                _FakeResponse(status_code=404, body={
+                    'status': 'error', 'result': 'withheld',
+                    'errors': {'code': 'KNOWN_GOOD'},
+                }),
+                req,
+            )
+        assert ei.value.sources == []
+
+    def test_404_known_good_sources_normalised_to_feed_names(self):
+        # ``.sources`` is documented as a list of feed-name strings, so the payload is
+        # normalised at the boundary rather than handed through: a bare 'nsrl' would
+        # iterate as characters. A feed-dict entry (the shape the instance-level
+        # ``known_good`` field uses) yields ``feed['tool']`` defensively; anything
+        # unrecognised yields [].
+        shapes = [
+            (['nsrl', 'commercial'], ['nsrl', 'commercial']),  # already correct
+            ('nsrl', ['nsrl']),                                # bare string
+            ([{'tool': 'nsrl'}], ['nsrl']),                    # feed-dict shape
+            ([{'tool': 'nsrl'}, {'tool': 'commercial'}], ['nsrl', 'commercial']),
+            (['nsrl', {'tool': 'other'}], ['nsrl', 'other']),  # mixed list
+            ([{'tool': None}, {}], []),                        # dicts naming nothing
+            ({'tool': 'nsrl'}, []),                            # a mapping, not a list
+            (None, []),                                        # explicit null
+            (7, []),                                           # nonsense
+        ]
+        for payload, expected in shapes:
+            errors = {'code': 'KNOWN_GOOD', 'known_good': True, 'sources': payload}
+            req = PolyswarmRequest(api=_FakeApi(), method='GET', url='u',
+                                   result_parser=_SampleResource)
+            with pytest.raises(exceptions.KnownGoodWithheldException) as ei:
+                parse_response(
+                    _FakeResponse(status_code=404, body={
+                        'status': 'error', 'result': 'withheld', 'errors': errors,
+                    }),
+                    req,
+                )
+            assert ei.value.sources == expected, payload
+            # Whatever the shape, iterating yields feed-name strings...
+            assert all(isinstance(source, str) for source in ei.value.sources)
+            # ...and the raw payload is still reachable for callers that want it.
+            assert req.errors['sources'] == payload
+
+    def test_404_other_error_code_stays_plain_not_found(self):
+        # Only the known-good code gets the subclass; every other 404 — including
+        # a differently-coded or legacy list-shaped ``errors`` payload — stays a
+        # plain NotFoundException.
+        for errors in ({'code': 'DELETED'}, ['not found'], None):
+            req = PolyswarmRequest(api=_FakeApi(), method='GET', url='u',
+                                   result_parser=_SampleResource)
+            with pytest.raises(exceptions.NotFoundException) as ei:
+                parse_response(
+                    _FakeResponse(status_code=404, body={
+                        'status': 'error', 'result': 'missing', 'errors': errors,
+                    }),
+                    req,
+                )
+            assert not isinstance(ei.value, exceptions.KnownGoodWithheldException)
+
     def test_422_raises_failed_instance(self):
         req = PolyswarmRequest(api=_FakeApi(), method='POST', url='u',
                                result_parser=_SampleResource)
@@ -290,6 +371,60 @@ class TestParseResponseErrors:
                                                     'result': 'boom'}),
                 req,
             )
+
+    def test_500_mapping_errors_keep_every_value_in_the_message(self):
+        # Regression: the diagnostic rendered ``errors`` by iterating it, which on a
+        # mapping-shaped envelope yields only its KEYS — the message came out as
+        # "code\nknown_good\nsources" with every value silently dropped. The mapping
+        # shape is the way-forward one and the server forwards it on every status
+        # (400 / 401 / 403 / 413 / 5xx all land here), so the values must survive.
+        req = PolyswarmRequest(api=_FakeApi(), method='POST', url='u',
+                               result_parser=_SampleResource)
+        errors = {'code': 'KNOWN_GOOD', 'known_good': True, 'sources': ['nsrl']}
+        with pytest.raises(exceptions.RequestException) as ei:
+            parse_response(
+                _FakeResponse(status_code=500, body={
+                    'status': 'error', 'result': 'boom', 'errors': errors,
+                }),
+                req,
+            )
+        message = str(ei.value)
+        assert 'code=KNOWN_GOOD' in message
+        assert 'known_good=True' in message
+        assert "sources=['nsrl']" in message
+        # The keys alone (the old, lossy rendering) must not be the whole story.
+        assert 'Errors:\ncode\n' not in message
+
+    def test_500_list_errors_still_render_one_entry_per_line(self):
+        # The legacy list shape must keep rendering exactly as before — one entry
+        # per line — now that the mapping shape is branched on separately.
+        req = PolyswarmRequest(api=_FakeApi(), method='POST', url='u',
+                               result_parser=_SampleResource)
+        with pytest.raises(exceptions.RequestException) as ei:
+            parse_response(
+                _FakeResponse(status_code=500, body={
+                    'status': 'error', 'result': 'boom',
+                    'errors': ['first problem', 'second problem'],
+                }),
+                req,
+            )
+        assert 'Errors:\nfirst problem\nsecond problem' in str(ei.value)
+
+    def test_500_string_errors_render_on_one_line(self):
+        # The third arm. Iterating a bare string yields characters, so without it a prose
+        # `errors` rendered one letter per line — the same failure the mapping arm was added
+        # for. Both specs now promise this shape renders as-is, so pin it beside the other two.
+        req = PolyswarmRequest(api=_FakeApi(), method='POST', url='u',
+                               result_parser=_SampleResource)
+        with pytest.raises(exceptions.RequestException) as ei:
+            parse_response(
+                _FakeResponse(status_code=500, body={
+                    'status': 'error', 'result': 'boom', 'errors': 'some prose',
+                }),
+                req,
+            )
+        assert 'Errors:\nsome prose' in str(ei.value)
+        assert 'Errors:\ns\no\nm' not in str(ei.value)
 
     def test_500_raises_even_without_parser(self):
         # Regression: fire-and-forget endpoints (no result_parser) must

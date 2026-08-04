@@ -3,24 +3,15 @@
 Each test method runs twice — once against the sync ``PolyswarmAPI``
 and once against the async ``PolySwarmAsyncAPI``. Both transports are
 ``httpx``-backed, so the HTTP boundary is mocked by ``respx`` in either
-case. The parametrisation is automatic: ``ClientTestCase`` 's
-``__init_subclass__`` hook emits ``<Name>Sync`` and ``<Name>Async``
-sibling classes for every subclass declared. The base subclass is
-hidden from pytest via ``__test__ = False``.
+case. The parametrisation is automatic: ``ClientTestCase`` (shared harness
+in ``test/_client_harness.py``) emits ``<Name>Sync`` and ``<Name>Async``
+sibling classes for every subclass declared, and hides the base subclass
+from pytest via ``__test__ = False``.
 """
-import asyncio
-import json
-from unittest import TestCase
-
-import httpx
-import respx
-
-from polyswarm_api.aio import PolySwarmAsyncAPI
-from polyswarm_api.api import PolyswarmAPI
+from test._client_harness import BASE_URL, ClientTestCase
 
 
-_BASE_URL = 'http://localhost:9696/v3'
-_RESOURCE_URL = f'{_BASE_URL}/search/metadata/properties'
+_RESOURCE_URL = f'{BASE_URL}/search/metadata/properties'
 
 
 def _sample_row(field_path='polyunite.malware_family'):
@@ -33,113 +24,6 @@ def _sample_row(field_path='polyunite.malware_family'):
         'created': '2026-05-20T00:00:00',
         'updated': '2026-05-20T00:00:00',
     }
-
-
-# ── Per-test mocking + client construction harness ───────────────────
-
-
-class _MockBoundary:
-    """Register expected HTTP exchanges via ``respx``. Both sync and
-    async clients now run on httpx, so a single mock library covers
-    both. Tests call ``add(method, url, json=..., status=...)``.
-    """
-
-    def __init__(self, client_kind: str):
-        self.client_kind = client_kind
-        self._router = respx.mock(assert_all_called=False)
-
-    def __enter__(self):
-        self._router.start()
-        return self
-
-    def __exit__(self, *exc):
-        self._router.stop()
-        self._router.reset()
-
-    def add(self, method: str, url: str, json: dict, status: int = 200):
-        self._router.route(method=method, url=url).mock(
-            return_value=httpx.Response(status, json=json),
-        )
-
-    @property
-    def last_request_url(self) -> str:
-        return str(self._router.calls[0].request.url)
-
-    @property
-    def last_request_body(self):
-        """The JSON body of the most recent request (None if it carried none)."""
-        content = self._router.calls[-1].request.content
-        return json.loads(content) if content else None
-
-
-class _AsyncToSync:
-    """Run async client methods from sync test bodies via ``asyncio.run``.
-
-    Each attribute access returns a sync callable that drives the
-    matching async method on a fresh event loop per call — keeps the
-    unittest-style test bodies unchanged.
-    """
-
-    def __init__(self, async_api: PolySwarmAsyncAPI):
-        self._api = async_api
-
-    def __getattr__(self, name):
-        if name.startswith('_'):
-            raise AttributeError(name)
-        attr = getattr(self._api, name)
-
-        def sync_call(*args, **kwargs):
-            result = attr(*args, **kwargs)
-            if asyncio.iscoroutine(result):
-                return asyncio.run(result)
-            # Async generator → drain it.
-            async def _drain():
-                return [item async for item in result]
-            return asyncio.run(_drain())
-
-        return sync_call
-
-
-class ClientTestCase(TestCase):
-    """Base test case. Each subclass is auto-replaced by ``<Name>Sync``
-    and ``<Name>Async`` siblings so every test method runs once against
-    each client. The original subclass is hidden from pytest.
-    """
-
-    _client_kind = 'sync'
-
-    def __init_subclass__(cls, **kwargs):
-        super().__init_subclass__(**kwargs)
-        if getattr(cls, '_client_kind_variant', False):
-            return
-        import sys
-        module = sys.modules.get(cls.__module__)
-        if module is None:
-            return
-        cls.__test__ = False
-        for label, kind in (('Sync', 'sync'), ('Async', 'async')):
-            variant_name = f'{cls.__name__}{label}'
-            variant = type(variant_name, (cls,), {
-                '_client_kind': kind,
-                '_client_kind_variant': True,
-                '__test__': True,
-                '__module__': cls.__module__,
-                '__qualname__': variant_name,
-            })
-            setattr(module, variant_name, variant)
-
-    def setUp(self):
-        if self._client_kind == 'sync':
-            self.api = PolyswarmAPI('1' * 32, uri=_BASE_URL, community='gamma')
-        else:
-            self.api = _AsyncToSync(
-                PolySwarmAsyncAPI('1' * 32, uri=_BASE_URL, community='gamma'),
-            )
-        self.mock = _MockBoundary(self._client_kind)
-        self.mock.__enter__()
-
-    def tearDown(self):
-        self.mock.__exit__(None, None, None)
 
 
 # ── Tests ────────────────────────────────────────────────────────────

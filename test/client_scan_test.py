@@ -774,6 +774,42 @@ class ScanTestCaseV2(TestCase):
         assert created.sha256 == sha
         assert created.sources == ['nsrl']
         assert created.artifact_instance_id
+        # The refusal, against the real server. Every other assertion about the error
+        # envelope reads a body this repo fabricated, which pins what we *think* the server
+        # sends — a rename of the code string on the server side would leave those green.
+        # Here the caller-visible outcome IS the contract: the typed exception and its feeds.
+        with tempfile.TemporaryDirectory() as out_dir:
+            with pytest.raises(exceptions.KnownGoodWithheldException) as ei:
+                v3api.download(out_dir, sha)
+            # A refused download leaves nothing behind. `_execute_download` checks the
+            # status before it calls `open_destination`, and this pins that ordering: invert
+            # it and a refusal would leave an empty file, which to a caller is
+            # indistinguishable from a download that worked.
+            assert os.listdir(out_dir) == []
+        assert ei.value.sources == ['nsrl']
+        # The existence probe, against the real server — and the only LIVE coverage of it in
+        # the fleet. Its status codes are a frozen contract (artifact-index
+        # specs/09-hash-search-head-contract.md): 200 = found, 204 = not found. The probe
+        # carries no result parser, so a non-2xx never raises and every non-200 collapses to
+        # False — which means a server-side widening produces a wrong boolean with no error and
+        # no log line. That is exactly the 4.0 inversion this SDK shipped in 4.0.0/4.1.0.
+        # Everything else asserting these semantics is respx-mocked, so it pins the SDK's
+        # mapping and would stay green through such a flip. These two lines would not.
+        #
+        # Catalogued via the CRUD, which builds a searchable reference instance:
+        #   plain          -> present, because that reference IS a real record
+        #   require_scan   -> absent, because nothing was ever scanned for it
+        # Polled: known_good_create returns an artifact_instance_id, so it goes through the
+        # same async search-row write as a submission — asserting it unpolled is a flake under
+        # TESTS_VCR=off, by the same reasoning as the probe test below.
+        present = False
+        for _ in range(30):
+            present = v3api.exists(sha, hash_type='sha256')
+            if present:
+                break
+            time.sleep(1)
+        assert present is True
+        assert v3api.exists(sha, hash_type='sha256', require_scan=True) is False
         # A second feed flagging the same sha extends the same entry (no new row).
         extended = v3api.known_good_create(sha256=sha, source='commercial')
         assert extended.id == created.id
@@ -781,10 +817,68 @@ class ScanTestCaseV2(TestCase):
         got = v3api.known_good_get(sha256=sha)
         assert got.sha256 == sha
         assert sorted(got.sources) == ['commercial', 'nsrl']
+        # Both feeds now name themselves in the refusal — the exception's .sources tracks
+        # the catalogue rather than being a snapshot from the first flagging.
+        with tempfile.TemporaryDirectory() as out_dir:
+            with pytest.raises(exceptions.KnownGoodWithheldException) as ei:
+                v3api.download(out_dir, sha)
+        assert sorted(ei.value.sources) == ['commercial', 'nsrl']
         deleted = v3api.known_good_delete(sha256=sha)
         assert deleted.sha256 == sha
-        with pytest.raises(exceptions.NotFoundException):
+        # A 404 with no known-good code must stay the BASE class: the subclass satisfies
+        # `pytest.raises(NotFoundException)` too, so without this the one place the real
+        # server returns a plain miss never checks that it wasn't mapped to the subclass.
+        with pytest.raises(exceptions.NotFoundException) as ei:
             v3api.known_good_get(sha256=sha)
+        assert not isinstance(ei.value, exceptions.KnownGoodWithheldException)
+
+    @vcr.use_cassette()
+    def test_hash_existence_probe_against_the_real_server(self):
+        # The hash existence probe, end to end, on resources this test provisions itself.
+        #
+        # Its status codes are a frozen contract — artifact-index
+        # specs/09-hash-search-head-contract.md: 200 = found, 204 = not found. The SDK sends
+        # this with no result parser AND as a HEAD, so parse_response short-circuits before the
+        # non-2xx mapping and hands `exists()` a bare status code. There is no error channel:
+        # a server-side widening of "found" produces a wrong boolean, silently. That is the
+        # shape of the inversion this SDK shipped in 4.0.0/4.1.0 — `int(result) // 100 == 2`
+        # made every artifact the index had never seen report present, and the suite stayed
+        # green because its probe coverage was entirely mocked.
+        #
+        # So this asserts the server's behaviour rather than the SDK's mapping, on both sides
+        # of the 200/204 boundary, using the ordinary provisioning path.
+        v3api = PolyswarmAPI(self.test_api_key, uri=f'http://artifact-index-e2e:9696/{self.api_version}', community='gamma')
+        # Two distinct EICAR variants, both deterministic: one this test submits, and one
+        # NOTHING ever submits. Deriving the absent case from its own uid is what keeps this
+        # test re-runnable against a reused stack — probing the sha we are about to submit
+        # would pass only on a freshly booted one.
+        _absent_content, absent_sha = malicious_artifact(f'{self._testMethodName}-never-submitted')
+        _content, sha = malicious_artifact(self._testMethodName)
+        assert absent_sha != sha
+
+        # ABSENT -> 204 -> False, in both forms.
+        assert v3api.exists(absent_sha, hash_type='sha256') is False
+        assert v3api.exists(absent_sha, hash_type='sha256', require_scan=True) is False
+
+        # PRESENT: submit the same sha and let the scan settle, so `last_scanned` lands in a
+        # scan state and both forms answer 200 -> True.
+        instance, submitted_sha = submit_and_scan(v3api, self._testMethodName)
+        assert submitted_sha == sha, 'the probe must be asked about the sha we just submitted'
+        assert instance.window_closed
+
+        # The search row and its last_scanned state are written by async tasks, so allow for
+        # index lag — but poll on the NARROWER condition. require_scan filters on the scan
+        # state of the row that the plain form only needs to exist, so it can only become true
+        # at the same time or later; polling the broad form and then asserting the narrow one
+        # is a race. Assert both once the strict one holds.
+        scanned = False
+        for _ in range(30):
+            scanned = v3api.exists(sha, hash_type='sha256', require_scan=True)
+            if scanned:
+                break
+            time.sleep(1)
+        assert scanned is True
+        assert v3api.exists(sha, hash_type='sha256') is True
 
     @vcr.use_cassette()
     def test_sandbox_providers(self):
@@ -802,7 +896,7 @@ class ScanTestCaseV2(TestCase):
 
         task = _dispatch_sandbox(v3api, instance.id, 'cape', 'win-10-build-19041', True)
         assert task.json['config']['network_enabled'] is True
-        task = _dispatch_sandbox(v3api, instance.id, 'triage', 'win10-build-15063', False)
+        task = _dispatch_sandbox(v3api, instance.id, 'triage', 'windows11-21h2-x64', False)
         assert task.sandbox == 'triage'
         assert task.json['config']['network_enabled'] is False
 
@@ -815,7 +909,7 @@ class ScanTestCaseV2(TestCase):
         # is what sandbox_task_latest reads.
         instance, sha256 = submit_and_scan(v3api, self._testMethodName, wait=False)
         cape = _dispatch_sandbox(v3api, instance.id, 'cape', 'win-10-build-19041', True)
-        triage = _dispatch_sandbox(v3api, instance.id, 'triage', 'win10-build-15063', False)
+        triage = _dispatch_sandbox(v3api, instance.id, 'triage', 'windows11-21h2-x64', False)
 
         # _complete_sandbox_task waits (event-driven) for the sandbox service to
         # register each just-dispatched task before driving it to SUCCEEDED.
@@ -839,7 +933,7 @@ class ScanTestCaseV2(TestCase):
         # Dispatch cape + triage concurrently (distinct sandbox slugs, independent).
         run_concurrently([
             lambda: _dispatch_sandbox(v3api, instance.id, 'cape', 'win-10-build-19041', True),
-            lambda: _dispatch_sandbox(v3api, instance.id, 'triage', 'win10-build-15063', False),
+            lambda: _dispatch_sandbox(v3api, instance.id, 'triage', 'windows11-21h2-x64', False),
         ])
 
         # Poll until the SandboxTaskSearchHash index sees both tasks.
@@ -876,7 +970,7 @@ class ScanTestCaseV2(TestCase):
         uid = self._testMethodName
         instance, sha = submit_and_scan(api, uid, wait=False)
         cape = _dispatch_sandbox(api, instance.id, 'cape', 'win-10-build-19041', True)
-        triage = _dispatch_sandbox(api, instance.id, 'triage', 'win10-build-15063', False)
+        triage = _dispatch_sandbox(api, instance.id, 'triage', 'windows11-21h2-x64', False)
         _complete_sandbox_task(cape.id, 'cape')
         _complete_sandbox_task(triage.id, 'triage')
 

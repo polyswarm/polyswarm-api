@@ -408,6 +408,30 @@ class TestAsyncScanCase:
             assert created.sha256 == sha
             assert created.sources == ['nsrl']
             assert created.artifact_instance_id
+            # The refusal on the async transport, against the real server. It reaches the
+            # 404 arm by a different route than the sync parse path — the streaming
+            # download raises from `aread()` → `_raise_for_status` — so both transports
+            # need the live assertion, not just the fabricated respx one.
+            with tempfile.TemporaryDirectory() as out_dir:
+                with pytest.raises(exceptions.KnownGoodWithheldException) as ei:
+                    await api.download(out_dir, sha)
+                # A refused download leaves nothing behind — see the sync twin.
+                assert os.listdir(out_dir) == []
+            assert ei.value.sources == ['nsrl']
+            # The existence probe on the async transport — see the sync twin for why these two
+            # lines are the fleet's only live guard on a frozen status contract. Catalogued via
+            # the CRUD: present plain (the reference instance is a real record), absent under
+            # require_scan (nothing was ever scanned for it).
+            # Polled — see the sync twin: known_good_create goes through the same async
+            # search-row write, so an unpolled assertion flakes under TESTS_VCR=off.
+            present = False
+            for _ in range(30):
+                present = await api.exists(sha, hash_type='sha256')
+                if present:
+                    break
+                await asyncio.sleep(1)
+            assert present is True
+            assert await api.exists(sha, hash_type='sha256', require_scan=True) is False
             # A second feed flagging the same sha extends the same entry (no new row).
             extended = await api.known_good_create(sha256=sha, source='commercial')
             assert extended.id == created.id
@@ -415,10 +439,52 @@ class TestAsyncScanCase:
             got = await api.known_good_get(sha256=sha)
             assert got.sha256 == sha
             assert sorted(got.sources) == ['commercial', 'nsrl']
+            # Both feeds name themselves in the refusal once the entry is extended.
+            with tempfile.TemporaryDirectory() as out_dir:
+                with pytest.raises(exceptions.KnownGoodWithheldException) as ei:
+                    await api.download(out_dir, sha)
+            assert sorted(ei.value.sources) == ['commercial', 'nsrl']
             deleted = await api.known_good_delete(sha256=sha)
             assert deleted.sha256 == sha
-            with pytest.raises(exceptions.NotFoundException):
+            # A 404 with no known-good code must stay the BASE class — the subclass would
+            # satisfy this raises() too, so the plain-miss half of the mapping needs its own
+            # assertion against the real server.
+            with pytest.raises(exceptions.NotFoundException) as ei:
                 await api.known_good_get(sha256=sha)
+            assert not isinstance(ei.value, exceptions.KnownGoodWithheldException)
+
+    @vcr.use_cassette()
+    async def test_async_hash_existence_probe_against_the_real_server(self, uid):
+        # Async twin of the sync probe test — see it for why this is asserted against the
+        # server rather than a mock: the probe is a HEAD with no result parser, so it has no
+        # error channel and a server-side widening of "found" is a silent wrong boolean.
+        async with self._api() as api:
+            # Two distinct variants: one submitted below, one nothing ever submits — which is
+            # what keeps this re-runnable against a reused stack.
+            _absent_content, absent_sha = malicious_artifact(f'{uid}-never-submitted')
+            _content, sha = malicious_artifact(uid)
+            assert absent_sha != sha
+
+            # ABSENT -> 204 -> False, in both forms.
+            assert await api.exists(absent_sha, hash_type='sha256') is False
+            assert await api.exists(absent_sha, hash_type='sha256', require_scan=True) is False
+
+            # PRESENT: submit it and let the scan settle.
+            instance, submitted_sha = await submit_and_scan(api, uid)
+            assert submitted_sha == sha
+            assert instance.window_closed
+
+            # Poll the NARROWER form — require_scan can only become true at the same time or
+            # later than the plain form, so polling the broad one and asserting the strict one
+            # is a race. See the sync twin.
+            scanned = False
+            for _ in range(30):
+                scanned = await api.exists(sha, hash_type='sha256', require_scan=True)
+                if scanned:
+                    break
+                await asyncio.sleep(1)
+            assert scanned is True
+            assert await api.exists(sha, hash_type='sha256') is True
 
     # ── Sandbox ───────────────────────────────────────────────────────────────
 
@@ -437,7 +503,7 @@ class TestAsyncScanCase:
             instance, _ = await submit_and_scan(api, uid, wait=False)
             task = await _dispatch_sandbox(api, instance.id, 'cape', 'win-10-build-19041', True)
             assert task.json['config']['network_enabled'] is True
-            task = await _dispatch_sandbox(api, instance.id, 'triage', 'win10-build-15063', False)
+            task = await _dispatch_sandbox(api, instance.id, 'triage', 'windows11-21h2-x64', False)
             assert task.sandbox == 'triage'
             assert task.json['config']['network_enabled'] is False
 
@@ -446,7 +512,7 @@ class TestAsyncScanCase:
         async with self._api() as api:
             instance, sha = await submit_and_scan(api, uid, wait=False)
             cape = await _dispatch_sandbox(api, instance.id, 'cape', 'win-10-build-19041', True)
-            triage = await _dispatch_sandbox(api, instance.id, 'triage', 'win10-build-15063', False)
+            triage = await _dispatch_sandbox(api, instance.id, 'triage', 'windows11-21h2-x64', False)
 
             # No cape/triage VMs in e2e — drive each task to SUCCEEDED by replaying
             # the sandbox worker's HTTP calls. Completing a task creates its
@@ -472,7 +538,7 @@ class TestAsyncScanCase:
             # Dispatch cape + triage concurrently (distinct sandbox slugs, independent).
             await run_concurrently_async([
                 _dispatch_sandbox(api, instance.id, 'cape', 'win-10-build-19041', True),
-                _dispatch_sandbox(api, instance.id, 'triage', 'win10-build-15063', False),
+                _dispatch_sandbox(api, instance.id, 'triage', 'windows11-21h2-x64', False),
             ])
 
             # Poll until the SandboxTaskSearchHash index sees both tasks.
@@ -506,7 +572,7 @@ class TestAsyncScanCase:
         async with self._api() as api:
             instance, sha = await submit_and_scan(api, uid, wait=False)
             cape = await _dispatch_sandbox(api, instance.id, 'cape', 'win-10-build-19041', True)
-            triage = await _dispatch_sandbox(api, instance.id, 'triage', 'win10-build-15063', False)
+            triage = await _dispatch_sandbox(api, instance.id, 'triage', 'windows11-21h2-x64', False)
             await _complete_sandbox_task(cape.id, 'cape')
             await _complete_sandbox_task(triage.id, 'triage')
 
@@ -1047,25 +1113,6 @@ async def test_async_download_streams_in_chunks(monkeypatch):
     assert fh.getvalue() == body
     assert len(writes) >= 2, f'expected chunked writes, got {len(writes)}: {writes}'
     assert all(len(w) <= 4 for w in writes), writes
-
-
-@respx.mock
-async def test_async_exists_maps_200_true_204_and_404_false():
-    """End-to-end ``exists``: the HEAD status drives the result. The endpoint
-    returns 200 when the artifact is present and 204 when it is absent ("request
-    worked, no matching artifact"), so only a 200 is True — a 204 is a successful
-    2xx that means the *opposite* of "exists" and must be False, as must a 404."""
-    route = respx.head(f'{BASE_URL}/search/hash/sha256')
-    api = PolySwarmAsyncAPI(API_KEY, uri=BASE_URL, community='gamma')
-    try:
-        route.mock(return_value=httpx.Response(200))
-        assert await api.exists(SHA256) is True
-        route.mock(return_value=httpx.Response(204))   # absent: "worked, nothing found"
-        assert await api.exists(SHA256) is False
-        route.mock(return_value=httpx.Response(404))
-        assert await api.exists(SHA256) is False
-    finally:
-        await api.aclose()
 
 
 @respx.mock

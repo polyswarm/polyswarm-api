@@ -19,7 +19,7 @@ What the `polyswarm-api` Python SDK is, what it ships, where it sits in the plat
 | `polyswarm_api.PolyswarmSession` / `polyswarm_api.aio.AsyncPolyswarmSession` | Transport classes. Own the underlying `httpx.{,Async}Client`, expose `execute(request)` and `upload_file(url, artifact, …)`. Subclass and inject to customize transport behaviour. |
 | `polyswarm_api.resources` | Per-domain resource classes (`ArtifactInstance`, `LocalArtifact`, `HistoricalHunt`, `LiveYaraRuleset`, `YaraRuleset`, `MetadataFieldProperties`, `LLMPromptConfig`, …). Wrappers over the server's JSON responses. Builder classmethods (`create` / `get` / `update` / `delete` / `list` / etc.) return `PolyswarmRequest` descriptors. |
 | `polyswarm_api.core.PolyswarmRequest` | Pure description of an HTTP call (method, URL, params, body, parser). Constructed by resource builders; handed to a session for execution. No I/O on the descriptor itself. |
-| `polyswarm_api.exceptions` | Exception hierarchy (`PolyswarmException` → `RequestException`, `NotFoundException`, `FailedInstanceException`, `NoResultsException`, `UsageLimitsExceededException`, `InvalidValueException`, `TimeoutException`). |
+| `polyswarm_api.exceptions` | Exception hierarchy (`PolyswarmException` → `RequestException`, `NotFoundException` → `KnownGoodWithheldException`, `FailedInstanceException`, `NoResultsException`, `UsageLimitsExceededException`, `InvalidValueException`, `TimeoutException`). |
 
 ## Where it sits
 
