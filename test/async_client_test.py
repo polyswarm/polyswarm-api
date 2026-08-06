@@ -136,7 +136,7 @@ async def _poll_results(agen_factory, tries=30, delay=1):
 # sandbox service to drive a dispatched SandboxTask to SUCCEEDED (the only state
 # that makes sandbox_task_latest resolve). Requires the e2e sandbox-service
 # worker to be running.
-SANDBOX_SERVICE_URI = 'http://sandbox-service-e2e:54110'
+SANDBOX_SERVICE_URI = 'http://sandbox:54110'
 
 
 async def _post_sandbox_status(client, task_id, status):
@@ -244,7 +244,7 @@ class TestAsyncScanCase:
     def _api(self, community='gamma'):
         return PolySwarmAsyncAPI(
             self.test_api_key,
-            uri=f'http://artifact-index-e2e:9696/{self.api_version}',
+            uri=f'http://ai:9696/{self.api_version}',
             community=community,
         )
 
@@ -877,7 +877,7 @@ class TestAsyncEngineCache:
 
 # ── Error handling (no cassettes) — mirrors no-cassette sync tests ────────────
 
-BASE_URL = 'http://artifact-index-e2e:9696/v3'
+BASE_URL = 'http://ai:9696/v3'
 API_KEY = '11111111111111111111111111111111'
 
 

@@ -16,11 +16,11 @@ interactions:
       content-type:
       - application/json
       host:
-      - artifact-index-e2e:9696
+      - ai:9696
       user-agent:
       - polyswarm_api/3.21.0 (x86_64-Linux-CPython-3.14.4)
     method: POST
-    uri: http://artifact-index-e2e:9696/v3/hunt/historical
+    uri: http://ai:9696/v3/hunt/historical
   response:
     body:
       string: '{"result":{"account_number":"111","archives_in_flight":0,"archives_scanned":0,"archives_total":0,"communities":["gamma"],"created":"2026-06-03T22:35:46.255339+00:00","failed_max_retries":0,"failed_other":0,"id":"46026864008511354","progress":null,"results_csv_uri":null,"ruleset_name":null,"status":"PENDING","summary":null,"user_account_number":"111","yara":"rule
@@ -60,11 +60,11 @@ interactions:
       connection:
       - keep-alive
       host:
-      - artifact-index-e2e:9696
+      - ai:9696
       user-agent:
       - polyswarm_api/3.21.0 (x86_64-Linux-CPython-3.14.4)
     method: GET
-    uri: http://artifact-index-e2e:9696/v3/hunt/historical/results/list?id=46026864008511354&community=gamma
+    uri: http://ai:9696/v3/hunt/historical/results/list?id=46026864008511354&community=gamma
   response:
     body:
       string: ''

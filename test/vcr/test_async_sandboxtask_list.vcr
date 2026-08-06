@@ -15,11 +15,11 @@ interactions:
       content-type:
       - application/json
       host:
-      - artifact-index-e2e:9696
+      - ai:9696
       user-agent:
       - polyswarm_api/3.21.0 (x86_64-Linux-CPython-3.14.4)
     method: POST
-    uri: http://artifact-index-e2e:9696/v3/instance
+    uri: http://ai:9696/v3/instance
   response:
     body:
       string: '{"result":{"artifact_id":"49659709795584114","assertions":[],"bounty_state":0,"community":"gamma","country":"","created":"2026-06-03T22:51:47.794622+00:00","detections":null,"expiration_window":null,"expire_at":null,"extended_type":null,"failed":false,"filename":"artifact","first_seen":"2026-06-03T22:51:47.794622+00:00","id":"49659709795584114","last_scanned":null,"last_seen":null,"md5":null,"metadata":[],"mimetype":null,"permalink":"https://polyswarm.network/scan/results/file/None/49659709795584114","polyscore":null,"result":null,"sha1":null,"sha256":null,"size":null,"type":"FILE","upload_url":"http://minio:9000/artifact-index/instances/c0/5a/6c/c05a6cde-fdf1-4277-9752-decaf874df67?X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Credential=AKIAIOSFODNN7EXAMPLE%2F20260603%2Fus-east-1%2Fs3%2Faws4_request&X-Amz-Date=20260603T225147Z&X-Amz-Expires=300&X-Amz-SignedHeaders=host&X-Amz-Signature=9f3d8ec09ef3c2a66a375cdefbd5a7b59798bcbe0dcaac133140b9adf36c7365","votes":[],"window_closed":false},"status":"OK"}
@@ -116,11 +116,11 @@ interactions:
       content-type:
       - application/json
       host:
-      - artifact-index-e2e:9696
+      - ai:9696
       user-agent:
       - polyswarm_api/3.21.0 (x86_64-Linux-CPython-3.14.4)
     method: PUT
-    uri: http://artifact-index-e2e:9696/v3/instance?id=49659709795584114
+    uri: http://ai:9696/v3/instance?id=49659709795584114
   response:
     body:
       string: '{"result":{"artifact_id":"49659709795584114","assertions":[],"bounty_state":0,"community":"gamma","country":"","created":"2026-06-03T22:51:47.794622+00:00","detections":null,"expiration_window":null,"expire_at":null,"extended_type":null,"failed":false,"filename":"artifact","first_seen":"2026-06-03T22:51:47.794622+00:00","id":"49659709795584114","last_scanned":null,"last_seen":null,"md5":null,"metadata":[],"mimetype":null,"permalink":"https://polyswarm.network/scan/results/file/None/49659709795584114","polyscore":null,"result":null,"sha1":null,"sha256":null,"size":null,"type":"FILE","upload_url":"http://minio:9000/artifact-index/instances/c0/5a/6c/c05a6cde-fdf1-4277-9752-decaf874df67?X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Credential=AKIAIOSFODNN7EXAMPLE%2F20260603%2Fus-east-1%2Fs3%2Faws4_request&X-Amz-Date=20260603T225147Z&X-Amz-Expires=300&X-Amz-SignedHeaders=host&X-Amz-Signature=9f3d8ec09ef3c2a66a375cdefbd5a7b59798bcbe0dcaac133140b9adf36c7365","votes":[],"window_closed":false},"status":"OK"}
@@ -162,11 +162,11 @@ interactions:
       content-type:
       - application/json
       host:
-      - artifact-index-e2e:9696
+      - ai:9696
       user-agent:
       - polyswarm_api/3.21.0 (x86_64-Linux-CPython-3.14.4)
     method: POST
-    uri: http://artifact-index-e2e:9696/v3/sandbox/sandboxtask
+    uri: http://ai:9696/v3/sandbox/sandboxtask
   response:
     body:
       string: '{"result":{"account_number":null,"artifact":{"extended_type":"EICAR
@@ -211,11 +211,11 @@ interactions:
       content-type:
       - application/json
       host:
-      - artifact-index-e2e:9696
+      - ai:9696
       user-agent:
       - polyswarm_api/3.21.0 (x86_64-Linux-CPython-3.14.4)
     method: POST
-    uri: http://artifact-index-e2e:9696/v3/sandbox/sandboxtask
+    uri: http://ai:9696/v3/sandbox/sandboxtask
   response:
     body:
       string: '{"result":{"account_number":null,"artifact":{"extended_type":"EICAR
@@ -256,11 +256,11 @@ interactions:
       connection:
       - keep-alive
       host:
-      - artifact-index-e2e:9696
+      - ai:9696
       user-agent:
       - polyswarm_api/3.21.0 (x86_64-Linux-CPython-3.14.4)
     method: GET
-    uri: http://artifact-index-e2e:9696/v3/sandbox/sandboxtask/list?sha256=a25755bdc34758030825c334a87fadf2f690d648dd1af0bc82e826bf084e5123
+    uri: http://ai:9696/v3/sandbox/sandboxtask/list?sha256=a25755bdc34758030825c334a87fadf2f690d648dd1af0bc82e826bf084e5123
   response:
     body:
       string: '{"has_more":false,"limit":50,"result":[{"account_number":null,"artifact":{"extended_type":"EICAR
@@ -304,11 +304,11 @@ interactions:
       connection:
       - keep-alive
       host:
-      - artifact-index-e2e:9696
+      - ai:9696
       user-agent:
       - polyswarm_api/3.21.0 (x86_64-Linux-CPython-3.14.4)
     method: GET
-    uri: http://artifact-index-e2e:9696/v3/sandbox/sandboxtask/list?sha256=a25755bdc34758030825c334a87fadf2f690d648dd1af0bc82e826bf084e5123&sandbox=cape
+    uri: http://ai:9696/v3/sandbox/sandboxtask/list?sha256=a25755bdc34758030825c334a87fadf2f690d648dd1af0bc82e826bf084e5123&sandbox=cape
   response:
     body:
       string: '{"has_more":false,"limit":50,"result":[{"account_number":null,"artifact":{"extended_type":"EICAR
@@ -349,11 +349,11 @@ interactions:
       connection:
       - keep-alive
       host:
-      - artifact-index-e2e:9696
+      - ai:9696
       user-agent:
       - polyswarm_api/3.21.0 (x86_64-Linux-CPython-3.14.4)
     method: GET
-    uri: http://artifact-index-e2e:9696/v3/sandbox/sandboxtask/list?sha256=a25755bdc34758030825c334a87fadf2f690d648dd1af0bc82e826bf084e5123&sandbox=triage
+    uri: http://ai:9696/v3/sandbox/sandboxtask/list?sha256=a25755bdc34758030825c334a87fadf2f690d648dd1af0bc82e826bf084e5123&sandbox=triage
   response:
     body:
       string: '{"has_more":false,"limit":50,"result":[{"account_number":null,"artifact":{"extended_type":"EICAR
@@ -394,11 +394,11 @@ interactions:
       connection:
       - keep-alive
       host:
-      - artifact-index-e2e:9696
+      - ai:9696
       user-agent:
       - polyswarm_api/3.21.0 (x86_64-Linux-CPython-3.14.4)
     method: GET
-    uri: http://artifact-index-e2e:9696/v3/sandbox/sandboxtask/list?sha256=a25755bdc34758030825c334a87fadf2f690d648dd1af0bc82e826bf084e5123
+    uri: http://ai:9696/v3/sandbox/sandboxtask/list?sha256=a25755bdc34758030825c334a87fadf2f690d648dd1af0bc82e826bf084e5123
   response:
     body:
       string: '{"has_more":false,"limit":50,"result":[{"account_number":null,"artifact":{"extended_type":"EICAR

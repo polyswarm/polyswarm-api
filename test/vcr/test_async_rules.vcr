@@ -26,11 +26,11 @@ interactions:
       content-type:
       - application/json
       host:
-      - artifact-index-e2e:9696
+      - ai:9696
       user-agent:
       - polyswarm_api/3.21.0 (x86_64-Linux-CPython-3.14.4)
     method: POST
-    uri: http://artifact-index-e2e:9696/v3/hunt/rule
+    uri: http://ai:9696/v3/hunt/rule
   response:
     body:
       string: '{"result":{"created":"2026-06-02T21:30:27.081195+00:00","deleted":false,"description":null,"id":"40732127887168358","livescan_created":null,"livescan_id":null,"modified":"2026-06-02T21:30:27.081195+00:00","name":"test","yara":"rule
@@ -81,11 +81,11 @@ interactions:
       connection:
       - keep-alive
       host:
-      - artifact-index-e2e:9696
+      - ai:9696
       user-agent:
       - polyswarm_api/3.21.0 (x86_64-Linux-CPython-3.14.4)
     method: GET
-    uri: http://artifact-index-e2e:9696/v3/hunt/rule/list?community=gamma
+    uri: http://ai:9696/v3/hunt/rule/list?community=gamma
   response:
     body:
       string: '{"has_more":false,"limit":50,"result":[{"created":"2026-06-02T21:30:27.081195+00:00","deleted":false,"description":null,"id":"40732127887168358","livescan_created":null,"livescan_id":null,"modified":"2026-06-02T21:30:27.081195+00:00","name":"test","yara":null}],"status":"OK"}
@@ -123,11 +123,11 @@ interactions:
       connection:
       - keep-alive
       host:
-      - artifact-index-e2e:9696
+      - ai:9696
       user-agent:
       - polyswarm_api/3.21.0 (x86_64-Linux-CPython-3.14.4)
     method: GET
-    uri: http://artifact-index-e2e:9696/v3/hunt/rule?id=40732127887168358&community=gamma
+    uri: http://ai:9696/v3/hunt/rule?id=40732127887168358&community=gamma
   response:
     body:
       string: '{"result":{"created":"2026-06-02T21:30:27.081195+00:00","deleted":false,"description":null,"id":"40732127887168358","livescan_created":null,"livescan_id":null,"modified":"2026-06-02T21:30:27.081195+00:00","name":"test","yara":"rule
@@ -182,11 +182,11 @@ interactions:
       content-type:
       - application/json
       host:
-      - artifact-index-e2e:9696
+      - ai:9696
       user-agent:
       - polyswarm_api/3.21.0 (x86_64-Linux-CPython-3.14.4)
     method: PUT
-    uri: http://artifact-index-e2e:9696/v3/hunt/rule?id=40732127887168358
+    uri: http://ai:9696/v3/hunt/rule?id=40732127887168358
   response:
     body:
       string: '{"result":{"created":"2026-06-02T21:30:27.081195+00:00","deleted":false,"description":"test","id":"40732127887168358","livescan_created":null,"livescan_id":null,"modified":"2026-06-02T21:30:27.081195+00:00","name":"test2","yara":"rule
@@ -241,11 +241,11 @@ interactions:
       content-type:
       - application/json
       host:
-      - artifact-index-e2e:9696
+      - ai:9696
       user-agent:
       - polyswarm_api/3.21.0 (x86_64-Linux-CPython-3.14.4)
     method: DELETE
-    uri: http://artifact-index-e2e:9696/v3/hunt/rule?id=40732127887168358
+    uri: http://ai:9696/v3/hunt/rule?id=40732127887168358
   response:
     body:
       string: '{"result":{"created":"2026-06-02T21:30:27.081195+00:00","deleted":true,"description":"test","id":"40732127887168358","livescan_created":null,"livescan_id":null,"modified":"2026-06-02T21:30:27.152617+00:00","name":"test2","yara":"rule
@@ -296,11 +296,11 @@ interactions:
       connection:
       - keep-alive
       host:
-      - artifact-index-e2e:9696
+      - ai:9696
       user-agent:
       - polyswarm_api/3.21.0 (x86_64-Linux-CPython-3.14.4)
     method: GET
-    uri: http://artifact-index-e2e:9696/v3/hunt/rule/list?community=gamma
+    uri: http://ai:9696/v3/hunt/rule/list?community=gamma
   response:
     body:
       string: ''

@@ -15,11 +15,11 @@ interactions:
       content-type:
       - application/json
       host:
-      - artifact-index-e2e:9696
+      - ai:9696
       user-agent:
       - polyswarm_api/4.2.0 (x86_64-Linux-CPython-3.12.13)
     method: POST
-    uri: http://artifact-index-e2e:9696/v3/known-good
+    uri: http://ai:9696/v3/known-good
   response:
     body:
       string: '{"result":{"artifact_instance_id":"99771098961774556","created":"2026-07-29T23:04:40.642152+00:00","id":"73600979008822536","sha256":"d474e08e835f8e538f8aeb6944b4bc73a31db2be96625b0bdfe0ab8bf239226b","sources":["nsrl"]},"status":"OK"}
@@ -57,11 +57,11 @@ interactions:
       connection:
       - keep-alive
       host:
-      - artifact-index-e2e:9696
+      - ai:9696
       user-agent:
       - polyswarm_api/4.2.0 (x86_64-Linux-CPython-3.12.13)
     method: GET
-    uri: http://artifact-index-e2e:9696/v3/consumer/download/sha256/d474e08e835f8e538f8aeb6944b4bc73a31db2be96625b0bdfe0ab8bf239226b?community=gamma
+    uri: http://ai:9696/v3/consumer/download/sha256/d474e08e835f8e538f8aeb6944b4bc73a31db2be96625b0bdfe0ab8bf239226b?community=gamma
   response:
     body:
       string: '{"errors":{"code":"KNOWN_GOOD","known_good":true,"sources":["nsrl"]},"result":"Unable
@@ -99,11 +99,11 @@ interactions:
       connection:
       - keep-alive
       host:
-      - artifact-index-e2e:9696
+      - ai:9696
       user-agent:
       - polyswarm_api/4.2.0 (x86_64-Linux-CPython-3.12.13)
     method: HEAD
-    uri: http://artifact-index-e2e:9696/v3/search/hash/sha256?hash=d474e08e835f8e538f8aeb6944b4bc73a31db2be96625b0bdfe0ab8bf239226b&community=gamma&require_scan=false
+    uri: http://ai:9696/v3/search/hash/sha256?hash=d474e08e835f8e538f8aeb6944b4bc73a31db2be96625b0bdfe0ab8bf239226b&community=gamma&require_scan=false
   response:
     body:
       string: ''
@@ -139,11 +139,11 @@ interactions:
       connection:
       - keep-alive
       host:
-      - artifact-index-e2e:9696
+      - ai:9696
       user-agent:
       - polyswarm_api/4.2.0 (x86_64-Linux-CPython-3.12.13)
     method: HEAD
-    uri: http://artifact-index-e2e:9696/v3/search/hash/sha256?hash=d474e08e835f8e538f8aeb6944b4bc73a31db2be96625b0bdfe0ab8bf239226b&community=gamma&require_scan=true
+    uri: http://ai:9696/v3/search/hash/sha256?hash=d474e08e835f8e538f8aeb6944b4bc73a31db2be96625b0bdfe0ab8bf239226b&community=gamma&require_scan=true
   response:
     body:
       string: ''
@@ -179,11 +179,11 @@ interactions:
       content-type:
       - application/json
       host:
-      - artifact-index-e2e:9696
+      - ai:9696
       user-agent:
       - polyswarm_api/4.2.0 (x86_64-Linux-CPython-3.12.13)
     method: POST
-    uri: http://artifact-index-e2e:9696/v3/known-good
+    uri: http://ai:9696/v3/known-good
   response:
     body:
       string: '{"result":{"artifact_instance_id":"99771098961774556","created":"2026-07-29T23:04:40.642152+00:00","id":"73600979008822536","sha256":"d474e08e835f8e538f8aeb6944b4bc73a31db2be96625b0bdfe0ab8bf239226b","sources":["commercial","nsrl"]},"status":"OK"}
@@ -221,11 +221,11 @@ interactions:
       connection:
       - keep-alive
       host:
-      - artifact-index-e2e:9696
+      - ai:9696
       user-agent:
       - polyswarm_api/4.2.0 (x86_64-Linux-CPython-3.12.13)
     method: GET
-    uri: http://artifact-index-e2e:9696/v3/known-good?sha256=d474e08e835f8e538f8aeb6944b4bc73a31db2be96625b0bdfe0ab8bf239226b&community=gamma
+    uri: http://ai:9696/v3/known-good?sha256=d474e08e835f8e538f8aeb6944b4bc73a31db2be96625b0bdfe0ab8bf239226b&community=gamma
   response:
     body:
       string: '{"result":{"artifact_instance_id":"99771098961774556","created":"2026-07-29T23:04:40.642152+00:00","id":"73600979008822536","sha256":"d474e08e835f8e538f8aeb6944b4bc73a31db2be96625b0bdfe0ab8bf239226b","sources":["commercial","nsrl"]},"status":"OK"}
@@ -263,11 +263,11 @@ interactions:
       connection:
       - keep-alive
       host:
-      - artifact-index-e2e:9696
+      - ai:9696
       user-agent:
       - polyswarm_api/4.2.0 (x86_64-Linux-CPython-3.12.13)
     method: GET
-    uri: http://artifact-index-e2e:9696/v3/consumer/download/sha256/d474e08e835f8e538f8aeb6944b4bc73a31db2be96625b0bdfe0ab8bf239226b?community=gamma
+    uri: http://ai:9696/v3/consumer/download/sha256/d474e08e835f8e538f8aeb6944b4bc73a31db2be96625b0bdfe0ab8bf239226b?community=gamma
   response:
     body:
       string: '{"errors":{"code":"KNOWN_GOOD","known_good":true,"sources":["commercial","nsrl"]},"result":"Unable
@@ -305,11 +305,11 @@ interactions:
       connection:
       - keep-alive
       host:
-      - artifact-index-e2e:9696
+      - ai:9696
       user-agent:
       - polyswarm_api/4.2.0 (x86_64-Linux-CPython-3.12.13)
     method: DELETE
-    uri: http://artifact-index-e2e:9696/v3/known-good?sha256=d474e08e835f8e538f8aeb6944b4bc73a31db2be96625b0bdfe0ab8bf239226b
+    uri: http://ai:9696/v3/known-good?sha256=d474e08e835f8e538f8aeb6944b4bc73a31db2be96625b0bdfe0ab8bf239226b
   response:
     body:
       string: '{"result":{"deleted":true,"sha256":"d474e08e835f8e538f8aeb6944b4bc73a31db2be96625b0bdfe0ab8bf239226b"},"status":"OK"}
@@ -347,11 +347,11 @@ interactions:
       connection:
       - keep-alive
       host:
-      - artifact-index-e2e:9696
+      - ai:9696
       user-agent:
       - polyswarm_api/4.2.0 (x86_64-Linux-CPython-3.12.13)
     method: GET
-    uri: http://artifact-index-e2e:9696/v3/known-good?sha256=d474e08e835f8e538f8aeb6944b4bc73a31db2be96625b0bdfe0ab8bf239226b&community=gamma
+    uri: http://ai:9696/v3/known-good?sha256=d474e08e835f8e538f8aeb6944b4bc73a31db2be96625b0bdfe0ab8bf239226b&community=gamma
   response:
     body:
       string: '{"errors":null,"result":"No known-good entry found for sha256 d474e08e835f8e538f8aeb6944b4bc73a31db2be96625b0bdfe0ab8bf239226b.","status":"error"}
