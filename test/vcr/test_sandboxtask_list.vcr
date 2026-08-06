@@ -15,11 +15,11 @@ interactions:
       content-type:
       - application/json
       host:
-      - artifact-index-e2e:9696
+      - ai:9696
       user-agent:
       - polyswarm_api/3.21.0 (x86_64-Linux-CPython-3.14.4)
     method: POST
-    uri: http://artifact-index-e2e:9696/v3/instance
+    uri: http://ai:9696/v3/instance
   response:
     body:
       string: '{"result":{"artifact_id":"58969745895714176","assertions":[],"bounty_state":0,"community":"gamma","country":"","created":"2026-06-03T22:41:25.019443+00:00","detections":null,"expiration_window":null,"expire_at":null,"extended_type":null,"failed":false,"filename":"artifact","first_seen":"2026-06-03T22:41:25.019443+00:00","id":"58969745895714176","last_scanned":null,"last_seen":null,"md5":null,"metadata":[],"mimetype":null,"permalink":"https://polyswarm.network/scan/results/file/None/58969745895714176","polyscore":null,"result":null,"sha1":null,"sha256":null,"size":null,"type":"FILE","upload_url":"http://minio:9000/artifact-index/instances/5b/75/27/5b7527e2-75f6-47c2-9d28-a84dc7587ebf?X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Credential=AKIAIOSFODNN7EXAMPLE%2F20260603%2Fus-east-1%2Fs3%2Faws4_request&X-Amz-Date=20260603T224125Z&X-Amz-Expires=300&X-Amz-SignedHeaders=host&X-Amz-Signature=7026d46f1c65653f3e886301c7fd63b00c4fbce7394f51ce00fcf525ca8fc9d7","votes":[],"window_closed":false},"status":"OK"}
@@ -116,11 +116,11 @@ interactions:
       content-type:
       - application/json
       host:
-      - artifact-index-e2e:9696
+      - ai:9696
       user-agent:
       - polyswarm_api/3.21.0 (x86_64-Linux-CPython-3.14.4)
     method: PUT
-    uri: http://artifact-index-e2e:9696/v3/instance?id=58969745895714176
+    uri: http://ai:9696/v3/instance?id=58969745895714176
   response:
     body:
       string: '{"result":{"artifact_id":"58969745895714176","assertions":[],"bounty_state":0,"community":"gamma","country":"","created":"2026-06-03T22:41:25.019443+00:00","detections":null,"expiration_window":null,"expire_at":null,"extended_type":null,"failed":false,"filename":"artifact","first_seen":"2026-06-03T22:41:25.019443+00:00","id":"58969745895714176","last_scanned":null,"last_seen":null,"md5":null,"metadata":[],"mimetype":null,"permalink":"https://polyswarm.network/scan/results/file/None/58969745895714176","polyscore":null,"result":null,"sha1":null,"sha256":null,"size":null,"type":"FILE","upload_url":"http://minio:9000/artifact-index/instances/5b/75/27/5b7527e2-75f6-47c2-9d28-a84dc7587ebf?X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Credential=AKIAIOSFODNN7EXAMPLE%2F20260603%2Fus-east-1%2Fs3%2Faws4_request&X-Amz-Date=20260603T224125Z&X-Amz-Expires=300&X-Amz-SignedHeaders=host&X-Amz-Signature=7026d46f1c65653f3e886301c7fd63b00c4fbce7394f51ce00fcf525ca8fc9d7","votes":[],"window_closed":false},"status":"OK"}
@@ -162,11 +162,11 @@ interactions:
       content-type:
       - application/json
       host:
-      - artifact-index-e2e:9696
+      - ai:9696
       user-agent:
       - polyswarm_api/3.21.0 (x86_64-Linux-CPython-3.14.4)
     method: POST
-    uri: http://artifact-index-e2e:9696/v3/sandbox/sandboxtask
+    uri: http://ai:9696/v3/sandbox/sandboxtask
   response:
     body:
       string: '{"errors":null,"result":"Could not find storage path for instance 58969745895714176.","status":"error"}
@@ -206,11 +206,11 @@ interactions:
       content-type:
       - application/json
       host:
-      - artifact-index-e2e:9696
+      - ai:9696
       user-agent:
       - polyswarm_api/3.21.0 (x86_64-Linux-CPython-3.14.4)
     method: POST
-    uri: http://artifact-index-e2e:9696/v3/sandbox/sandboxtask
+    uri: http://ai:9696/v3/sandbox/sandboxtask
   response:
     body:
       string: '{"result":{"account_number":null,"artifact":{"extended_type":"EICAR
@@ -255,11 +255,11 @@ interactions:
       content-type:
       - application/json
       host:
-      - artifact-index-e2e:9696
+      - ai:9696
       user-agent:
       - polyswarm_api/3.21.0 (x86_64-Linux-CPython-3.14.4)
     method: POST
-    uri: http://artifact-index-e2e:9696/v3/sandbox/sandboxtask
+    uri: http://ai:9696/v3/sandbox/sandboxtask
   response:
     body:
       string: '{"result":{"account_number":null,"artifact":{"extended_type":"EICAR
@@ -300,11 +300,11 @@ interactions:
       connection:
       - keep-alive
       host:
-      - artifact-index-e2e:9696
+      - ai:9696
       user-agent:
       - polyswarm_api/3.21.0 (x86_64-Linux-CPython-3.14.4)
     method: GET
-    uri: http://artifact-index-e2e:9696/v3/sandbox/sandboxtask/list?sha256=486d0e452557572a3845220ccd3559e2f4475579bbb3e60a31b58e4b4cdcf20f
+    uri: http://ai:9696/v3/sandbox/sandboxtask/list?sha256=486d0e452557572a3845220ccd3559e2f4475579bbb3e60a31b58e4b4cdcf20f
   response:
     body:
       string: '{"has_more":false,"limit":50,"result":[{"account_number":null,"artifact":{"extended_type":"EICAR
@@ -348,11 +348,11 @@ interactions:
       connection:
       - keep-alive
       host:
-      - artifact-index-e2e:9696
+      - ai:9696
       user-agent:
       - polyswarm_api/3.21.0 (x86_64-Linux-CPython-3.14.4)
     method: GET
-    uri: http://artifact-index-e2e:9696/v3/sandbox/sandboxtask/list?sha256=486d0e452557572a3845220ccd3559e2f4475579bbb3e60a31b58e4b4cdcf20f&sandbox=cape
+    uri: http://ai:9696/v3/sandbox/sandboxtask/list?sha256=486d0e452557572a3845220ccd3559e2f4475579bbb3e60a31b58e4b4cdcf20f&sandbox=cape
   response:
     body:
       string: '{"has_more":false,"limit":50,"result":[{"account_number":null,"artifact":{"extended_type":"EICAR
@@ -393,11 +393,11 @@ interactions:
       connection:
       - keep-alive
       host:
-      - artifact-index-e2e:9696
+      - ai:9696
       user-agent:
       - polyswarm_api/3.21.0 (x86_64-Linux-CPython-3.14.4)
     method: GET
-    uri: http://artifact-index-e2e:9696/v3/sandbox/sandboxtask/list?sha256=486d0e452557572a3845220ccd3559e2f4475579bbb3e60a31b58e4b4cdcf20f&sandbox=triage
+    uri: http://ai:9696/v3/sandbox/sandboxtask/list?sha256=486d0e452557572a3845220ccd3559e2f4475579bbb3e60a31b58e4b4cdcf20f&sandbox=triage
   response:
     body:
       string: '{"has_more":false,"limit":50,"result":[{"account_number":null,"artifact":{"extended_type":"EICAR
@@ -438,11 +438,11 @@ interactions:
       connection:
       - keep-alive
       host:
-      - artifact-index-e2e:9696
+      - ai:9696
       user-agent:
       - polyswarm_api/3.21.0 (x86_64-Linux-CPython-3.14.4)
     method: GET
-    uri: http://artifact-index-e2e:9696/v3/sandbox/sandboxtask/list?sha256=486d0e452557572a3845220ccd3559e2f4475579bbb3e60a31b58e4b4cdcf20f
+    uri: http://ai:9696/v3/sandbox/sandboxtask/list?sha256=486d0e452557572a3845220ccd3559e2f4475579bbb3e60a31b58e4b4cdcf20f
   response:
     body:
       string: '{"has_more":false,"limit":50,"result":[{"account_number":null,"artifact":{"extended_type":"EICAR

@@ -16,11 +16,11 @@ interactions:
       content-type:
       - application/json
       host:
-      - artifact-index-e2e:9696
+      - ai:9696
       user-agent:
       - polyswarm_api/3.21.0 (x86_64-Linux-CPython-3.14.4)
     method: POST
-    uri: http://artifact-index-e2e:9696/v3/hunt/historical
+    uri: http://ai:9696/v3/hunt/historical
   response:
     body:
       string: '{"result":{"account_number":"111","archives_in_flight":0,"archives_scanned":0,"archives_total":0,"communities":["gamma"],"created":"2026-06-03T22:35:46.397319+00:00","failed_max_retries":0,"failed_other":0,"id":"86221284475520679","progress":null,"results_csv_uri":null,"ruleset_name":null,"status":"PENDING","summary":null,"user_account_number":"111","yara":"rule
@@ -65,11 +65,11 @@ interactions:
       content-type:
       - application/json
       host:
-      - artifact-index-e2e:9696
+      - ai:9696
       user-agent:
       - polyswarm_api/3.21.0 (x86_64-Linux-CPython-3.14.4)
     method: POST
-    uri: http://artifact-index-e2e:9696/v3/hunt/historical
+    uri: http://ai:9696/v3/hunt/historical
   response:
     body:
       string: '{"result":{"account_number":"111","archives_in_flight":0,"archives_scanned":0,"archives_total":0,"communities":["gamma"],"created":"2026-06-03T22:35:46.441527+00:00","failed_max_retries":0,"failed_other":0,"id":"58288022169534211","progress":null,"results_csv_uri":null,"ruleset_name":null,"status":"PENDING","summary":null,"user_account_number":"111","yara":"rule
@@ -114,11 +114,11 @@ interactions:
       content-type:
       - application/json
       host:
-      - artifact-index-e2e:9696
+      - ai:9696
       user-agent:
       - polyswarm_api/3.21.0 (x86_64-Linux-CPython-3.14.4)
     method: POST
-    uri: http://artifact-index-e2e:9696/v3/hunt/historical
+    uri: http://ai:9696/v3/hunt/historical
   response:
     body:
       string: '{"result":{"account_number":"111","archives_in_flight":0,"archives_scanned":0,"archives_total":0,"communities":["gamma"],"created":"2026-06-03T22:35:46.480348+00:00","failed_max_retries":0,"failed_other":0,"id":"54272719094803031","progress":null,"results_csv_uri":null,"ruleset_name":null,"status":"PENDING","summary":null,"user_account_number":"111","yara":"rule
@@ -163,11 +163,11 @@ interactions:
       content-type:
       - application/json
       host:
-      - artifact-index-e2e:9696
+      - ai:9696
       user-agent:
       - polyswarm_api/3.21.0 (x86_64-Linux-CPython-3.14.4)
     method: POST
-    uri: http://artifact-index-e2e:9696/v3/hunt/historical
+    uri: http://ai:9696/v3/hunt/historical
   response:
     body:
       string: '{"result":{"account_number":"111","archives_in_flight":0,"archives_scanned":0,"archives_total":0,"communities":["gamma"],"created":"2026-06-03T22:35:46.521466+00:00","failed_max_retries":0,"failed_other":0,"id":"24956296142984681","progress":null,"results_csv_uri":null,"ruleset_name":null,"status":"PENDING","summary":null,"user_account_number":"111","yara":"rule
@@ -212,11 +212,11 @@ interactions:
       content-type:
       - application/json
       host:
-      - artifact-index-e2e:9696
+      - ai:9696
       user-agent:
       - polyswarm_api/3.21.0 (x86_64-Linux-CPython-3.14.4)
     method: POST
-    uri: http://artifact-index-e2e:9696/v3/hunt/historical
+    uri: http://ai:9696/v3/hunt/historical
   response:
     body:
       string: '{"result":{"account_number":"111","archives_in_flight":0,"archives_scanned":0,"archives_total":0,"communities":["gamma"],"created":"2026-06-03T22:35:46.562853+00:00","failed_max_retries":0,"failed_other":0,"id":"53359932363657862","progress":null,"results_csv_uri":null,"ruleset_name":null,"status":"PENDING","summary":null,"user_account_number":"111","yara":"rule
@@ -256,11 +256,11 @@ interactions:
       connection:
       - keep-alive
       host:
-      - artifact-index-e2e:9696
+      - ai:9696
       user-agent:
       - polyswarm_api/3.21.0 (x86_64-Linux-CPython-3.14.4)
     method: GET
-    uri: http://artifact-index-e2e:9696/v3/hunt/historical/list?community=gamma
+    uri: http://ai:9696/v3/hunt/historical/list?community=gamma
   response:
     body:
       string: '{"has_more":false,"limit":50,"result":[{"account_number":"111","archives_in_flight":0,"archives_scanned":0,"archives_total":0,"created":"2026-06-03T22:35:46.562853+00:00","id":"53359932363657862","progress":null,"results_csv_uri":null,"ruleset_name":null,"status":"PENDING","summary":null,"user_account_number":"111","yara":null},{"account_number":"111","archives_in_flight":0,"archives_scanned":0,"archives_total":0,"created":"2026-06-03T22:35:46.521466+00:00","id":"24956296142984681","progress":null,"results_csv_uri":null,"ruleset_name":null,"status":"PENDING","summary":null,"user_account_number":"111","yara":null},{"account_number":"111","archives_in_flight":0,"archives_scanned":0,"archives_total":0,"created":"2026-06-03T22:35:46.480348+00:00","id":"54272719094803031","progress":null,"results_csv_uri":null,"ruleset_name":null,"status":"PENDING","summary":null,"user_account_number":"111","yara":null},{"account_number":"111","archives_in_flight":0,"archives_scanned":0,"archives_total":0,"created":"2026-06-03T22:35:46.441527+00:00","id":"58288022169534211","progress":null,"results_csv_uri":null,"ruleset_name":null,"status":"PENDING","summary":null,"user_account_number":"111","yara":null},{"account_number":"111","archives_in_flight":0,"archives_scanned":0,"archives_total":0,"created":"2026-06-03T22:35:46.397319+00:00","id":"86221284475520679","progress":null,"results_csv_uri":null,"ruleset_name":null,"status":"PENDING","summary":null,"user_account_number":"111","yara":null},{"account_number":"111","archives_in_flight":0,"archives_scanned":0,"archives_total":0,"created":"2026-06-03T22:35:46.255339+00:00","id":"46026864008511354","progress":null,"results_csv_uri":null,"ruleset_name":null,"status":"PENDING","summary":null,"user_account_number":"111","yara":null},{"account_number":"111","archives_in_flight":0,"archives_scanned":0,"archives_total":0,"created":"2026-06-03T22:31:26.868688+00:00","id":"51603247373653891","progress":null,"results_csv_uri":null,"ruleset_name":null,"status":"PENDING","summary":null,"user_account_number":"111","yara":null}],"status":"OK"}

@@ -15,11 +15,11 @@ interactions:
       content-type:
       - application/json
       host:
-      - artifact-index-e2e:9696
+      - ai:9696
       user-agent:
       - polyswarm_api/3.21.0 (x86_64-Linux-CPython-3.14.4)
     method: POST
-    uri: http://artifact-index-e2e:9696/v3/ioc/known
+    uri: http://ai:9696/v3/ioc/known
   response:
     body:
       string: '{"result":{"good":true,"host":"test-async-update-known-good-host.sdk.test","id":6,"source":"test","type":"domain"},"status":"OK"}
@@ -61,11 +61,11 @@ interactions:
       content-type:
       - application/json
       host:
-      - artifact-index-e2e:9696
+      - ai:9696
       user-agent:
       - polyswarm_api/3.21.0 (x86_64-Linux-CPython-3.14.4)
     method: PUT
-    uri: http://artifact-index-e2e:9696/v3/ioc/known
+    uri: http://ai:9696/v3/ioc/known
   response:
     body:
       string: '{"result":{"good":true,"host":"9.42.182.192","id":6,"source":"test","type":"ip"},"status":"OK"}

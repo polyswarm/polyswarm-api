@@ -15,11 +15,11 @@ interactions:
       content-type:
       - application/json
       host:
-      - artifact-index-e2e:9696
+      - ai:9696
       user-agent:
       - polyswarm_api/3.21.0 (x86_64-Linux-CPython-3.14.4)
     method: POST
-    uri: http://artifact-index-e2e:9696/v3/instance
+    uri: http://ai:9696/v3/instance
   response:
     body:
       string: '{"result":{"artifact_id":"64169538086358193","assertions":[],"bounty_state":0,"community":"gamma","country":"","created":"2026-06-05T19:09:15.708498+00:00","detections":null,"expiration_window":null,"expire_at":null,"extended_type":null,"failed":false,"filename":"artifact","first_seen":"2026-06-05T19:09:15.708498+00:00","id":"64169538086358193","last_scanned":null,"last_seen":null,"md5":null,"metadata":[],"mimetype":null,"permalink":"https://polyswarm.network/scan/results/file/None/64169538086358193","polyscore":null,"result":null,"sha1":null,"sha256":null,"size":null,"type":"FILE","upload_url":"http://minio:9000/artifact-index/instances/cb/5b/55/cb5b556f-52f5-4407-b2d9-1643d665fa1f?X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Credential=AKIAIOSFODNN7EXAMPLE%2F20260605%2Fus-east-1%2Fs3%2Faws4_request&X-Amz-Date=20260605T190915Z&X-Amz-Expires=300&X-Amz-SignedHeaders=host&X-Amz-Signature=27d2e9d62bef616804aaf1c3d8332598db794fb121bb9b9d9e0d72fd694e86b9","votes":[],"window_closed":false},"status":"OK"}
@@ -116,11 +116,11 @@ interactions:
       content-type:
       - application/json
       host:
-      - artifact-index-e2e:9696
+      - ai:9696
       user-agent:
       - polyswarm_api/3.21.0 (x86_64-Linux-CPython-3.14.4)
     method: PUT
-    uri: http://artifact-index-e2e:9696/v3/instance?id=64169538086358193
+    uri: http://ai:9696/v3/instance?id=64169538086358193
   response:
     body:
       string: '{"result":{"artifact_id":"64169538086358193","assertions":[],"bounty_state":0,"community":"gamma","country":"","created":"2026-06-05T19:09:15.708498+00:00","detections":null,"expiration_window":null,"expire_at":null,"extended_type":null,"failed":false,"filename":"artifact","first_seen":"2026-06-05T19:09:15.708498+00:00","id":"64169538086358193","last_scanned":null,"last_seen":null,"md5":null,"metadata":[],"mimetype":null,"permalink":"https://polyswarm.network/scan/results/file/None/64169538086358193","polyscore":null,"result":null,"sha1":null,"sha256":null,"size":null,"type":"FILE","upload_url":"http://minio:9000/artifact-index/instances/cb/5b/55/cb5b556f-52f5-4407-b2d9-1643d665fa1f?X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Credential=AKIAIOSFODNN7EXAMPLE%2F20260605%2Fus-east-1%2Fs3%2Faws4_request&X-Amz-Date=20260605T190915Z&X-Amz-Expires=300&X-Amz-SignedHeaders=host&X-Amz-Signature=27d2e9d62bef616804aaf1c3d8332598db794fb121bb9b9d9e0d72fd694e86b9","votes":[],"window_closed":false},"status":"OK"}
@@ -162,11 +162,11 @@ interactions:
       content-type:
       - application/x-www-form-urlencoded
       host:
-      - artifact-index-e2e:9696
+      - ai:9696
       user-agent:
       - polyswarm_api/3.21.0 (x86_64-Linux-CPython-3.14.4)
     method: POST
-    uri: http://artifact-index-e2e:9696/v3/consumer/submission/gamma/rescan/sha256/2c2980cb27db9b3584bfb16c84feff262279b7e666ba42b96ee285b2aa0dc524
+    uri: http://ai:9696/v3/consumer/submission/gamma/rescan/sha256/2c2980cb27db9b3584bfb16c84feff262279b7e666ba42b96ee285b2aa0dc524
   response:
     body:
       string: '{"result":{"artifact_id":"5315742191955108","assertions":[],"bounty_state":1,"community":"gamma","country":"","created":"2026-06-05T19:09:15.766548+00:00","detections":null,"expiration_window":null,"expire_at":null,"extended_type":"EICAR
@@ -205,11 +205,11 @@ interactions:
       connection:
       - keep-alive
       host:
-      - artifact-index-e2e:9696
+      - ai:9696
       user-agent:
       - polyswarm_api/3.21.0 (x86_64-Linux-CPython-3.14.4)
     method: GET
-    uri: http://artifact-index-e2e:9696/v3/consumer/submission/gamma/5315742191955108
+    uri: http://ai:9696/v3/consumer/submission/gamma/5315742191955108
   response:
     body:
       string: '{"result":{"artifact_id":"5315742191955108","assertions":[{"author":"354237453029617","author_name":"engine-eicar","bid":"1000000000000000000","engine":{"description":"webhook-microengine-description","name":"engine-eicar"},"mask":true,"metadata":{"malware_family":"EICAR","product":"eicar","scanner":{"environment":{"architecture":"x86_64","operating_system":"Linux"}}},"verdict":true}],"bounty_state":2,"community":"gamma","country":"","created":"2026-06-05T19:09:15.766548+00:00","detections":null,"expiration_window":null,"expire_at":null,"extended_type":"EICAR
@@ -248,11 +248,11 @@ interactions:
       connection:
       - keep-alive
       host:
-      - artifact-index-e2e:9696
+      - ai:9696
       user-agent:
       - polyswarm_api/3.21.0 (x86_64-Linux-CPython-3.14.4)
     method: GET
-    uri: http://artifact-index-e2e:9696/v3/consumer/submission/gamma/5315742191955108
+    uri: http://ai:9696/v3/consumer/submission/gamma/5315742191955108
   response:
     body:
       string: '{"result":{"artifact_id":"5315742191955108","assertions":[{"author":"354237453029617","author_name":"engine-eicar","bid":"1000000000000000000","engine":{"description":"webhook-microengine-description","name":"engine-eicar"},"mask":true,"metadata":{"malware_family":"EICAR","product":"eicar","scanner":{"environment":{"architecture":"x86_64","operating_system":"Linux"}}},"verdict":true}],"bounty_state":2,"community":"gamma","country":"","created":"2026-06-05T19:09:15.766548+00:00","detections":null,"expiration_window":null,"expire_at":null,"extended_type":"EICAR
@@ -295,11 +295,11 @@ interactions:
       connection:
       - keep-alive
       host:
-      - artifact-index-e2e:9696
+      - ai:9696
       user-agent:
       - polyswarm_api/3.21.0 (x86_64-Linux-CPython-3.14.4)
     method: GET
-    uri: http://artifact-index-e2e:9696/v3/consumer/submission/gamma/5315742191955108
+    uri: http://ai:9696/v3/consumer/submission/gamma/5315742191955108
   response:
     body:
       string: '{"result":{"artifact_id":"5315742191955108","assertions":[{"author":"354237453029617","author_name":"engine-eicar","bid":"1000000000000000000","engine":{"description":"webhook-microengine-description","name":"engine-eicar"},"mask":true,"metadata":{"malware_family":"EICAR","product":"eicar","scanner":{"environment":{"architecture":"x86_64","operating_system":"Linux"}}},"verdict":true}],"bounty_state":2,"community":"gamma","country":"","created":"2026-06-05T19:09:15.766548+00:00","detections":null,"expiration_window":null,"expire_at":null,"extended_type":"EICAR
@@ -342,11 +342,11 @@ interactions:
       connection:
       - keep-alive
       host:
-      - artifact-index-e2e:9696
+      - ai:9696
       user-agent:
       - polyswarm_api/3.21.0 (x86_64-Linux-CPython-3.14.4)
     method: GET
-    uri: http://artifact-index-e2e:9696/v3/consumer/submission/gamma/5315742191955108
+    uri: http://ai:9696/v3/consumer/submission/gamma/5315742191955108
   response:
     body:
       string: '{"result":{"artifact_id":"5315742191955108","assertions":[{"author":"354237453029617","author_name":"engine-eicar","bid":"1000000000000000000","engine":{"description":"webhook-microengine-description","name":"engine-eicar"},"mask":true,"metadata":{"malware_family":"EICAR","product":"eicar","scanner":{"environment":{"architecture":"x86_64","operating_system":"Linux"}}},"verdict":true}],"bounty_state":2,"community":"gamma","country":"","created":"2026-06-05T19:09:15.766548+00:00","detections":null,"expiration_window":null,"expire_at":null,"extended_type":"EICAR
@@ -389,11 +389,11 @@ interactions:
       connection:
       - keep-alive
       host:
-      - artifact-index-e2e:9696
+      - ai:9696
       user-agent:
       - polyswarm_api/3.21.0 (x86_64-Linux-CPython-3.14.4)
     method: GET
-    uri: http://artifact-index-e2e:9696/v3/consumer/submission/gamma/5315742191955108
+    uri: http://ai:9696/v3/consumer/submission/gamma/5315742191955108
   response:
     body:
       string: '{"result":{"artifact_id":"5315742191955108","assertions":[{"author":"354237453029617","author_name":"engine-eicar","bid":"1000000000000000000","engine":{"description":"webhook-microengine-description","name":"engine-eicar"},"mask":true,"metadata":{"malware_family":"EICAR","product":"eicar","scanner":{"environment":{"architecture":"x86_64","operating_system":"Linux"}}},"verdict":true}],"bounty_state":2,"community":"gamma","country":"","created":"2026-06-05T19:09:15.766548+00:00","detections":null,"expiration_window":null,"expire_at":null,"extended_type":"EICAR
@@ -436,11 +436,11 @@ interactions:
       connection:
       - keep-alive
       host:
-      - artifact-index-e2e:9696
+      - ai:9696
       user-agent:
       - polyswarm_api/3.21.0 (x86_64-Linux-CPython-3.14.4)
     method: GET
-    uri: http://artifact-index-e2e:9696/v3/consumer/submission/gamma/5315742191955108
+    uri: http://ai:9696/v3/consumer/submission/gamma/5315742191955108
   response:
     body:
       string: '{"result":{"artifact_id":"5315742191955108","assertions":[{"author":"354237453029617","author_name":"engine-eicar","bid":"1000000000000000000","engine":{"description":"webhook-microengine-description","name":"engine-eicar"},"mask":true,"metadata":{"malware_family":"EICAR","product":"eicar","scanner":{"environment":{"architecture":"x86_64","operating_system":"Linux"}}},"verdict":true}],"bounty_state":2,"community":"gamma","country":"","created":"2026-06-05T19:09:15.766548+00:00","detections":null,"expiration_window":null,"expire_at":null,"extended_type":"EICAR
@@ -483,11 +483,11 @@ interactions:
       connection:
       - keep-alive
       host:
-      - artifact-index-e2e:9696
+      - ai:9696
       user-agent:
       - polyswarm_api/3.21.0 (x86_64-Linux-CPython-3.14.4)
     method: GET
-    uri: http://artifact-index-e2e:9696/v3/consumer/submission/gamma/5315742191955108
+    uri: http://ai:9696/v3/consumer/submission/gamma/5315742191955108
   response:
     body:
       string: '{"result":{"artifact_id":"5315742191955108","assertions":[{"author":"354237453029617","author_name":"engine-eicar","bid":"1000000000000000000","engine":{"description":"webhook-microengine-description","name":"engine-eicar"},"mask":true,"metadata":{"malware_family":"EICAR","product":"eicar","scanner":{"environment":{"architecture":"x86_64","operating_system":"Linux"}}},"verdict":true}],"bounty_state":2,"community":"gamma","country":"","created":"2026-06-05T19:09:15.766548+00:00","detections":null,"expiration_window":null,"expire_at":null,"extended_type":"EICAR
@@ -530,11 +530,11 @@ interactions:
       connection:
       - keep-alive
       host:
-      - artifact-index-e2e:9696
+      - ai:9696
       user-agent:
       - polyswarm_api/3.21.0 (x86_64-Linux-CPython-3.14.4)
     method: GET
-    uri: http://artifact-index-e2e:9696/v3/consumer/submission/gamma/5315742191955108
+    uri: http://ai:9696/v3/consumer/submission/gamma/5315742191955108
   response:
     body:
       string: '{"result":{"artifact_id":"5315742191955108","assertions":[{"author":"354237453029617","author_name":"engine-eicar","bid":"1000000000000000000","engine":{"description":"webhook-microengine-description","name":"engine-eicar"},"mask":true,"metadata":{"malware_family":"EICAR","product":"eicar","scanner":{"environment":{"architecture":"x86_64","operating_system":"Linux"}}},"verdict":true}],"bounty_state":2,"community":"gamma","country":"","created":"2026-06-05T19:09:15.766548+00:00","detections":null,"expiration_window":null,"expire_at":null,"extended_type":"EICAR
@@ -577,11 +577,11 @@ interactions:
       connection:
       - keep-alive
       host:
-      - artifact-index-e2e:9696
+      - ai:9696
       user-agent:
       - polyswarm_api/3.21.0 (x86_64-Linux-CPython-3.14.4)
     method: GET
-    uri: http://artifact-index-e2e:9696/v3/consumer/submission/gamma/5315742191955108
+    uri: http://ai:9696/v3/consumer/submission/gamma/5315742191955108
   response:
     body:
       string: '{"result":{"artifact_id":"5315742191955108","assertions":[{"author":"354237453029617","author_name":"engine-eicar","bid":"1000000000000000000","engine":{"description":"webhook-microengine-description","name":"engine-eicar"},"mask":true,"metadata":{"malware_family":"EICAR","product":"eicar","scanner":{"environment":{"architecture":"x86_64","operating_system":"Linux"}}},"verdict":true}],"bounty_state":2,"community":"gamma","country":"","created":"2026-06-05T19:09:15.766548+00:00","detections":null,"expiration_window":null,"expire_at":null,"extended_type":"EICAR
@@ -624,11 +624,11 @@ interactions:
       connection:
       - keep-alive
       host:
-      - artifact-index-e2e:9696
+      - ai:9696
       user-agent:
       - polyswarm_api/3.21.0 (x86_64-Linux-CPython-3.14.4)
     method: GET
-    uri: http://artifact-index-e2e:9696/v3/consumer/submission/gamma/5315742191955108
+    uri: http://ai:9696/v3/consumer/submission/gamma/5315742191955108
   response:
     body:
       string: '{"result":{"artifact_id":"5315742191955108","assertions":[{"author":"354237453029617","author_name":"engine-eicar","bid":"1000000000000000000","engine":{"description":"webhook-microengine-description","name":"engine-eicar"},"mask":true,"metadata":{"malware_family":"EICAR","product":"eicar","scanner":{"environment":{"architecture":"x86_64","operating_system":"Linux"}}},"verdict":true}],"bounty_state":2,"community":"gamma","country":"","created":"2026-06-05T19:09:15.766548+00:00","detections":null,"expiration_window":null,"expire_at":null,"extended_type":"EICAR
@@ -671,11 +671,11 @@ interactions:
       connection:
       - keep-alive
       host:
-      - artifact-index-e2e:9696
+      - ai:9696
       user-agent:
       - polyswarm_api/3.21.0 (x86_64-Linux-CPython-3.14.4)
     method: GET
-    uri: http://artifact-index-e2e:9696/v3/consumer/submission/gamma/5315742191955108
+    uri: http://ai:9696/v3/consumer/submission/gamma/5315742191955108
   response:
     body:
       string: '{"result":{"artifact_id":"5315742191955108","assertions":[{"author":"354237453029617","author_name":"engine-eicar","bid":"1000000000000000000","engine":{"description":"webhook-microengine-description","name":"engine-eicar"},"mask":true,"metadata":{"malware_family":"EICAR","product":"eicar","scanner":{"environment":{"architecture":"x86_64","operating_system":"Linux"}}},"verdict":true}],"bounty_state":2,"community":"gamma","country":"","created":"2026-06-05T19:09:15.766548+00:00","detections":null,"expiration_window":null,"expire_at":null,"extended_type":"EICAR
@@ -718,11 +718,11 @@ interactions:
       connection:
       - keep-alive
       host:
-      - artifact-index-e2e:9696
+      - ai:9696
       user-agent:
       - polyswarm_api/3.21.0 (x86_64-Linux-CPython-3.14.4)
     method: GET
-    uri: http://artifact-index-e2e:9696/v3/consumer/submission/gamma/5315742191955108
+    uri: http://ai:9696/v3/consumer/submission/gamma/5315742191955108
   response:
     body:
       string: '{"result":{"artifact_id":"5315742191955108","assertions":[{"author":"354237453029617","author_name":"engine-eicar","bid":"1000000000000000000","engine":{"description":"webhook-microengine-description","name":"engine-eicar"},"mask":true,"metadata":{"malware_family":"EICAR","product":"eicar","scanner":{"environment":{"architecture":"x86_64","operating_system":"Linux"}}},"verdict":true}],"bounty_state":2,"community":"gamma","country":"","created":"2026-06-05T19:09:15.766548+00:00","detections":null,"expiration_window":null,"expire_at":null,"extended_type":"EICAR
@@ -765,11 +765,11 @@ interactions:
       connection:
       - keep-alive
       host:
-      - artifact-index-e2e:9696
+      - ai:9696
       user-agent:
       - polyswarm_api/3.21.0 (x86_64-Linux-CPython-3.14.4)
     method: GET
-    uri: http://artifact-index-e2e:9696/v3/consumer/submission/gamma/5315742191955108
+    uri: http://ai:9696/v3/consumer/submission/gamma/5315742191955108
   response:
     body:
       string: '{"result":{"artifact_id":"5315742191955108","assertions":[{"author":"354237453029617","author_name":"engine-eicar","bid":"1000000000000000000","engine":{"description":"webhook-microengine-description","name":"engine-eicar"},"mask":true,"metadata":{"malware_family":"EICAR","product":"eicar","scanner":{"environment":{"architecture":"x86_64","operating_system":"Linux"}}},"verdict":true}],"bounty_state":2,"community":"gamma","country":"","created":"2026-06-05T19:09:15.766548+00:00","detections":null,"expiration_window":null,"expire_at":null,"extended_type":"EICAR
@@ -812,11 +812,11 @@ interactions:
       connection:
       - keep-alive
       host:
-      - artifact-index-e2e:9696
+      - ai:9696
       user-agent:
       - polyswarm_api/3.21.0 (x86_64-Linux-CPython-3.14.4)
     method: GET
-    uri: http://artifact-index-e2e:9696/v3/consumer/submission/gamma/5315742191955108
+    uri: http://ai:9696/v3/consumer/submission/gamma/5315742191955108
   response:
     body:
       string: '{"result":{"artifact_id":"5315742191955108","assertions":[{"author":"354237453029617","author_name":"engine-eicar","bid":"1000000000000000000","engine":{"description":"webhook-microengine-description","name":"engine-eicar"},"mask":true,"metadata":{"malware_family":"EICAR","product":"eicar","scanner":{"environment":{"architecture":"x86_64","operating_system":"Linux"}}},"verdict":true}],"bounty_state":2,"community":"gamma","country":"","created":"2026-06-05T19:09:15.766548+00:00","detections":null,"expiration_window":null,"expire_at":null,"extended_type":"EICAR
@@ -859,11 +859,11 @@ interactions:
       connection:
       - keep-alive
       host:
-      - artifact-index-e2e:9696
+      - ai:9696
       user-agent:
       - polyswarm_api/3.21.0 (x86_64-Linux-CPython-3.14.4)
     method: GET
-    uri: http://artifact-index-e2e:9696/v3/consumer/submission/gamma/5315742191955108
+    uri: http://ai:9696/v3/consumer/submission/gamma/5315742191955108
   response:
     body:
       string: '{"result":{"artifact_id":"5315742191955108","assertions":[{"author":"354237453029617","author_name":"engine-eicar","bid":"1000000000000000000","engine":{"description":"webhook-microengine-description","name":"engine-eicar"},"mask":true,"metadata":{"malware_family":"EICAR","product":"eicar","scanner":{"environment":{"architecture":"x86_64","operating_system":"Linux"}}},"verdict":true}],"bounty_state":2,"community":"gamma","country":"","created":"2026-06-05T19:09:15.766548+00:00","detections":null,"expiration_window":null,"expire_at":null,"extended_type":"EICAR
@@ -906,11 +906,11 @@ interactions:
       connection:
       - keep-alive
       host:
-      - artifact-index-e2e:9696
+      - ai:9696
       user-agent:
       - polyswarm_api/3.21.0 (x86_64-Linux-CPython-3.14.4)
     method: GET
-    uri: http://artifact-index-e2e:9696/v3/consumer/submission/gamma/5315742191955108
+    uri: http://ai:9696/v3/consumer/submission/gamma/5315742191955108
   response:
     body:
       string: '{"result":{"artifact_id":"5315742191955108","assertions":[{"author":"354237453029617","author_name":"engine-eicar","bid":"1000000000000000000","engine":{"description":"webhook-microengine-description","name":"engine-eicar"},"mask":true,"metadata":{"malware_family":"EICAR","product":"eicar","scanner":{"environment":{"architecture":"x86_64","operating_system":"Linux"}}},"verdict":true}],"bounty_state":2,"community":"gamma","country":"","created":"2026-06-05T19:09:15.766548+00:00","detections":null,"expiration_window":null,"expire_at":null,"extended_type":"EICAR
@@ -953,11 +953,11 @@ interactions:
       connection:
       - keep-alive
       host:
-      - artifact-index-e2e:9696
+      - ai:9696
       user-agent:
       - polyswarm_api/3.21.0 (x86_64-Linux-CPython-3.14.4)
     method: GET
-    uri: http://artifact-index-e2e:9696/v3/consumer/submission/gamma/5315742191955108
+    uri: http://ai:9696/v3/consumer/submission/gamma/5315742191955108
   response:
     body:
       string: '{"result":{"artifact_id":"5315742191955108","assertions":[{"author":"354237453029617","author_name":"engine-eicar","bid":"1000000000000000000","engine":{"description":"webhook-microengine-description","name":"engine-eicar"},"mask":true,"metadata":{"malware_family":"EICAR","product":"eicar","scanner":{"environment":{"architecture":"x86_64","operating_system":"Linux"}}},"verdict":true}],"bounty_state":2,"community":"gamma","country":"","created":"2026-06-05T19:09:15.766548+00:00","detections":null,"expiration_window":null,"expire_at":null,"extended_type":"EICAR
@@ -1000,11 +1000,11 @@ interactions:
       connection:
       - keep-alive
       host:
-      - artifact-index-e2e:9696
+      - ai:9696
       user-agent:
       - polyswarm_api/3.21.0 (x86_64-Linux-CPython-3.14.4)
     method: GET
-    uri: http://artifact-index-e2e:9696/v3/consumer/submission/gamma/5315742191955108
+    uri: http://ai:9696/v3/consumer/submission/gamma/5315742191955108
   response:
     body:
       string: '{"result":{"artifact_id":"5315742191955108","assertions":[{"author":"354237453029617","author_name":"engine-eicar","bid":"1000000000000000000","engine":{"description":"webhook-microengine-description","name":"engine-eicar"},"mask":true,"metadata":{"malware_family":"EICAR","product":"eicar","scanner":{"environment":{"architecture":"x86_64","operating_system":"Linux"}}},"verdict":true}],"bounty_state":2,"community":"gamma","country":"","created":"2026-06-05T19:09:15.766548+00:00","detections":null,"expiration_window":null,"expire_at":null,"extended_type":"EICAR
@@ -1047,11 +1047,11 @@ interactions:
       connection:
       - keep-alive
       host:
-      - artifact-index-e2e:9696
+      - ai:9696
       user-agent:
       - polyswarm_api/3.21.0 (x86_64-Linux-CPython-3.14.4)
     method: GET
-    uri: http://artifact-index-e2e:9696/v3/consumer/submission/gamma/5315742191955108
+    uri: http://ai:9696/v3/consumer/submission/gamma/5315742191955108
   response:
     body:
       string: '{"result":{"artifact_id":"5315742191955108","assertions":[{"author":"354237453029617","author_name":"engine-eicar","bid":"1000000000000000000","engine":{"description":"webhook-microengine-description","name":"engine-eicar"},"mask":true,"metadata":{"malware_family":"EICAR","product":"eicar","scanner":{"environment":{"architecture":"x86_64","operating_system":"Linux"}}},"verdict":true}],"bounty_state":2,"community":"gamma","country":"","created":"2026-06-05T19:09:15.766548+00:00","detections":null,"expiration_window":null,"expire_at":null,"extended_type":"EICAR
@@ -1094,11 +1094,11 @@ interactions:
       connection:
       - keep-alive
       host:
-      - artifact-index-e2e:9696
+      - ai:9696
       user-agent:
       - polyswarm_api/3.21.0 (x86_64-Linux-CPython-3.14.4)
     method: GET
-    uri: http://artifact-index-e2e:9696/v3/consumer/submission/gamma/5315742191955108
+    uri: http://ai:9696/v3/consumer/submission/gamma/5315742191955108
   response:
     body:
       string: '{"result":{"artifact_id":"5315742191955108","assertions":[{"author":"354237453029617","author_name":"engine-eicar","bid":"1000000000000000000","engine":{"description":"webhook-microengine-description","name":"engine-eicar"},"mask":true,"metadata":{"malware_family":"EICAR","product":"eicar","scanner":{"environment":{"architecture":"x86_64","operating_system":"Linux"}}},"verdict":true}],"bounty_state":2,"community":"gamma","country":"","created":"2026-06-05T19:09:15.766548+00:00","detections":null,"expiration_window":null,"expire_at":null,"extended_type":"EICAR
@@ -1141,11 +1141,11 @@ interactions:
       connection:
       - keep-alive
       host:
-      - artifact-index-e2e:9696
+      - ai:9696
       user-agent:
       - polyswarm_api/3.21.0 (x86_64-Linux-CPython-3.14.4)
     method: GET
-    uri: http://artifact-index-e2e:9696/v3/consumer/submission/gamma/5315742191955108
+    uri: http://ai:9696/v3/consumer/submission/gamma/5315742191955108
   response:
     body:
       string: '{"result":{"artifact_id":"5315742191955108","assertions":[{"author":"354237453029617","author_name":"engine-eicar","bid":"1000000000000000000","engine":{"description":"webhook-microengine-description","name":"engine-eicar"},"mask":true,"metadata":{"malware_family":"EICAR","product":"eicar","scanner":{"environment":{"architecture":"x86_64","operating_system":"Linux"}}},"verdict":true}],"bounty_state":2,"community":"gamma","country":"","created":"2026-06-05T19:09:15.766548+00:00","detections":null,"expiration_window":null,"expire_at":null,"extended_type":"EICAR
@@ -1188,11 +1188,11 @@ interactions:
       connection:
       - keep-alive
       host:
-      - artifact-index-e2e:9696
+      - ai:9696
       user-agent:
       - polyswarm_api/3.21.0 (x86_64-Linux-CPython-3.14.4)
     method: GET
-    uri: http://artifact-index-e2e:9696/v3/consumer/submission/gamma/5315742191955108
+    uri: http://ai:9696/v3/consumer/submission/gamma/5315742191955108
   response:
     body:
       string: '{"result":{"artifact_id":"5315742191955108","assertions":[{"author":"354237453029617","author_name":"engine-eicar","bid":"1000000000000000000","engine":{"description":"webhook-microengine-description","name":"engine-eicar"},"mask":true,"metadata":{"malware_family":"EICAR","product":"eicar","scanner":{"environment":{"architecture":"x86_64","operating_system":"Linux"}}},"verdict":true}],"bounty_state":2,"community":"gamma","country":"","created":"2026-06-05T19:09:15.766548+00:00","detections":null,"expiration_window":null,"expire_at":null,"extended_type":"EICAR
@@ -1235,11 +1235,11 @@ interactions:
       connection:
       - keep-alive
       host:
-      - artifact-index-e2e:9696
+      - ai:9696
       user-agent:
       - polyswarm_api/3.21.0 (x86_64-Linux-CPython-3.14.4)
     method: GET
-    uri: http://artifact-index-e2e:9696/v3/consumer/submission/gamma/5315742191955108
+    uri: http://ai:9696/v3/consumer/submission/gamma/5315742191955108
   response:
     body:
       string: '{"result":{"artifact_id":"5315742191955108","assertions":[{"author":"354237453029617","author_name":"engine-eicar","bid":"1000000000000000000","engine":{"description":"webhook-microengine-description","name":"engine-eicar"},"mask":true,"metadata":{"malware_family":"EICAR","product":"eicar","scanner":{"environment":{"architecture":"x86_64","operating_system":"Linux"}}},"verdict":true}],"bounty_state":2,"community":"gamma","country":"","created":"2026-06-05T19:09:15.766548+00:00","detections":null,"expiration_window":null,"expire_at":null,"extended_type":"EICAR
@@ -1282,11 +1282,11 @@ interactions:
       connection:
       - keep-alive
       host:
-      - artifact-index-e2e:9696
+      - ai:9696
       user-agent:
       - polyswarm_api/3.21.0 (x86_64-Linux-CPython-3.14.4)
     method: GET
-    uri: http://artifact-index-e2e:9696/v3/consumer/submission/gamma/5315742191955108
+    uri: http://ai:9696/v3/consumer/submission/gamma/5315742191955108
   response:
     body:
       string: '{"result":{"artifact_id":"5315742191955108","assertions":[{"author":"354237453029617","author_name":"engine-eicar","bid":"1000000000000000000","engine":{"description":"webhook-microengine-description","name":"engine-eicar"},"mask":true,"metadata":{"malware_family":"EICAR","product":"eicar","scanner":{"environment":{"architecture":"x86_64","operating_system":"Linux"}}},"verdict":true}],"bounty_state":2,"community":"gamma","country":"","created":"2026-06-05T19:09:15.766548+00:00","detections":null,"expiration_window":null,"expire_at":null,"extended_type":"EICAR
@@ -1329,11 +1329,11 @@ interactions:
       connection:
       - keep-alive
       host:
-      - artifact-index-e2e:9696
+      - ai:9696
       user-agent:
       - polyswarm_api/3.21.0 (x86_64-Linux-CPython-3.14.4)
     method: GET
-    uri: http://artifact-index-e2e:9696/v3/consumer/submission/gamma/5315742191955108
+    uri: http://ai:9696/v3/consumer/submission/gamma/5315742191955108
   response:
     body:
       string: '{"result":{"artifact_id":"5315742191955108","assertions":[{"author":"354237453029617","author_name":"engine-eicar","bid":"1000000000000000000","engine":{"description":"webhook-microengine-description","name":"engine-eicar"},"mask":true,"metadata":{"malware_family":"EICAR","product":"eicar","scanner":{"environment":{"architecture":"x86_64","operating_system":"Linux"}}},"verdict":true}],"bounty_state":2,"community":"gamma","country":"","created":"2026-06-05T19:09:15.766548+00:00","detections":null,"expiration_window":null,"expire_at":null,"extended_type":"EICAR
@@ -1376,11 +1376,11 @@ interactions:
       connection:
       - keep-alive
       host:
-      - artifact-index-e2e:9696
+      - ai:9696
       user-agent:
       - polyswarm_api/3.21.0 (x86_64-Linux-CPython-3.14.4)
     method: GET
-    uri: http://artifact-index-e2e:9696/v3/consumer/submission/gamma/5315742191955108
+    uri: http://ai:9696/v3/consumer/submission/gamma/5315742191955108
   response:
     body:
       string: '{"result":{"artifact_id":"5315742191955108","assertions":[{"author":"354237453029617","author_name":"engine-eicar","bid":"1000000000000000000","engine":{"description":"webhook-microengine-description","name":"engine-eicar"},"mask":true,"metadata":{"malware_family":"EICAR","product":"eicar","scanner":{"environment":{"architecture":"x86_64","operating_system":"Linux"}}},"verdict":true}],"bounty_state":2,"community":"gamma","country":"","created":"2026-06-05T19:09:15.766548+00:00","detections":null,"expiration_window":null,"expire_at":null,"extended_type":"EICAR
@@ -1423,11 +1423,11 @@ interactions:
       connection:
       - keep-alive
       host:
-      - artifact-index-e2e:9696
+      - ai:9696
       user-agent:
       - polyswarm_api/3.21.0 (x86_64-Linux-CPython-3.14.4)
     method: GET
-    uri: http://artifact-index-e2e:9696/v3/consumer/submission/gamma/5315742191955108
+    uri: http://ai:9696/v3/consumer/submission/gamma/5315742191955108
   response:
     body:
       string: '{"result":{"artifact_id":"5315742191955108","assertions":[{"author":"354237453029617","author_name":"engine-eicar","bid":"1000000000000000000","engine":{"description":"webhook-microengine-description","name":"engine-eicar"},"mask":true,"metadata":{"malware_family":"EICAR","product":"eicar","scanner":{"environment":{"architecture":"x86_64","operating_system":"Linux"}}},"verdict":true}],"bounty_state":2,"community":"gamma","country":"","created":"2026-06-05T19:09:15.766548+00:00","detections":null,"expiration_window":null,"expire_at":null,"extended_type":"EICAR
@@ -1470,11 +1470,11 @@ interactions:
       connection:
       - keep-alive
       host:
-      - artifact-index-e2e:9696
+      - ai:9696
       user-agent:
       - polyswarm_api/3.21.0 (x86_64-Linux-CPython-3.14.4)
     method: GET
-    uri: http://artifact-index-e2e:9696/v3/consumer/submission/gamma/5315742191955108
+    uri: http://ai:9696/v3/consumer/submission/gamma/5315742191955108
   response:
     body:
       string: '{"result":{"artifact_id":"5315742191955108","assertions":[{"author":"354237453029617","author_name":"engine-eicar","bid":"1000000000000000000","engine":{"description":"webhook-microengine-description","name":"engine-eicar"},"mask":true,"metadata":{"malware_family":"EICAR","product":"eicar","scanner":{"environment":{"architecture":"x86_64","operating_system":"Linux"}}},"verdict":true}],"bounty_state":2,"community":"gamma","country":"","created":"2026-06-05T19:09:15.766548+00:00","detections":null,"expiration_window":null,"expire_at":null,"extended_type":"EICAR
@@ -1517,11 +1517,11 @@ interactions:
       connection:
       - keep-alive
       host:
-      - artifact-index-e2e:9696
+      - ai:9696
       user-agent:
       - polyswarm_api/3.21.0 (x86_64-Linux-CPython-3.14.4)
     method: GET
-    uri: http://artifact-index-e2e:9696/v3/consumer/submission/gamma/5315742191955108
+    uri: http://ai:9696/v3/consumer/submission/gamma/5315742191955108
   response:
     body:
       string: '{"result":{"artifact_id":"5315742191955108","assertions":[{"author":"354237453029617","author_name":"engine-eicar","bid":"1000000000000000000","engine":{"description":"webhook-microengine-description","name":"engine-eicar"},"mask":true,"metadata":{"malware_family":"EICAR","product":"eicar","scanner":{"environment":{"architecture":"x86_64","operating_system":"Linux"}}},"verdict":true}],"bounty_state":2,"community":"gamma","country":"","created":"2026-06-05T19:09:15.766548+00:00","detections":null,"expiration_window":null,"expire_at":null,"extended_type":"EICAR
@@ -1564,11 +1564,11 @@ interactions:
       connection:
       - keep-alive
       host:
-      - artifact-index-e2e:9696
+      - ai:9696
       user-agent:
       - polyswarm_api/3.21.0 (x86_64-Linux-CPython-3.14.4)
     method: GET
-    uri: http://artifact-index-e2e:9696/v3/consumer/submission/gamma/5315742191955108
+    uri: http://ai:9696/v3/consumer/submission/gamma/5315742191955108
   response:
     body:
       string: '{"result":{"artifact_id":"5315742191955108","assertions":[{"author":"354237453029617","author_name":"engine-eicar","bid":"1000000000000000000","engine":{"description":"webhook-microengine-description","name":"engine-eicar"},"mask":true,"metadata":{"malware_family":"EICAR","product":"eicar","scanner":{"environment":{"architecture":"x86_64","operating_system":"Linux"}}},"verdict":true}],"bounty_state":2,"community":"gamma","country":"","created":"2026-06-05T19:09:15.766548+00:00","detections":null,"expiration_window":null,"expire_at":null,"extended_type":"EICAR
@@ -1611,11 +1611,11 @@ interactions:
       connection:
       - keep-alive
       host:
-      - artifact-index-e2e:9696
+      - ai:9696
       user-agent:
       - polyswarm_api/3.21.0 (x86_64-Linux-CPython-3.14.4)
     method: GET
-    uri: http://artifact-index-e2e:9696/v3/consumer/submission/gamma/5315742191955108
+    uri: http://ai:9696/v3/consumer/submission/gamma/5315742191955108
   response:
     body:
       string: '{"result":{"artifact_id":"5315742191955108","assertions":[{"author":"354237453029617","author_name":"engine-eicar","bid":"1000000000000000000","engine":{"description":"webhook-microengine-description","name":"engine-eicar"},"mask":true,"metadata":{"malware_family":"EICAR","product":"eicar","scanner":{"environment":{"architecture":"x86_64","operating_system":"Linux"}}},"verdict":true}],"bounty_state":3,"community":"gamma","country":"","created":"2026-06-05T19:09:15.766548+00:00","detections":{"benign":0,"malicious":1,"total":1},"expiration_window":null,"expire_at":null,"extended_type":"EICAR
@@ -1660,11 +1660,11 @@ interactions:
       content-length:
       - '0'
       host:
-      - artifact-index-e2e:9696
+      - ai:9696
       user-agent:
       - polyswarm_api/3.21.0 (x86_64-Linux-CPython-3.14.4)
     method: POST
-    uri: http://artifact-index-e2e:9696/v3/consumer/submission/gamma/rescan/5315742191955108
+    uri: http://ai:9696/v3/consumer/submission/gamma/rescan/5315742191955108
   response:
     body:
       string: '{"result":{"artifact_id":"38302166752497486","assertions":[],"bounty_state":1,"community":"gamma","country":"","created":"2026-06-05T19:09:46.630448+00:00","detections":null,"expiration_window":null,"expire_at":null,"extended_type":"EICAR
@@ -1703,11 +1703,11 @@ interactions:
       connection:
       - keep-alive
       host:
-      - artifact-index-e2e:9696
+      - ai:9696
       user-agent:
       - polyswarm_api/3.21.0 (x86_64-Linux-CPython-3.14.4)
     method: GET
-    uri: http://artifact-index-e2e:9696/v3/consumer/submission/gamma/38302166752497486
+    uri: http://ai:9696/v3/consumer/submission/gamma/38302166752497486
   response:
     body:
       string: '{"result":{"artifact_id":"38302166752497486","assertions":[],"bounty_state":2,"community":"gamma","country":"","created":"2026-06-05T19:09:46.630448+00:00","detections":null,"expiration_window":null,"expire_at":null,"extended_type":"EICAR
@@ -1746,11 +1746,11 @@ interactions:
       connection:
       - keep-alive
       host:
-      - artifact-index-e2e:9696
+      - ai:9696
       user-agent:
       - polyswarm_api/3.21.0 (x86_64-Linux-CPython-3.14.4)
     method: GET
-    uri: http://artifact-index-e2e:9696/v3/consumer/submission/gamma/38302166752497486
+    uri: http://ai:9696/v3/consumer/submission/gamma/38302166752497486
   response:
     body:
       string: '{"result":{"artifact_id":"38302166752497486","assertions":[{"author":"354237453029617","author_name":"engine-eicar","bid":"1000000000000000000","engine":{"description":"webhook-microengine-description","name":"engine-eicar"},"mask":true,"metadata":{"malware_family":"EICAR","product":"eicar","scanner":{"environment":{"architecture":"x86_64","operating_system":"Linux"}}},"verdict":true}],"bounty_state":2,"community":"gamma","country":"","created":"2026-06-05T19:09:46.630448+00:00","detections":null,"expiration_window":null,"expire_at":null,"extended_type":"EICAR
@@ -1793,11 +1793,11 @@ interactions:
       connection:
       - keep-alive
       host:
-      - artifact-index-e2e:9696
+      - ai:9696
       user-agent:
       - polyswarm_api/3.21.0 (x86_64-Linux-CPython-3.14.4)
     method: GET
-    uri: http://artifact-index-e2e:9696/v3/consumer/submission/gamma/38302166752497486
+    uri: http://ai:9696/v3/consumer/submission/gamma/38302166752497486
   response:
     body:
       string: '{"result":{"artifact_id":"38302166752497486","assertions":[{"author":"354237453029617","author_name":"engine-eicar","bid":"1000000000000000000","engine":{"description":"webhook-microengine-description","name":"engine-eicar"},"mask":true,"metadata":{"malware_family":"EICAR","product":"eicar","scanner":{"environment":{"architecture":"x86_64","operating_system":"Linux"}}},"verdict":true}],"bounty_state":2,"community":"gamma","country":"","created":"2026-06-05T19:09:46.630448+00:00","detections":null,"expiration_window":null,"expire_at":null,"extended_type":"EICAR
@@ -1840,11 +1840,11 @@ interactions:
       connection:
       - keep-alive
       host:
-      - artifact-index-e2e:9696
+      - ai:9696
       user-agent:
       - polyswarm_api/3.21.0 (x86_64-Linux-CPython-3.14.4)
     method: GET
-    uri: http://artifact-index-e2e:9696/v3/consumer/submission/gamma/38302166752497486
+    uri: http://ai:9696/v3/consumer/submission/gamma/38302166752497486
   response:
     body:
       string: '{"result":{"artifact_id":"38302166752497486","assertions":[{"author":"354237453029617","author_name":"engine-eicar","bid":"1000000000000000000","engine":{"description":"webhook-microengine-description","name":"engine-eicar"},"mask":true,"metadata":{"malware_family":"EICAR","product":"eicar","scanner":{"environment":{"architecture":"x86_64","operating_system":"Linux"}}},"verdict":true}],"bounty_state":2,"community":"gamma","country":"","created":"2026-06-05T19:09:46.630448+00:00","detections":null,"expiration_window":null,"expire_at":null,"extended_type":"EICAR
@@ -1887,11 +1887,11 @@ interactions:
       connection:
       - keep-alive
       host:
-      - artifact-index-e2e:9696
+      - ai:9696
       user-agent:
       - polyswarm_api/3.21.0 (x86_64-Linux-CPython-3.14.4)
     method: GET
-    uri: http://artifact-index-e2e:9696/v3/consumer/submission/gamma/38302166752497486
+    uri: http://ai:9696/v3/consumer/submission/gamma/38302166752497486
   response:
     body:
       string: '{"result":{"artifact_id":"38302166752497486","assertions":[{"author":"354237453029617","author_name":"engine-eicar","bid":"1000000000000000000","engine":{"description":"webhook-microengine-description","name":"engine-eicar"},"mask":true,"metadata":{"malware_family":"EICAR","product":"eicar","scanner":{"environment":{"architecture":"x86_64","operating_system":"Linux"}}},"verdict":true}],"bounty_state":2,"community":"gamma","country":"","created":"2026-06-05T19:09:46.630448+00:00","detections":null,"expiration_window":null,"expire_at":null,"extended_type":"EICAR
@@ -1934,11 +1934,11 @@ interactions:
       connection:
       - keep-alive
       host:
-      - artifact-index-e2e:9696
+      - ai:9696
       user-agent:
       - polyswarm_api/3.21.0 (x86_64-Linux-CPython-3.14.4)
     method: GET
-    uri: http://artifact-index-e2e:9696/v3/consumer/submission/gamma/38302166752497486
+    uri: http://ai:9696/v3/consumer/submission/gamma/38302166752497486
   response:
     body:
       string: '{"result":{"artifact_id":"38302166752497486","assertions":[{"author":"354237453029617","author_name":"engine-eicar","bid":"1000000000000000000","engine":{"description":"webhook-microengine-description","name":"engine-eicar"},"mask":true,"metadata":{"malware_family":"EICAR","product":"eicar","scanner":{"environment":{"architecture":"x86_64","operating_system":"Linux"}}},"verdict":true}],"bounty_state":2,"community":"gamma","country":"","created":"2026-06-05T19:09:46.630448+00:00","detections":null,"expiration_window":null,"expire_at":null,"extended_type":"EICAR
@@ -1981,11 +1981,11 @@ interactions:
       connection:
       - keep-alive
       host:
-      - artifact-index-e2e:9696
+      - ai:9696
       user-agent:
       - polyswarm_api/3.21.0 (x86_64-Linux-CPython-3.14.4)
     method: GET
-    uri: http://artifact-index-e2e:9696/v3/consumer/submission/gamma/38302166752497486
+    uri: http://ai:9696/v3/consumer/submission/gamma/38302166752497486
   response:
     body:
       string: '{"result":{"artifact_id":"38302166752497486","assertions":[{"author":"354237453029617","author_name":"engine-eicar","bid":"1000000000000000000","engine":{"description":"webhook-microengine-description","name":"engine-eicar"},"mask":true,"metadata":{"malware_family":"EICAR","product":"eicar","scanner":{"environment":{"architecture":"x86_64","operating_system":"Linux"}}},"verdict":true}],"bounty_state":2,"community":"gamma","country":"","created":"2026-06-05T19:09:46.630448+00:00","detections":null,"expiration_window":null,"expire_at":null,"extended_type":"EICAR
@@ -2028,11 +2028,11 @@ interactions:
       connection:
       - keep-alive
       host:
-      - artifact-index-e2e:9696
+      - ai:9696
       user-agent:
       - polyswarm_api/3.21.0 (x86_64-Linux-CPython-3.14.4)
     method: GET
-    uri: http://artifact-index-e2e:9696/v3/consumer/submission/gamma/38302166752497486
+    uri: http://ai:9696/v3/consumer/submission/gamma/38302166752497486
   response:
     body:
       string: '{"result":{"artifact_id":"38302166752497486","assertions":[{"author":"354237453029617","author_name":"engine-eicar","bid":"1000000000000000000","engine":{"description":"webhook-microengine-description","name":"engine-eicar"},"mask":true,"metadata":{"malware_family":"EICAR","product":"eicar","scanner":{"environment":{"architecture":"x86_64","operating_system":"Linux"}}},"verdict":true}],"bounty_state":2,"community":"gamma","country":"","created":"2026-06-05T19:09:46.630448+00:00","detections":null,"expiration_window":null,"expire_at":null,"extended_type":"EICAR
@@ -2075,11 +2075,11 @@ interactions:
       connection:
       - keep-alive
       host:
-      - artifact-index-e2e:9696
+      - ai:9696
       user-agent:
       - polyswarm_api/3.21.0 (x86_64-Linux-CPython-3.14.4)
     method: GET
-    uri: http://artifact-index-e2e:9696/v3/consumer/submission/gamma/38302166752497486
+    uri: http://ai:9696/v3/consumer/submission/gamma/38302166752497486
   response:
     body:
       string: '{"result":{"artifact_id":"38302166752497486","assertions":[{"author":"354237453029617","author_name":"engine-eicar","bid":"1000000000000000000","engine":{"description":"webhook-microengine-description","name":"engine-eicar"},"mask":true,"metadata":{"malware_family":"EICAR","product":"eicar","scanner":{"environment":{"architecture":"x86_64","operating_system":"Linux"}}},"verdict":true}],"bounty_state":2,"community":"gamma","country":"","created":"2026-06-05T19:09:46.630448+00:00","detections":null,"expiration_window":null,"expire_at":null,"extended_type":"EICAR
@@ -2122,11 +2122,11 @@ interactions:
       connection:
       - keep-alive
       host:
-      - artifact-index-e2e:9696
+      - ai:9696
       user-agent:
       - polyswarm_api/3.21.0 (x86_64-Linux-CPython-3.14.4)
     method: GET
-    uri: http://artifact-index-e2e:9696/v3/consumer/submission/gamma/38302166752497486
+    uri: http://ai:9696/v3/consumer/submission/gamma/38302166752497486
   response:
     body:
       string: '{"result":{"artifact_id":"38302166752497486","assertions":[{"author":"354237453029617","author_name":"engine-eicar","bid":"1000000000000000000","engine":{"description":"webhook-microengine-description","name":"engine-eicar"},"mask":true,"metadata":{"malware_family":"EICAR","product":"eicar","scanner":{"environment":{"architecture":"x86_64","operating_system":"Linux"}}},"verdict":true}],"bounty_state":2,"community":"gamma","country":"","created":"2026-06-05T19:09:46.630448+00:00","detections":null,"expiration_window":null,"expire_at":null,"extended_type":"EICAR
@@ -2169,11 +2169,11 @@ interactions:
       connection:
       - keep-alive
       host:
-      - artifact-index-e2e:9696
+      - ai:9696
       user-agent:
       - polyswarm_api/3.21.0 (x86_64-Linux-CPython-3.14.4)
     method: GET
-    uri: http://artifact-index-e2e:9696/v3/consumer/submission/gamma/38302166752497486
+    uri: http://ai:9696/v3/consumer/submission/gamma/38302166752497486
   response:
     body:
       string: '{"result":{"artifact_id":"38302166752497486","assertions":[{"author":"354237453029617","author_name":"engine-eicar","bid":"1000000000000000000","engine":{"description":"webhook-microengine-description","name":"engine-eicar"},"mask":true,"metadata":{"malware_family":"EICAR","product":"eicar","scanner":{"environment":{"architecture":"x86_64","operating_system":"Linux"}}},"verdict":true}],"bounty_state":2,"community":"gamma","country":"","created":"2026-06-05T19:09:46.630448+00:00","detections":null,"expiration_window":null,"expire_at":null,"extended_type":"EICAR
@@ -2216,11 +2216,11 @@ interactions:
       connection:
       - keep-alive
       host:
-      - artifact-index-e2e:9696
+      - ai:9696
       user-agent:
       - polyswarm_api/3.21.0 (x86_64-Linux-CPython-3.14.4)
     method: GET
-    uri: http://artifact-index-e2e:9696/v3/consumer/submission/gamma/38302166752497486
+    uri: http://ai:9696/v3/consumer/submission/gamma/38302166752497486
   response:
     body:
       string: '{"result":{"artifact_id":"38302166752497486","assertions":[{"author":"354237453029617","author_name":"engine-eicar","bid":"1000000000000000000","engine":{"description":"webhook-microengine-description","name":"engine-eicar"},"mask":true,"metadata":{"malware_family":"EICAR","product":"eicar","scanner":{"environment":{"architecture":"x86_64","operating_system":"Linux"}}},"verdict":true}],"bounty_state":2,"community":"gamma","country":"","created":"2026-06-05T19:09:46.630448+00:00","detections":null,"expiration_window":null,"expire_at":null,"extended_type":"EICAR
@@ -2263,11 +2263,11 @@ interactions:
       connection:
       - keep-alive
       host:
-      - artifact-index-e2e:9696
+      - ai:9696
       user-agent:
       - polyswarm_api/3.21.0 (x86_64-Linux-CPython-3.14.4)
     method: GET
-    uri: http://artifact-index-e2e:9696/v3/consumer/submission/gamma/38302166752497486
+    uri: http://ai:9696/v3/consumer/submission/gamma/38302166752497486
   response:
     body:
       string: '{"result":{"artifact_id":"38302166752497486","assertions":[{"author":"354237453029617","author_name":"engine-eicar","bid":"1000000000000000000","engine":{"description":"webhook-microengine-description","name":"engine-eicar"},"mask":true,"metadata":{"malware_family":"EICAR","product":"eicar","scanner":{"environment":{"architecture":"x86_64","operating_system":"Linux"}}},"verdict":true}],"bounty_state":2,"community":"gamma","country":"","created":"2026-06-05T19:09:46.630448+00:00","detections":null,"expiration_window":null,"expire_at":null,"extended_type":"EICAR
@@ -2310,11 +2310,11 @@ interactions:
       connection:
       - keep-alive
       host:
-      - artifact-index-e2e:9696
+      - ai:9696
       user-agent:
       - polyswarm_api/3.21.0 (x86_64-Linux-CPython-3.14.4)
     method: GET
-    uri: http://artifact-index-e2e:9696/v3/consumer/submission/gamma/38302166752497486
+    uri: http://ai:9696/v3/consumer/submission/gamma/38302166752497486
   response:
     body:
       string: '{"result":{"artifact_id":"38302166752497486","assertions":[{"author":"354237453029617","author_name":"engine-eicar","bid":"1000000000000000000","engine":{"description":"webhook-microengine-description","name":"engine-eicar"},"mask":true,"metadata":{"malware_family":"EICAR","product":"eicar","scanner":{"environment":{"architecture":"x86_64","operating_system":"Linux"}}},"verdict":true}],"bounty_state":2,"community":"gamma","country":"","created":"2026-06-05T19:09:46.630448+00:00","detections":null,"expiration_window":null,"expire_at":null,"extended_type":"EICAR
@@ -2357,11 +2357,11 @@ interactions:
       connection:
       - keep-alive
       host:
-      - artifact-index-e2e:9696
+      - ai:9696
       user-agent:
       - polyswarm_api/3.21.0 (x86_64-Linux-CPython-3.14.4)
     method: GET
-    uri: http://artifact-index-e2e:9696/v3/consumer/submission/gamma/38302166752497486
+    uri: http://ai:9696/v3/consumer/submission/gamma/38302166752497486
   response:
     body:
       string: '{"result":{"artifact_id":"38302166752497486","assertions":[{"author":"354237453029617","author_name":"engine-eicar","bid":"1000000000000000000","engine":{"description":"webhook-microengine-description","name":"engine-eicar"},"mask":true,"metadata":{"malware_family":"EICAR","product":"eicar","scanner":{"environment":{"architecture":"x86_64","operating_system":"Linux"}}},"verdict":true}],"bounty_state":2,"community":"gamma","country":"","created":"2026-06-05T19:09:46.630448+00:00","detections":null,"expiration_window":null,"expire_at":null,"extended_type":"EICAR
@@ -2404,11 +2404,11 @@ interactions:
       connection:
       - keep-alive
       host:
-      - artifact-index-e2e:9696
+      - ai:9696
       user-agent:
       - polyswarm_api/3.21.0 (x86_64-Linux-CPython-3.14.4)
     method: GET
-    uri: http://artifact-index-e2e:9696/v3/consumer/submission/gamma/38302166752497486
+    uri: http://ai:9696/v3/consumer/submission/gamma/38302166752497486
   response:
     body:
       string: '{"result":{"artifact_id":"38302166752497486","assertions":[{"author":"354237453029617","author_name":"engine-eicar","bid":"1000000000000000000","engine":{"description":"webhook-microengine-description","name":"engine-eicar"},"mask":true,"metadata":{"malware_family":"EICAR","product":"eicar","scanner":{"environment":{"architecture":"x86_64","operating_system":"Linux"}}},"verdict":true}],"bounty_state":2,"community":"gamma","country":"","created":"2026-06-05T19:09:46.630448+00:00","detections":null,"expiration_window":null,"expire_at":null,"extended_type":"EICAR
@@ -2451,11 +2451,11 @@ interactions:
       connection:
       - keep-alive
       host:
-      - artifact-index-e2e:9696
+      - ai:9696
       user-agent:
       - polyswarm_api/3.21.0 (x86_64-Linux-CPython-3.14.4)
     method: GET
-    uri: http://artifact-index-e2e:9696/v3/consumer/submission/gamma/38302166752497486
+    uri: http://ai:9696/v3/consumer/submission/gamma/38302166752497486
   response:
     body:
       string: '{"result":{"artifact_id":"38302166752497486","assertions":[{"author":"354237453029617","author_name":"engine-eicar","bid":"1000000000000000000","engine":{"description":"webhook-microengine-description","name":"engine-eicar"},"mask":true,"metadata":{"malware_family":"EICAR","product":"eicar","scanner":{"environment":{"architecture":"x86_64","operating_system":"Linux"}}},"verdict":true}],"bounty_state":2,"community":"gamma","country":"","created":"2026-06-05T19:09:46.630448+00:00","detections":null,"expiration_window":null,"expire_at":null,"extended_type":"EICAR
@@ -2498,11 +2498,11 @@ interactions:
       connection:
       - keep-alive
       host:
-      - artifact-index-e2e:9696
+      - ai:9696
       user-agent:
       - polyswarm_api/3.21.0 (x86_64-Linux-CPython-3.14.4)
     method: GET
-    uri: http://artifact-index-e2e:9696/v3/consumer/submission/gamma/38302166752497486
+    uri: http://ai:9696/v3/consumer/submission/gamma/38302166752497486
   response:
     body:
       string: '{"result":{"artifact_id":"38302166752497486","assertions":[{"author":"354237453029617","author_name":"engine-eicar","bid":"1000000000000000000","engine":{"description":"webhook-microengine-description","name":"engine-eicar"},"mask":true,"metadata":{"malware_family":"EICAR","product":"eicar","scanner":{"environment":{"architecture":"x86_64","operating_system":"Linux"}}},"verdict":true}],"bounty_state":2,"community":"gamma","country":"","created":"2026-06-05T19:09:46.630448+00:00","detections":null,"expiration_window":null,"expire_at":null,"extended_type":"EICAR
@@ -2545,11 +2545,11 @@ interactions:
       connection:
       - keep-alive
       host:
-      - artifact-index-e2e:9696
+      - ai:9696
       user-agent:
       - polyswarm_api/3.21.0 (x86_64-Linux-CPython-3.14.4)
     method: GET
-    uri: http://artifact-index-e2e:9696/v3/consumer/submission/gamma/38302166752497486
+    uri: http://ai:9696/v3/consumer/submission/gamma/38302166752497486
   response:
     body:
       string: '{"result":{"artifact_id":"38302166752497486","assertions":[{"author":"354237453029617","author_name":"engine-eicar","bid":"1000000000000000000","engine":{"description":"webhook-microengine-description","name":"engine-eicar"},"mask":true,"metadata":{"malware_family":"EICAR","product":"eicar","scanner":{"environment":{"architecture":"x86_64","operating_system":"Linux"}}},"verdict":true}],"bounty_state":2,"community":"gamma","country":"","created":"2026-06-05T19:09:46.630448+00:00","detections":null,"expiration_window":null,"expire_at":null,"extended_type":"EICAR
@@ -2592,11 +2592,11 @@ interactions:
       connection:
       - keep-alive
       host:
-      - artifact-index-e2e:9696
+      - ai:9696
       user-agent:
       - polyswarm_api/3.21.0 (x86_64-Linux-CPython-3.14.4)
     method: GET
-    uri: http://artifact-index-e2e:9696/v3/consumer/submission/gamma/38302166752497486
+    uri: http://ai:9696/v3/consumer/submission/gamma/38302166752497486
   response:
     body:
       string: '{"result":{"artifact_id":"38302166752497486","assertions":[{"author":"354237453029617","author_name":"engine-eicar","bid":"1000000000000000000","engine":{"description":"webhook-microengine-description","name":"engine-eicar"},"mask":true,"metadata":{"malware_family":"EICAR","product":"eicar","scanner":{"environment":{"architecture":"x86_64","operating_system":"Linux"}}},"verdict":true}],"bounty_state":2,"community":"gamma","country":"","created":"2026-06-05T19:09:46.630448+00:00","detections":null,"expiration_window":null,"expire_at":null,"extended_type":"EICAR
@@ -2639,11 +2639,11 @@ interactions:
       connection:
       - keep-alive
       host:
-      - artifact-index-e2e:9696
+      - ai:9696
       user-agent:
       - polyswarm_api/3.21.0 (x86_64-Linux-CPython-3.14.4)
     method: GET
-    uri: http://artifact-index-e2e:9696/v3/consumer/submission/gamma/38302166752497486
+    uri: http://ai:9696/v3/consumer/submission/gamma/38302166752497486
   response:
     body:
       string: '{"result":{"artifact_id":"38302166752497486","assertions":[{"author":"354237453029617","author_name":"engine-eicar","bid":"1000000000000000000","engine":{"description":"webhook-microengine-description","name":"engine-eicar"},"mask":true,"metadata":{"malware_family":"EICAR","product":"eicar","scanner":{"environment":{"architecture":"x86_64","operating_system":"Linux"}}},"verdict":true}],"bounty_state":2,"community":"gamma","country":"","created":"2026-06-05T19:09:46.630448+00:00","detections":null,"expiration_window":null,"expire_at":null,"extended_type":"EICAR
@@ -2686,11 +2686,11 @@ interactions:
       connection:
       - keep-alive
       host:
-      - artifact-index-e2e:9696
+      - ai:9696
       user-agent:
       - polyswarm_api/3.21.0 (x86_64-Linux-CPython-3.14.4)
     method: GET
-    uri: http://artifact-index-e2e:9696/v3/consumer/submission/gamma/38302166752497486
+    uri: http://ai:9696/v3/consumer/submission/gamma/38302166752497486
   response:
     body:
       string: '{"result":{"artifact_id":"38302166752497486","assertions":[{"author":"354237453029617","author_name":"engine-eicar","bid":"1000000000000000000","engine":{"description":"webhook-microengine-description","name":"engine-eicar"},"mask":true,"metadata":{"malware_family":"EICAR","product":"eicar","scanner":{"environment":{"architecture":"x86_64","operating_system":"Linux"}}},"verdict":true}],"bounty_state":2,"community":"gamma","country":"","created":"2026-06-05T19:09:46.630448+00:00","detections":null,"expiration_window":null,"expire_at":null,"extended_type":"EICAR
@@ -2733,11 +2733,11 @@ interactions:
       connection:
       - keep-alive
       host:
-      - artifact-index-e2e:9696
+      - ai:9696
       user-agent:
       - polyswarm_api/3.21.0 (x86_64-Linux-CPython-3.14.4)
     method: GET
-    uri: http://artifact-index-e2e:9696/v3/consumer/submission/gamma/38302166752497486
+    uri: http://ai:9696/v3/consumer/submission/gamma/38302166752497486
   response:
     body:
       string: '{"result":{"artifact_id":"38302166752497486","assertions":[{"author":"354237453029617","author_name":"engine-eicar","bid":"1000000000000000000","engine":{"description":"webhook-microengine-description","name":"engine-eicar"},"mask":true,"metadata":{"malware_family":"EICAR","product":"eicar","scanner":{"environment":{"architecture":"x86_64","operating_system":"Linux"}}},"verdict":true}],"bounty_state":2,"community":"gamma","country":"","created":"2026-06-05T19:09:46.630448+00:00","detections":null,"expiration_window":null,"expire_at":null,"extended_type":"EICAR
@@ -2780,11 +2780,11 @@ interactions:
       connection:
       - keep-alive
       host:
-      - artifact-index-e2e:9696
+      - ai:9696
       user-agent:
       - polyswarm_api/3.21.0 (x86_64-Linux-CPython-3.14.4)
     method: GET
-    uri: http://artifact-index-e2e:9696/v3/consumer/submission/gamma/38302166752497486
+    uri: http://ai:9696/v3/consumer/submission/gamma/38302166752497486
   response:
     body:
       string: '{"result":{"artifact_id":"38302166752497486","assertions":[{"author":"354237453029617","author_name":"engine-eicar","bid":"1000000000000000000","engine":{"description":"webhook-microengine-description","name":"engine-eicar"},"mask":true,"metadata":{"malware_family":"EICAR","product":"eicar","scanner":{"environment":{"architecture":"x86_64","operating_system":"Linux"}}},"verdict":true}],"bounty_state":2,"community":"gamma","country":"","created":"2026-06-05T19:09:46.630448+00:00","detections":null,"expiration_window":null,"expire_at":null,"extended_type":"EICAR
@@ -2827,11 +2827,11 @@ interactions:
       connection:
       - keep-alive
       host:
-      - artifact-index-e2e:9696
+      - ai:9696
       user-agent:
       - polyswarm_api/3.21.0 (x86_64-Linux-CPython-3.14.4)
     method: GET
-    uri: http://artifact-index-e2e:9696/v3/consumer/submission/gamma/38302166752497486
+    uri: http://ai:9696/v3/consumer/submission/gamma/38302166752497486
   response:
     body:
       string: '{"result":{"artifact_id":"38302166752497486","assertions":[{"author":"354237453029617","author_name":"engine-eicar","bid":"1000000000000000000","engine":{"description":"webhook-microengine-description","name":"engine-eicar"},"mask":true,"metadata":{"malware_family":"EICAR","product":"eicar","scanner":{"environment":{"architecture":"x86_64","operating_system":"Linux"}}},"verdict":true}],"bounty_state":2,"community":"gamma","country":"","created":"2026-06-05T19:09:46.630448+00:00","detections":null,"expiration_window":null,"expire_at":null,"extended_type":"EICAR
@@ -2874,11 +2874,11 @@ interactions:
       connection:
       - keep-alive
       host:
-      - artifact-index-e2e:9696
+      - ai:9696
       user-agent:
       - polyswarm_api/3.21.0 (x86_64-Linux-CPython-3.14.4)
     method: GET
-    uri: http://artifact-index-e2e:9696/v3/consumer/submission/gamma/38302166752497486
+    uri: http://ai:9696/v3/consumer/submission/gamma/38302166752497486
   response:
     body:
       string: '{"result":{"artifact_id":"38302166752497486","assertions":[{"author":"354237453029617","author_name":"engine-eicar","bid":"1000000000000000000","engine":{"description":"webhook-microengine-description","name":"engine-eicar"},"mask":true,"metadata":{"malware_family":"EICAR","product":"eicar","scanner":{"environment":{"architecture":"x86_64","operating_system":"Linux"}}},"verdict":true}],"bounty_state":2,"community":"gamma","country":"","created":"2026-06-05T19:09:46.630448+00:00","detections":null,"expiration_window":null,"expire_at":null,"extended_type":"EICAR
@@ -2921,11 +2921,11 @@ interactions:
       connection:
       - keep-alive
       host:
-      - artifact-index-e2e:9696
+      - ai:9696
       user-agent:
       - polyswarm_api/3.21.0 (x86_64-Linux-CPython-3.14.4)
     method: GET
-    uri: http://artifact-index-e2e:9696/v3/consumer/submission/gamma/38302166752497486
+    uri: http://ai:9696/v3/consumer/submission/gamma/38302166752497486
   response:
     body:
       string: '{"result":{"artifact_id":"38302166752497486","assertions":[{"author":"354237453029617","author_name":"engine-eicar","bid":"1000000000000000000","engine":{"description":"webhook-microengine-description","name":"engine-eicar"},"mask":true,"metadata":{"malware_family":"EICAR","product":"eicar","scanner":{"environment":{"architecture":"x86_64","operating_system":"Linux"}}},"verdict":true}],"bounty_state":2,"community":"gamma","country":"","created":"2026-06-05T19:09:46.630448+00:00","detections":null,"expiration_window":null,"expire_at":null,"extended_type":"EICAR
@@ -2968,11 +2968,11 @@ interactions:
       connection:
       - keep-alive
       host:
-      - artifact-index-e2e:9696
+      - ai:9696
       user-agent:
       - polyswarm_api/3.21.0 (x86_64-Linux-CPython-3.14.4)
     method: GET
-    uri: http://artifact-index-e2e:9696/v3/consumer/submission/gamma/38302166752497486
+    uri: http://ai:9696/v3/consumer/submission/gamma/38302166752497486
   response:
     body:
       string: '{"result":{"artifact_id":"38302166752497486","assertions":[{"author":"354237453029617","author_name":"engine-eicar","bid":"1000000000000000000","engine":{"description":"webhook-microengine-description","name":"engine-eicar"},"mask":true,"metadata":{"malware_family":"EICAR","product":"eicar","scanner":{"environment":{"architecture":"x86_64","operating_system":"Linux"}}},"verdict":true}],"bounty_state":2,"community":"gamma","country":"","created":"2026-06-05T19:09:46.630448+00:00","detections":null,"expiration_window":null,"expire_at":null,"extended_type":"EICAR
@@ -3015,11 +3015,11 @@ interactions:
       connection:
       - keep-alive
       host:
-      - artifact-index-e2e:9696
+      - ai:9696
       user-agent:
       - polyswarm_api/3.21.0 (x86_64-Linux-CPython-3.14.4)
     method: GET
-    uri: http://artifact-index-e2e:9696/v3/consumer/submission/gamma/38302166752497486
+    uri: http://ai:9696/v3/consumer/submission/gamma/38302166752497486
   response:
     body:
       string: '{"result":{"artifact_id":"38302166752497486","assertions":[{"author":"354237453029617","author_name":"engine-eicar","bid":"1000000000000000000","engine":{"description":"webhook-microengine-description","name":"engine-eicar"},"mask":true,"metadata":{"malware_family":"EICAR","product":"eicar","scanner":{"environment":{"architecture":"x86_64","operating_system":"Linux"}}},"verdict":true}],"bounty_state":2,"community":"gamma","country":"","created":"2026-06-05T19:09:46.630448+00:00","detections":null,"expiration_window":null,"expire_at":null,"extended_type":"EICAR
@@ -3062,11 +3062,11 @@ interactions:
       connection:
       - keep-alive
       host:
-      - artifact-index-e2e:9696
+      - ai:9696
       user-agent:
       - polyswarm_api/3.21.0 (x86_64-Linux-CPython-3.14.4)
     method: GET
-    uri: http://artifact-index-e2e:9696/v3/consumer/submission/gamma/38302166752497486
+    uri: http://ai:9696/v3/consumer/submission/gamma/38302166752497486
   response:
     body:
       string: '{"result":{"artifact_id":"38302166752497486","assertions":[{"author":"354237453029617","author_name":"engine-eicar","bid":"1000000000000000000","engine":{"description":"webhook-microengine-description","name":"engine-eicar"},"mask":true,"metadata":{"malware_family":"EICAR","product":"eicar","scanner":{"environment":{"architecture":"x86_64","operating_system":"Linux"}}},"verdict":true}],"bounty_state":2,"community":"gamma","country":"","created":"2026-06-05T19:09:46.630448+00:00","detections":null,"expiration_window":null,"expire_at":null,"extended_type":"EICAR
@@ -3109,11 +3109,11 @@ interactions:
       connection:
       - keep-alive
       host:
-      - artifact-index-e2e:9696
+      - ai:9696
       user-agent:
       - polyswarm_api/3.21.0 (x86_64-Linux-CPython-3.14.4)
     method: GET
-    uri: http://artifact-index-e2e:9696/v3/consumer/submission/gamma/38302166752497486
+    uri: http://ai:9696/v3/consumer/submission/gamma/38302166752497486
   response:
     body:
       string: '{"result":{"artifact_id":"38302166752497486","assertions":[{"author":"354237453029617","author_name":"engine-eicar","bid":"1000000000000000000","engine":{"description":"webhook-microengine-description","name":"engine-eicar"},"mask":true,"metadata":{"malware_family":"EICAR","product":"eicar","scanner":{"environment":{"architecture":"x86_64","operating_system":"Linux"}}},"verdict":true}],"bounty_state":3,"community":"gamma","country":"","created":"2026-06-05T19:09:46.630448+00:00","detections":{"benign":0,"malicious":1,"total":1},"expiration_window":null,"expire_at":null,"extended_type":"EICAR

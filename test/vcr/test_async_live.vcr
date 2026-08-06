@@ -16,11 +16,11 @@ interactions:
       content-type:
       - application/json
       host:
-      - artifact-index-e2e:9696
+      - ai:9696
       user-agent:
       - polyswarm_api/3.21.0 (x86_64-Linux-CPython-3.14.4)
     method: POST
-    uri: http://artifact-index-e2e:9696/v3/hunt/rule
+    uri: http://ai:9696/v3/hunt/rule
   response:
     body:
       string: '{"result":{"created":"2026-06-03T22:37:20.835178+00:00","deleted":false,"description":null,"id":"21319123963942093","livescan_created":null,"livescan_id":null,"modified":"2026-06-03T22:37:20.835178+00:00","name":"sdk-test_async_live","yara":"rule
@@ -63,11 +63,11 @@ interactions:
       content-type:
       - application/json
       host:
-      - artifact-index-e2e:9696
+      - ai:9696
       user-agent:
       - polyswarm_api/3.21.0 (x86_64-Linux-CPython-3.14.4)
     method: POST
-    uri: http://artifact-index-e2e:9696/v3/hunt/rule/live
+    uri: http://ai:9696/v3/hunt/rule/live
   response:
     body:
       string: '{"result":{"created":"2026-06-03T22:37:20.835178+00:00","deleted":false,"description":null,"id":"21319123963942093","livescan_created":"2026-06-03T22:37:20.890721+00:00","livescan_id":null,"modified":"2026-06-03T22:37:20.835178+00:00","name":"sdk-test_async_live","yara":"rule
@@ -106,11 +106,11 @@ interactions:
       connection:
       - keep-alive
       host:
-      - artifact-index-e2e:9696
+      - ai:9696
       user-agent:
       - polyswarm_api/3.21.0 (x86_64-Linux-CPython-3.14.4)
     method: GET
-    uri: http://artifact-index-e2e:9696/v3/hunt/rule?id=21319123963942093&community=gamma
+    uri: http://ai:9696/v3/hunt/rule?id=21319123963942093&community=gamma
   response:
     body:
       string: '{"result":{"created":"2026-06-03T22:37:20.835178+00:00","deleted":false,"description":null,"id":"21319123963942093","livescan_created":"2026-06-03T22:37:20.890721+00:00","livescan_id":88206418106491329,"modified":"2026-06-03T22:37:20.863779+00:00","name":"sdk-test_async_live","yara":"rule
@@ -153,11 +153,11 @@ interactions:
       content-type:
       - application/json
       host:
-      - artifact-index-e2e:9696
+      - ai:9696
       user-agent:
       - polyswarm_api/3.21.0 (x86_64-Linux-CPython-3.14.4)
     method: POST
-    uri: http://artifact-index-e2e:9696/v3/instance
+    uri: http://ai:9696/v3/instance
   response:
     body:
       string: '{"result":{"artifact_id":"94943400355321313","assertions":[],"bounty_state":0,"community":"gamma","country":"","created":"2026-06-03T22:37:21.946455+00:00","detections":null,"expiration_window":null,"expire_at":null,"extended_type":null,"failed":false,"filename":"artifact","first_seen":"2026-06-03T22:37:21.946455+00:00","id":"94943400355321313","last_scanned":null,"last_seen":null,"md5":null,"metadata":[],"mimetype":null,"permalink":"https://polyswarm.network/scan/results/file/None/94943400355321313","polyscore":null,"result":null,"sha1":null,"sha256":null,"size":null,"type":"FILE","upload_url":"http://minio:9000/artifact-index/instances/7e/34/70/7e34708c-caf6-4dd7-b5d2-9e1029e0dafc?X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Credential=AKIAIOSFODNN7EXAMPLE%2F20260603%2Fus-east-1%2Fs3%2Faws4_request&X-Amz-Date=20260603T223721Z&X-Amz-Expires=300&X-Amz-SignedHeaders=host&X-Amz-Signature=ef5a83090f1169483ad45b80d4b6bf9bf2a46ca939f4070b11ccc19254e68a8e","votes":[],"window_closed":false},"status":"OK"}
@@ -254,11 +254,11 @@ interactions:
       content-type:
       - application/json
       host:
-      - artifact-index-e2e:9696
+      - ai:9696
       user-agent:
       - polyswarm_api/3.21.0 (x86_64-Linux-CPython-3.14.4)
     method: PUT
-    uri: http://artifact-index-e2e:9696/v3/instance?id=94943400355321313
+    uri: http://ai:9696/v3/instance?id=94943400355321313
   response:
     body:
       string: '{"result":{"artifact_id":"94943400355321313","assertions":[],"bounty_state":0,"community":"gamma","country":"","created":"2026-06-03T22:37:21.946455+00:00","detections":null,"expiration_window":null,"expire_at":null,"extended_type":null,"failed":false,"filename":"artifact","first_seen":"2026-06-03T22:37:21.946455+00:00","id":"94943400355321313","last_scanned":null,"last_seen":null,"md5":null,"metadata":[],"mimetype":null,"permalink":"https://polyswarm.network/scan/results/file/None/94943400355321313","polyscore":null,"result":null,"sha1":null,"sha256":null,"size":null,"type":"FILE","upload_url":"http://minio:9000/artifact-index/instances/7e/34/70/7e34708c-caf6-4dd7-b5d2-9e1029e0dafc?X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Credential=AKIAIOSFODNN7EXAMPLE%2F20260603%2Fus-east-1%2Fs3%2Faws4_request&X-Amz-Date=20260603T223721Z&X-Amz-Expires=300&X-Amz-SignedHeaders=host&X-Amz-Signature=ef5a83090f1169483ad45b80d4b6bf9bf2a46ca939f4070b11ccc19254e68a8e","votes":[],"window_closed":false},"status":"OK"}
@@ -296,11 +296,11 @@ interactions:
       connection:
       - keep-alive
       host:
-      - artifact-index-e2e:9696
+      - ai:9696
       user-agent:
       - polyswarm_api/3.21.0 (x86_64-Linux-CPython-3.14.4)
     method: GET
-    uri: http://artifact-index-e2e:9696/v3/hunt/live/list?since=600&community=gamma
+    uri: http://ai:9696/v3/hunt/live/list?since=600&community=gamma
   response:
     body:
       string: ''
@@ -332,11 +332,11 @@ interactions:
       connection:
       - keep-alive
       host:
-      - artifact-index-e2e:9696
+      - ai:9696
       user-agent:
       - polyswarm_api/3.21.0 (x86_64-Linux-CPython-3.14.4)
     method: GET
-    uri: http://artifact-index-e2e:9696/v3/hunt/live/list?since=600&community=gamma
+    uri: http://ai:9696/v3/hunt/live/list?since=600&community=gamma
   response:
     body:
       string: ''
@@ -368,11 +368,11 @@ interactions:
       connection:
       - keep-alive
       host:
-      - artifact-index-e2e:9696
+      - ai:9696
       user-agent:
       - polyswarm_api/3.21.0 (x86_64-Linux-CPython-3.14.4)
     method: GET
-    uri: http://artifact-index-e2e:9696/v3/hunt/live/list?since=600&community=gamma
+    uri: http://ai:9696/v3/hunt/live/list?since=600&community=gamma
   response:
     body:
       string: ''
@@ -404,11 +404,11 @@ interactions:
       connection:
       - keep-alive
       host:
-      - artifact-index-e2e:9696
+      - ai:9696
       user-agent:
       - polyswarm_api/3.21.0 (x86_64-Linux-CPython-3.14.4)
     method: GET
-    uri: http://artifact-index-e2e:9696/v3/hunt/live/list?since=600&community=gamma
+    uri: http://ai:9696/v3/hunt/live/list?since=600&community=gamma
   response:
     body:
       string: ''
@@ -440,11 +440,11 @@ interactions:
       connection:
       - keep-alive
       host:
-      - artifact-index-e2e:9696
+      - ai:9696
       user-agent:
       - polyswarm_api/3.21.0 (x86_64-Linux-CPython-3.14.4)
     method: GET
-    uri: http://artifact-index-e2e:9696/v3/hunt/live/list?since=600&community=gamma
+    uri: http://ai:9696/v3/hunt/live/list?since=600&community=gamma
   response:
     body:
       string: ''
@@ -476,11 +476,11 @@ interactions:
       connection:
       - keep-alive
       host:
-      - artifact-index-e2e:9696
+      - ai:9696
       user-agent:
       - polyswarm_api/3.21.0 (x86_64-Linux-CPython-3.14.4)
     method: GET
-    uri: http://artifact-index-e2e:9696/v3/hunt/live/list?since=600&community=gamma
+    uri: http://ai:9696/v3/hunt/live/list?since=600&community=gamma
   response:
     body:
       string: ''
@@ -512,11 +512,11 @@ interactions:
       connection:
       - keep-alive
       host:
-      - artifact-index-e2e:9696
+      - ai:9696
       user-agent:
       - polyswarm_api/3.21.0 (x86_64-Linux-CPython-3.14.4)
     method: GET
-    uri: http://artifact-index-e2e:9696/v3/hunt/live/list?since=600&community=gamma
+    uri: http://ai:9696/v3/hunt/live/list?since=600&community=gamma
   response:
     body:
       string: ''
@@ -548,11 +548,11 @@ interactions:
       connection:
       - keep-alive
       host:
-      - artifact-index-e2e:9696
+      - ai:9696
       user-agent:
       - polyswarm_api/3.21.0 (x86_64-Linux-CPython-3.14.4)
     method: GET
-    uri: http://artifact-index-e2e:9696/v3/hunt/live/list?since=600&community=gamma
+    uri: http://ai:9696/v3/hunt/live/list?since=600&community=gamma
   response:
     body:
       string: ''
@@ -584,11 +584,11 @@ interactions:
       connection:
       - keep-alive
       host:
-      - artifact-index-e2e:9696
+      - ai:9696
       user-agent:
       - polyswarm_api/3.21.0 (x86_64-Linux-CPython-3.14.4)
     method: GET
-    uri: http://artifact-index-e2e:9696/v3/hunt/live/list?since=600&community=gamma
+    uri: http://ai:9696/v3/hunt/live/list?since=600&community=gamma
   response:
     body:
       string: ''
@@ -620,11 +620,11 @@ interactions:
       connection:
       - keep-alive
       host:
-      - artifact-index-e2e:9696
+      - ai:9696
       user-agent:
       - polyswarm_api/3.21.0 (x86_64-Linux-CPython-3.14.4)
     method: GET
-    uri: http://artifact-index-e2e:9696/v3/hunt/live/list?since=600&community=gamma
+    uri: http://ai:9696/v3/hunt/live/list?since=600&community=gamma
   response:
     body:
       string: ''
@@ -656,11 +656,11 @@ interactions:
       connection:
       - keep-alive
       host:
-      - artifact-index-e2e:9696
+      - ai:9696
       user-agent:
       - polyswarm_api/3.21.0 (x86_64-Linux-CPython-3.14.4)
     method: GET
-    uri: http://artifact-index-e2e:9696/v3/hunt/live/list?since=600&community=gamma
+    uri: http://ai:9696/v3/hunt/live/list?since=600&community=gamma
   response:
     body:
       string: ''
@@ -692,11 +692,11 @@ interactions:
       connection:
       - keep-alive
       host:
-      - artifact-index-e2e:9696
+      - ai:9696
       user-agent:
       - polyswarm_api/3.21.0 (x86_64-Linux-CPython-3.14.4)
     method: GET
-    uri: http://artifact-index-e2e:9696/v3/hunt/live/list?since=600&community=gamma
+    uri: http://ai:9696/v3/hunt/live/list?since=600&community=gamma
   response:
     body:
       string: ''
@@ -728,11 +728,11 @@ interactions:
       connection:
       - keep-alive
       host:
-      - artifact-index-e2e:9696
+      - ai:9696
       user-agent:
       - polyswarm_api/3.21.0 (x86_64-Linux-CPython-3.14.4)
     method: GET
-    uri: http://artifact-index-e2e:9696/v3/hunt/live/list?since=600&community=gamma
+    uri: http://ai:9696/v3/hunt/live/list?since=600&community=gamma
   response:
     body:
       string: ''
@@ -764,11 +764,11 @@ interactions:
       connection:
       - keep-alive
       host:
-      - artifact-index-e2e:9696
+      - ai:9696
       user-agent:
       - polyswarm_api/3.21.0 (x86_64-Linux-CPython-3.14.4)
     method: GET
-    uri: http://artifact-index-e2e:9696/v3/hunt/live/list?since=600&community=gamma
+    uri: http://ai:9696/v3/hunt/live/list?since=600&community=gamma
   response:
     body:
       string: ''
@@ -800,11 +800,11 @@ interactions:
       connection:
       - keep-alive
       host:
-      - artifact-index-e2e:9696
+      - ai:9696
       user-agent:
       - polyswarm_api/3.21.0 (x86_64-Linux-CPython-3.14.4)
     method: GET
-    uri: http://artifact-index-e2e:9696/v3/hunt/live/list?since=600&community=gamma
+    uri: http://ai:9696/v3/hunt/live/list?since=600&community=gamma
   response:
     body:
       string: ''
@@ -836,11 +836,11 @@ interactions:
       connection:
       - keep-alive
       host:
-      - artifact-index-e2e:9696
+      - ai:9696
       user-agent:
       - polyswarm_api/3.21.0 (x86_64-Linux-CPython-3.14.4)
     method: GET
-    uri: http://artifact-index-e2e:9696/v3/hunt/live/list?since=600&community=gamma
+    uri: http://ai:9696/v3/hunt/live/list?since=600&community=gamma
   response:
     body:
       string: ''
@@ -872,11 +872,11 @@ interactions:
       connection:
       - keep-alive
       host:
-      - artifact-index-e2e:9696
+      - ai:9696
       user-agent:
       - polyswarm_api/3.21.0 (x86_64-Linux-CPython-3.14.4)
     method: GET
-    uri: http://artifact-index-e2e:9696/v3/hunt/live/list?since=600&community=gamma
+    uri: http://ai:9696/v3/hunt/live/list?since=600&community=gamma
   response:
     body:
       string: ''
@@ -908,11 +908,11 @@ interactions:
       connection:
       - keep-alive
       host:
-      - artifact-index-e2e:9696
+      - ai:9696
       user-agent:
       - polyswarm_api/3.21.0 (x86_64-Linux-CPython-3.14.4)
     method: GET
-    uri: http://artifact-index-e2e:9696/v3/hunt/live/list?since=600&community=gamma
+    uri: http://ai:9696/v3/hunt/live/list?since=600&community=gamma
   response:
     body:
       string: ''
@@ -944,11 +944,11 @@ interactions:
       connection:
       - keep-alive
       host:
-      - artifact-index-e2e:9696
+      - ai:9696
       user-agent:
       - polyswarm_api/3.21.0 (x86_64-Linux-CPython-3.14.4)
     method: GET
-    uri: http://artifact-index-e2e:9696/v3/hunt/live/list?since=600&community=gamma
+    uri: http://ai:9696/v3/hunt/live/list?since=600&community=gamma
   response:
     body:
       string: ''
@@ -980,11 +980,11 @@ interactions:
       connection:
       - keep-alive
       host:
-      - artifact-index-e2e:9696
+      - ai:9696
       user-agent:
       - polyswarm_api/3.21.0 (x86_64-Linux-CPython-3.14.4)
     method: GET
-    uri: http://artifact-index-e2e:9696/v3/hunt/live/list?since=600&community=gamma
+    uri: http://ai:9696/v3/hunt/live/list?since=600&community=gamma
   response:
     body:
       string: ''
@@ -1016,11 +1016,11 @@ interactions:
       connection:
       - keep-alive
       host:
-      - artifact-index-e2e:9696
+      - ai:9696
       user-agent:
       - polyswarm_api/3.21.0 (x86_64-Linux-CPython-3.14.4)
     method: GET
-    uri: http://artifact-index-e2e:9696/v3/hunt/live/list?since=600&community=gamma
+    uri: http://ai:9696/v3/hunt/live/list?since=600&community=gamma
   response:
     body:
       string: ''
@@ -1052,11 +1052,11 @@ interactions:
       connection:
       - keep-alive
       host:
-      - artifact-index-e2e:9696
+      - ai:9696
       user-agent:
       - polyswarm_api/3.21.0 (x86_64-Linux-CPython-3.14.4)
     method: GET
-    uri: http://artifact-index-e2e:9696/v3/hunt/live/list?since=600&community=gamma
+    uri: http://ai:9696/v3/hunt/live/list?since=600&community=gamma
   response:
     body:
       string: ''
@@ -1088,11 +1088,11 @@ interactions:
       connection:
       - keep-alive
       host:
-      - artifact-index-e2e:9696
+      - ai:9696
       user-agent:
       - polyswarm_api/3.21.0 (x86_64-Linux-CPython-3.14.4)
     method: GET
-    uri: http://artifact-index-e2e:9696/v3/hunt/live/list?since=600&community=gamma
+    uri: http://ai:9696/v3/hunt/live/list?since=600&community=gamma
   response:
     body:
       string: ''
@@ -1124,11 +1124,11 @@ interactions:
       connection:
       - keep-alive
       host:
-      - artifact-index-e2e:9696
+      - ai:9696
       user-agent:
       - polyswarm_api/3.21.0 (x86_64-Linux-CPython-3.14.4)
     method: GET
-    uri: http://artifact-index-e2e:9696/v3/hunt/live/list?since=600&community=gamma
+    uri: http://ai:9696/v3/hunt/live/list?since=600&community=gamma
   response:
     body:
       string: ''
@@ -1160,11 +1160,11 @@ interactions:
       connection:
       - keep-alive
       host:
-      - artifact-index-e2e:9696
+      - ai:9696
       user-agent:
       - polyswarm_api/3.21.0 (x86_64-Linux-CPython-3.14.4)
     method: GET
-    uri: http://artifact-index-e2e:9696/v3/hunt/live/list?since=600&community=gamma
+    uri: http://ai:9696/v3/hunt/live/list?since=600&community=gamma
   response:
     body:
       string: ''
@@ -1196,11 +1196,11 @@ interactions:
       connection:
       - keep-alive
       host:
-      - artifact-index-e2e:9696
+      - ai:9696
       user-agent:
       - polyswarm_api/3.21.0 (x86_64-Linux-CPython-3.14.4)
     method: GET
-    uri: http://artifact-index-e2e:9696/v3/hunt/live/list?since=600&community=gamma
+    uri: http://ai:9696/v3/hunt/live/list?since=600&community=gamma
   response:
     body:
       string: ''
@@ -1232,11 +1232,11 @@ interactions:
       connection:
       - keep-alive
       host:
-      - artifact-index-e2e:9696
+      - ai:9696
       user-agent:
       - polyswarm_api/3.21.0 (x86_64-Linux-CPython-3.14.4)
     method: GET
-    uri: http://artifact-index-e2e:9696/v3/hunt/live/list?since=600&community=gamma
+    uri: http://ai:9696/v3/hunt/live/list?since=600&community=gamma
   response:
     body:
       string: ''
@@ -1268,11 +1268,11 @@ interactions:
       connection:
       - keep-alive
       host:
-      - artifact-index-e2e:9696
+      - ai:9696
       user-agent:
       - polyswarm_api/3.21.0 (x86_64-Linux-CPython-3.14.4)
     method: GET
-    uri: http://artifact-index-e2e:9696/v3/hunt/live/list?since=600&community=gamma
+    uri: http://ai:9696/v3/hunt/live/list?since=600&community=gamma
   response:
     body:
       string: ''
@@ -1304,11 +1304,11 @@ interactions:
       connection:
       - keep-alive
       host:
-      - artifact-index-e2e:9696
+      - ai:9696
       user-agent:
       - polyswarm_api/3.21.0 (x86_64-Linux-CPython-3.14.4)
     method: GET
-    uri: http://artifact-index-e2e:9696/v3/hunt/live/list?since=600&community=gamma
+    uri: http://ai:9696/v3/hunt/live/list?since=600&community=gamma
   response:
     body:
       string: ''
@@ -1340,11 +1340,11 @@ interactions:
       connection:
       - keep-alive
       host:
-      - artifact-index-e2e:9696
+      - ai:9696
       user-agent:
       - polyswarm_api/3.21.0 (x86_64-Linux-CPython-3.14.4)
     method: GET
-    uri: http://artifact-index-e2e:9696/v3/hunt/live/list?since=600&community=gamma
+    uri: http://ai:9696/v3/hunt/live/list?since=600&community=gamma
   response:
     body:
       string: '{"has_more":false,"limit":50,"result":[{"community":"gamma","created":"2026-06-03T22:37:52.083918+00:00","detections":{"benign":0,"malicious":1,"total":1},"download_url":null,"first_seen":"2026-06-03T22:37:21.946455+00:00","id":"74599466085661100","instance_id":"94943400355321313","livescan_id":"88206418106491329","malware_family":"EICAR","md5":"6ac59cd96a9a3ee9d52f9ebc3ec22f70","polyscore":null,"rule_name":"sdk_test_async_live","sha1":"fade22953ce5af251e2dbd7491124c818bf35e5e","sha256":"ff2b25f3bff7613e391b4d87e32f18c172d531bee5ae562bd13b6421d8b104a5","tags":"{}","yara":null}],"status":"OK"}
@@ -1382,11 +1382,11 @@ interactions:
       connection:
       - keep-alive
       host:
-      - artifact-index-e2e:9696
+      - ai:9696
       user-agent:
       - polyswarm_api/3.21.0 (x86_64-Linux-CPython-3.14.4)
     method: GET
-    uri: http://artifact-index-e2e:9696/v3/hunt/live?id=74599466085661100
+    uri: http://ai:9696/v3/hunt/live?id=74599466085661100
   response:
     body:
       string: '{"result":{"community":"gamma","created":"2026-06-03T22:37:52.083918+00:00","detections":{"benign":0,"malicious":1,"total":1},"download_url":"http://minio:9000/public-cache/ff/2b/25/ff2b25f3bff7613e391b4d87e32f18c172d531bee5ae562bd13b6421d8b104a5fade22953ce5af251e2dbd7491124c818bf35e5e6ac59cd96a9a3ee9d52f9ebc3ec22f70?response-content-disposition=attachment%3Bfilename%3Dinfected&response-content-type=application%2Foctet-stream&X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Credential=AKIAIOSFODNN7EXAMPLE%2F20260603%2Fus-east-1%2Fs3%2Faws4_request&X-Amz-Date=20260603T223752Z&X-Amz-Expires=3600&X-Amz-SignedHeaders=host&X-Amz-Signature=d5b9d22359ba7a730490da90c750dafa5f483a11e6d0631784f1badf5ef753ac","first_seen":"2026-06-03T22:37:21.946455+00:00","id":"74599466085661100","instance_id":"94943400355321313","livescan_id":"88206418106491329","malware_family":"EICAR","md5":"6ac59cd96a9a3ee9d52f9ebc3ec22f70","polyscore":null,"rule_name":"sdk_test_async_live","sha1":"fade22953ce5af251e2dbd7491124c818bf35e5e","sha256":"ff2b25f3bff7613e391b4d87e32f18c172d531bee5ae562bd13b6421d8b104a5","tags":"{}","yara":"rule
@@ -1429,11 +1429,11 @@ interactions:
       content-type:
       - application/json
       host:
-      - artifact-index-e2e:9696
+      - ai:9696
       user-agent:
       - polyswarm_api/3.21.0 (x86_64-Linux-CPython-3.14.4)
     method: DELETE
-    uri: http://artifact-index-e2e:9696/v3/hunt/live/list
+    uri: http://ai:9696/v3/hunt/live/list
   response:
     body:
       string: '{"has_more":true,"limit":50,"result":[{"community":"gamma","created":"2026-06-03T22:37:52.083918+00:00","detections":{"benign":0,"malicious":1,"total":1},"download_url":null,"first_seen":"2026-06-03T22:37:21.946455+00:00","id":"74599466085661100","instance_id":"94943400355321313","livescan_id":"88206418106491329","malware_family":"EICAR","md5":"6ac59cd96a9a3ee9d52f9ebc3ec22f70","polyscore":null,"rule_name":"sdk_test_async_live","sha1":"fade22953ce5af251e2dbd7491124c818bf35e5e","sha256":"ff2b25f3bff7613e391b4d87e32f18c172d531bee5ae562bd13b6421d8b104a5","tags":"{}","yara":null}],"status":"OK"}
@@ -1471,11 +1471,11 @@ interactions:
       connection:
       - keep-alive
       host:
-      - artifact-index-e2e:9696
+      - ai:9696
       user-agent:
       - polyswarm_api/3.21.0 (x86_64-Linux-CPython-3.14.4)
     method: GET
-    uri: http://artifact-index-e2e:9696/v3/hunt/live?id=74599466085661100
+    uri: http://ai:9696/v3/hunt/live?id=74599466085661100
   response:
     body:
       string: '{"errors":null,"result":"Could not find requested live hunt result:
@@ -1516,11 +1516,11 @@ interactions:
       content-type:
       - application/json
       host:
-      - artifact-index-e2e:9696
+      - ai:9696
       user-agent:
       - polyswarm_api/3.21.0 (x86_64-Linux-CPython-3.14.4)
     method: DELETE
-    uri: http://artifact-index-e2e:9696/v3/hunt/rule/live
+    uri: http://ai:9696/v3/hunt/rule/live
   response:
     body:
       string: '{"result":{"created":"2026-06-03T22:37:20.835178+00:00","deleted":false,"description":null,"id":"21319123963942093","livescan_created":"2026-06-03T22:37:20.890721+00:00","livescan_id":88206418106491329,"modified":"2026-06-03T22:37:20.863779+00:00","name":"sdk-test_async_live","yara":"rule
@@ -1559,11 +1559,11 @@ interactions:
       connection:
       - keep-alive
       host:
-      - artifact-index-e2e:9696
+      - ai:9696
       user-agent:
       - polyswarm_api/3.21.0 (x86_64-Linux-CPython-3.14.4)
     method: GET
-    uri: http://artifact-index-e2e:9696/v3/hunt/rule?id=21319123963942093&community=gamma
+    uri: http://ai:9696/v3/hunt/rule?id=21319123963942093&community=gamma
   response:
     body:
       string: '{"result":{"created":"2026-06-03T22:37:20.835178+00:00","deleted":false,"description":null,"id":"21319123963942093","livescan_created":"2026-06-03T22:37:20.890721+00:00","livescan_id":null,"modified":"2026-06-03T22:37:52.675202+00:00","name":"sdk-test_async_live","yara":"rule
@@ -1606,11 +1606,11 @@ interactions:
       content-type:
       - application/json
       host:
-      - artifact-index-e2e:9696
+      - ai:9696
       user-agent:
       - polyswarm_api/3.21.0 (x86_64-Linux-CPython-3.14.4)
     method: DELETE
-    uri: http://artifact-index-e2e:9696/v3/hunt/rule/live
+    uri: http://ai:9696/v3/hunt/rule/live
   response:
     body:
       string: '{"errors":null,"result":"Ruleset does not have an active live scan.","status":"error"}
@@ -1650,11 +1650,11 @@ interactions:
       content-type:
       - application/json
       host:
-      - artifact-index-e2e:9696
+      - ai:9696
       user-agent:
       - polyswarm_api/3.21.0 (x86_64-Linux-CPython-3.14.4)
     method: DELETE
-    uri: http://artifact-index-e2e:9696/v3/hunt/rule?id=21319123963942093
+    uri: http://ai:9696/v3/hunt/rule?id=21319123963942093
   response:
     body:
       string: '{"result":{"created":"2026-06-03T22:37:20.835178+00:00","deleted":true,"description":null,"id":"21319123963942093","livescan_created":"2026-06-03T22:37:20.890721+00:00","livescan_id":null,"modified":"2026-06-03T22:37:52.675202+00:00","name":"sdk-test_async_live","yara":"rule

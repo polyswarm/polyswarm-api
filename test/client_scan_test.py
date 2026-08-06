@@ -232,7 +232,7 @@ class ScanTestCaseV2(TestCase):
 
     @vcr.use_cassette()
     def test_submission(self):
-        api = PolyswarmAPI(self.test_api_key, uri=f'http://artifact-index-e2e:9696/{self.api_version}', community='gamma')
+        api = PolyswarmAPI(self.test_api_key, uri=f'http://ai:9696/{self.api_version}', community='gamma')
         # Canonical "a file goes in and gets scanned" path: submit_and_scan waits
         # for the scan to complete and asserts the entry carries assertions/votes.
         instance, sha = submit_and_scan(api, self._testMethodName)
@@ -240,7 +240,7 @@ class ScanTestCaseV2(TestCase):
 
     @vcr.use_cassette()
     def test_rescans(self):
-        api = PolyswarmAPI(self.test_api_key, uri=f'http://artifact-index-e2e:9696/{self.api_version}', community='gamma')
+        api = PolyswarmAPI(self.test_api_key, uri=f'http://ai:9696/{self.api_version}', community='gamma')
         # Submit this test's own unique artifact, then rescan it by hash and by
         # id. rescan_and_scan confirms each rescan actually re-runs the scan
         # (assertions/votes land), not merely that the call was accepted.
@@ -251,7 +251,7 @@ class ScanTestCaseV2(TestCase):
 
     @vcr.use_cassette()
     def test_download(self):
-        api = PolyswarmAPI(self.test_api_key, uri=f'http://artifact-index-e2e:9696/{self.api_version}', community='gamma')
+        api = PolyswarmAPI(self.test_api_key, uri=f'http://ai:9696/{self.api_version}', community='gamma')
         # Self-contained: submit this test's own artifact, then download ITS sha
         # and assert the bytes round-trip.
         content, sha = malicious_artifact(self._testMethodName)
@@ -269,7 +269,7 @@ class ScanTestCaseV2(TestCase):
 
     @vcr.use_cassette()
     def test_download_to_handle(self):
-        api = PolyswarmAPI(self.test_api_key, uri=f'http://artifact-index-e2e:9696/{self.api_version}', community='gamma')
+        api = PolyswarmAPI(self.test_api_key, uri=f'http://ai:9696/{self.api_version}', community='gamma')
         content, sha = malicious_artifact(self._testMethodName)
         with artifact_file(content) as fpath:
             api.submit(fpath)
@@ -286,7 +286,7 @@ class ScanTestCaseV2(TestCase):
 
     @vcr.use_cassette()
     def test_stream(self):
-        api = PolyswarmAPI(self.test_api_key, uri=f'http://artifact-index-e2e:9696/{self.api_version}', community='gamma')
+        api = PolyswarmAPI(self.test_api_key, uri=f'http://ai:9696/{self.api_version}', community='gamma')
         # The archiver batches submitted instances into a downloadable archive
         # once ARTIFACT_ARCHIVES_INSTANCE_COUNT (3 in e2e) is *exceeded*, after an
         # ARCHIVES_CREATION_DELAY. The batch is global, so we submit enough of OUR
@@ -340,7 +340,7 @@ class ScanTestCaseV2(TestCase):
 
     @vcr.use_cassette()
     def test_hash_search(self):
-        api = PolyswarmAPI(self.test_api_key, uri=f'http://artifact-index-e2e:9696/{self.api_version}', community='gamma')
+        api = PolyswarmAPI(self.test_api_key, uri=f'http://ai:9696/{self.api_version}', community='gamma')
         # Submit + scan this test's own artifact (confirms it scanned), then
         # search for ITS sha. The search index can lag the scan, so poll.
         _, sha = submit_and_scan(api, self._testMethodName)
@@ -349,7 +349,7 @@ class ScanTestCaseV2(TestCase):
 
     @vcr.use_cassette()
     def test_metadata_search(self):
-        api = PolyswarmAPI(self.test_api_key, uri=f'http://artifact-index-e2e:9696/{self.api_version}', community='gamma')
+        api = PolyswarmAPI(self.test_api_key, uri=f'http://ai:9696/{self.api_version}', community='gamma')
         # Submit + scan this test's own artifact, then search the ES metadata
         # index for ITS sha (sha-scoped query). The metadata write can lag, so poll.
         _, sha = submit_and_scan(api, self._testMethodName)
@@ -451,7 +451,7 @@ class ScanTestCaseV2(TestCase):
 
     @vcr.use_cassette()
     def test_live(self):
-        api = PolyswarmAPI(self.test_api_key, uri=f'http://artifact-index-e2e:9696/{self.api_version}', community='gamma')
+        api = PolyswarmAPI(self.test_api_key, uri=f'http://ai:9696/{self.api_version}', community='gamma')
         # Self-contained: a per-test ruleset whose YARA matches ONLY this test's
         # artifact (uid_yara keys on the uid embedded by malicious_artifact), so
         # the live hunt surfaces just this run's submission — no cross-test feed
@@ -528,7 +528,7 @@ class ScanTestCaseV2(TestCase):
 
     @vcr.use_cassette()
     def test_historical(self):
-        api = PolyswarmAPI(self.test_api_key, uri=f'http://artifact-index-e2e:9696/{self.api_version}', community='gamma')
+        api = PolyswarmAPI(self.test_api_key, uri=f'http://ai:9696/{self.api_version}', community='gamma')
         historical_hunt = api.historical_create(uid_yara(self._testMethodName))
         assert historical_hunt.status == 'PENDING'
         get_historical_hunt = api.historical_get(historical_hunt.id)
@@ -538,7 +538,7 @@ class ScanTestCaseV2(TestCase):
 
     @vcr.use_cassette()
     def test_list_historical(self):
-        api = PolyswarmAPI(self.test_api_key, uri=f'http://artifact-index-e2e:9696/{self.api_version}', community='gamma')
+        api = PolyswarmAPI(self.test_api_key, uri=f'http://ai:9696/{self.api_version}', community='gamma')
         # Create this test's own hunts and assert each created id is present in
         # the list (subset check is isolation-safe: other tests' hunts may also
         # be listed on the shared stack).
@@ -552,7 +552,7 @@ class ScanTestCaseV2(TestCase):
 
     @vcr.use_cassette()
     def test_historical_results(self):
-        api = PolyswarmAPI(self.test_api_key, uri=f'http://artifact-index-e2e:9696/{self.api_version}', community='gamma')
+        api = PolyswarmAPI(self.test_api_key, uri=f'http://ai:9696/{self.api_version}', community='gamma')
         # Self-contained: our own unique hunt (uid_yara). The e2e historical scan
         # is asynchronous and does not reliably populate results within a test
         # window, so accept an empty result set — end-to-end YARA matching is
@@ -568,7 +568,7 @@ class ScanTestCaseV2(TestCase):
 
     @vcr.use_cassette()
     def test_rules(self):
-        api = PolyswarmAPI(self.test_api_key, uri=f'http://artifact-index-e2e:9696/{self.api_version}', community='gamma')
+        api = PolyswarmAPI(self.test_api_key, uri=f'http://ai:9696/{self.api_version}', community='gamma')
         # creating
         with open('test/eicar.yara') as rule:
             contents = rule.read()
@@ -600,7 +600,7 @@ class ScanTestCaseV2(TestCase):
 
     @vcr.use_cassette()
     def test_tool_metadata(self):
-        api = PolyswarmAPI(self.test_api_key, uri=f'http://artifact-index-e2e:9696/{self.api_version}', community='gamma')
+        api = PolyswarmAPI(self.test_api_key, uri=f'http://ai:9696/{self.api_version}', community='gamma')
         # Self-contained: submit this test's own artifact and attach two tool
         # blobs. Tool metadata is instance-scoped, so the tool names need no
         # namespacing — they can't collide across tests' distinct instances.
@@ -624,7 +624,7 @@ class ScanTestCaseV2(TestCase):
 
     @vcr.use_cassette()
     def test_iocs_by_hash(self):
-        api = PolyswarmAPI(self.test_api_key, uri=f'http://artifact-index-e2e:9696/{self.api_version}', community='gamma')
+        api = PolyswarmAPI(self.test_api_key, uri=f'http://ai:9696/{self.api_version}', community='gamma')
         # Forward IOC lookup: /v3/ioc-beta/sha256/<sha> resolves the sha via
         # SandboxTaskSearchHash (seeded for the EICAR fixture in e2e) and reads
         # the resulting instance's metadata. We don't need a live sandbox:
@@ -670,7 +670,7 @@ class ScanTestCaseV2(TestCase):
 
     @vcr.use_cassette()
     def test_search_by_ioc(self):
-        api = PolyswarmAPI(self.test_api_key, uri=f'http://artifact-index-e2e:9696/{self.api_version}', community='gamma')
+        api = PolyswarmAPI(self.test_api_key, uri=f'http://ai:9696/{self.api_version}', community='gamma')
         # Reverse IOC search (/v3/ioc/search?ip=): given an IOC, find the sha256
         # that reported it. Same artificial cape_sandbox_v2 trick as the forward
         # test_iocs_by_hash (no live sandbox needed), but the reverse view reads
@@ -722,7 +722,7 @@ class ScanTestCaseV2(TestCase):
 
     @vcr.use_cassette()
     def test_add_known_good_host(self):
-        v3api = PolyswarmAPI(self.test_api_key, uri='http://artifact-index-e2e:9696/v3', community='gamma')
+        v3api = PolyswarmAPI(self.test_api_key, uri='http://ai:9696/v3', community='gamma')
         # Unique per-test host on the ephemeral stack => the create branch with
         # no prior cleanup needed.
         host = uid_host(self._testMethodName)
@@ -732,7 +732,7 @@ class ScanTestCaseV2(TestCase):
 
     @vcr.use_cassette()
     def test_update_known_good_host(self):
-        v3api = PolyswarmAPI(self.test_api_key, uri='http://artifact-index-e2e:9696/v3', community='gamma')
+        v3api = PolyswarmAPI(self.test_api_key, uri='http://ai:9696/v3', community='gamma')
         # Add a unique host, capture its real id, then update it to a unique IP.
         host = uid_host(self._testMethodName)
         ip = uid_ip(self._testMethodName)
@@ -743,7 +743,7 @@ class ScanTestCaseV2(TestCase):
 
     @vcr.use_cassette()
     def test_delete_known_good_host(self):
-        v3api = PolyswarmAPI(self.test_api_key, uri='http://artifact-index-e2e:9696/v3', community='gamma')
+        v3api = PolyswarmAPI(self.test_api_key, uri='http://ai:9696/v3', community='gamma')
         host = uid_host(self._testMethodName)
         added = v3api.add_known_good_host("domain", "test", host)
         known = v3api.delete_known_good_host(added.json['id'])
@@ -752,7 +752,7 @@ class ScanTestCaseV2(TestCase):
 
     @vcr.use_cassette()
     def test_check_known_host(self):
-        v3api = PolyswarmAPI(self.test_api_key, uri='http://artifact-index-e2e:9696/v3', community='gamma')
+        v3api = PolyswarmAPI(self.test_api_key, uri='http://ai:9696/v3', community='gamma')
         # Add a unique known-good IP and list it back.
         ip = uid_ip(self._testMethodName)
         added = v3api.add_known_good_host('ip', 'test', ip)
@@ -766,7 +766,7 @@ class ScanTestCaseV2(TestCase):
         # internal plan). The sha comes from this test's unique EICAR variant
         # (same convention as the scan tests) => the create branch runs first;
         # the trailing delete keeps live re-runs deterministic.
-        v3api = PolyswarmAPI(self.test_api_key, uri=f'http://artifact-index-e2e:9696/{self.api_version}', community='gamma')
+        v3api = PolyswarmAPI(self.test_api_key, uri=f'http://ai:9696/{self.api_version}', community='gamma')
         _content, sha = malicious_artifact(self._testMethodName)
         created = v3api.known_good_create(
             sha256=sha, source='nsrl', filename='kg-sample.exe',
@@ -847,7 +847,7 @@ class ScanTestCaseV2(TestCase):
         #
         # So this asserts the server's behaviour rather than the SDK's mapping, on both sides
         # of the 200/204 boundary, using the ordinary provisioning path.
-        v3api = PolyswarmAPI(self.test_api_key, uri=f'http://artifact-index-e2e:9696/{self.api_version}', community='gamma')
+        v3api = PolyswarmAPI(self.test_api_key, uri=f'http://ai:9696/{self.api_version}', community='gamma')
         # Two distinct EICAR variants, both deterministic: one this test submits, and one
         # NOTHING ever submits. Deriving the absent case from its own uid is what keeps this
         # test re-runnable against a reused stack — probing the sha we are about to submit
@@ -882,14 +882,14 @@ class ScanTestCaseV2(TestCase):
 
     @vcr.use_cassette()
     def test_sandbox_providers(self):
-        v3api = PolyswarmAPI(self.test_api_key, uri='http://artifact-index-e2e:9696/v3', community='gamma')
+        v3api = PolyswarmAPI(self.test_api_key, uri='http://ai:9696/v3', community='gamma')
         response = v3api.sandbox_providers()
         assert response.json['result']['cape']['slug'] == 'cape'
         assert response.json['result']['triage']['slug'] == 'triage'
 
     @vcr.use_cassette()
     def test_sandboxtask_submit(self):
-        v3api = PolyswarmAPI(self.test_api_key, uri='http://artifact-index-e2e:9696/v3', community='gamma')
+        v3api = PolyswarmAPI(self.test_api_key, uri='http://ai:9696/v3', community='gamma')
         # Self-contained: submit this test's own artifact and dispatch sandbox
         # tasks against ITS instance id. The submit response carries the real id.
         instance, _ = submit_and_scan(v3api, self._testMethodName, wait=False)
@@ -902,7 +902,7 @@ class ScanTestCaseV2(TestCase):
 
     @vcr.use_cassette()
     def test_sandboxtask_latest(self):
-        v3api = PolyswarmAPI(self.test_api_key, uri='http://artifact-index-e2e:9696/v3', community='gamma')
+        v3api = PolyswarmAPI(self.test_api_key, uri='http://ai:9696/v3', community='gamma')
         # Self-contained: submit our own artifact and drive cape + triage to
         # SUCCEEDED by replaying the sandbox worker's HTTP calls (no analysis VMs
         # in e2e). Completing a task creates its SandboxTaskSearchHash row, which
@@ -926,7 +926,7 @@ class ScanTestCaseV2(TestCase):
 
     @vcr.use_cassette()
     def test_sandboxtask_list(self):
-        v3api = PolyswarmAPI(self.test_api_key, uri='http://artifact-index-e2e:9696/v3', community='gamma')
+        v3api = PolyswarmAPI(self.test_api_key, uri='http://ai:9696/v3', community='gamma')
         # Self-contained: submit our own artifact and queue cape + triage for ITS
         # sha. Assertions are scoped to our sha, so they're exact for this run.
         instance, sha256 = submit_and_scan(v3api, self._testMethodName, wait=False)
@@ -961,7 +961,7 @@ class ScanTestCaseV2(TestCase):
 
     @vcr.use_cassette()
     def test_sample(self):
-        api = PolyswarmAPI(self.test_api_key, uri=f'http://artifact-index-e2e:9696/{self.api_version}', community='gamma')
+        api = PolyswarmAPI(self.test_api_key, uri=f'http://ai:9696/{self.api_version}', community='gamma')
         # Self-contained: submit our own artifact and drive cape + triage to
         # COMPLETED, then GET the aggregated sample for OUR sha. Reaching the
         # sample with a completed sandbox dep auto-triggers an LLM report; it

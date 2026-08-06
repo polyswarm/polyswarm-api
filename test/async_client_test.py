@@ -244,7 +244,7 @@ class TestAsyncScanCase:
     def _api(self, community='gamma'):
         return PolySwarmAsyncAPI(
             self.test_api_key,
-            uri=f'http://artifact-index-e2e:9696/{self.api_version}',
+            uri=f'http://ai:9696/{self.api_version}',
             community=community,
         )
 
@@ -877,7 +877,7 @@ class TestAsyncEngineCache:
 
 # ── Error handling (no cassettes) — mirrors no-cassette sync tests ────────────
 
-BASE_URL = 'http://artifact-index-e2e:9696/v3'
+BASE_URL = 'http://ai:9696/v3'
 API_KEY = '11111111111111111111111111111111'
 
 
