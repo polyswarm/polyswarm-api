@@ -253,11 +253,11 @@ interactions:
       content-type:
       - application/json
       host:
-      - sandbox-service-e2e:54110
+      - sandbox:54110
       user-agent:
       - python-httpx/0.28.1
     method: POST
-    uri: http://sandbox-service-e2e:54110/api/sandbox-task/
+    uri: http://sandbox:54110/api/sandbox-task/
   response:
     body:
       string: '{"status":"OK"}'
@@ -302,11 +302,11 @@ interactions:
       content-type:
       - application/json
       host:
-      - sandbox-service-e2e:54110
+      - sandbox:54110
       user-agent:
       - python-httpx/0.28.1
     method: POST
-    uri: http://sandbox-service-e2e:54110/api/sandbox-artifact/
+    uri: http://sandbox:54110/api/sandbox-artifact/
   response:
     body:
       string: '{"id":88,"created":"2026-06-03T23:19:09.925784Z","sandbox_task_id":23356546211344354,"instance_number":null,"artifact_type":"report","meta_community":"","sandbox":"","sha256":"703014278b978e8772c8188f6d66b7d43519abe6af896352181d2ba5758afaa5","parent":null,"upload_url":"http://minio:9000/sandbox-dropped/88/88?X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Credential=AKIAIOSFODNN7EXAMPLE%2F20260603%2Fus-east-1%2Fs3%2Faws4_request&X-Amz-Date=20260603T231909Z&X-Amz-Expires=300&X-Amz-SignedHeaders=host&X-Amz-Signature=4c31c27f1fc8312f82721dee763cb5f7aa3bf859d3e13982c892224af9eb13a2","name":"cape_report.json","mimetype":"application/json","extended_type":"JSON
@@ -400,11 +400,11 @@ interactions:
       content-length:
       - '0'
       host:
-      - sandbox-service-e2e:54110
+      - sandbox:54110
       user-agent:
       - python-httpx/0.28.1
     method: PATCH
-    uri: http://sandbox-service-e2e:54110/api/sandbox-artifact/88/
+    uri: http://sandbox:54110/api/sandbox-artifact/88/
   response:
     body:
       string: '{"status":"OK"}'
@@ -448,11 +448,11 @@ interactions:
       content-type:
       - application/json
       host:
-      - sandbox-service-e2e:54110
+      - sandbox:54110
       user-agent:
       - python-httpx/0.28.1
     method: POST
-    uri: http://sandbox-service-e2e:54110/api/sandbox-task/
+    uri: http://sandbox:54110/api/sandbox-task/
   response:
     body:
       string: '{"status":"OK"}'

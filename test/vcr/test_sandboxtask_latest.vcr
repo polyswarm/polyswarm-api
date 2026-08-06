@@ -302,11 +302,11 @@ interactions:
       content-type:
       - application/json
       host:
-      - sandbox-service-e2e:54110
+      - sandbox:54110
       user-agent:
       - python-httpx/0.28.1
     method: POST
-    uri: http://sandbox-service-e2e:54110/api/sandbox-task/
+    uri: http://sandbox:54110/api/sandbox-task/
   response:
     body:
       string: '{"status":"OK"}'
@@ -351,11 +351,11 @@ interactions:
       content-type:
       - application/json
       host:
-      - sandbox-service-e2e:54110
+      - sandbox:54110
       user-agent:
       - python-httpx/0.28.1
     method: POST
-    uri: http://sandbox-service-e2e:54110/api/sandbox-artifact/
+    uri: http://sandbox:54110/api/sandbox-artifact/
   response:
     body:
       string: '{"id":14,"created":"2026-06-03T22:41:19.717282Z","sandbox_task_id":4003121578156118,"instance_number":null,"artifact_type":"report","meta_community":"","sandbox":"","sha256":"703014278b978e8772c8188f6d66b7d43519abe6af896352181d2ba5758afaa5","parent":null,"upload_url":"http://minio:9000/sandbox-dropped/41/41?X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Credential=AKIAIOSFODNN7EXAMPLE%2F20260603%2Fus-east-1%2Fs3%2Faws4_request&X-Amz-Date=20260603T224119Z&X-Amz-Expires=300&X-Amz-SignedHeaders=host&X-Amz-Signature=ed5c31b9fe469b9c34a2f2e65a2d1763994aaac07124a80c6ec9ccccd418e385","name":"cape_report.json","mimetype":"application/json","extended_type":"JSON
@@ -449,11 +449,11 @@ interactions:
       content-length:
       - '0'
       host:
-      - sandbox-service-e2e:54110
+      - sandbox:54110
       user-agent:
       - python-httpx/0.28.1
     method: PATCH
-    uri: http://sandbox-service-e2e:54110/api/sandbox-artifact/14/
+    uri: http://sandbox:54110/api/sandbox-artifact/14/
   response:
     body:
       string: '{"status":"OK"}'
@@ -497,11 +497,11 @@ interactions:
       content-type:
       - application/json
       host:
-      - sandbox-service-e2e:54110
+      - sandbox:54110
       user-agent:
       - python-httpx/0.28.1
     method: POST
-    uri: http://sandbox-service-e2e:54110/api/sandbox-task/
+    uri: http://sandbox:54110/api/sandbox-task/
   response:
     body:
       string: '{"status":"OK"}'
@@ -545,11 +545,11 @@ interactions:
       content-type:
       - application/json
       host:
-      - sandbox-service-e2e:54110
+      - sandbox:54110
       user-agent:
       - python-httpx/0.28.1
     method: POST
-    uri: http://sandbox-service-e2e:54110/api/sandbox-task/
+    uri: http://sandbox:54110/api/sandbox-task/
   response:
     body:
       string: '{"status":"OK"}'
@@ -594,11 +594,11 @@ interactions:
       content-type:
       - application/json
       host:
-      - sandbox-service-e2e:54110
+      - sandbox:54110
       user-agent:
       - python-httpx/0.28.1
     method: POST
-    uri: http://sandbox-service-e2e:54110/api/sandbox-artifact/
+    uri: http://sandbox:54110/api/sandbox-artifact/
   response:
     body:
       string: '{"id":15,"created":"2026-06-03T22:41:19.766329Z","sandbox_task_id":39946594963020419,"instance_number":null,"artifact_type":"report","meta_community":"","sandbox":"","sha256":"703014278b978e8772c8188f6d66b7d43519abe6af896352181d2ba5758afaa5","parent":null,"upload_url":"http://minio:9000/sandbox-dropped/51/51?X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Credential=AKIAIOSFODNN7EXAMPLE%2F20260603%2Fus-east-1%2Fs3%2Faws4_request&X-Amz-Date=20260603T224119Z&X-Amz-Expires=300&X-Amz-SignedHeaders=host&X-Amz-Signature=6062b8dad4faf263f3b283e810f78bd23e5c034d3a3683fcd9c512a42d616ac8","name":"triage_report.json","mimetype":"application/json","extended_type":"JSON
@@ -692,11 +692,11 @@ interactions:
       content-length:
       - '0'
       host:
-      - sandbox-service-e2e:54110
+      - sandbox:54110
       user-agent:
       - python-httpx/0.28.1
     method: PATCH
-    uri: http://sandbox-service-e2e:54110/api/sandbox-artifact/15/
+    uri: http://sandbox:54110/api/sandbox-artifact/15/
   response:
     body:
       string: '{"status":"OK"}'
@@ -740,11 +740,11 @@ interactions:
       content-type:
       - application/json
       host:
-      - sandbox-service-e2e:54110
+      - sandbox:54110
       user-agent:
       - python-httpx/0.28.1
     method: POST
-    uri: http://sandbox-service-e2e:54110/api/sandbox-artifact/
+    uri: http://sandbox:54110/api/sandbox-artifact/
   response:
     body:
       string: '{"id":16,"created":"2026-06-03T22:41:19.798237Z","sandbox_task_id":39946594963020419,"instance_number":null,"artifact_type":"recording","meta_community":"","sandbox":"","sha256":"3e819ced39f63e97a494d4c1af4b320ea970f2f6fc45cf2b4bc844622f7d1f08","parent":null,"upload_url":"http://minio:9000/sandbox-dropped/61/61?X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Credential=AKIAIOSFODNN7EXAMPLE%2F20260603%2Fus-east-1%2Fs3%2Faws4_request&X-Amz-Date=20260603T224119Z&X-Amz-Expires=300&X-Amz-SignedHeaders=host&X-Amz-Signature=de0809cd4078d3d9e193ee25800090fc9353c72a3dc9dedadb374aba8a5173fa","name":"recording.cast","mimetype":"application/octet-stream","extended_type":"data","description":"","callback_uri":null,"content_type":"application/octet-stream","status":"created"}'
@@ -837,11 +837,11 @@ interactions:
       content-length:
       - '0'
       host:
-      - sandbox-service-e2e:54110
+      - sandbox:54110
       user-agent:
       - python-httpx/0.28.1
     method: PATCH
-    uri: http://sandbox-service-e2e:54110/api/sandbox-artifact/16/
+    uri: http://sandbox:54110/api/sandbox-artifact/16/
   response:
     body:
       string: '{"status":"OK"}'
@@ -885,11 +885,11 @@ interactions:
       content-type:
       - application/json
       host:
-      - sandbox-service-e2e:54110
+      - sandbox:54110
       user-agent:
       - python-httpx/0.28.1
     method: POST
-    uri: http://sandbox-service-e2e:54110/api/sandbox-task/
+    uri: http://sandbox:54110/api/sandbox-task/
   response:
     body:
       string: '{"status":"OK"}'
