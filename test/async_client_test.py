@@ -136,7 +136,7 @@ async def _poll_results(agen_factory, tries=30, delay=1):
 # sandbox service to drive a dispatched SandboxTask to SUCCEEDED (the only state
 # that makes sandbox_task_latest resolve). Requires the e2e sandbox-service
 # worker to be running.
-SANDBOX_SERVICE_URI = 'http://sandbox-service-e2e:54110'
+SANDBOX_SERVICE_URI = 'http://sandbox:54110'
 
 
 async def _post_sandbox_status(client, task_id, status):

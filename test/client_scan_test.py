@@ -139,7 +139,7 @@ def _poll_results(call, tries=30, delay=1):
 # sandbox worker makes to the sandbox service (POST api/sandbox-task/ for status;
 # POST + PUT + PATCH api/sandbox-artifact/ for results), which drive the task to
 # completion server-side. Requires the e2e sandbox-service worker to be running.
-SANDBOX_SERVICE_URI = 'http://sandbox-service-e2e:54110'
+SANDBOX_SERVICE_URI = 'http://sandbox:54110'
 
 
 def _post_sandbox_status(task_id, status):
