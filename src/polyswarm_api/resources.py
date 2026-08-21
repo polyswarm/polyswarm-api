@@ -766,6 +766,13 @@ class LiveHuntResult(core.BaseJsonResource):
         self.sha1 = content.get('sha1')
         self.rule_name = content['rule_name']
         self.tags = content['tags']
+        # `.get()`, not a subscript: the key is additive, so a server predating it omits
+        # it entirely and a subscript would raise on every result. Three distinct states
+        # reach here -- None (not reported: an older server, or a list endpoint, which
+        # omits the evidence rather than fetch a blob per row), [] (the rule matched but
+        # has no byte evidence to show), [...] (the evidence, as a lower bound). See
+        # specs/05-downstream-contract.md.
+        self.matched_strings = content.get('matched_strings')
         self.polyscore = content['polyscore']
         self.malware_family = content['malware_family']
         self.detections = content['detections']
@@ -814,6 +821,13 @@ class HistoricalHuntResult(core.BaseJsonResource):
         self.created = core.parse_isoformat(content['created'])
         self.rule_name = content['rule_name']
         self.tags = content['tags']
+        # `.get()`, not a subscript: the key is additive, so a server predating it omits
+        # it entirely and a subscript would raise on every result. Three distinct states
+        # reach here -- None (not reported: an older server, or a list endpoint, which
+        # omits the evidence rather than fetch a blob per row), [] (the rule matched but
+        # has no byte evidence to show), [...] (the evidence, as a lower bound). See
+        # specs/05-downstream-contract.md.
+        self.matched_strings = content.get('matched_strings')
         self.polyscore = content['polyscore']
         self.malware_family = content['malware_family']
         self.detections = content['detections']
