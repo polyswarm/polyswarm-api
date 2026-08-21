@@ -637,13 +637,54 @@ class TestAsyncScanCase:
                 fav = await api.ruleset_favorite(rule.id, True)
                 assert fav.favorite is True
                 assert fav.favorited_at is not None
+                # limit is a PIN (fixed product cap); used is a BOUND (the
+                # stack budget is shared across runs)
                 assert fav.favorites_limit == 5
                 assert 1 <= fav.favorites_used <= fav.favorites_limit
                 favorites = [r async for r in api.ruleset_list(favorites_only=True)]
                 assert any(r.id == rule.id and r.favorite for r in favorites)
+                # unstarring here is the CONTRACT assertion; slot hygiene does
+                # not depend on reaching it — the finally's ruleset_delete
+                # soft-deletes and the budget counts only deleted=false rows
                 unfav = await api.ruleset_favorite(rule.id, False)
                 assert unfav.favorite is False
                 assert unfav.favorited_at is None
+
+                # live-hunt scope: counts, include_counts and the livescan_id
+                # feed all need a running hunt; the fresh ruleset matches
+                # nothing, so every count is a computed ZERO (distinct from
+                # null = no live hunt to count against)
+                await api.live_start(int(rule.id))
+                try:
+                    livescan_id = (await api.ruleset_get(rule.id)).livescan_id
+                    assert livescan_id is not None   # a digit string
+                    active = {r.id async for r in api.ruleset_list(status='active')}
+                    assert rule.id in active
+                    with_counts = None
+                    async for r in api.ruleset_list(include_counts=True):
+                        if r.id == rule.id:
+                            with_counts = r
+                    assert with_counts is not None
+                    assert with_counts.new_results_count == 0
+                    counts = await api.live_results_count(since=86400)
+                    assert counts.since == 86400
+                    # zero results -> our hunt is ABSENT (absence means 0)
+                    assert livescan_id not in {entry['livescan_id']
+                                               for entry in counts.counts}
+                    try:
+                        feed = [r async for r in api.live_feed(livescan_id=livescan_id)]
+                        assert feed == []
+                    except exceptions.NoResultsException:
+                        pass
+                finally:
+                    # MUST stop before the outer finally's ruleset_delete — a
+                    # running live hunt blocks deletion server-side
+                    await api.live_stop(int(rule.id))
+                try:
+                    still_active = {r.id async for r in api.ruleset_list(status='active')}
+                except exceptions.NoResultsException:
+                    still_active = set()   # nothing live anywhere: also a pass
+                assert rule.id not in still_active
 
                 # a hunt triggered FROM the ruleset carries provenance and
                 # bumps the counter; the create response's comparison is

@@ -36,7 +36,9 @@ BaseResource                          # holds .api, ._content, .parse_result cla
     ├── HistoricalHunt                # /hunt/historical
     ├── HistoricalHuntResult / List   # /hunt/historical/results (+ /results/list)
     ├── LiveHuntResult / List         # /hunt/live (+ /hunt/live/list)
+    ├── LiveHuntResultCounts          # /hunt/live/results/count
     ├── YaraRuleset                   # /hunt/rule
+    ├── YaraRulesetFavorite           # /hunt/rule/favorite
     ├── Tag, MalwareFamily, TagLink   # /tags/tag, /tags/family, /tags/link
     ├── AssertionsJob, VotesJob       # /consumer/assertions-job, /consumer/votes-job
     ├── SandboxTask, SandboxProvider  # /sandbox/sandboxtask, /sandbox/provider
@@ -343,7 +345,9 @@ Holds `handle`, `artifact_name`, `artifact_type`, `sha256`, `sha1`, `md5`. Also 
 Several resources add domain-specific classmethods on top of the standard CRUD set:
 
 - `IOC` — `iocs_by_hash`, `ioc_search`, `check_known_hosts`, `create_known_good`, `create_known_bad`, `update_known_good`, `delete_known_good`.
-- `LiveYaraRuleset` / `HistoricalHunt` / `YaraRuleset` — standard CRUD plus list/delete-batch variants.
+- `LiveYaraRuleset` / `HistoricalHunt` / `YaraRuleset` — standard CRUD plus list/delete-batch variants. `YaraRuleset` also parses the hunt-page tracking fields (`favorite`, `favorited_at`, `rule_count` — `None` means the server had no answer, distinct from 0 — `historical_hunt_count`, `new_results_count`), and `HistoricalHunt` the source-rule provenance (`rule_id`, `rule_modified`, and the tri-state `source_rule_changed` — `None` is "unknown", never "unchanged"). All additive `.get()` parses; an older server leaves them `None`.
+- `YaraRulesetFavorite` — `RESOURCE_ENDPOINT = '/hunt/rule/favorite'`, **`RESOURCE_ID_KEYS = []`**: a deliberate deviation from the default `['id']`, because the server reads the toggle exclusively from the PUT **body** — emptying the key list is the only thing routing `id` (plus `favorite`/`community`) into `json` instead of the query string. `favorite` serialises as `1`/`0` (the `_params` bool→int coercion), which the server's boolean parser accepts. Response carries the star state plus the team's `favorites_used`/`favorites_limit`. Pinned by `test/hunt_tracking_builder_test.py`.
+- `LiveHuntResultCounts` — `RESOURCE_ENDPOINT = '/hunt/live/results/count'`, GET-only; `since` (seconds) rides the query and is omitted when unset (server default window). `counts` is a list of `{livescan_id, count}` with `livescan_id` as a digit string — the same join key `YaraRuleset.livescan_id` carries; a hunt absent from `counts` collected 0.
 - `SandboxTask` — `create_file`, `update_file`, `latest`, `my_tasks` for the various sandbox-submission shapes. **No `upload_file` instance method** in 4.0.
 - `Sample` — `create` with `endpoint_fmt={'sha256': sha256}` for the URL-parametrised path.
 - `Webhook` — `test(api, webhook_id)` for the test-payload endpoint.

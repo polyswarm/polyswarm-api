@@ -76,8 +76,8 @@ def uid_yara(uid):
 
     The artifact embeds ``uid`` (see ``malicious_artifact``), so a rule keying on
     that literal matches just this run's submission — isolating a live/historical
-    hunt from every other test's EICAR artifact (the generic eicar.yara substring
-    rule would match them all).
+    hunt from every other test's EICAR artifact (a generic EICAR-substring rule
+    would match them all).
     """
     ident = re.sub(r'\W', '_', uid)
     return f'rule sdk_{ident} {{ strings: $u = "{uid}" condition: $u }}'

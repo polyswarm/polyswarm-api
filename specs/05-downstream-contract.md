@@ -147,9 +147,9 @@ ArtifactInstance, LocalArtifact, Hash
 Engine
 Metadata, MetadataMapping, MetadataFieldProperties
 IOC
-LiveYaraRuleset, LiveHuntResult, LiveHuntResultList
+LiveYaraRuleset, LiveHuntResult, LiveHuntResultList, LiveHuntResultCounts
 HistoricalHunt, HistoricalHuntResult, HistoricalHuntResultList, HistoricalHuntList
-YaraRuleset
+YaraRuleset, YaraRulesetFavorite
 Tag, MalwareFamily, TagLink
 AssertionsJob, VotesJob
 SandboxTask, SandboxProvider
