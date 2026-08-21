@@ -66,6 +66,7 @@ Internal-only CRUD for the `/known-good` binary resource (distinct from the IOC 
 | `live_stop(rule_id)` | `LiveYaraRuleset.delete` |
 | `live_feed_delete(result_ids)` | `LiveHuntResultList.delete` (catches `NoResultsException`) |
 | `live_result(result_id)` | `LiveHuntResult.get` |
+| `live_results_count(since=None)` | `LiveHuntResultCounts.get` — per-live-hunt result counts in a window, grouped by `livescan_id` (digit strings, the same join key `YaraRuleset.livescan_id` carries); a hunt absent from `counts` collected 0 |
 
 ### Historical hunts
 
@@ -188,7 +189,6 @@ refusal.
 | `search_by_ioc(ip=None, domain=None, ttp=None, imphash=None)` | `IOC.ioc_search` |
 | `check_known_hosts(ips=[], domains=[])` | `IOC.check_known_hosts` |
 | `live_feed(since=None, …, livescan_id=None)` | `LiveHuntResult.list` — `livescan_id` scopes the feed to one live hunt (the hunt-page per-ruleset feed) |
-| `live_results_count(since=None)` | `LiveHuntResultCounts.get` — per-live-hunt result counts in a window, grouped by `livescan_id` (digit strings, the same join key `YaraRuleset.livescan_id` carries); a hunt absent from `counts` collected 0 |
 | `historical_list(since=None)` | `HistoricalHunt.list` |
 | `historical_results(hunt=None, …)` | `HistoricalHuntResultList.get` |
 | `ruleset_list(name=None, status=None, favorites_only=None, has_new_results=None, since=None, include_counts=None)` | `YaraRuleset.list` — the hunt-page filters, conjunctive and optional; unset filters are omitted from the query so the no-filter request is byte-compatible with the old contract |

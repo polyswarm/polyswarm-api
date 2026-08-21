@@ -97,3 +97,27 @@ class TestLiveFeedScopeBuilder:
         assert req.url == 'https://api.example.test/hunt/live/list'
         assert req.params == {'since': 60, 'livescan_id': '45392847561029383',
                               'community': 'gamma'}
+
+
+class TestLiveHuntResultCountsParse:
+    """Parse-side pins for the counts resource — the recorded cassettes carry
+    only EMPTY counts (the live tests use a fresh zero-result hunt), so the
+    entry shape and the digit-string join key documented in three places are
+    otherwise asserted nowhere."""
+
+    def test_counts_entries_parse_with_digit_string_join_keys(self):
+        payload = {'since': 86400,
+                   'counts': [{'livescan_id': '45392847561029383', 'count': 3},
+                              {'livescan_id': '71359438369584055', 'count': 1}]}
+        counts = resources.LiveHuntResultCounts(payload, api=None)
+        assert counts.since == 86400
+        assert counts.counts == payload['counts']
+        # the join key is the same digit string YaraRuleset.livescan_id
+        # carries — a bare int would round in a JS consumer
+        assert all(isinstance(entry['livescan_id'], str) for entry in counts.counts)
+        by_id = {entry['livescan_id']: entry['count'] for entry in counts.counts}
+        assert by_id['45392847561029383'] == 3
+
+    def test_null_counts_coalesces_to_an_empty_list(self):
+        counts = resources.LiveHuntResultCounts({'since': 86400, 'counts': None}, api=None)
+        assert counts.counts == []

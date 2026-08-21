@@ -671,6 +671,10 @@ class TestAsyncScanCase:
                     # zero results -> our hunt is ABSENT (absence means 0)
                     assert livescan_id not in {entry['livescan_id']
                                                for entry in counts.counts}
+                    # NOTE: zero-result hunt — pins the wire shape and the
+                    # empty pass-through only; the scoping semantics are
+                    # pinned by the server's own HTTP suite (same for
+                    # has_new_results)
                     try:
                         feed = [r async for r in api.live_feed(livescan_id=livescan_id)]
                         assert feed == []

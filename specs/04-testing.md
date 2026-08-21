@@ -26,7 +26,8 @@ How the test suite is organised. Three layers: pure unit tests (no HTTP at all �
 - `test/async_client_test.py` — async, VCR-backed integration tests (not yet on the parametrised harness — follow-up work).
 - `test/jmespath_test.py` — unit tests for `BaseJsonResource.jmespath`.
 - `test/vcr/*.vcr` — recorded cassettes.
-- `test/eicar.yara`, `test/malicious` — fixture files for upload tests.
+- `test/malicious` — fixture file for upload tests (`test/eicar.yara` was retired when the rules tests moved to per-test `uid_yara` bodies).
+- `test/hunt_tracking_builder_test.py` — pure-unit request-shape and parse tests for the hunt-page tracking builders/resources.
 
 ## Three test layers
 

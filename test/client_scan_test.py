@@ -357,6 +357,31 @@ class ScanTestCaseV2(TestCase):
             lambda: api.search_by_metadata(f'artifact.sha256:{sha}'), tries=90)
         assert result and result[0].sha256 == sha
 
+    def test_favorite_limit_refusal_is_machine_readable(self):
+        # The FAVORITE_LIMIT refusal path (respx-mocked: producing a genuinely
+        # full budget on the SHARED e2e stack would require holding all five
+        # team slots, racing every other run). There is deliberately no typed
+        # exception (specs/05): the machine-readable contract is the raw
+        # envelope at exc.request.errors — the code plus the same counters a
+        # successful toggle returns.
+        with respx.mock(assert_all_called=True) as router:
+            envelope = {
+                'status': 'error',
+                'result': 'Favorite limit reached (5 of 5 used).',
+                'errors': {'code': 'FAVORITE_LIMIT',
+                           'favorites_used': 5, 'favorites_limit': 5},
+            }
+            router.put('http://localhost:3000/api/v1/hunt/rule/favorite').mock(
+                return_value=httpx.Response(400, json=envelope))
+            api = PolyswarmAPI(self.test_api_key, uri='http://localhost:3000/api/v1',
+                               community='gamma')
+            with pytest.raises(exceptions.RequestException) as excinfo:
+                api.ruleset_favorite(5, True)
+        errors = excinfo.value.request.errors
+        assert errors['code'] == 'FAVORITE_LIMIT'
+        assert errors['favorites_used'] == 5
+        assert errors['favorites_limit'] == 5
+
     def test_resolve_engine_name(self):
         with respx.mock(assert_all_called=False) as router:
             ok_payload = {'results': [
@@ -630,6 +655,11 @@ class ScanTestCaseV2(TestCase):
                 # keys are the same digit strings ruleset_get renders
                 assert livescan_id not in {entry['livescan_id']
                                            for entry in counts.counts}
+                # NOTE: with a zero-result hunt this pins only the wire shape
+                # and the empty pass-through — it cannot tell a working filter
+                # from an ignored param (that would need a second hunt WITH
+                # results). The scoping semantics themselves are pinned by the
+                # server's own HTTP suite; same for has_new_results.
                 try:
                     assert list(api.live_feed(livescan_id=livescan_id)) == []
                 except exceptions.NoResultsException:
