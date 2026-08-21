@@ -810,8 +810,11 @@ class LiveHuntResultList(LiveHuntResult):
 class LiveHuntResultCounts(core.BaseJsonResource):
     """Per-live-hunt result counts inside a window: ``since`` (seconds) plus
     ``counts``, a list of ``{livescan_id, count}`` — one aggregate request for
-    every "new results" badge. A hunt with no results in the window is simply
-    absent from ``counts``; absence means 0."""
+    every "new results" badge. ``livescan_id`` is a digit string, the same
+    value ``YaraRuleset.livescan_id`` carries (the join key; ids exceed
+    JavaScript's safe-integer range, so they are never bare JSON ints). A hunt
+    with no results in the window is simply absent from ``counts``; absence
+    means 0."""
     RESOURCE_ENDPOINT = '/hunt/live/results/count'
 
     def __init__(self, content, api=None):
