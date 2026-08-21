@@ -569,26 +569,65 @@ class ScanTestCaseV2(TestCase):
     @vcr.use_cassette()
     def test_rules(self):
         api = PolyswarmAPI(self.test_api_key, uri=f'http://ai:9696/{self.api_version}', community='gamma')
-        # creating
-        with open('test/eicar.yara') as rule:
-            contents = rule.read()
-            rule = api.ruleset_create('test', contents)
-        assert rule.name == 'test'
+        # creating — a uid-namespaced single-rule body, so the name is unique
+        # on the shared stack and rule_count is deterministically 1.
+        uid = self._testMethodName
+        contents = uid_yara(uid)
+        rule = api.ruleset_create(uid, contents)
+        assert rule.name == uid
         assert rule.yara == contents
+        # The tracking fields are live from creation: the body was counted on
+        # the way in, nothing is starred yet, no hunts have been triggered.
+        assert rule.rule_count == 1
+        assert rule.favorite is False
+        assert rule.favorited_at is None
+        assert rule.historical_hunt_count == 0
+        hunt = None
         try:
             # listing — the created rule must be in the list; the e2e may carry
             # other rulesets from earlier runs, so use a presence assertion
             # rather than an exact count.
             rules = list(api.ruleset_list())
             assert any(r.id == rule.id for r in rules)
+            # the name filter narrows to this test's own rule
+            by_name = [r.id for r in api.ruleset_list(name=uid)]
+            assert rule.id in by_name
             # getting
             got = api.ruleset_get(rule.id)
-            assert got.name == 'test'
-            # updating
-            updated = api.ruleset_update(rule.id, name='test2', description='test')
-            assert updated.name == 'test2'
+            assert got.name == uid
+            # favorite round-trip, with the budget counts the server owns
+            fav = api.ruleset_favorite(rule.id, True)
+            assert fav.favorite is True
+            assert fav.favorited_at is not None
+            assert fav.favorites_limit == 5
+            # other runs may hold stars on the shared stack — bound, not pin
+            assert 1 <= fav.favorites_used <= fav.favorites_limit
+            favorites = list(api.ruleset_list(favorites_only=True))
+            assert any(r.id == rule.id and r.favorite for r in favorites)
+            unfav = api.ruleset_favorite(rule.id, False)
+            assert unfav.favorite is False
+            assert unfav.favorited_at is None
+            # a historical hunt triggered FROM the ruleset carries the
+            # provenance and bumps the ruleset's counter; the create response's
+            # source_rule_changed is None (unknown until a read re-resolves it)
+            hunt = api.historical_create(int(rule.id))
+            assert hunt.rule_id == rule.id
+            assert hunt.rule_modified is not None
+            assert hunt.source_rule_changed is None
+            assert api.ruleset_get(rule.id).historical_hunt_count == 1
+            # a read of the fresh hunt resolves the comparison: unchanged body
+            hunt_read = api.historical_get(hunt.id)
+            assert hunt_read.rule_id == rule.id
+            assert hunt_read.source_rule_changed is False
+            # updating — a body edit flips the hunt's source_rule_changed
+            updated = api.ruleset_update(
+                rule.id, name=f'{uid}2', rules=f'{contents}\n// edited', description='test')
+            assert updated.name == f'{uid}2'
             assert updated.description == 'test'
+            assert api.historical_get(hunt.id).source_rule_changed is True
         finally:
+            if hunt is not None:
+                api.historical_delete(hunt.id)
             # deleting — the created rule disappears from the list.
             api.ruleset_delete(rule.id)
         remaining_ids = []

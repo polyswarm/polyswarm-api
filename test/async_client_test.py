@@ -608,26 +608,63 @@ class TestAsyncScanCase:
     # ── YARA Rulesets ─────────────────────────────────────────────────────────
 
     @vcr.use_cassette()
-    async def test_async_rules(self):
+    async def test_async_rules(self, uid):
         async with self._api() as api:
-            with open('test/eicar.yara') as f:
-                contents = f.read()
-            rule = await api.ruleset_create('test', contents)
-            assert rule.name == 'test'
+            # A uid-namespaced single-rule body: unique name on the shared
+            # stack, deterministic rule_count of 1.
+            contents = uid_yara(uid)
+            rule = await api.ruleset_create(uid, contents)
+            assert rule.name == uid
             assert rule.yara == contents
+            # Tracking fields are live from creation.
+            assert rule.rule_count == 1
+            assert rule.favorite is False
+            assert rule.favorited_at is None
+            assert rule.historical_hunt_count == 0
+            hunt = None
             try:
                 # The e2e may carry leftover rulesets from prior runs; use
                 # a presence assertion instead of an exact count.
                 rules = [r async for r in api.ruleset_list()]
                 assert any(r.id == rule.id for r in rules)
+                by_name = [r.id async for r in api.ruleset_list(name=uid)]
+                assert rule.id in by_name
 
                 got = await api.ruleset_get(rule.id)
-                assert got.name == 'test'
+                assert got.name == uid
 
-                updated = await api.ruleset_update(rule.id, name='test2', description='test')
-                assert updated.name == 'test2'
+                # favorite round-trip with the server-owned budget counts
+                fav = await api.ruleset_favorite(rule.id, True)
+                assert fav.favorite is True
+                assert fav.favorited_at is not None
+                assert fav.favorites_limit == 5
+                assert 1 <= fav.favorites_used <= fav.favorites_limit
+                favorites = [r async for r in api.ruleset_list(favorites_only=True)]
+                assert any(r.id == rule.id and r.favorite for r in favorites)
+                unfav = await api.ruleset_favorite(rule.id, False)
+                assert unfav.favorite is False
+                assert unfav.favorited_at is None
+
+                # a hunt triggered FROM the ruleset carries provenance and
+                # bumps the counter; the create response's comparison is
+                # unknown (None) and a read resolves it
+                hunt = await api.historical_create(int(rule.id))
+                assert hunt.rule_id == rule.id
+                assert hunt.rule_modified is not None
+                assert hunt.source_rule_changed is None
+                assert (await api.ruleset_get(rule.id)).historical_hunt_count == 1
+                hunt_read = await api.historical_get(hunt.id)
+                assert hunt_read.source_rule_changed is False
+
+                # a body edit flips the hunt's source_rule_changed
+                updated = await api.ruleset_update(
+                    rule.id, name=f'{uid}2', rules=f'{contents}\n// edited', description='test')
+                assert updated.name == f'{uid}2'
                 assert updated.description == 'test'
+                assert (await api.historical_get(hunt.id)).source_rule_changed is True
             finally:
+                if hunt is not None:
+                    await api.historical_delete(hunt.id)
                 await api.ruleset_delete(rule.id)
             remaining_ids = []
             try:

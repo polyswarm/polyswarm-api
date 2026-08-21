@@ -746,10 +746,39 @@ class YaraRuleset(core.BaseJsonResource):
         self.modified = core.parse_isoformat(content.get('modified'))
         self.deleted = content.get('deleted')
         self.yara = content.get('yara')
+        # Hunt-page tracking fields. All additive — an older server simply
+        # leaves them None.
+        self.favorite = content.get('favorite')
+        self.favorited_at = core.parse_isoformat(content.get('favorited_at'))
+        # Number of rules in the ruleset body. None means "no answer" (the
+        # server could not or has not counted), which is different from 0.
+        self.rule_count = content.get('rule_count')
+        self.historical_hunt_count = content.get('historical_hunt_count')
+        # Live results collected in the requested window; only present when
+        # the list was asked to include counts, and only for rulesets with a
+        # live hunt — None otherwise.
+        self.new_results_count = content.get('new_results_count')
 
 
 class LiveYaraRuleset(YaraRuleset):
     RESOURCE_ENDPOINT = '/hunt/rule/live'
+
+
+class YaraRulesetFavorite(core.BaseJsonResource):
+    """The favorite-toggle response: the ruleset's new star state plus the
+    team's budget usage, so callers can render "N of M used" without counting
+    client-side."""
+    RESOURCE_ENDPOINT = '/hunt/rule/favorite'
+    # No query-string keys: the toggle takes {id, favorite} in the JSON body.
+    RESOURCE_ID_KEYS = []
+
+    def __init__(self, content, api=None):
+        super().__init__(content, api=api)
+        self.id = content.get('id')
+        self.favorite = content.get('favorite')
+        self.favorited_at = core.parse_isoformat(content.get('favorited_at'))
+        self.favorites_used = content.get('favorites_used')
+        self.favorites_limit = content.get('favorites_limit')
 
 
 class LiveHuntResult(core.BaseJsonResource):
@@ -778,6 +807,19 @@ class LiveHuntResultList(LiveHuntResult):
     RESOURCE_ENDPOINT = '/hunt/live/list'
 
 
+class LiveHuntResultCounts(core.BaseJsonResource):
+    """Per-live-hunt result counts inside a window: ``since`` (seconds) plus
+    ``counts``, a list of ``{livescan_id, count}`` — one aggregate request for
+    every "new results" badge. A hunt with no results in the window is simply
+    absent from ``counts``; absence means 0."""
+    RESOURCE_ENDPOINT = '/hunt/live/results/count'
+
+    def __init__(self, content, api=None):
+        super().__init__(content, api=api)
+        self.since = content.get('since')
+        self.counts = content.get('counts') or []
+
+
 class HistoricalHunt(core.BaseJsonResource):
     RESOURCE_ENDPOINT = '/hunt/historical'
 
@@ -794,6 +836,16 @@ class HistoricalHunt(core.BaseJsonResource):
         self.progress = content['progress']
         self.results_csv_uri = content['results_csv_uri']
         self.communities = content.get('communities')
+        # Source-rule provenance. rule_id is the ruleset this hunt was
+        # triggered from (None for raw-yara hunts and hunts predating the
+        # tracking); rule_modified is a freeze-time audit timestamp.
+        self.rule_id = content.get('rule_id')
+        self.rule_modified = core.parse_isoformat(content.get('rule_modified'))
+        # Tri-state: has the source ruleset's body changed SINCE THE HUNT
+        # FROZE IT? True/False when the server could compare; None means
+        # unknown (no source rule, or nothing to compare against) — not
+        # "unchanged".
+        self.source_rule_changed = content.get('source_rule_changed')
 
 
 class HistoricalHuntList(HistoricalHunt):

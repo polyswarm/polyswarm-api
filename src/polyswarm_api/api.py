@@ -568,6 +568,7 @@ class PolyswarmAPI:
         polyscore_lower=None,
         polyscore_upper=None,
         community=None,
+        livescan_id=None,
     ):
         """
         Get live hunts feed
@@ -578,6 +579,7 @@ class PolyswarmAPI:
         :param polyscore_lower: Polyscore lower bound for the hunt results.
         :param polyscore_upper: Polyscore upper bound for the hunt results.
         :param community: Community to retrieve live results from, or public/private.
+        :param livescan_id: Scope the feed to one live hunt's results.
         :return: Generator of HuntResult resources
         """
         for item in self._paginate(
@@ -588,6 +590,7 @@ class PolyswarmAPI:
                 family=family,
                 polyscore_lower=polyscore_lower,
                 polyscore_upper=polyscore_upper,
+                livescan_id=livescan_id,
                 community=community or self.community,
             )
         ):
@@ -823,16 +826,71 @@ class PolyswarmAPI:
             resources.YaraRuleset.delete(self, id=ruleset_id, community=self.community)
         )
 
-    def ruleset_list(self):
+    def ruleset_list(self, name=None, status=None, favorites_only=None,
+                     has_new_results=None, since=None, include_counts=None):
         """
         List all YaraRulesets for the current account.
+
+        All filters are optional and conjunctive:
+        :param name: Case-insensitive substring match on the ruleset name.
+        :param status: 'active' returns only rulesets whose live hunt is
+            currently running.
+        :param favorites_only: True returns only favorited rulesets.
+        :param has_new_results: True returns only rulesets whose live hunt
+            collected results inside the window.
+        :param since: Window in seconds for has_new_results/include_counts
+            (server default: 86400).
+        :param include_counts: True attaches new_results_count to each
+            ruleset that has a live hunt.
         :return: A generator of YaraRuleset resources
         """
         logger.info("List rulesets")
         for item in self._paginate(
-            resources.YaraRuleset.list(self, community=self.community)
+            resources.YaraRuleset.list(
+                self,
+                name=name,
+                status=status,
+                favorites_only=favorites_only,
+                has_new_results=has_new_results,
+                since=since,
+                include_counts=include_counts,
+                community=self.community,
+            )
         ):
             yield item
+
+    def ruleset_favorite(self, ruleset_id, favorite=True):
+        """
+        Favorite or unfavorite a YaraRuleset. Idempotent; works while a live
+        hunt is running. Favorites are shared by the whole team and capped
+        (the response carries favorites_used / favorites_limit); when the
+        budget is exhausted the server refuses with a machine-readable
+        FAVORITE_LIMIT error.
+
+        :param ruleset_id: Id of the ruleset
+        :param favorite: True to star, False to unstar
+        :return: A YaraRulesetFavorite resource
+        """
+        logger.info("%s ruleset %s", "Favorite" if favorite else "Unfavorite", ruleset_id)
+        return self._single(
+            resources.YaraRulesetFavorite.update(
+                self, id=ruleset_id, favorite=favorite, community=self.community
+            )
+        )
+
+    def live_results_count(self, since=None):
+        """
+        Per-live-hunt result counts for the current account, grouped by
+        livescan_id. One request answers every "new results in the window"
+        badge; a hunt absent from counts collected 0.
+
+        :param since: Window in seconds (server default: 86400 — 24 hours)
+        :return: A LiveHuntResultCounts resource
+        """
+        logger.info("Live results count since %s", since)
+        return self._single(
+            resources.LiveHuntResultCounts.get(self, since=since, community=self.community)
+        )
 
     def tag_link_get(self, sha256):
         """
