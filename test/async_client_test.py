@@ -29,7 +29,7 @@ from polyswarm_api.aio import PolySwarmAsyncAPI
 from polyswarm_api import exceptions
 
 from test._e2e_helpers import (
-    EICAR_STRING, malicious_artifact, artifact_file, uid_ip, uid_host, uid_yara,
+    EICAR_STRING, malicious_artifact, artifact_file, uid_ip, uid_host, uid_yara, poll_equals_async,
     assert_scanned, run_concurrently_async,
 )
 
@@ -652,16 +652,25 @@ class TestAsyncScanCase:
                 assert hunt.rule_id == rule.id
                 assert hunt.rule_modified is not None
                 assert hunt.source_rule_changed is None
-                assert (await api.ruleset_get(rule.id)).historical_hunt_count == 1
-                hunt_read = await api.historical_get(hunt.id)
-                assert hunt_read.source_rule_changed is False
+
+                # replica-backed GETs: poll so a lagging replica (real
+                # stacks, not e2e) can't flake these — the changed-since-
+                # freeze flip's stale read is a silent False
+                async def _hunt_count():
+                    return (await api.ruleset_get(rule.id)).historical_hunt_count
+
+                async def _changed():
+                    return (await api.historical_get(hunt.id)).source_rule_changed
+
+                assert await poll_equals_async(_hunt_count, 1) == 1
+                assert await poll_equals_async(_changed, False) is False
 
                 # a body edit flips the hunt's source_rule_changed
                 updated = await api.ruleset_update(
                     rule.id, name=f'{uid}2', rules=f'{contents}\n// edited', description='test')
                 assert updated.name == f'{uid}2'
                 assert updated.description == 'test'
-                assert (await api.historical_get(hunt.id)).source_rule_changed is True
+                assert await poll_equals_async(_changed, True) is True
             finally:
                 if hunt is not None:
                     await api.historical_delete(hunt.id)

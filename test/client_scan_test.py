@@ -17,7 +17,7 @@ from polyswarm_api import core
 from polyswarm_api import exceptions
 
 from test._e2e_helpers import (
-    EICAR_STRING, malicious_artifact, artifact_file, uid_ip, uid_host, uid_yara,
+    EICAR_STRING, malicious_artifact, artifact_file, uid_ip, uid_host, uid_yara, poll_equals,
     assert_scanned, run_concurrently,
 )
 
@@ -614,17 +614,23 @@ class ScanTestCaseV2(TestCase):
             assert hunt.rule_id == rule.id
             assert hunt.rule_modified is not None
             assert hunt.source_rule_changed is None
-            assert api.ruleset_get(rule.id).historical_hunt_count == 1
+            # the GETs below read the replica; poll so a lagging replica
+            # (real stacks, not e2e) can't flake these — especially the
+            # changed-since-freeze flip, whose stale read is a silent False
+            assert poll_equals(
+                lambda: api.ruleset_get(rule.id).historical_hunt_count, 1) == 1
             # a read of the fresh hunt resolves the comparison: unchanged body
             hunt_read = api.historical_get(hunt.id)
             assert hunt_read.rule_id == rule.id
-            assert hunt_read.source_rule_changed is False
+            assert poll_equals(
+                lambda: api.historical_get(hunt.id).source_rule_changed, False) is False
             # updating — a body edit flips the hunt's source_rule_changed
             updated = api.ruleset_update(
                 rule.id, name=f'{uid}2', rules=f'{contents}\n// edited', description='test')
             assert updated.name == f'{uid}2'
             assert updated.description == 'test'
-            assert api.historical_get(hunt.id).source_rule_changed is True
+            assert poll_equals(
+                lambda: api.historical_get(hunt.id).source_rule_changed, True) is True
         finally:
             if hunt is not None:
                 api.historical_delete(hunt.id)

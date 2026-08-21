@@ -23,6 +23,7 @@ import hashlib
 import os
 import re
 import tempfile
+import time
 from concurrent.futures import ThreadPoolExecutor
 from contextlib import contextmanager
 
@@ -132,3 +133,42 @@ async def run_concurrently_async(coros):
     if _vcr_off() and len(coros) > 1:
         return await asyncio.gather(*coros)
     return [await c for c in coros]
+
+
+def poll_equals(read, want, tries=30, delay=1.0):
+    """Poll a zero-arg ``read`` until it returns ``want`` (or tries run out),
+    returning the last value read. For read-after-write assertions against
+    replica-backed GET endpoints (specs/04 in the server repo): on the e2e
+    stack the replica IS the primary so the first read usually wins, but a
+    real-replica stack lags — without the poll those assertions are
+    lag-flaky, and the changed-since-freeze one flakes in the silent
+    direction (stale source body reads as "unchanged"). Not-found during the
+    lag window counts as "not yet". Sleeps are free on VCR replay
+    (``_skip_poll_sleep_on_replay``)."""
+    from polyswarm_api import exceptions as _exceptions
+    value = None
+    for _ in range(tries):
+        try:
+            value = read()
+        except (_exceptions.NotFoundException, _exceptions.NoResultsException):
+            value = None
+        if value == want:
+            return value
+        time.sleep(delay)
+    return value
+
+
+async def poll_equals_async(read, want, tries=30, delay=1.0):
+    """The asyncio twin of ``poll_equals`` (``read`` is a zero-arg coroutine
+    function)."""
+    from polyswarm_api import exceptions as _exceptions
+    value = None
+    for _ in range(tries):
+        try:
+            value = await read()
+        except (_exceptions.NotFoundException, _exceptions.NoResultsException):
+            value = None
+        if value == want:
+            return value
+        await asyncio.sleep(delay)
+    return value

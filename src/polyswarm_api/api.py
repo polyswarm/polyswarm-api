@@ -596,6 +596,22 @@ class PolyswarmAPI:
         ):
             yield item
 
+    def live_results_count(self, since=None):
+        """
+        Per-live-hunt result counts for the current account, grouped by
+        livescan_id. One request answers every "new results in the window"
+        badge; a hunt absent from counts collected 0.
+
+        :param since: Window in seconds (server default: 86400 — 24 hours)
+        :return: A LiveHuntResultCounts resource
+        """
+        logger.info("Live results count since %s", since)
+        return self._single(
+            resources.LiveHuntResultCounts.get(
+                self, since=since, community=self.community
+            )
+        )
+
     def live_feed_delete(self, result_ids):
         """
         Delete live feed results
@@ -826,8 +842,15 @@ class PolyswarmAPI:
             resources.YaraRuleset.delete(self, id=ruleset_id, community=self.community)
         )
 
-    def ruleset_list(self, name=None, status=None, favorites_only=None,
-                     has_new_results=None, since=None, include_counts=None):
+    def ruleset_list(
+        self,
+        name=None,
+        status=None,
+        favorites_only=None,
+        has_new_results=None,
+        since=None,
+        include_counts=None,
+    ):
         """
         List all YaraRulesets for the current account.
 
@@ -871,25 +894,13 @@ class PolyswarmAPI:
         :param favorite: True to star, False to unstar
         :return: A YaraRulesetFavorite resource
         """
-        logger.info("%s ruleset %s", "Favorite" if favorite else "Unfavorite", ruleset_id)
+        logger.info(
+            "%s ruleset %s", "Favorite" if favorite else "Unfavorite", ruleset_id
+        )
         return self._single(
             resources.YaraRulesetFavorite.update(
                 self, id=ruleset_id, favorite=favorite, community=self.community
             )
-        )
-
-    def live_results_count(self, since=None):
-        """
-        Per-live-hunt result counts for the current account, grouped by
-        livescan_id. One request answers every "new results in the window"
-        badge; a hunt absent from counts collected 0.
-
-        :param since: Window in seconds (server default: 86400 — 24 hours)
-        :return: A LiveHuntResultCounts resource
-        """
-        logger.info("Live results count since %s", since)
-        return self._single(
-            resources.LiveHuntResultCounts.get(self, since=since, community=self.community)
         )
 
     def tag_link_get(self, sha256):
