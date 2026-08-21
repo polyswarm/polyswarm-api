@@ -270,6 +270,35 @@ What is **not** part of the contract:
 - The exact server JSON shape — that lives in the artifact-index repo's contract.
 - The order of fields in the JSON.
 
+### `matched_strings` on hunt results — a three-state attribute
+
+`LiveHuntResult.matched_strings` / `HistoricalHuntResult.matched_strings` (and therefore
+their `…List` subclasses) carry the yara strings behind a hunt hit. It is read with
+`.get()` rather than a subscript, deliberately: the key is **additive**, so a server
+older than it omits the key entirely and a subscript would raise on every result.
+
+Three values are possible and consumers **must not** collapse them:
+
+| Value | Meaning |
+|---|---|
+| `None` | Not reported. Either the server predates the field, the stored evidence was deleted, or this came from a **list** endpoint — those omit it rather than fetch a blob per row. "We don't know", *not* "there was nothing". |
+| `[]` | The rule matched and there is no byte evidence to show — a rule with no strings section, one whose matching strings are all `private`, or one that matched on absence (`not $a`, `none of them`). |
+| `[…]` | The evidence. A **lower bound**, not a match count: fast-scan reports only the first offset per string, `any of them` prints only the strings that hit, and `private` strings never appear. |
+
+Each entry is a dict:
+
+```python
+{'offset': 78, 'identifier': '$stub', 'length': 14, 'data': '54 68 69 …', 'truncated': False}
+```
+
+- `data` is kept **exactly as yara rendered it** — a hex string comes back as byte pairs, a text string as ASCII with `\xNN` escapes. Only yara knows which applies, so it is not decoded back to bytes.
+- `length` is the **stored** length, capped server-side. Past the cap the true length is unrecoverable.
+- `truncated` means "there was more than this". It over-reports at exactly the cap, because nothing in the output distinguishes a match that ended there from one that was cut.
+
+**Evidence lives on the detail routes only.** `live_feed()` and `historical_results()`
+page over list endpoints and will always yield `None` here; fetch a single result
+(`live_result(id)` / `historical_result(id)`) to get the strings.
+
 ## Pagination
 
 Generator endpoints return an iterable:
