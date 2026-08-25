@@ -23,7 +23,7 @@ interactions:
     uri: http://ai:9696/v3/hunt/rule
   response:
     body:
-      string: '{"result":{"created":"2026-08-21T14:29:52.300732+00:00","deleted":false,"description":null,"favorite":false,"favorited_at":null,"historical_hunt_count":0,"id":"4466967201833338","livescan_created":null,"livescan_id":null,"modified":"2026-08-21T14:29:52.300732+00:00","name":"test_async_rules","rule_count":1,"yara":"rule
+      string: '{"result":{"created":"2026-08-25T18:24:13.239703+00:00","deleted":false,"description":null,"favorite":false,"favorited_at":null,"historical_hunt_count":0,"id":"89620634730010513","livescan_created":null,"livescan_id":null,"modified":"2026-08-25T18:24:13.239703+00:00","name":"test_async_rules","rule_count":1,"yara":"rule
         sdk_test_async_rules { strings: $u = \"test_async_rules\" condition: $u }"},"status":"OK"}
 
         '
@@ -35,11 +35,11 @@ interactions:
       connection:
       - keep-alive
       content-length:
-      - '412'
+      - '413'
       content-type:
       - application/json
       date:
-      - Fri, 21 Aug 2026 14:29:52 GMT
+      - Tue, 25 Aug 2026 18:24:13 GMT
       server:
       - gunicorn
       x-billing-id:
@@ -66,7 +66,7 @@ interactions:
     uri: http://ai:9696/v3/hunt/rule/list?community=gamma
   response:
     body:
-      string: '{"has_more":false,"limit":50,"result":[{"created":"2026-08-21T14:29:52.300732+00:00","deleted":false,"description":null,"favorite":false,"favorited_at":null,"historical_hunt_count":0,"id":"4466967201833338","livescan_created":null,"livescan_id":null,"modified":"2026-08-21T14:29:52.300732+00:00","name":"test_async_rules","new_results_count":null,"rule_count":1,"yara":null}],"status":"OK"}
+      string: '{"has_more":false,"limit":50,"result":[{"created":"2026-08-25T18:24:13.239703+00:00","deleted":false,"description":null,"favorite":false,"favorited_at":null,"historical_hunt_count":0,"id":"89620634730010513","livescan_created":null,"livescan_id":null,"modified":"2026-08-25T18:24:13.239703+00:00","name":"test_async_rules","new_results_count":null,"new_results_counted_at":null,"rule_count":1,"yara":null}],"status":"OK"}
 
         '
     headers:
@@ -77,11 +77,11 @@ interactions:
       connection:
       - keep-alive
       content-length:
-      - '391'
+      - '422'
       content-type:
       - application/json
       date:
-      - Fri, 21 Aug 2026 14:29:52 GMT
+      - Tue, 25 Aug 2026 18:24:13 GMT
       server:
       - gunicorn
       x-billing-id:
@@ -108,7 +108,7 @@ interactions:
     uri: http://ai:9696/v3/hunt/rule/list?name=test_async_rules&community=gamma
   response:
     body:
-      string: '{"has_more":false,"limit":50,"result":[{"created":"2026-08-21T14:29:52.300732+00:00","deleted":false,"description":null,"favorite":false,"favorited_at":null,"historical_hunt_count":0,"id":"4466967201833338","livescan_created":null,"livescan_id":null,"modified":"2026-08-21T14:29:52.300732+00:00","name":"test_async_rules","new_results_count":null,"rule_count":1,"yara":null}],"status":"OK"}
+      string: '{"has_more":false,"limit":50,"result":[{"created":"2026-08-25T18:24:13.239703+00:00","deleted":false,"description":null,"favorite":false,"favorited_at":null,"historical_hunt_count":0,"id":"89620634730010513","livescan_created":null,"livescan_id":null,"modified":"2026-08-25T18:24:13.239703+00:00","name":"test_async_rules","new_results_count":null,"new_results_counted_at":null,"rule_count":1,"yara":null}],"status":"OK"}
 
         '
     headers:
@@ -119,11 +119,11 @@ interactions:
       connection:
       - keep-alive
       content-length:
-      - '391'
+      - '422'
       content-type:
       - application/json
       date:
-      - Fri, 21 Aug 2026 14:29:52 GMT
+      - Tue, 25 Aug 2026 18:24:13 GMT
       server:
       - gunicorn
       x-billing-id:
@@ -147,10 +147,10 @@ interactions:
       user-agent:
       - polyswarm_api/4.3.0 (x86_64-Darwin-CPython-3.11.3)
     method: GET
-    uri: http://ai:9696/v3/hunt/rule?id=4466967201833338&community=gamma
+    uri: http://ai:9696/v3/hunt/rule?id=89620634730010513&community=gamma
   response:
     body:
-      string: '{"result":{"created":"2026-08-21T14:29:52.300732+00:00","deleted":false,"description":null,"favorite":false,"favorited_at":null,"historical_hunt_count":0,"id":"4466967201833338","livescan_created":null,"livescan_id":null,"modified":"2026-08-21T14:29:52.300732+00:00","name":"test_async_rules","rule_count":1,"yara":"rule
+      string: '{"result":{"created":"2026-08-25T18:24:13.239703+00:00","deleted":false,"description":null,"favorite":false,"favorited_at":null,"historical_hunt_count":0,"id":"89620634730010513","livescan_created":null,"livescan_id":null,"modified":"2026-08-25T18:24:13.239703+00:00","name":"test_async_rules","rule_count":1,"yara":"rule
         sdk_test_async_rules { strings: $u = \"test_async_rules\" condition: $u }"},"status":"OK"}
 
         '
@@ -162,11 +162,11 @@ interactions:
       connection:
       - keep-alive
       content-length:
-      - '412'
+      - '413'
       content-type:
       - application/json
       date:
-      - Fri, 21 Aug 2026 14:29:52 GMT
+      - Tue, 25 Aug 2026 18:24:13 GMT
       server:
       - gunicorn
       x-billing-id:
@@ -175,7 +175,7 @@ interactions:
       code: 200
       message: OK
 - request:
-    body: '{"id":"4466967201833338","favorite":1,"community":"gamma"}'
+    body: '{"id":"89620634730010513","favorite":1}'
     headers:
       accept:
       - '*/*'
@@ -186,7 +186,7 @@ interactions:
       connection:
       - keep-alive
       content-length:
-      - '58'
+      - '39'
       content-type:
       - application/json
       host:
@@ -194,10 +194,10 @@ interactions:
       user-agent:
       - polyswarm_api/4.3.0 (x86_64-Darwin-CPython-3.11.3)
     method: PUT
-    uri: http://ai:9696/v3/hunt/rule/favorite
+    uri: http://ai:9696/v3/hunt/rule/favorite?community=gamma
   response:
     body:
-      string: '{"result":{"favorite":true,"favorited_at":"2026-08-21T14:29:52.846750+00:00","favorites_limit":5,"favorites_used":1,"id":"4466967201833338"},"status":"OK"}
+      string: '{"result":{"favorite":true,"favorited_at":"2026-08-25T18:24:13.531691+00:00","favorites_limit":5,"favorites_used":1,"id":"89620634730010513"},"status":"OK"}
 
         '
     headers:
@@ -208,11 +208,11 @@ interactions:
       connection:
       - keep-alive
       content-length:
-      - '156'
+      - '157'
       content-type:
       - application/json
       date:
-      - Fri, 21 Aug 2026 14:29:52 GMT
+      - Tue, 25 Aug 2026 18:24:13 GMT
       server:
       - gunicorn
       x-billing-id:
@@ -239,7 +239,7 @@ interactions:
     uri: http://ai:9696/v3/hunt/rule/list?favorites_only=1&community=gamma
   response:
     body:
-      string: '{"has_more":false,"limit":50,"result":[{"created":"2026-08-21T14:29:52.300732+00:00","deleted":false,"description":null,"favorite":true,"favorited_at":"2026-08-21T14:29:52.846750+00:00","historical_hunt_count":0,"id":"4466967201833338","livescan_created":null,"livescan_id":null,"modified":"2026-08-21T14:29:52.300732+00:00","name":"test_async_rules","new_results_count":null,"rule_count":1,"yara":null}],"status":"OK"}
+      string: '{"has_more":false,"limit":50,"result":[{"created":"2026-08-25T18:24:13.239703+00:00","deleted":false,"description":null,"favorite":true,"favorited_at":"2026-08-25T18:24:13.531691+00:00","historical_hunt_count":0,"id":"89620634730010513","livescan_created":null,"livescan_id":null,"modified":"2026-08-25T18:24:13.239703+00:00","name":"test_async_rules","new_results_count":null,"new_results_counted_at":null,"rule_count":1,"yara":null}],"status":"OK"}
 
         '
     headers:
@@ -250,11 +250,11 @@ interactions:
       connection:
       - keep-alive
       content-length:
-      - '420'
+      - '451'
       content-type:
       - application/json
       date:
-      - Fri, 21 Aug 2026 14:29:52 GMT
+      - Tue, 25 Aug 2026 18:24:13 GMT
       server:
       - gunicorn
       x-billing-id:
@@ -263,7 +263,7 @@ interactions:
       code: 200
       message: OK
 - request:
-    body: '{"id":"4466967201833338","favorite":0,"community":"gamma"}'
+    body: '{"id":"89620634730010513","favorite":0}'
     headers:
       accept:
       - '*/*'
@@ -274,7 +274,7 @@ interactions:
       connection:
       - keep-alive
       content-length:
-      - '58'
+      - '39'
       content-type:
       - application/json
       host:
@@ -282,10 +282,10 @@ interactions:
       user-agent:
       - polyswarm_api/4.3.0 (x86_64-Darwin-CPython-3.11.3)
     method: PUT
-    uri: http://ai:9696/v3/hunt/rule/favorite
+    uri: http://ai:9696/v3/hunt/rule/favorite?community=gamma
   response:
     body:
-      string: '{"result":{"favorite":false,"favorited_at":null,"favorites_limit":5,"favorites_used":0,"id":"4466967201833338"},"status":"OK"}
+      string: '{"result":{"favorite":false,"favorited_at":null,"favorites_limit":5,"favorites_used":0,"id":"89620634730010513"},"status":"OK"}
 
         '
     headers:
@@ -296,11 +296,11 @@ interactions:
       connection:
       - keep-alive
       content-length:
-      - '127'
+      - '128'
       content-type:
       - application/json
       date:
-      - Fri, 21 Aug 2026 14:29:52 GMT
+      - Tue, 25 Aug 2026 18:24:13 GMT
       server:
       - gunicorn
       x-billing-id:
@@ -309,7 +309,7 @@ interactions:
       code: 200
       message: OK
 - request:
-    body: '{"rule_id":"4466967201833338"}'
+    body: '{"rule_id":"89620634730010513"}'
     headers:
       accept:
       - '*/*'
@@ -320,7 +320,7 @@ interactions:
       connection:
       - keep-alive
       content-length:
-      - '30'
+      - '31'
       content-type:
       - application/json
       host:
@@ -331,7 +331,7 @@ interactions:
     uri: http://ai:9696/v3/hunt/rule/live
   response:
     body:
-      string: '{"result":{"created":"2026-08-21T14:29:52.300732+00:00","deleted":false,"description":null,"favorite":false,"favorited_at":null,"historical_hunt_count":0,"id":"4466967201833338","livescan_created":"2026-08-21T14:29:53.201880+00:00","livescan_id":"34849444833418665","modified":"2026-08-21T14:29:53.197377+00:00","name":"test_async_rules","rule_count":1,"yara":"rule
+      string: '{"result":{"created":"2026-08-25T18:24:13.239703+00:00","deleted":false,"description":null,"favorite":false,"favorited_at":null,"historical_hunt_count":0,"id":"89620634730010513","livescan_created":"2026-08-25T18:24:17.121237+00:00","livescan_id":"7969689239265785","modified":"2026-08-25T18:24:17.108313+00:00","name":"test_async_rules","rule_count":1,"yara":"rule
         sdk_test_async_rules { strings: $u = \"test_async_rules\" condition: $u }"},"status":"OK"}
 
         '
@@ -347,7 +347,7 @@ interactions:
       content-type:
       - application/json
       date:
-      - Fri, 21 Aug 2026 14:29:53 GMT
+      - Tue, 25 Aug 2026 18:24:17 GMT
       server:
       - gunicorn
       x-billing-id:
@@ -371,10 +371,10 @@ interactions:
       user-agent:
       - polyswarm_api/4.3.0 (x86_64-Darwin-CPython-3.11.3)
     method: GET
-    uri: http://ai:9696/v3/hunt/rule?id=4466967201833338&community=gamma
+    uri: http://ai:9696/v3/hunt/rule?id=89620634730010513&community=gamma
   response:
     body:
-      string: '{"result":{"created":"2026-08-21T14:29:52.300732+00:00","deleted":false,"description":null,"favorite":false,"favorited_at":null,"historical_hunt_count":0,"id":"4466967201833338","livescan_created":"2026-08-21T14:29:53.201880+00:00","livescan_id":"34849444833418665","modified":"2026-08-21T14:29:53.197377+00:00","name":"test_async_rules","rule_count":1,"yara":"rule
+      string: '{"result":{"created":"2026-08-25T18:24:13.239703+00:00","deleted":false,"description":null,"favorite":false,"favorited_at":null,"historical_hunt_count":0,"id":"89620634730010513","livescan_created":"2026-08-25T18:24:17.121237+00:00","livescan_id":"7969689239265785","modified":"2026-08-25T18:24:17.108313+00:00","name":"test_async_rules","rule_count":1,"yara":"rule
         sdk_test_async_rules { strings: $u = \"test_async_rules\" condition: $u }"},"status":"OK"}
 
         '
@@ -390,7 +390,50 @@ interactions:
       content-type:
       - application/json
       date:
-      - Fri, 21 Aug 2026 14:29:53 GMT
+      - Tue, 25 Aug 2026 18:24:17 GMT
+      server:
+      - gunicorn
+      x-billing-id:
+      - '111'
+    status:
+      code: 200
+      message: OK
+- request:
+    body: ''
+    headers:
+      accept:
+      - '*/*'
+      accept-encoding:
+      - gzip, deflate
+      authorization:
+      - '11111111111111111111111111111111'
+      connection:
+      - keep-alive
+      host:
+      - ai:9696
+      user-agent:
+      - polyswarm_api/4.3.0 (x86_64-Darwin-CPython-3.11.3)
+    method: GET
+    uri: http://ai:9696/v3/hunt/rule?id=89620634730010513&community=gamma
+  response:
+    body:
+      string: '{"result":{"created":"2026-08-25T18:24:13.239703+00:00","deleted":false,"description":null,"favorite":false,"favorited_at":null,"historical_hunt_count":0,"id":"89620634730010513","livescan_created":"2026-08-25T18:24:17.121237+00:00","livescan_id":"7969689239265785","modified":"2026-08-25T18:24:17.108313+00:00","name":"test_async_rules","rule_count":1,"yara":"rule
+        sdk_test_async_rules { strings: $u = \"test_async_rules\" condition: $u }"},"status":"OK"}
+
+        '
+    headers:
+      access-control-allow-origin:
+      - '*'
+      access-control-expose-headers:
+      - Authorization
+      connection:
+      - keep-alive
+      content-length:
+      - '457'
+      content-type:
+      - application/json
+      date:
+      - Tue, 25 Aug 2026 18:24:17 GMT
       server:
       - gunicorn
       x-billing-id:
@@ -417,7 +460,7 @@ interactions:
     uri: http://ai:9696/v3/hunt/rule/list?status=active&community=gamma
   response:
     body:
-      string: '{"has_more":false,"limit":50,"result":[{"created":"2026-08-21T14:29:52.300732+00:00","deleted":false,"description":null,"favorite":false,"favorited_at":null,"historical_hunt_count":0,"id":"4466967201833338","livescan_created":"2026-08-21T14:29:53.201880+00:00","livescan_id":"34849444833418665","modified":"2026-08-21T14:29:53.197377+00:00","name":"test_async_rules","new_results_count":null,"rule_count":1,"yara":null}],"status":"OK"}
+      string: '{"has_more":false,"limit":50,"result":[{"created":"2026-08-25T18:24:13.239703+00:00","deleted":false,"description":null,"favorite":false,"favorited_at":null,"historical_hunt_count":0,"id":"89620634730010513","livescan_created":"2026-08-25T18:24:17.121237+00:00","livescan_id":"7969689239265785","modified":"2026-08-25T18:24:17.108313+00:00","name":"test_async_rules","new_results_count":null,"new_results_counted_at":null,"rule_count":1,"yara":null}],"status":"OK"}
 
         '
     headers:
@@ -428,11 +471,11 @@ interactions:
       connection:
       - keep-alive
       content-length:
-      - '436'
+      - '466'
       content-type:
       - application/json
       date:
-      - Fri, 21 Aug 2026 14:29:53 GMT
+      - Tue, 25 Aug 2026 18:24:17 GMT
       server:
       - gunicorn
       x-billing-id:
@@ -456,10 +499,10 @@ interactions:
       user-agent:
       - polyswarm_api/4.3.0 (x86_64-Darwin-CPython-3.11.3)
     method: GET
-    uri: http://ai:9696/v3/hunt/rule/list?include_counts=1&community=gamma
+    uri: http://ai:9696/v3/hunt/rule/list?community=gamma
   response:
     body:
-      string: '{"has_more":false,"limit":50,"result":[{"created":"2026-08-21T14:29:52.300732+00:00","deleted":false,"description":null,"favorite":false,"favorited_at":null,"historical_hunt_count":0,"id":"4466967201833338","livescan_created":"2026-08-21T14:29:53.201880+00:00","livescan_id":"34849444833418665","modified":"2026-08-21T14:29:53.197377+00:00","name":"test_async_rules","new_results_count":0,"rule_count":1,"yara":null}],"status":"OK"}
+      string: '{"has_more":false,"limit":50,"result":[{"created":"2026-08-25T18:24:13.239703+00:00","deleted":false,"description":null,"favorite":false,"favorited_at":null,"historical_hunt_count":0,"id":"89620634730010513","livescan_created":"2026-08-25T18:24:17.121237+00:00","livescan_id":"7969689239265785","modified":"2026-08-25T18:24:17.108313+00:00","name":"test_async_rules","new_results_count":null,"new_results_counted_at":null,"rule_count":1,"yara":null}],"status":"OK"}
 
         '
     headers:
@@ -470,11 +513,11 @@ interactions:
       connection:
       - keep-alive
       content-length:
-      - '433'
+      - '466'
       content-type:
       - application/json
       date:
-      - Fri, 21 Aug 2026 14:29:53 GMT
+      - Tue, 25 Aug 2026 18:24:17 GMT
       server:
       - gunicorn
       x-billing-id:
@@ -498,49 +541,7 @@ interactions:
       user-agent:
       - polyswarm_api/4.3.0 (x86_64-Darwin-CPython-3.11.3)
     method: GET
-    uri: http://ai:9696/v3/hunt/live/results/count?since=86400&community=gamma
-  response:
-    body:
-      string: '{"result":{"counts":[],"since":86400},"status":"OK"}
-
-        '
-    headers:
-      access-control-allow-origin:
-      - '*'
-      access-control-expose-headers:
-      - Authorization
-      connection:
-      - keep-alive
-      content-length:
-      - '53'
-      content-type:
-      - application/json
-      date:
-      - Fri, 21 Aug 2026 14:29:53 GMT
-      server:
-      - gunicorn
-      x-billing-id:
-      - '111'
-    status:
-      code: 200
-      message: OK
-- request:
-    body: ''
-    headers:
-      accept:
-      - '*/*'
-      accept-encoding:
-      - gzip, deflate
-      authorization:
-      - '11111111111111111111111111111111'
-      connection:
-      - keep-alive
-      host:
-      - ai:9696
-      user-agent:
-      - polyswarm_api/4.3.0 (x86_64-Darwin-CPython-3.11.3)
-    method: GET
-    uri: http://ai:9696/v3/hunt/live/list?livescan_id=34849444833418665&community=gamma
+    uri: http://ai:9696/v3/hunt/rule/list?has_new_results=1&community=gamma
   response:
     body:
       string: ''
@@ -554,14 +555,50 @@ interactions:
       content-type:
       - text/html; charset=utf-8
       date:
-      - Fri, 21 Aug 2026 14:29:53 GMT
+      - Tue, 25 Aug 2026 18:24:17 GMT
       server:
       - gunicorn
     status:
       code: 204
       message: NO CONTENT
 - request:
-    body: '{"rule_id":"4466967201833338"}'
+    body: ''
+    headers:
+      accept:
+      - '*/*'
+      accept-encoding:
+      - gzip, deflate
+      authorization:
+      - '11111111111111111111111111111111'
+      connection:
+      - keep-alive
+      host:
+      - ai:9696
+      user-agent:
+      - polyswarm_api/4.3.0 (x86_64-Darwin-CPython-3.11.3)
+    method: GET
+    uri: http://ai:9696/v3/hunt/live/list?livescan_id=7969689239265785&community=gamma
+  response:
+    body:
+      string: ''
+    headers:
+      access-control-allow-origin:
+      - '*'
+      access-control-expose-headers:
+      - Authorization
+      connection:
+      - keep-alive
+      content-type:
+      - text/html; charset=utf-8
+      date:
+      - Tue, 25 Aug 2026 18:24:17 GMT
+      server:
+      - gunicorn
+    status:
+      code: 204
+      message: NO CONTENT
+- request:
+    body: '{"rule_id":"89620634730010513"}'
     headers:
       accept:
       - '*/*'
@@ -572,7 +609,7 @@ interactions:
       connection:
       - keep-alive
       content-length:
-      - '30'
+      - '31'
       content-type:
       - application/json
       host:
@@ -583,7 +620,7 @@ interactions:
     uri: http://ai:9696/v3/hunt/rule/live
   response:
     body:
-      string: '{"result":{"created":"2026-08-21T14:29:52.300732+00:00","deleted":false,"description":null,"favorite":false,"favorited_at":null,"historical_hunt_count":0,"id":"4466967201833338","livescan_created":null,"livescan_id":null,"modified":"2026-08-21T14:29:53.570180+00:00","name":"test_async_rules","rule_count":1,"yara":"rule
+      string: '{"result":{"created":"2026-08-25T18:24:13.239703+00:00","deleted":false,"description":null,"favorite":false,"favorited_at":null,"historical_hunt_count":0,"id":"89620634730010513","livescan_created":null,"livescan_id":null,"modified":"2026-08-25T18:24:17.862491+00:00","name":"test_async_rules","rule_count":1,"yara":"rule
         sdk_test_async_rules { strings: $u = \"test_async_rules\" condition: $u }"},"status":"OK"}
 
         '
@@ -595,11 +632,11 @@ interactions:
       connection:
       - keep-alive
       content-length:
-      - '412'
+      - '413'
       content-type:
       - application/json
       date:
-      - Fri, 21 Aug 2026 14:29:53 GMT
+      - Tue, 25 Aug 2026 18:24:17 GMT
       server:
       - gunicorn
       x-billing-id:
@@ -637,14 +674,14 @@ interactions:
       content-type:
       - text/html; charset=utf-8
       date:
-      - Fri, 21 Aug 2026 14:29:53 GMT
+      - Tue, 25 Aug 2026 18:24:18 GMT
       server:
       - gunicorn
     status:
       code: 204
       message: NO CONTENT
 - request:
-    body: '{"rule_id":"4466967201833338","community":"gamma"}'
+    body: '{"rule_id":"89620634730010513","community":"gamma"}'
     headers:
       accept:
       - '*/*'
@@ -655,7 +692,7 @@ interactions:
       connection:
       - keep-alive
       content-length:
-      - '50'
+      - '51'
       content-type:
       - application/json
       host:
@@ -666,7 +703,7 @@ interactions:
     uri: http://ai:9696/v3/hunt/historical
   response:
     body:
-      string: '{"result":{"account_number":"111","archives_in_flight":0,"archives_scanned":0,"archives_total":0,"communities":["gamma"],"created":"2026-08-21T14:29:53.760803+00:00","failed_max_retries":0,"failed_other":0,"id":"41876045317487902","progress":null,"results_csv_uri":null,"rule_id":"4466967201833338","rule_modified":"2026-08-21T14:29:53.570180+00:00","ruleset_name":"test_async_rules","source_rule_changed":null,"status":"PENDING","summary":null,"user_account_number":"111","yara":"rule
+      string: '{"result":{"account_number":"111","archives_in_flight":0,"archives_scanned":0,"archives_total":0,"communities":["gamma"],"created":"2026-08-25T18:24:18.313049+00:00","failed_max_retries":0,"failed_other":0,"id":"90911086658025862","progress":null,"results_csv_uri":null,"rule_id":"89620634730010513","rule_modified":"2026-08-25T18:24:17.862491+00:00","ruleset_name":"test_async_rules","source_rule_changed":false,"status":"PENDING","summary":null,"user_account_number":"111","yara":"rule
         sdk_test_async_rules { strings: $u = \"test_async_rules\" condition: $u }"},"status":"OK"}
 
         '
@@ -678,11 +715,11 @@ interactions:
       connection:
       - keep-alive
       content-length:
-      - '577'
+      - '579'
       content-type:
       - application/json
       date:
-      - Fri, 21 Aug 2026 14:29:53 GMT
+      - Tue, 25 Aug 2026 18:24:18 GMT
       server:
       - gunicorn
       x-billing-id:
@@ -706,10 +743,10 @@ interactions:
       user-agent:
       - polyswarm_api/4.3.0 (x86_64-Darwin-CPython-3.11.3)
     method: GET
-    uri: http://ai:9696/v3/hunt/rule?id=4466967201833338&community=gamma
+    uri: http://ai:9696/v3/hunt/rule?id=89620634730010513&community=gamma
   response:
     body:
-      string: '{"result":{"created":"2026-08-21T14:29:52.300732+00:00","deleted":false,"description":null,"favorite":false,"favorited_at":null,"historical_hunt_count":1,"id":"4466967201833338","livescan_created":null,"livescan_id":null,"modified":"2026-08-21T14:29:53.570180+00:00","name":"test_async_rules","rule_count":1,"yara":"rule
+      string: '{"result":{"created":"2026-08-25T18:24:13.239703+00:00","deleted":false,"description":null,"favorite":false,"favorited_at":null,"historical_hunt_count":1,"id":"89620634730010513","livescan_created":null,"livescan_id":null,"modified":"2026-08-25T18:24:17.862491+00:00","name":"test_async_rules","rule_count":1,"yara":"rule
         sdk_test_async_rules { strings: $u = \"test_async_rules\" condition: $u }"},"status":"OK"}
 
         '
@@ -721,11 +758,11 @@ interactions:
       connection:
       - keep-alive
       content-length:
-      - '412'
+      - '413'
       content-type:
       - application/json
       date:
-      - Fri, 21 Aug 2026 14:29:53 GMT
+      - Tue, 25 Aug 2026 18:24:18 GMT
       server:
       - gunicorn
       x-billing-id:
@@ -749,10 +786,10 @@ interactions:
       user-agent:
       - polyswarm_api/4.3.0 (x86_64-Darwin-CPython-3.11.3)
     method: GET
-    uri: http://ai:9696/v3/hunt/historical?id=41876045317487902&community=gamma
+    uri: http://ai:9696/v3/hunt/historical?id=90911086658025862&community=gamma
   response:
     body:
-      string: '{"result":{"account_number":"111","archives_in_flight":0,"archives_scanned":0,"archives_total":0,"communities":["gamma"],"created":"2026-08-21T14:29:53.760803+00:00","failed_max_retries":0,"failed_other":0,"id":"41876045317487902","progress":null,"results_csv_uri":null,"rule_id":"4466967201833338","rule_modified":"2026-08-21T14:29:53.570180+00:00","ruleset_name":"test_async_rules","source_rule_changed":false,"status":"PENDING","summary":null,"user_account_number":"111","yara":"rule
+      string: '{"result":{"account_number":"111","archives_in_flight":0,"archives_scanned":0,"archives_total":0,"communities":["gamma"],"created":"2026-08-25T18:24:18.313049+00:00","failed_max_retries":0,"failed_other":0,"id":"90911086658025862","progress":null,"results_csv_uri":null,"rule_id":"89620634730010513","rule_modified":"2026-08-25T18:24:17.862491+00:00","ruleset_name":"test_async_rules","source_rule_changed":false,"status":"PENDING","summary":null,"user_account_number":"111","yara":"rule
         sdk_test_async_rules { strings: $u = \"test_async_rules\" condition: $u }"},"status":"OK"}
 
         '
@@ -764,11 +801,11 @@ interactions:
       connection:
       - keep-alive
       content-length:
-      - '578'
+      - '579'
       content-type:
       - application/json
       date:
-      - Fri, 21 Aug 2026 14:29:53 GMT
+      - Tue, 25 Aug 2026 18:24:18 GMT
       server:
       - gunicorn
       x-billing-id:
@@ -797,10 +834,10 @@ interactions:
       user-agent:
       - polyswarm_api/4.3.0 (x86_64-Darwin-CPython-3.11.3)
     method: PUT
-    uri: http://ai:9696/v3/hunt/rule?id=4466967201833338
+    uri: http://ai:9696/v3/hunt/rule?id=89620634730010513
   response:
     body:
-      string: '{"result":{"created":"2026-08-21T14:29:52.300732+00:00","deleted":false,"description":"test","favorite":false,"favorited_at":null,"historical_hunt_count":1,"id":"4466967201833338","livescan_created":null,"livescan_id":null,"modified":"2026-08-21T14:29:54.082225+00:00","name":"test_async_rules2","rule_count":1,"yara":"rule
+      string: '{"result":{"created":"2026-08-25T18:24:13.239703+00:00","deleted":false,"description":"test","favorite":false,"favorited_at":null,"historical_hunt_count":1,"id":"89620634730010513","livescan_created":null,"livescan_id":null,"modified":"2026-08-25T18:24:19.124101+00:00","name":"test_async_rules2","rule_count":1,"yara":"rule
         sdk_test_async_rules { strings: $u = \"test_async_rules\" condition: $u }\n//
         edited"},"status":"OK"}
 
@@ -813,11 +850,11 @@ interactions:
       connection:
       - keep-alive
       content-length:
-      - '426'
+      - '427'
       content-type:
       - application/json
       date:
-      - Fri, 21 Aug 2026 14:29:54 GMT
+      - Tue, 25 Aug 2026 18:24:19 GMT
       server:
       - gunicorn
       x-billing-id:
@@ -841,57 +878,10 @@ interactions:
       user-agent:
       - polyswarm_api/4.3.0 (x86_64-Darwin-CPython-3.11.3)
     method: GET
-    uri: http://ai:9696/v3/hunt/historical?id=41876045317487902&community=gamma
+    uri: http://ai:9696/v3/hunt/historical?id=90911086658025862&community=gamma
   response:
     body:
-      string: '{"result":{"account_number":"111","archives_in_flight":0,"archives_scanned":0,"archives_total":0,"communities":["gamma"],"created":"2026-08-21T14:29:53.760803+00:00","failed_max_retries":0,"failed_other":0,"id":"41876045317487902","progress":null,"results_csv_uri":null,"rule_id":"4466967201833338","rule_modified":"2026-08-21T14:29:53.570180+00:00","ruleset_name":"test_async_rules","source_rule_changed":true,"status":"PENDING","summary":null,"user_account_number":"111","yara":"rule
-        sdk_test_async_rules { strings: $u = \"test_async_rules\" condition: $u }"},"status":"OK"}
-
-        '
-    headers:
-      access-control-allow-origin:
-      - '*'
-      access-control-expose-headers:
-      - Authorization
-      connection:
-      - keep-alive
-      content-length:
-      - '577'
-      content-type:
-      - application/json
-      date:
-      - Fri, 21 Aug 2026 14:29:54 GMT
-      server:
-      - gunicorn
-      x-billing-id:
-      - '111'
-    status:
-      code: 200
-      message: OK
-- request:
-    body: '{"community":"gamma"}'
-    headers:
-      accept:
-      - '*/*'
-      accept-encoding:
-      - gzip, deflate
-      authorization:
-      - '11111111111111111111111111111111'
-      connection:
-      - keep-alive
-      content-length:
-      - '21'
-      content-type:
-      - application/json
-      host:
-      - ai:9696
-      user-agent:
-      - polyswarm_api/4.3.0 (x86_64-Darwin-CPython-3.11.3)
-    method: DELETE
-    uri: http://ai:9696/v3/hunt/historical?id=41876045317487902
-  response:
-    body:
-      string: '{"result":{"account_number":"111","archives_in_flight":0,"archives_scanned":0,"archives_total":0,"communities":["gamma"],"created":"2026-08-21T14:29:53.760803+00:00","failed_max_retries":0,"failed_other":0,"id":"41876045317487902","progress":null,"results_csv_uri":null,"rule_id":"4466967201833338","rule_modified":"2026-08-21T14:29:53.570180+00:00","ruleset_name":"test_async_rules","source_rule_changed":true,"status":"DELETING","summary":null,"user_account_number":"111","yara":"rule
+      string: '{"result":{"account_number":"111","archives_in_flight":0,"archives_scanned":0,"archives_total":0,"communities":["gamma"],"created":"2026-08-25T18:24:18.313049+00:00","failed_max_retries":0,"failed_other":0,"id":"90911086658025862","progress":null,"results_csv_uri":null,"rule_id":"89620634730010513","rule_modified":"2026-08-25T18:24:17.862491+00:00","ruleset_name":"test_async_rules","source_rule_changed":true,"status":"PENDING","summary":null,"user_account_number":"111","yara":"rule
         sdk_test_async_rules { strings: $u = \"test_async_rules\" condition: $u }"},"status":"OK"}
 
         '
@@ -907,7 +897,7 @@ interactions:
       content-type:
       - application/json
       date:
-      - Fri, 21 Aug 2026 14:29:54 GMT
+      - Tue, 25 Aug 2026 18:24:19 GMT
       server:
       - gunicorn
       x-billing-id:
@@ -935,10 +925,57 @@ interactions:
       user-agent:
       - polyswarm_api/4.3.0 (x86_64-Darwin-CPython-3.11.3)
     method: DELETE
-    uri: http://ai:9696/v3/hunt/rule?id=4466967201833338
+    uri: http://ai:9696/v3/hunt/historical?id=90911086658025862
   response:
     body:
-      string: '{"result":{"created":"2026-08-21T14:29:52.300732+00:00","deleted":true,"description":"test","favorite":false,"favorited_at":null,"historical_hunt_count":1,"id":"4466967201833338","livescan_created":null,"livescan_id":null,"modified":"2026-08-21T14:29:54.434684+00:00","name":"test_async_rules2","rule_count":1,"yara":"rule
+      string: '{"result":{"account_number":"111","archives_in_flight":0,"archives_scanned":0,"archives_total":0,"communities":["gamma"],"created":"2026-08-25T18:24:18.313049+00:00","failed_max_retries":0,"failed_other":0,"id":"90911086658025862","progress":null,"results_csv_uri":null,"rule_id":"89620634730010513","rule_modified":"2026-08-25T18:24:17.862491+00:00","ruleset_name":"test_async_rules","source_rule_changed":true,"status":"DELETING","summary":null,"user_account_number":"111","yara":"rule
+        sdk_test_async_rules { strings: $u = \"test_async_rules\" condition: $u }"},"status":"OK"}
+
+        '
+    headers:
+      access-control-allow-origin:
+      - '*'
+      access-control-expose-headers:
+      - Authorization
+      connection:
+      - keep-alive
+      content-length:
+      - '579'
+      content-type:
+      - application/json
+      date:
+      - Tue, 25 Aug 2026 18:24:19 GMT
+      server:
+      - gunicorn
+      x-billing-id:
+      - '111'
+    status:
+      code: 200
+      message: OK
+- request:
+    body: '{"community":"gamma"}'
+    headers:
+      accept:
+      - '*/*'
+      accept-encoding:
+      - gzip, deflate
+      authorization:
+      - '11111111111111111111111111111111'
+      connection:
+      - keep-alive
+      content-length:
+      - '21'
+      content-type:
+      - application/json
+      host:
+      - ai:9696
+      user-agent:
+      - polyswarm_api/4.3.0 (x86_64-Darwin-CPython-3.11.3)
+    method: DELETE
+    uri: http://ai:9696/v3/hunt/rule?id=89620634730010513
+  response:
+    body:
+      string: '{"result":{"created":"2026-08-25T18:24:13.239703+00:00","deleted":true,"description":"test","favorite":false,"favorited_at":null,"historical_hunt_count":1,"id":"89620634730010513","livescan_created":null,"livescan_id":null,"modified":"2026-08-25T18:24:19.351670+00:00","name":"test_async_rules2","rule_count":1,"yara":"rule
         sdk_test_async_rules { strings: $u = \"test_async_rules\" condition: $u }\n//
         edited"},"status":"OK"}
 
@@ -951,11 +988,11 @@ interactions:
       connection:
       - keep-alive
       content-length:
-      - '425'
+      - '426'
       content-type:
       - application/json
       date:
-      - Fri, 21 Aug 2026 14:29:54 GMT
+      - Tue, 25 Aug 2026 18:24:19 GMT
       server:
       - gunicorn
       x-billing-id:
@@ -993,7 +1030,7 @@ interactions:
       content-type:
       - text/html; charset=utf-8
       date:
-      - Fri, 21 Aug 2026 14:29:54 GMT
+      - Tue, 25 Aug 2026 18:24:19 GMT
       server:
       - gunicorn
     status:
