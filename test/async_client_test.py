@@ -728,6 +728,13 @@ class TestAsyncScanCase:
                     result = await api.live_result(result_id)
                 assert result.download_url
 
+                # The list/detail split, pinned against the real server rather than prose.
+                # The pure-unit tests exercise dict.get and would pass identically if the
+                # server never grew the field; only a cassette shows what it actually sent.
+                assert result.matched_strings, 'detail route should carry the yara evidence'
+                assert my_results[0].matched_strings is None, \
+                    'list rows omit the evidence -- it is a per-row blob fetch'
+
                 await api.live_feed_delete([result_id])
                 with pytest.raises(exceptions.NotFoundException):
                     await api.live_result(result_id)
