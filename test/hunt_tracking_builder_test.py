@@ -5,10 +5,11 @@ request *construction* for the new surfaces — and specifically the two shapes
 that are entirely consequences of ``core._params`` plumbing rather than
 anything visible at the call site:
 
-* ``YaraRulesetFavorite`` empties ``RESOURCE_ID_KEYS``, which is the ONLY
-  thing routing ``id`` (and ``favorite``/``community``) into the PUT's JSON
-  body instead of the query string — the server reads the toggle exclusively
-  from the body; and
+* ``YaraRulesetFavorite`` narrows ``RESOURCE_ID_KEYS`` to ``['community']``,
+  which is what splits the request: the server reads BOTH ``id`` and
+  ``favorite`` from the JSON body (the default ``['id']`` would move ``id``
+  into the query string and the server would 400), while ``community`` rides
+  the query string to match where the ruleset GET/list calls send it; and
 * booleans serialise as ``1``/``0`` ints, not JSON ``true``/``false``
   (``core._params`` coerces before body/query routing) — the server's
   boolean parser accepts exactly that, so the int-vs-bool body contract is
@@ -26,17 +27,20 @@ class _FakeApi:
 
 
 class TestYaraRulesetFavoriteBuilder:
-    def test_update_routes_everything_to_the_put_body(self):
+    def test_update_splits_community_to_query_and_toggle_to_body(self):
         api = _FakeApi()
         req = resources.YaraRulesetFavorite.update(
             api, id=5, favorite=True, community=api.community)
         assert req.method == 'PUT'
         assert req.url == f'{api.uri}/hunt/rule/favorite'
-        # RESOURCE_ID_KEYS = [] is load-bearing: with the base ['id'] the id
-        # would ride the query string on a PUT, and the server only reads the
-        # body. favorite serialises as int 1, not JSON true.
-        assert req.params is None
-        assert req.input_json == {'id': '5', 'favorite': 1, 'community': 'gamma'}
+        # RESOURCE_ID_KEYS = ['community'] is load-bearing: with the base
+        # ['id'] the id would ride the query string on a PUT, and the server
+        # reads the toggle's id exclusively from the body — a 400. community
+        # goes to the query to match the ruleset GET/list placement (the
+        # server accepts it from either side, never both at once). favorite
+        # serialises as int 1, not JSON true.
+        assert req.params == {'community': 'gamma'}
+        assert req.input_json == {'id': '5', 'favorite': 1}
         assert req.result_parser is resources.YaraRulesetFavorite
 
     def test_unfavorite_serialises_false_as_zero(self):
@@ -45,46 +49,71 @@ class TestYaraRulesetFavoriteBuilder:
         assert req.input_json['favorite'] == 0
 
 
-class TestLiveHuntResultCountsBuilder:
-    def test_get_routes_since_and_community_to_the_query(self):
-        api = _FakeApi()
-        req = resources.LiveHuntResultCounts.get(
-            api, since=86400, community=api.community)
-        assert req.method == 'GET'
-        assert req.url == f'{api.uri}/hunt/live/results/count'
-        assert req.params == {'since': 86400, 'community': 'gamma'}
-        assert req.input_json is None
-        assert req.result_parser is resources.LiveHuntResultCounts
-
-    def test_get_omits_unset_since(self):
-        # None is dropped, so the server applies its own default window.
-        req = resources.LiveHuntResultCounts.get(
-            _FakeApi(), since=None, community='gamma')
-        assert req.params == {'community': 'gamma'}
-
-
 class TestRulesetListFilterBuilder:
     def test_list_routes_filters_to_the_query_with_int_bools(self):
         api = _FakeApi()
         req = resources.YaraRuleset.list(
             api, name='alpha', status='active', favorites_only=True,
-            has_new_results=True, since=86400, include_counts=True,
-            community=api.community)
+            has_new_results=True, community=api.community)
         assert req.method == 'GET'
         assert req.url == f'{api.uri}/hunt/rule/list'
         assert req.params == {
             'name': 'alpha', 'status': 'active', 'favorites_only': 1,
-            'has_new_results': 1, 'since': 86400, 'include_counts': 1,
-            'community': 'gamma'}
+            'has_new_results': 1, 'community': 'gamma'}
 
     def test_list_omits_every_unset_filter(self):
         # The no-filter request is byte-compatible with the pre-filter
         # contract: nothing but community rides the query string.
         req = resources.YaraRuleset.list(
             _FakeApi(), name=None, status=None, favorites_only=None,
-            has_new_results=None, since=None, include_counts=None,
-            community='gamma')
+            has_new_results=None, community='gamma')
         assert req.params == {'community': 'gamma'}
+
+
+class TestYaraRulesetStoredCounterParse:
+    """Parse-side pins for the stored counter — the recorded cassettes carry
+    only null counters (the refresh job does not run on the e2e stack), so
+    the populated shape is otherwise asserted nowhere."""
+
+    def test_counter_and_staleness_marker_parse(self):
+        row = resources.YaraRuleset(
+            {'id': '5', 'new_results_count': 3,
+             'new_results_counted_at': '2026-08-25T12:00:00+00:00'}, api=None)
+        assert row.new_results_count == 3
+        assert row.new_results_counted_at is not None
+        assert row.new_results_counted_at.isoformat() == '2026-08-25T12:00:00+00:00'
+
+    def test_absent_counter_is_none_never_zero(self):
+        # An older server (or a never-refreshed row) leaves both None —
+        # "no answer", distinct from a refreshed 0.
+        row = resources.YaraRuleset({'id': '5'}, api=None)
+        assert row.new_results_count is None
+        assert row.new_results_counted_at is None
+
+
+class TestProvenanceAndCounterAbsentArms:
+    """The None arms the cassettes cannot carry: every recorded hunt resolves
+    its provenance (true/false) and every recorded ruleset has answers, so
+    the "None is unknown / no answer — NEVER a value" halves of the tri-state
+    and counter contracts are pinned here, purely on the parse."""
+
+    def test_hunt_without_provenance_parses_all_three_none(self):
+        # A pre-migration or raw-yara hunt: no rule_id, no anchor. None means
+        # UNKNOWN — a consumer rendering it as "unchanged" is the exact bug
+        # the tri-state exists to prevent.
+        hunt = resources.HistoricalHunt(
+            {'id': '9', 'created': '2026-08-25T12:00:00+00:00',
+             'status': 'PENDING', 'progress': 0.0, 'results_csv_uri': None},
+            api=None)
+        assert hunt.rule_id is None
+        assert hunt.rule_modified is None
+        assert hunt.source_rule_changed is None
+
+    def test_ruleset_counters_absent_is_none_never_zero(self):
+        # rule_count / historical_hunt_count: "no answer" must not read as 0.
+        row = resources.YaraRuleset({'id': '5'}, api=None)
+        assert row.rule_count is None
+        assert row.historical_hunt_count is None
 
 
 class TestLiveFeedScopeBuilder:
@@ -97,27 +126,3 @@ class TestLiveFeedScopeBuilder:
         assert req.url == 'https://api.example.test/hunt/live/list'
         assert req.params == {'since': 60, 'livescan_id': '45392847561029383',
                               'community': 'gamma'}
-
-
-class TestLiveHuntResultCountsParse:
-    """Parse-side pins for the counts resource — the recorded cassettes carry
-    only EMPTY counts (the live tests use a fresh zero-result hunt), so the
-    entry shape and the digit-string join key documented in three places are
-    otherwise asserted nowhere."""
-
-    def test_counts_entries_parse_with_digit_string_join_keys(self):
-        payload = {'since': 86400,
-                   'counts': [{'livescan_id': '45392847561029383', 'count': 3},
-                              {'livescan_id': '71359438369584055', 'count': 1}]}
-        counts = resources.LiveHuntResultCounts(payload, api=None)
-        assert counts.since == 86400
-        assert counts.counts == payload['counts']
-        # the join key is the same digit string YaraRuleset.livescan_id
-        # carries — a bare int would round in a JS consumer
-        assert all(isinstance(entry['livescan_id'], str) for entry in counts.counts)
-        by_id = {entry['livescan_id']: entry['count'] for entry in counts.counts}
-        assert by_id['45392847561029383'] == 3
-
-    def test_null_counts_coalesces_to_an_empty_list(self):
-        counts = resources.LiveHuntResultCounts({'since': 86400, 'counts': None}, api=None)
-        assert counts.counts == []

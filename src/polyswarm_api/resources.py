@@ -754,10 +754,15 @@ class YaraRuleset(core.BaseJsonResource):
         # server could not or has not counted), which is different from 0.
         self.rule_count = content.get('rule_count')
         self.historical_hunt_count = content.get('historical_hunt_count')
-        # Live results collected in the requested window; only present when
-        # the list was asked to include counts, and only for rulesets with a
-        # live hunt — None otherwise.
+        # Live results collected in the product window — a STORED counter the
+        # server refreshes on a schedule, always present on list rows with a
+        # running live hunt. None means "not yet refreshed / no live hunt",
+        # which is different from 0 ("refreshed, nothing new").
         self.new_results_count = content.get('new_results_count')
+        # When the server last refreshed the counter — the staleness marker
+        # that makes a stored count trustworthy (None iff the count is None).
+        self.new_results_counted_at = core.parse_isoformat(
+            content.get('new_results_counted_at'))
 
 
 class LiveYaraRuleset(YaraRuleset):
@@ -769,8 +774,13 @@ class YaraRulesetFavorite(core.BaseJsonResource):
     team's budget usage, so callers can render "N of M used" without counting
     client-side."""
     RESOURCE_ENDPOINT = '/hunt/rule/favorite'
-    # No query-string keys: the toggle takes {id, favorite} in the JSON body.
-    RESOURCE_ID_KEYS = []
+    # The toggle's payload ({id, favorite}) rides the JSON body — the server
+    # reads BOTH from the body — so the default RESOURCE_ID_KEYS (['id'])
+    # would move `id` into the query string and the server would 400 with
+    # "A valid rule id must be provided". `community` stays a query-string
+    # key to match where every ruleset GET/list sends it (the server accepts
+    # it from either the query or the body, but never from both at once).
+    RESOURCE_ID_KEYS = ['community']
 
     def __init__(self, content, api=None):
         super().__init__(content, api=api)
@@ -805,22 +815,6 @@ class LiveHuntResult(core.BaseJsonResource):
 
 class LiveHuntResultList(LiveHuntResult):
     RESOURCE_ENDPOINT = '/hunt/live/list'
-
-
-class LiveHuntResultCounts(core.BaseJsonResource):
-    """Per-live-hunt result counts inside a window: ``since`` (seconds) plus
-    ``counts``, a list of ``{livescan_id, count}`` — one aggregate request for
-    every "new results" badge. ``livescan_id`` is a digit string, the same
-    value ``YaraRuleset.livescan_id`` carries (the join key; ids exceed
-    JavaScript's safe-integer range, so they are never bare JSON ints). A hunt
-    with no results in the window is simply absent from ``counts``; absence
-    means 0."""
-    RESOURCE_ENDPOINT = '/hunt/live/results/count'
-
-    def __init__(self, content, api=None):
-        super().__init__(content, api=api)
-        self.since = content.get('since')
-        self.counts = content.get('counts') or []
 
 
 class HistoricalHunt(core.BaseJsonResource):

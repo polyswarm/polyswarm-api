@@ -357,31 +357,6 @@ class ScanTestCaseV2(TestCase):
             lambda: api.search_by_metadata(f'artifact.sha256:{sha}'), tries=90)
         assert result and result[0].sha256 == sha
 
-    def test_favorite_limit_refusal_is_machine_readable(self):
-        # The FAVORITE_LIMIT refusal path (respx-mocked: producing a genuinely
-        # full budget on the SHARED e2e stack would require holding all five
-        # team slots, racing every other run). There is deliberately no typed
-        # exception (specs/05): the machine-readable contract is the raw
-        # envelope at exc.request.errors — the code plus the same counters a
-        # successful toggle returns.
-        with respx.mock(assert_all_called=True) as router:
-            envelope = {
-                'status': 'error',
-                'result': 'Favorite limit reached (5 of 5 used).',
-                'errors': {'code': 'FAVORITE_LIMIT',
-                           'favorites_used': 5, 'favorites_limit': 5},
-            }
-            router.put('http://localhost:3000/api/v1/hunt/rule/favorite').mock(
-                return_value=httpx.Response(400, json=envelope))
-            api = PolyswarmAPI(self.test_api_key, uri='http://localhost:3000/api/v1',
-                               community='gamma')
-            with pytest.raises(exceptions.RequestException) as excinfo:
-                api.ruleset_favorite(5, True)
-        errors = excinfo.value.request.errors
-        assert errors['code'] == 'FAVORITE_LIMIT'
-        assert errors['favorites_used'] == 5
-        assert errors['favorites_limit'] == 5
-
     def test_resolve_engine_name(self):
         with respx.mock(assert_all_called=False) as router:
             ok_payload = {'results': [
@@ -531,10 +506,14 @@ class ScanTestCaseV2(TestCase):
                 api.live_result(result_id)
 
             # Stop returns the just-stopped livescan_id; the ruleset's stored
-            # livescan_id flips back to None on the next read.
+            # livescan_id flips back to None on a subsequent read — which hits
+            # the replica, so poll instead of reading one line later. Poll a
+            # BOOLEAN, never want=None: the helper maps a 404 during the lag
+            # window to None, so want=None would let a vanished ruleset pass
+            # the assertion the old direct read would have raised on.
             api.live_stop(rule_id=rule_id)
-            stopped = api.ruleset_get(rule_id)
-            assert stopped.livescan_id is None
+            assert poll_equals(
+                lambda: api.ruleset_get(rule_id).livescan_id is None, True)
         finally:
             # Always tear the hunt down, even on a mid-test failure: a left-
             # over active live hunt captures every later EICAR submission in
@@ -637,29 +616,38 @@ class ScanTestCaseV2(TestCase):
             unfav = api.ruleset_favorite(rule.id, False)
             assert unfav.favorite is False
             assert unfav.favorited_at is None
-            # live-hunt scope: the counts endpoint, include_counts and the
-            # livescan_id feed all need a running hunt. The fresh ruleset
-            # matches nothing, so every count is a computed ZERO — still
-            # distinct from null (= no live hunt to count against).
+            # live-hunt scope: the stored new-results counter and the
+            # livescan_id feed both need a running hunt. The badge is written
+            # ONLY by the server's scheduled refresh job (never on a request),
+            # and that job does not run on the e2e stack — so the row reads
+            # null ("never refreshed"), which is exactly the additive-field
+            # contract this SDK pins: never 0, and the staleness marker rides
+            # with it. The counting semantics themselves are pinned by the
+            # server's own HTTP + CLI suites.
             api.live_start(int(rule.id))
             try:
+                # the enable lands asynchronously and the GET reads the
+                # replica — poll rather than read-one-line-later
+                assert poll_equals(
+                    lambda: api.ruleset_get(rule.id).livescan_id is not None,
+                    True)
                 livescan_id = api.ruleset_get(rule.id).livescan_id
-                assert livescan_id is not None       # a digit string
                 assert rule.id in {r.id for r in api.ruleset_list(status='active')}
-                with_counts = next(r for r in api.ruleset_list(include_counts=True)
-                                   if r.id == rule.id)
-                assert with_counts.new_results_count == 0
-                counts = api.live_results_count(since=86400)
-                assert counts.since == 86400
-                # zero results -> our hunt is ABSENT (absence means 0); the
-                # keys are the same digit strings ruleset_get renders
-                assert livescan_id not in {entry['livescan_id']
-                                           for entry in counts.counts}
-                # NOTE: with a zero-result hunt this pins only the wire shape
-                # and the empty pass-through — it cannot tell a working filter
-                # from an ignored param (that would need a second hunt WITH
-                # results). The scoping semantics themselves are pinned by the
-                # server's own HTTP suite; same for has_new_results.
+                row = next(r for r in api.ruleset_list() if r.id == rule.id)
+                assert row.new_results_count is None
+                assert row.new_results_counted_at is None
+                # has_new_results reads the stored counter (> 0): a never-
+                # refreshed hunt must NOT match
+                try:
+                    hot_ids = {r.id for r in api.ruleset_list(has_new_results=True)}
+                except exceptions.NoResultsException:
+                    hot_ids = set()
+                assert rule.id not in hot_ids
+                # NOTE: with a zero-result hunt the feed check pins only the
+                # wire shape and the empty pass-through — it cannot tell a
+                # working filter from an ignored param (that would need a
+                # second hunt WITH results). The scoping semantics are pinned
+                # by the server's own HTTP suite.
                 try:
                     assert list(api.live_feed(livescan_id=livescan_id)) == []
                 except exceptions.NoResultsException:
@@ -668,21 +656,29 @@ class ScanTestCaseV2(TestCase):
                 # MUST stop before the outer finally's ruleset_delete — a
                 # running live hunt blocks deletion server-side
                 api.live_stop(int(rule.id))
-            try:
-                still_active = {r.id for r in api.ruleset_list(status='active')}
-            except exceptions.NoResultsException:
-                still_active = set()   # nothing live anywhere: also a pass
-            assert rule.id not in still_active
+
+            def _active_ids():
+                try:
+                    return {r.id for r in api.ruleset_list(status='active')}
+                except exceptions.NoResultsException:
+                    return set()   # nothing live anywhere: also a pass
+            # the stop's detach reads back off the replica too — poll
+            assert poll_equals(lambda: rule.id not in _active_ids(), True)
             # a historical hunt triggered FROM the ruleset carries the
-            # provenance and bumps the ruleset's counter; the create response's
-            # source_rule_changed is None (unknown until a read re-resolves it)
+            # provenance and bumps the ruleset's counter; the create response
+            # answers source_rule_changed=False directly — the freeze stamped
+            # the anchor from the very row it froze, so the answer is knowable
+            # without a re-read
             hunt = api.historical_create(int(rule.id))
             assert hunt.rule_id == rule.id
             assert hunt.rule_modified is not None
-            assert hunt.source_rule_changed is None
+            assert hunt.source_rule_changed is False
             # the GETs below read the replica; poll so a lagging replica
-            # (real stacks, not e2e) can't flake these — especially the
-            # changed-since-freeze flip, whose stale read is a silent False
+            # (real stacks, not e2e — a fresh hunt can even 404 there for a
+            # beat) can't flake these. Note the False poll below cannot defend
+            # against a stale False (it returns on the first False, stale or
+            # not); its poll exists for the 404-window, while the later TRUE
+            # poll is the one that genuinely rides out a stale read.
             assert poll_equals(
                 lambda: api.ruleset_get(rule.id).historical_hunt_count, 1) == 1
             # a read of the fresh hunt resolves the comparison: unchanged body
@@ -698,16 +694,24 @@ class ScanTestCaseV2(TestCase):
             assert poll_equals(
                 lambda: api.historical_get(hunt.id).source_rule_changed, True) is True
         finally:
-            if hunt is not None:
-                api.historical_delete(hunt.id)
-            # deleting — the created rule disappears from the list.
-            api.ruleset_delete(rule.id)
-        remaining_ids = []
-        try:
-            remaining_ids = [r.id for r in api.ruleset_list()]
-        except exceptions.NoResultsException:
-            pass
-        assert rule.id not in remaining_ids
+            # The ruleset delete is the slot-hygiene guarantee other comments
+            # lean on, so it must not sit behind the hunt delete (a transient
+            # 5xx, or a hunt already DELETING, would otherwise leak a ruleset
+            # on the shared stack).
+            try:
+                if hunt is not None:
+                    api.historical_delete(hunt.id)
+            finally:
+                # deleting — the created rule disappears from the list.
+                api.ruleset_delete(rule.id)
+        def _listed_ids():
+            try:
+                return {r.id for r in api.ruleset_list()}
+            except exceptions.NoResultsException:
+                return set()
+        # the delete reads back off the replica — poll like the other
+        # read-after-writes in this test
+        assert poll_equals(lambda: rule.id not in _listed_ids(), True)
 
     @vcr.use_cassette()
     def test_tool_metadata(self):

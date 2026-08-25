@@ -121,6 +121,7 @@ _LONG_POLE_FRAGMENTS = (
     "sample",           # sandbox completion + metadata
     "stream",           # global archiver batching
     "rescan",           # rescan retry loop + settle
+    "rules",            # test_rules / test_async_rules — live enable/stop + ~6 poll loops
     "hash_search",      # search-index lag
     "existence_probe",  # submit + settle + search-index lag (the HEAD probe tests)
     "sandboxtask",      # sandbox completion + index lag

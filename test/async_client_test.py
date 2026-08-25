@@ -650,31 +650,41 @@ class TestAsyncScanCase:
                 assert unfav.favorite is False
                 assert unfav.favorited_at is None
 
-                # live-hunt scope: counts, include_counts and the livescan_id
-                # feed all need a running hunt; the fresh ruleset matches
-                # nothing, so every count is a computed ZERO (distinct from
-                # null = no live hunt to count against)
+                # live-hunt scope: the stored new-results counter and the
+                # livescan_id feed both need a running hunt. The badge is
+                # written ONLY by the server's scheduled refresh job (never on
+                # a request), and that job does not run on the e2e stack — so
+                # the row reads null ("never refreshed"): never 0, with the
+                # staleness marker riding along. Counting semantics are pinned
+                # by the server's own HTTP + CLI suites.
                 await api.live_start(int(rule.id))
                 try:
+                    # the enable lands asynchronously and the GET reads the
+                    # replica — poll rather than read-one-line-later
+                    async def _has_livescan():
+                        return (await api.ruleset_get(rule.id)).livescan_id is not None
+                    assert await poll_equals_async(_has_livescan, True)
                     livescan_id = (await api.ruleset_get(rule.id)).livescan_id
-                    assert livescan_id is not None   # a digit string
                     active = {r.id async for r in api.ruleset_list(status='active')}
                     assert rule.id in active
-                    with_counts = None
-                    async for r in api.ruleset_list(include_counts=True):
+                    row = None
+                    async for r in api.ruleset_list():
                         if r.id == rule.id:
-                            with_counts = r
-                    assert with_counts is not None
-                    assert with_counts.new_results_count == 0
-                    counts = await api.live_results_count(since=86400)
-                    assert counts.since == 86400
-                    # zero results -> our hunt is ABSENT (absence means 0)
-                    assert livescan_id not in {entry['livescan_id']
-                                               for entry in counts.counts}
-                    # NOTE: zero-result hunt — pins the wire shape and the
-                    # empty pass-through only; the scoping semantics are
-                    # pinned by the server's own HTTP suite (same for
-                    # has_new_results)
+                            row = r
+                    assert row is not None
+                    assert row.new_results_count is None
+                    assert row.new_results_counted_at is None
+                    # has_new_results reads the stored counter (> 0): a never-
+                    # refreshed hunt must NOT match
+                    try:
+                        hot_ids = {r.id async for r in
+                                   api.ruleset_list(has_new_results=True)}
+                    except exceptions.NoResultsException:
+                        hot_ids = set()
+                    assert rule.id not in hot_ids
+                    # NOTE: zero-result hunt — the feed check pins the wire
+                    # shape and the empty pass-through only; the scoping
+                    # semantics are pinned by the server's own HTTP suite
                     try:
                         feed = [r async for r in api.live_feed(livescan_id=livescan_id)]
                         assert feed == []
@@ -684,23 +694,33 @@ class TestAsyncScanCase:
                     # MUST stop before the outer finally's ruleset_delete — a
                     # running live hunt blocks deletion server-side
                     await api.live_stop(int(rule.id))
-                try:
-                    still_active = {r.id async for r in api.ruleset_list(status='active')}
-                except exceptions.NoResultsException:
-                    still_active = set()   # nothing live anywhere: also a pass
-                assert rule.id not in still_active
+
+                async def _rule_is_inactive():
+                    try:
+                        active_now = {r.id async for r in
+                                      api.ruleset_list(status='active')}
+                    except exceptions.NoResultsException:
+                        return True   # nothing live anywhere: also a pass
+                    return rule.id not in active_now
+                # the stop's detach reads back off the replica too — poll
+                assert await poll_equals_async(_rule_is_inactive, True)
 
                 # a hunt triggered FROM the ruleset carries provenance and
-                # bumps the counter; the create response's comparison is
-                # unknown (None) and a read resolves it
+                # bumps the counter; the create response answers
+                # source_rule_changed=False directly — the freeze stamped the
+                # anchor from the very row it froze, so the answer is knowable
+                # without a re-read
                 hunt = await api.historical_create(int(rule.id))
                 assert hunt.rule_id == rule.id
                 assert hunt.rule_modified is not None
-                assert hunt.source_rule_changed is None
+                assert hunt.source_rule_changed is False
 
                 # replica-backed GETs: poll so a lagging replica (real
-                # stacks, not e2e) can't flake these — the changed-since-
-                # freeze flip's stale read is a silent False
+                # stacks, not e2e — a fresh hunt can even 404 for a beat)
+                # can't flake these. The False poll below cannot defend
+                # against a stale False (it returns on the first False);
+                # its poll exists for the 404-window, while the later TRUE
+                # poll genuinely rides out a stale read.
                 async def _hunt_count():
                     return (await api.ruleset_get(rule.id)).historical_hunt_count
 
@@ -717,15 +737,22 @@ class TestAsyncScanCase:
                 assert updated.description == 'test'
                 assert await poll_equals_async(_changed, True) is True
             finally:
-                if hunt is not None:
-                    await api.historical_delete(hunt.id)
-                await api.ruleset_delete(rule.id)
-            remaining_ids = []
-            try:
-                remaining_ids = [r.id async for r in api.ruleset_list()]
-            except exceptions.NoResultsException:
-                pass
-            assert rule.id not in remaining_ids
+                # The ruleset delete is the slot-hygiene guarantee — keep it
+                # reachable even when the hunt delete fails (see sync twin).
+                try:
+                    if hunt is not None:
+                        await api.historical_delete(hunt.id)
+                finally:
+                    await api.ruleset_delete(rule.id)
+            async def _rule_is_unlisted():
+                try:
+                    listed = {r.id async for r in api.ruleset_list()}
+                except exceptions.NoResultsException:
+                    return True
+                return rule.id not in listed
+            # the delete reads back off the replica — poll like the other
+            # read-after-writes in this test
+            assert await poll_equals_async(_rule_is_unlisted, True)
 
     # ── Historical Hunting ────────────────────────────────────────────────────
 
@@ -824,8 +851,14 @@ class TestAsyncScanCase:
                     await api.live_result(result_id)
 
                 await api.live_stop(rule_id=rule_id)
-                stopped = await api.ruleset_get(rule_id)
-                assert stopped.livescan_id is None
+
+                # the stop's detach reads back off the replica — poll instead
+                # of reading one line later. Poll a BOOLEAN, never want=None:
+                # the helper maps a 404 during the lag window to None, so
+                # want=None would let a vanished ruleset pass silently.
+                async def _stopped_livescan_cleared():
+                    return (await api.ruleset_get(rule_id)).livescan_id is None
+                assert await poll_equals_async(_stopped_livescan_cleared, True)
             finally:
                 # Always tear the hunt down (see sync test_live): a leftover
                 # active hunt captures every later EICAR submit and is what

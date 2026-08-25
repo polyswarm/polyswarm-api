@@ -66,7 +66,6 @@ Internal-only CRUD for the `/known-good` binary resource (distinct from the IOC 
 | `live_stop(rule_id)` | `LiveYaraRuleset.delete` |
 | `live_feed_delete(result_ids)` | `LiveHuntResultList.delete` (catches `NoResultsException`) |
 | `live_result(result_id)` | `LiveHuntResult.get` |
-| `live_results_count(since=None)` | `LiveHuntResultCounts.get` — per-live-hunt result counts in a window, grouped by `livescan_id` (digit strings, the same join key `YaraRuleset.livescan_id` carries); a hunt absent from `counts` collected 0 |
 
 ### Historical hunts
 
@@ -87,7 +86,7 @@ Internal-only CRUD for the `/known-good` binary resource (distinct from the IOC 
 | `ruleset_create(name, rules, description=None)` | `YaraRuleset.create` |
 | `ruleset_get(ruleset_id=None)` | `YaraRuleset.get` |
 | `ruleset_update(ruleset_id, name=None, rules=None, description=None)` | `YaraRuleset.update` |
-| `ruleset_favorite(ruleset_id, favorite=True)` | `YaraRulesetFavorite.update` — idempotent star/unstar; the response carries the team's `favorites_used`/`favorites_limit`, and an over-budget star is refused with a machine-readable `FAVORITE_LIMIT` error. The id rides the PUT **body**, not the query (see the `RESOURCE_ID_KEYS = []` note in specs/02) |
+| `ruleset_favorite(ruleset_id, favorite=True)` | `YaraRulesetFavorite.update` — idempotent star/unstar; the response carries the team's `favorites_used`/`favorites_limit`, and an over-budget star is refused with a machine-readable `FAVORITE_LIMIT` error. The id and favorite ride the PUT **body**; `community` rides the query (see the `RESOURCE_ID_KEYS = ['community']` note in specs/02) |
 | `ruleset_delete(ruleset_id)` | `YaraRuleset.delete` |
 | `tag_link_get(sha256)` | `TagLink.get` |
 | `tag_link_update(sha256, tags=None, families=None, emerging=None, remove=False)` | `TagLink.update` |
@@ -188,10 +187,10 @@ refusal.
 | `iocs_by_hash(hash_type, hash_value, hide_known_good=False, beta=False)` | `IOC.iocs_by_hash` |
 | `search_by_ioc(ip=None, domain=None, ttp=None, imphash=None)` | `IOC.ioc_search` |
 | `check_known_hosts(ips=[], domains=[])` | `IOC.check_known_hosts` |
-| `live_feed(since=None, …, livescan_id=None)` | `LiveHuntResult.list` — `livescan_id` scopes the feed to one live hunt (the hunt-page per-ruleset feed) |
+| `live_feed(since=None, …, livescan_id=None)` | `LiveHuntResult.list` — `livescan_id` scopes the feed to one live hunt (the hunt-page per-ruleset feed); `since` is in SECONDS (the server converts with `timedelta(seconds=since)`) |
 | `historical_list(since=None)` | `HistoricalHunt.list` |
 | `historical_results(hunt=None, …)` | `HistoricalHuntResultList.get` |
-| `ruleset_list(name=None, status=None, favorites_only=None, has_new_results=None, since=None, include_counts=None)` | `YaraRuleset.list` — the hunt-page filters, conjunctive and optional; unset filters are omitted from the query so the no-filter request is byte-compatible with the old contract |
+| `ruleset_list(name=None, status=None, favorites_only=None, has_new_results=None)` | `YaraRuleset.list` — the hunt-page filters, conjunctive and optional; unset filters are omitted from the query so the no-filter request is byte-compatible with the old contract. `has_new_results` selects on the server's STORED counter (no window parameter — the window belongs to the server's scheduled refresh; rows carry `new_results_count` + `new_results_counted_at`) |
 | `tag_list()` | `Tag.list` |
 | `family_list()` | `MalwareFamily.list` |
 | `assertions_list(engine_id)` | `AssertionsJob.list` |

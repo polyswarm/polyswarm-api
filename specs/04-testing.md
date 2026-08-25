@@ -28,6 +28,7 @@ How the test suite is organised. Three layers: pure unit tests (no HTTP at all �
 - `test/vcr/*.vcr` — recorded cassettes.
 - `test/malicious` — fixture file for upload tests (`test/eicar.yara` was retired when the rules tests moved to per-test `uid_yara` bodies).
 - `test/hunt_tracking_builder_test.py` — pure-unit request-shape and parse tests for the hunt-page tracking builders/resources.
+- `test/ruleset_favorite_respx_test.py` — dual-transport (`ClientTestCase`) respx suite for the favorite toggle: the `FAVORITE_LIMIT` refusal envelope and the query/body split.
 
 ## Three test layers
 
@@ -56,7 +57,7 @@ A respx body for that same arm was written first and deleted once the live cover
 
 ## The parametrised `ClientTestCase` harness
 
-Implemented in `test/_client_harness.py`, importable by any `respx` module that wants one body over both transports; `metadata_field_properties_test.py` is the canonical user, joined by `exists_probe_mapping_test.py` (the `exists()` `404`→`False` arm, which was async-only until the harness existed — the mapping is transport-independent, so one body covers both). The remaining `respx` bodies are the single-transport cases invariant 5 exempts. The shape:
+Implemented in `test/_client_harness.py`, importable by any `respx` module that wants one body over both transports; `metadata_field_properties_test.py` is the canonical user, joined by `exists_probe_mapping_test.py` (the `exists()` `404`→`False` arm, which was async-only until the harness existed — the mapping is transport-independent, so one body covers both) and `ruleset_favorite_respx_test.py` (the favorite toggle's refusal envelope + query/body split). The remaining `respx` bodies are the single-transport cases invariant 5 exempts. The shape:
 
 ```python
 # test/_client_harness.py

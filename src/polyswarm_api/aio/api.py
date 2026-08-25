@@ -507,7 +507,11 @@ class PolySwarmAsyncAPI:
         """
         Get live hunts feed
 
-        :param since: Fetch results from the last "since" minutes
+        :param since: Window in SECONDS (the server converts it with
+            timedelta(seconds=since); it previously documented minutes here,
+            but the server never read minutes). The server is also tightening
+            the parameter from a truthiness test to `is not None`, so since=0
+            means an empty window, not "all time".
         :param rule_name: Filter hunt results on the provided rule name (exact match).
         :param family: Filter hunt results based on the family name (exact match).
         :param polyscore_lower: Polyscore lower bound for the hunt results.
@@ -522,19 +526,6 @@ class PolySwarmAsyncAPI:
             livescan_id=livescan_id,
             community=community or self.community)):
             yield item
-
-    async def live_results_count(self, since=None):
-        """
-        Per-live-hunt result counts for the current account, grouped by
-        livescan_id. One request answers every "new results in the window"
-        badge; a hunt absent from counts collected 0.
-
-        :param since: Window in seconds (server default: 86400 — 24 hours)
-        :return: A LiveHuntResultCounts resource
-        """
-        logger.info('Live results count since %s', since)
-        return await self._single(
-            resources.LiveHuntResultCounts.get(self, since=since, community=self.community))
 
     async def live_feed_delete(self, result_ids):
         """
@@ -701,7 +692,7 @@ class PolySwarmAsyncAPI:
         return await self._single(resources.YaraRuleset.delete(self, id=ruleset_id, community=self.community))
 
     async def ruleset_list(self, name=None, status=None, favorites_only=None,
-                           has_new_results=None, since=None, include_counts=None):
+                           has_new_results=None):
         """
         List all YaraRulesets for the current account.
 
@@ -710,19 +701,17 @@ class PolySwarmAsyncAPI:
         :param status: 'active' returns only rulesets whose live hunt is
             currently running.
         :param favorites_only: True returns only favorited rulesets.
-        :param has_new_results: True returns only rulesets whose live hunt
-            collected results inside the window.
-        :param since: Window in seconds for has_new_results/include_counts
-            (server default: 86400).
-        :param include_counts: True attaches new_results_count to each
-            ruleset that has a live hunt.
+        :param has_new_results: True returns only rulesets whose stored
+            new-results counter is positive. The counter (and its window) is
+            maintained server-side by a scheduled refresh; rows carry it as
+            ``new_results_count`` with ``new_results_counted_at`` marking when
+            it was last refreshed. There is no per-request window parameter.
         :return: A generator of YaraRuleset resources
         """
         logger.info('List rulesets')
         async for item in self._paginate(resources.YaraRuleset.list(
                 self, name=name, status=status, favorites_only=favorites_only,
-                has_new_results=has_new_results, since=since,
-                include_counts=include_counts, community=self.community)):
+                has_new_results=has_new_results, community=self.community)):
             yield item
 
     async def ruleset_favorite(self, ruleset_id, favorite=True):
