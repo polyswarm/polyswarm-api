@@ -326,6 +326,25 @@ Classmethod builders (each returns a `PolyswarmRequest` descriptor):
 
 **No instance methods** that issue HTTP. Uploading to the pre-signed S3 URL is done via the session: `await api.session.upload_file(instance.upload_url, artifact)` (or `api.session.upload_file(...)` for sync).
 
+### `LiveHuntResult` / `HistoricalHuntResult`
+
+**`matched_strings`.** The yara strings behind a hunt hit, so a consumer can see *why*
+a rule fired rather than only which one did. Additive and optional, parsed with `.get()`
+like `known_good` / `state` above — a server too old to emit it parses to `None` with no
+behaviour change, and a subscript would raise on every result instead.
+
+It is **three-state** and the states are not interchangeable; the table, the per-entry
+dict shape and the lower-bound caveat live in
+[`05-downstream-contract.md`](./05-downstream-contract.md)
+§"`matched_strings` on hunt results" — read it there rather than inferring from the
+attribute. The short version a parser needs: `None` means *not reported* (an older
+server, removed evidence, or a **list** endpoint, which omits it rather than fetch a blob
+per row), `[]` means *matched with no byte evidence*, and a populated list is evidence.
+
+Both `…List` subclasses inherit this from their parent's `__init__`, so all four
+hunt-result classes carry it — but on the list endpoints the value is always `None` by
+design.
+
 ### `LocalArtifact`
 
 A file-system or in-memory artifact prepared for upload. Constructed via:
