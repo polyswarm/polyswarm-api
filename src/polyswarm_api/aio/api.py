@@ -18,7 +18,7 @@ import logging
 import time
 
 from polyswarm_api import exceptions, resources, settings
-from polyswarm_api.core import PolyswarmRequest
+from polyswarm_api.core import PolyswarmRequest, page_size_for
 
 from .session import AsyncPolyswarmSession
 
@@ -503,29 +503,35 @@ class PolySwarmAsyncAPI:
 
     async def live_feed(self, since=None, rule_name=None, family=None,
                            polyscore_lower=None, polyscore_upper=None, community=None,
-                           livescan_id=None):
+                           livescan_id=None, max_results=None):
         """
         Get live hunts feed
 
-        :param since: Window in SECONDS (the server converts it with
-            timedelta(seconds=since); it previously documented minutes here,
-            but the server never read minutes). The server is also tightening
-            the parameter from a truthiness test to `is not None`, so since=0
-            means an empty window, not "all time".
+        :param since: Window in MINUTES. Absent or 0 means NO time filter at
+            all — the feed pages over everything, which is what a caller
+            wanting the full history asks for.
         :param rule_name: Filter hunt results on the provided rule name (exact match).
         :param family: Filter hunt results based on the family name (exact match).
         :param polyscore_lower: Polyscore lower bound for the hunt results.
         :param polyscore_upper: Polyscore upper bound for the hunt results.
         :param community: Community to retrieve live results from, or public/private.
         :param livescan_id: Scope the feed to one live hunt's results.
+        :param max_results: Stop after this many results. Default None keeps the
+            previous behaviour — every page, up to the client's page cap. Set it
+            when you want a bounded read; it also sizes the page request, so a
+            small ask fetches a small page.
         :return: Generator of HuntResult resources
         """
+        yielded = 0
         async for item in self._paginate(resources.LiveHuntResult.list(
             self, since=since, rule_name=rule_name, family=family,
             polyscore_lower=polyscore_lower, polyscore_upper=polyscore_upper,
-            livescan_id=livescan_id,
+            livescan_id=livescan_id, limit=page_size_for(max_results),
             community=community or self.community)):
             yield item
+            yielded += 1
+            if max_results is not None and yielded >= max_results:
+                return
 
     async def live_feed_delete(self, result_ids):
         """

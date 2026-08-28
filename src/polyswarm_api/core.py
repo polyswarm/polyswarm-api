@@ -668,6 +668,24 @@ class BaseJsonResource(BaseResource):
         )
 
 
+# The server caps a page at AI_MAX_QUERY_RESULTS and defaults to
+# AI_DEFAULT_PAGE_SIZE; it has never served an unbounded query. What is
+# unbounded is the client, which follows cursors until has_more clears. A
+# caller asking for N results therefore only needs a page big enough to hold
+# them, and never more than the server would grant anyway.
+MAX_PAGE_SIZE = 1000
+
+
+def page_size_for(max_results):
+    """Page size to request for a bounded read, or None to take the default.
+
+    ``None`` means "no bound" — the historical behaviour, every page.
+    """
+    if not max_results:
+        return None
+    return min(max_results, MAX_PAGE_SIZE)
+
+
 # ── Hash helpers ───────────────────────────────────────────────────
 
 
