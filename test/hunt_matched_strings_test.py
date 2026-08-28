@@ -86,3 +86,24 @@ def test_raw_json_still_carries_the_key(cls):
     """`.json` is part of the contract, so JSON-mode consumers see it without SDK work."""
     result = cls(_content(cls, matched_strings=_STRINGS))
     assert result.json["matched_strings"] == _STRINGS
+
+
+@pytest.mark.parametrize("cls", ALL_CLASSES)
+def test_dropped_count_parses(cls):
+    """The count that lets a consumer say "12 shown, 19 more"."""
+    assert cls(_content(cls, matched_strings=_STRINGS, matched_strings_dropped=19)) \
+        .matched_strings_dropped == 19
+
+
+@pytest.mark.parametrize("cls", ALL_CLASSES)
+def test_dropped_is_none_when_absent(cls):
+    """Nothing dropped, and every result predating the budget -- same answer."""
+    assert cls(_content(cls, matched_strings=_STRINGS)).matched_strings_dropped is None
+
+
+@pytest.mark.parametrize("cls", ALL_CLASSES)
+def test_dropped_is_independent_of_the_strings_list(cls):
+    """A truncated list is still a list; the count is what says it is short."""
+    result = cls(_content(cls, matched_strings=_STRINGS, matched_strings_dropped=19))
+    assert isinstance(result.matched_strings, list)
+    assert len(result.matched_strings) == 2

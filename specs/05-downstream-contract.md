@@ -283,7 +283,7 @@ Three values are possible and consumers **must not** collapse them:
 |---|---|
 | `None` | Not reported. Either the server predates the field, the stored evidence was deleted, or this came from a **list** endpoint — those omit it rather than fetch a blob per row. "We don't know", *not* "there was nothing". |
 | `[]` | The rule matched and there is no byte evidence to show — a rule with no strings section, one whose matching strings are all `private`, or one that matched on absence (`not $a`, `none of them`). |
-| `[…]` | The evidence. A **lower bound**, not a match count: fast-scan reports only the first offset per string, `any of them` prints only the strings that hit, and `private` strings never appear. |
+| `[…]` | The evidence. A **lower bound**, not a match count: `any of them` prints only the strings that hit, `private` strings never appear, and the server may withhold some past a size limit (see `matched_strings_dropped`). |
 
 Each entry is a dict:
 
@@ -294,6 +294,21 @@ Each entry is a dict:
 - `data` is kept **exactly as yara rendered it** — a hex string comes back as byte pairs, a text string as ASCII with `\xNN` escapes. Only yara knows which applies, so it is not decoded back to bytes.
 - `length` is the **stored** length, capped server-side. Past the cap the true length is unrecoverable.
 - `truncated` means "there was more than this". It over-reports at exactly the cap, because nothing in the output distinguishes a match that ended there from one that was cut.
+
+### `matched_strings_dropped` — the count that keeps a short list honest
+
+A sibling attribute on the same four classes, `int` or `None`. It is how many matched
+strings the server's per-result byte budget withheld, and it exists because a truncated
+list is otherwise indistinguishable from a complete one: a consumer reading twelve
+entries would conclude the rule hit twelve times when it hit thirty-one.
+
+`None` means nothing was withheld — which is also what every result predating the budget
+reports, so no consumer needs to special-case the older shape. It is deliberately a
+**sibling** rather than a key inside `matched_strings`, which stays a plain list.
+
+A populated `matched_strings` with a non-null count is the normal shape for a verbose
+ruleset. The first string of a match is never withheld, so this can never accompany an
+empty list.
 
 **Evidence lives on the detail routes only.** `live_feed()` and `historical_results()`
 page over list endpoints and will always yield `None` here; fetch a single result

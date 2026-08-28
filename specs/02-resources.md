@@ -341,9 +341,15 @@ attribute. The short version a parser needs: `None` means *not reported* (an old
 server, removed evidence, or a **list** endpoint, which omits it rather than fetch a blob
 per row), `[]` means *matched with no byte evidence*, and a populated list is evidence.
 
-Both `…List` subclasses inherit this from their parent's `__init__`, so all four
-hunt-result classes carry it — but on the list endpoints the value is always `None` by
-design.
+**`matched_strings_dropped`.** A sibling `int`/`None`, parsed the same additive way:
+how many matched strings the server's byte budget withheld from this result. `None` means
+none were, which is also what a server predating the budget reports. It never accompanies
+an empty `matched_strings` — a match's first string is never withheld — so a non-null
+count always means "the list you have is short by this much".
+
+Both `…List` subclasses inherit these from their parent's `__init__`, so all four
+hunt-result classes carry them — but on the list endpoints the values are always `None`
+by design.
 
 ### `LocalArtifact`
 

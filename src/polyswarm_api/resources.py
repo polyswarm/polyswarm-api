@@ -772,6 +772,10 @@ class LiveHuntResult(core.BaseJsonResource):
         # evidence), [...] (the evidence, a lower bound). See
         # specs/05-downstream-contract.md.
         self.matched_strings = content.get('matched_strings')
+        # How many matched strings the server's byte budget cost this result, or None
+        # when nothing was dropped (also what every result predating the budget reports).
+        # A sibling field, so `matched_strings` stays a plain list.
+        self.matched_strings_dropped = content.get('matched_strings_dropped')
         self.polyscore = content['polyscore']
         self.malware_family = content['malware_family']
         self.detections = content['detections']
@@ -826,6 +830,10 @@ class HistoricalHuntResult(core.BaseJsonResource):
         # evidence), [...] (the evidence, a lower bound). See
         # specs/05-downstream-contract.md.
         self.matched_strings = content.get('matched_strings')
+        # How many matched strings the server's byte budget cost this result, or None
+        # when nothing was dropped (also what every result predating the budget reports).
+        # A sibling field, so `matched_strings` stays a plain list.
+        self.matched_strings_dropped = content.get('matched_strings_dropped')
         self.polyscore = content['polyscore']
         self.malware_family = content['malware_family']
         self.detections = content['detections']
