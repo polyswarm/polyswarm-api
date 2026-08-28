@@ -627,8 +627,11 @@ class TestAsyncScanCase:
                 # a presence assertion instead of an exact count.
                 rules = [r async for r in api.ruleset_list()]
                 assert any(r.id == rule.id for r in rules)
-                by_name = [r.id async for r in api.ruleset_list(name=uid)]
-                assert rule.id in by_name
+                # Universal arms, not presence-only — an ignored param would
+                # pass the membership check alone (F9).
+                by_name = [r async for r in api.ruleset_list(name=uid)]
+                assert rule.id in {r.id for r in by_name}
+                assert all(uid.lower() in (r.name or '').lower() for r in by_name)
 
                 got = await api.ruleset_get(rule.id)
                 assert got.name == uid
@@ -642,7 +645,8 @@ class TestAsyncScanCase:
                 assert fav.favorites_limit == 5
                 assert 1 <= fav.favorites_used <= fav.favorites_limit
                 favorites = [r async for r in api.ruleset_list(favorites_only=True)]
-                assert any(r.id == rule.id and r.favorite for r in favorites)
+                assert any(r.id == rule.id for r in favorites)
+                assert all(r.favorite for r in favorites)
                 # unstarring here is the CONTRACT assertion; slot hygiene does
                 # not depend on reaching it — the finally's ruleset_delete
                 # soft-deletes and the budget counts only deleted=false rows

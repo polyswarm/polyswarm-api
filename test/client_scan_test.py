@@ -594,8 +594,13 @@ class ScanTestCaseV2(TestCase):
             rules = list(api.ruleset_list())
             assert any(r.id == rule.id for r in rules)
             # the name filter narrows to this test's own rule
-            by_name = [r.id for r in api.ruleset_list(name=uid)]
-            assert rule.id in by_name
+            # Both arms are UNIVERSAL, not presence-only: `rule.id in by_name`
+            # holds identically if the server ignored the param and returned
+            # the unfiltered list, which is exactly the regression a filter
+            # test exists to catch (F9).
+            by_name = list(api.ruleset_list(name=uid))
+            assert rule.id in {r.id for r in by_name}
+            assert all(uid.lower() in (r.name or '').lower() for r in by_name)
             # getting
             got = api.ruleset_get(rule.id)
             assert got.name == uid
@@ -608,7 +613,8 @@ class ScanTestCaseV2(TestCase):
             assert fav.favorites_limit == 5
             assert 1 <= fav.favorites_used <= fav.favorites_limit
             favorites = list(api.ruleset_list(favorites_only=True))
-            assert any(r.id == rule.id and r.favorite for r in favorites)
+            assert any(r.id == rule.id for r in favorites)
+            assert all(r.favorite for r in favorites)
             # unstarring here is the CONTRACT assertion; slot hygiene does not
             # depend on reaching it — the finally's ruleset_delete soft-deletes
             # and the server's budget counts only deleted=false rows, so a
