@@ -121,9 +121,11 @@ _LONG_POLE_FRAGMENTS = (
     "sample",           # sandbox completion + metadata
     "stream",           # global archiver batching
     "rescan",           # rescan retry loop + settle
-    "test_rules",       # test_rules / test_async_rules — ruleset lifecycle polling
-                        # (NOT "rules": that is a prefix of "ruleset" and would
-                        #  also match the instant ruleset_favorite respx suite)            # test_rules / test_async_rules — live enable/stop + ~6 poll loops
+    "_rules",           # test_rules / test_async_rules — live enable/stop +
+                        # ~6 poll loops. NOT "rules" (a prefix of "ruleset", so it
+                        # also matches the instant ruleset_favorite respx suite)
+                        # and NOT "test_rules" (which misses test_async_rules
+                        # entirely — it is test_ + async_rules).
     "hash_search",      # search-index lag
     "existence_probe",  # submit + settle + search-index lag (the HEAD probe tests)
     "sandboxtask",      # sandbox completion + index lag

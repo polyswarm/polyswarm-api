@@ -18,7 +18,10 @@ anything visible at the call site:
 Endpoint *behaviour* is covered by the live-e2e VCR lifecycle tests
 (``test_rules`` / ``test_async_rules``).
 """
+import asyncio
+
 from polyswarm_api import core, resources
+from polyswarm_api.aio import PolySwarmAsyncAPI
 from polyswarm_api.api import PolyswarmAPI
 
 
@@ -265,3 +268,52 @@ class TestLiveFeedSinceOnTheWire:
         assert sent.params['since'] == 0
         omitted = resources.LiveHuntResult.list(_FakeApi(), since=None, community='gamma')
         assert 'since' not in omitted.params
+
+class TestAsyncLiveFeedMaxResults:
+    """The CANONICAL async bound loop, not the generated mirror.
+
+    Every other max_results test drives ``PolyswarmAPI`` — the unasync output.
+    The ``async for`` + ``yielded``/``return`` shape is precisely the part
+    unasync REWRITES rather than copies, so a mirror-only test would keep
+    passing if the canonical source's loop were wrong."""
+
+    @staticmethod
+    def _api_yielding(count):
+        api = PolySwarmAsyncAPI.__new__(PolySwarmAsyncAPI)
+        api.uri = _FakeApi.uri
+        api.community = _FakeApi.community
+        captured = {}
+
+        async def paginate(request, *a, **kw):
+            captured.update(request.params)
+            for item in range(count):
+                yield item
+
+        api._paginate = paginate
+        return api, captured
+
+    @staticmethod
+    def _collect(agen):
+        async def run():
+            return [item async for item in agen]
+
+        return asyncio.run(run())
+
+    def test_the_bound_truncates(self):
+        api, _ = self._api_yielding(7)
+        assert self._collect(api.live_feed(max_results=3)) == [0, 1, 2]
+
+    def test_no_bound_yields_everything(self):
+        for no_bound in (None, 0, -1):
+            api, _ = self._api_yielding(4)
+            assert self._collect(api.live_feed(max_results=no_bound)) == list(range(4))
+
+    def test_the_bound_sizes_the_page(self):
+        api, captured = self._api_yielding(0)
+        self._collect(api.live_feed(max_results=5))
+        assert captured['limit'] == 5
+
+    def test_no_bound_sends_no_limit(self):
+        api, captured = self._api_yielding(0)
+        self._collect(api.live_feed())
+        assert 'limit' not in captured
