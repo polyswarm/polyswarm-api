@@ -18,7 +18,8 @@ anything visible at the call site:
 Endpoint *behaviour* is covered by the live-e2e VCR lifecycle tests
 (``test_rules`` / ``test_async_rules``).
 """
-from polyswarm_api import resources
+from polyswarm_api import core, resources
+from polyswarm_api.api import PolyswarmAPI
 
 
 class _FakeApi:
@@ -126,3 +127,49 @@ class TestLiveFeedScopeBuilder:
         assert req.url == 'https://api.example.test/hunt/live/list'
         assert req.params == {'since': 60, 'livescan_id': '45392847561029383',
                               'community': 'gamma'}
+
+class TestPageSizeForBound:
+    """``core.page_size_for`` — the page a bounded read should ask for.
+
+    The server caps a page itself and has never served an unbounded query; what
+    is unbounded is this client, which follows cursors until ``has_more``
+    clears. So a caller asking for N needs a page big enough to hold N, and
+    never more than the server would grant anyway."""
+
+    def test_no_bound_takes_the_server_default(self):
+        # None is the historical behaviour — every page, server-sized.
+        assert core.page_size_for(None) is None
+        # 0 is not a bound either; it would otherwise ask for a zero-row page.
+        assert core.page_size_for(0) is None
+
+    def test_a_small_bound_asks_for_a_small_page(self):
+        assert core.page_size_for(5) == 5
+
+    def test_a_large_bound_is_clamped_to_what_the_server_grants(self):
+        assert core.page_size_for(10_000) == core.MAX_PAGE_SIZE
+
+
+class TestLiveFeedMaxResults:
+    """``live_feed(max_results=)`` stops the generator at the bound.
+
+    Pinned here rather than against the stack: producing more feed rows than a
+    page holds on the shared e2e stack would mean generating real live-hunt
+    volume. ``_paginate`` is the seam — it is what would otherwise keep
+    following cursors — so it is what this stands in for."""
+
+    @staticmethod
+    def _api_yielding(count):
+        api = PolyswarmAPI.__new__(PolyswarmAPI)
+        api.uri = _FakeApi.uri
+        api.community = _FakeApi.community
+        api._paginate = lambda *a, **kw: iter(range(count))
+        return api
+
+    def test_unbounded_by_default_yields_everything(self):
+        assert list(self._api_yielding(7).live_feed()) == list(range(7))
+
+    def test_the_bound_truncates(self):
+        assert list(self._api_yielding(7).live_feed(max_results=3)) == [0, 1, 2]
+
+    def test_a_bound_larger_than_the_feed_is_not_padding(self):
+        assert list(self._api_yielding(2).live_feed(max_results=9)) == [0, 1]
