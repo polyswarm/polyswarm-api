@@ -195,12 +195,11 @@ class TestLiveFeedMaxResults:
         assert list(self._api_yielding(7).live_feed(max_results=0)) == list(range(7))
 
 class TestLiveFeedLimitOnTheWire:
-    """``max_results`` must NOT put ``limit`` on the wire.
+    """``max_results`` is a total, so it must not reach the wire as ``limit``.
 
-    Sizing the page looked free, but the server's cap is AI_MAX_QUERY_RESULTS —
-    an env var set per deployment (300 in the chart) — and asking above it is a
-    400. Keeping ``limit`` off the request also keeps the default call
-    byte-compatible with every recorded cassette.
+    The page stays the server's to choose and the read keeps paginating in those
+    chunks; sending the total as a page size also 400s above the deployment's
+    AI_MAX_QUERY_RESULTS (300 in the chart).
     """
 
     @staticmethod

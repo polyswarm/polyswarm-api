@@ -515,8 +515,9 @@ class PolySwarmAsyncAPI:
         :param polyscore_upper: Polyscore upper bound for the hunt results.
         :param community: Community to retrieve live results from, or public/private.
         :param livescan_id: Scope the feed to one live hunt's results.
-        :param max_results: Stop after this many results. None, 0 or a negative
-            means no bound — the previous behaviour, every page.
+        :param max_results: Total results to yield, not a page size — paging
+            continues in the server's own chunks until the total is reached.
+            None, 0 or a negative means no bound: every page, as before.
         :return: Generator of HuntResult resources
         """
         bound = as_result_bound(max_results)

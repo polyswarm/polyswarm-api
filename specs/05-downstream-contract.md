@@ -332,12 +332,14 @@ Migrating from 3.x to 4.0, callers retain:
   the generator yields and nothing else: the request is unchanged, so the
   default call stays byte-compatible with every recorded cassette.
 
-  It deliberately does **not** size the page. Sending `limit` looked like a
-  free optimisation — a small ask need not fetch a full page — but the server's
-  cap is `AI_MAX_QUERY_RESULTS`, an env var set per deployment (300 in the
-  chart, 1000 in the code default), and asking above it is a **400**. The SDK
-  cannot know a value the deployment chooses, so it does not guess: the server
-  picks the page, the client stops at the bound.
+  **`max_results` is a total, not a page size — the two are independent.** The
+  page is the server's to choose (50 for the web service, capped by
+  `AI_MAX_QUERY_RESULTS`), and `_next_page` echoes the size it reports back on
+  each subsequent request; a bounded read keeps paginating in those same small,
+  API-friendly chunks and simply stops once it has enough. An earlier revision
+  sent `limit=max_results`, which conflated the two — and, since the cap is an
+  env var each deployment sets (300 in the chart), would have turned a large
+  bound into a 400.
 
 ### Required code changes
 
