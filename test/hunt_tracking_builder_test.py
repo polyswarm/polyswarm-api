@@ -117,6 +117,24 @@ class TestProvenanceAndCounterAbsentArms:
         assert row.historical_hunt_count is None
 
 
+class TestRulesetListExplicitFalseFilters:
+    """An explicit ``False`` filter serialises to ``0`` on the query string.
+
+    ``core._params`` coerces bools to ints before routing, so these land as
+    ``0`` rather than ``False``. The server's boolean argument parser accepts
+    exactly ``0``/``1``/``false``/``true`` and maps ``0`` to false, so an
+    explicit False really does mean unfiltered — but only the ``True`` and
+    omitted arms were covered, and an inverted filter is the one failure mode
+    that silently returns the wrong rows."""
+
+    def test_explicit_false_serialises_to_zero(self):
+        request = resources.YaraRuleset.list(
+            _FakeApi(), favorites_only=False, has_new_results=False,
+            community='gamma')
+        assert request.params['favorites_only'] == 0
+        assert request.params['has_new_results'] == 0
+
+
 class TestLiveFeedScopeBuilder:
     def test_list_routes_livescan_id_to_the_query_as_digit_string(self):
         # *_id kwargs stringify (core._params); the server casts back to int.

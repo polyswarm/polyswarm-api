@@ -673,6 +673,10 @@ class BaseJsonResource(BaseResource):
 # unbounded is the client, which follows cursors until has_more clears. A
 # caller asking for N results therefore only needs a page big enough to hold
 # them, and never more than the server would grant anyway.
+# Mirrors the server's AI_MAX_QUERY_RESULTS (1000). Asking above it is a 400,
+# not a silent truncation, so the clamp is what keeps a large bound usable.
+# It lives here rather than in settings.py because it is a fact about the
+# protocol that a pure helper needs, not a knob a caller tunes.
 MAX_PAGE_SIZE = 1000
 
 
