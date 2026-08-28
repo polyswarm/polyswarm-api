@@ -173,3 +173,10 @@ class TestLiveFeedMaxResults:
 
     def test_a_bound_larger_than_the_feed_is_not_padding(self):
         assert list(self._api_yielding(2).live_feed(max_results=9)) == [0, 1]
+
+    def test_zero_is_no_bound_not_a_bound_of_one(self):
+        # 0 has to mean the same thing here as it does in page_size_for and in
+        # `since` on this same call: no bound. Testing `is not None` instead of
+        # truthiness makes max_results=0 yield exactly one result, which is the
+        # two halves of the bound disagreeing.
+        assert list(self._api_yielding(7).live_feed(max_results=0)) == list(range(7))
