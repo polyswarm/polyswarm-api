@@ -676,14 +676,30 @@ class BaseJsonResource(BaseResource):
 MAX_PAGE_SIZE = 1000
 
 
+def as_result_bound(max_results):
+    """The caller's result bound, or None when there isn't one.
+
+    ``None``, ``0`` and negatives all mean "no bound" — the historical
+    behaviour, every page. Stated ONCE so the page size and the generator's
+    stop condition cannot disagree about what counts as a bound. They did
+    once: ``0`` asked for a full server-default page and then stopped after
+    a single row, because one half tested truthiness and the other tested
+    ``is not None``."""
+    if not max_results or max_results < 0:
+        return None
+    return max_results
+
+
 def page_size_for(max_results):
     """Page size to request for a bounded read, or None to take the default.
 
-    ``None`` means "no bound" — the historical behaviour, every page.
-    """
-    if not max_results:
+    Clamped to what the server would grant anyway. Note this is NOT the bound
+    itself — a caller asking for 5000 gets 1000-row pages and still stops at
+    5000 — so the two are computed separately from one normalised value."""
+    bound = as_result_bound(max_results)
+    if bound is None:
         return None
-    return min(max_results, MAX_PAGE_SIZE)
+    return min(bound, MAX_PAGE_SIZE)
 
 
 # ── Hash helpers ───────────────────────────────────────────────────

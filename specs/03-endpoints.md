@@ -187,7 +187,7 @@ refusal.
 | `iocs_by_hash(hash_type, hash_value, hide_known_good=False, beta=False)` | `IOC.iocs_by_hash` |
 | `search_by_ioc(ip=None, domain=None, ttp=None, imphash=None)` | `IOC.ioc_search` |
 | `check_known_hosts(ips=[], domains=[])` | `IOC.check_known_hosts` |
-| `live_feed(since=None, …, livescan_id=None)` | `LiveHuntResult.list` — `livescan_id` scopes the feed to one live hunt (the hunt-page per-ruleset feed); `since` is in SECONDS (the server converts with `timedelta(seconds=since)`) |
+| `live_feed(since=None, …, livescan_id=None, max_results=None)` | `LiveHuntResult.list` — `livescan_id` scopes the feed to one live hunt (the hunt-page per-ruleset feed); `since` is in **MINUTES**, and absent-or-`0` means no time filter at all (the server applies it on a truthiness test); `max_results` bounds the read — `None`/`0`/negative means no bound, and it also sizes the page request via `core.page_size_for`. The `since` unit is a **behaviour change**, not a doc correction — see [05-downstream-contract.md](./05-downstream-contract.md) §Behaviour changes |
 | `historical_list(since=None)` | `HistoricalHunt.list` |
 | `historical_results(hunt=None, …)` | `HistoricalHuntResultList.get` |
 | `ruleset_list(name=None, status=None, favorites_only=None, has_new_results=None)` | `YaraRuleset.list` — the hunt-page filters, conjunctive and optional; unset filters are omitted from the query so the no-filter request is byte-compatible with the old contract. `has_new_results` selects on the server's STORED counter (no window parameter — the window belongs to the server's scheduled refresh; rows carry `new_results_count` + `new_results_counted_at`) |

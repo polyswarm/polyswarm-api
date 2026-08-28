@@ -20,7 +20,7 @@ import io
 import logging
 
 from polyswarm_api import exceptions, resources, settings
-from polyswarm_api.core import PolyswarmRequest, page_size_for
+from polyswarm_api.core import PolyswarmRequest, as_result_bound, page_size_for
 
 from .session import PolyswarmSession
 
@@ -583,12 +583,16 @@ class PolyswarmAPI:
         :param polyscore_upper: Polyscore upper bound for the hunt results.
         :param community: Community to retrieve live results from, or public/private.
         :param livescan_id: Scope the feed to one live hunt's results.
-        :param max_results: Stop after this many results. None or 0 means no
-            bound — the previous behaviour, every page up to the client's page
-            cap. Set it for a bounded read; it also sizes the page request, so
-            a small ask fetches a small page.
+        :param max_results: Stop after this many results. None, 0 or a negative
+            means no bound — the previous behaviour, every page up to the
+            client's page cap. Set it for a bounded read; it also sizes the
+            page request, so a small ask fetches a small page.
         :return: Generator of HuntResult resources
         """
+        # One normalised bound drives both halves — the page we ask for and
+        # the point we stop — so they cannot disagree about whether there is
+        # a bound at all (0 and negatives mean there is not).
+        bound = as_result_bound(max_results)
         yielded = 0
         for item in self._paginate(
             resources.LiveHuntResult.list(
@@ -599,18 +603,13 @@ class PolyswarmAPI:
                 polyscore_lower=polyscore_lower,
                 polyscore_upper=polyscore_upper,
                 livescan_id=livescan_id,
-                limit=page_size_for(max_results),
+                limit=page_size_for(bound),
                 community=community or self.community,
             )
         ):
             yield item
             yielded += 1
-            # Truthiness, NOT `is not None`: 0 means no bound, the same
-            # answer page_size_for gives it and the same convention `since`
-            # uses on this call. `is not None` here would make
-            # max_results=0 yield exactly one result — the two halves of
-            # the bound disagreeing.
-            if max_results and yielded >= max_results:
+            if bound is not None and yielded >= bound:
                 return
 
     def live_feed_delete(self, result_ids):

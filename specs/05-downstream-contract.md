@@ -134,6 +134,10 @@ class Hashable: ...
 class Hash(Hashable): ...
 def is_valid_sha1 / _sha256 / _md5(value) -> bool
 def parse_isoformat(date_string)
+
+MAX_PAGE_SIZE: int                       # the largest page the server will grant
+def as_result_bound(max_results)         # None / 0 / negative -> None (no bound)
+def page_size_for(max_results)           # the page a bounded read should request
 ```
 
 These are stable but less curated than the top-level exports. Downstream callers that subclass `BaseJsonResource` to add custom resource types are supported. Downstream callers that construct `PolyswarmRequest` manually and hand it to `session.execute` are supported.

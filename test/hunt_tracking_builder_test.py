@@ -141,6 +141,20 @@ class TestPageSizeForBound:
         assert core.page_size_for(None) is None
         # 0 is not a bound either; it would otherwise ask for a zero-row page.
         assert core.page_size_for(0) is None
+        # nor is a negative, which would otherwise put limit=-1 on the wire
+        # and the server would answer with nothing.
+        assert core.page_size_for(-1) is None
+
+    def test_the_bound_and_the_page_are_normalised_the_same_way(self):
+        # The two used to disagree about what counts as a bound at all, which
+        # is how max_results=0 asked for a full page and then stopped after
+        # one row. One definition now answers both.
+        for no_bound in (None, 0, -1):
+            assert core.as_result_bound(no_bound) is None
+            assert core.page_size_for(no_bound) is None
+        # a real bound is NOT clamped away — only the page it implies is
+        assert core.as_result_bound(10_000) == 10_000
+        assert core.page_size_for(10_000) == core.MAX_PAGE_SIZE
 
     def test_a_small_bound_asks_for_a_small_page(self):
         assert core.page_size_for(5) == 5
@@ -174,9 +188,62 @@ class TestLiveFeedMaxResults:
     def test_a_bound_larger_than_the_feed_is_not_padding(self):
         assert list(self._api_yielding(2).live_feed(max_results=9)) == [0, 1]
 
+    def test_a_negative_bound_is_no_bound(self):
+        assert list(self._api_yielding(4).live_feed(max_results=-1)) == list(range(4))
+
     def test_zero_is_no_bound_not_a_bound_of_one(self):
         # 0 has to mean the same thing here as it does in page_size_for and in
         # `since` on this same call: no bound. Testing `is not None` instead of
         # truthiness makes max_results=0 yield exactly one result, which is the
         # two halves of the bound disagreeing.
         assert list(self._api_yielding(7).live_feed(max_results=0)) == list(range(7))
+
+class TestLiveFeedLimitOnTheWire:
+    """``max_results`` must actually SIZE the request, not just truncate.
+
+    The truncation tests replace ``_paginate`` wholesale, so the descriptor is
+    never built and dropping the ``limit`` argument entirely would keep them all
+    green. This is the assertion that fails if the wiring goes away — and the
+    unbounded case pins that no ``limit`` is sent at all, which is what keeps the
+    default request byte-compatible with every recorded cassette."""
+
+    @staticmethod
+    def _params(**kwargs):
+        api = PolyswarmAPI.__new__(PolyswarmAPI)
+        api.uri = _FakeApi.uri
+        api.community = _FakeApi.community
+        captured = {}
+
+        def capture(request, *a, **kw):
+            captured.update(request.params)
+            return iter(())
+
+        api._paginate = capture
+        list(api.live_feed(**kwargs))
+        return captured
+
+    def test_a_bound_sizes_the_page(self):
+        assert self._params(max_results=5)['limit'] == 5
+
+    def test_a_large_bound_asks_only_for_what_the_server_grants(self):
+        assert self._params(max_results=10_000)['limit'] == core.MAX_PAGE_SIZE
+
+    def test_no_bound_sends_no_limit_at_all(self):
+        for no_bound in ({}, {'max_results': 0}, {'max_results': -1}):
+            assert 'limit' not in self._params(**no_bound)
+
+
+class TestLiveFeedSinceOnTheWire:
+    """``since=0`` has to REACH the server to mean what it means.
+
+    The contract is that absent-or-0 applies no time filter, and the server
+    implements it with a truthiness test. That only holds because ``_params``
+    drops ``None`` and not ``0``: were falsy values dropped, ``since=0`` and
+    ``since=5`` would build the same request and the parameter would be
+    unusable for anything but its default."""
+
+    def test_zero_is_sent_and_absent_is_omitted(self):
+        sent = resources.LiveHuntResult.list(_FakeApi(), since=0, community='gamma')
+        assert sent.params['since'] == 0
+        omitted = resources.LiveHuntResult.list(_FakeApi(), since=None, community='gamma')
+        assert 'since' not in omitted.params
