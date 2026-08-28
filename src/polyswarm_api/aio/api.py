@@ -507,9 +507,8 @@ class PolySwarmAsyncAPI:
         """
         Get live hunts feed
 
-        :param since: Window in MINUTES. Absent or 0 means NO time filter at
-            all — the feed pages over everything, which is what a caller
-            wanting the full history asks for.
+        :param since: Window in SECONDS (this said "minutes" before 4.4 and was
+            wrong). Absent or 0 means no time filter at all.
         :param rule_name: Filter hunt results on the provided rule name (exact match).
         :param family: Filter hunt results based on the family name (exact match).
         :param polyscore_lower: Polyscore lower bound for the hunt results.
@@ -522,9 +521,7 @@ class PolySwarmAsyncAPI:
             page request, so a small ask fetches a small page.
         :return: Generator of HuntResult resources
         """
-        # One normalised bound drives both halves — the page we ask for and
-        # the point we stop — so they cannot disagree about whether there is
-        # a bound at all (0 and negatives mean there is not).
+        # One normalised bound drives the page size and the stop condition.
         bound = as_result_bound(max_results)
         yielded = 0
         async for item in self._paginate(resources.LiveHuntResult.list(

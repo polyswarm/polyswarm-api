@@ -305,20 +305,24 @@ Migrating from 3.x to 4.0, callers retain:
 
 ## Backward compatibility — what changes
 
-### Behaviour changes
+### Documentation corrections that read like behaviour changes
 
-- **`live_feed(since=)` is now MINUTES, and it is a wire fix, not a doc fix.**
-  The 3.x/4.x docstring said "minutes" while the server converted with
-  `timedelta(seconds=since)`, so a caller who read the docstring and passed
-  `60` meaning an hour got a minute. Every surface around the parameter was
-  written for minutes — the CLI's `1440` default is `24 * 60` — so the server
-  was corrected to read minutes rather than the callers being corrected to
-  send seconds. **This is a break**: a caller passing an explicit `since` in
-  seconds now gets a 60x wider window, silently. Nobody loses data — they get
-  more — but it is a behaviour change the `develop → master` bump decision
-  should see, not a documentation correction.
+- **`live_feed(since=)` was always SECONDS.** The 3.x/4.x docstring said
+  "minutes", but the server has always converted the parameter with
+  `timedelta(seconds=since)` — the docstring was corrected, not the wire. A
+  caller who read the old docstring and passed `60` meaning an hour was
+  already getting a minute; nothing changed underneath them.
 
-  **`since` absent or `0` means no time filter at all** — the feed pages over
+  Moving the *wire* to minutes was considered and rejected. Every surface
+  around the parameter was written for minutes (the CLI's `1440` default is
+  `24 * 60`), so re-basing the server looked like the fix that made all three
+  agree — but the endpoint takes ~197k requests carrying `since` per 30 days
+  from 10 distinct API keys and 12 user agents, all SDK or script clients,
+  with values from `2100` to `2592000`. Re-reading those as minutes widens
+  every one 60x and returns more data with no error. The wire stays seconds;
+  the one caller in our control (the CLI's default) was corrected instead.
+
+- **`since` absent or `0` means no time filter at all** — the feed pages over
   everything. That is the server's contract (it applies the filter on a
   truthiness test), and it is what a caller wanting the full history relies
   on. An earlier revision of this document claimed the server was tightening
