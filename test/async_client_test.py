@@ -644,9 +644,21 @@ class TestAsyncScanCase:
                 # stack budget is shared across runs)
                 assert fav.favorites_limit == 5
                 assert 1 <= fav.favorites_used <= fav.favorites_limit
-                favorites = [r async for r in api.ruleset_list(favorites_only=True)]
-                assert any(r.id == rule.id for r in favorites)
-                assert all(r.favorite for r in favorites)
+                # The star was written on the line above — the sharpest
+                # read-after-write here, so it polls like the rest (specs/04).
+                # The star was written on the line above — the sharpest
+                # read-after-write here, so it polls like the rest (specs/04).
+                # One read per attempt: the rows are kept for the arm below.
+                starred = []
+                async def _is_starred():
+                    try:
+                        starred[:] = [r async for r in
+                                      api.ruleset_list(favorites_only=True)]
+                    except exceptions.NoResultsException:
+                        starred[:] = []
+                    return rule.id in {r.id for r in starred}
+                assert await poll_equals_async(_is_starred, True)
+                assert all(r.favorite for r in starred)
                 # unstarring here is the CONTRACT assertion; slot hygiene does
                 # not depend on reaching it — the finally's ruleset_delete
                 # soft-deletes and the budget counts only deleted=false rows

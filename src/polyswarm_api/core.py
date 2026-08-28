@@ -668,30 +668,14 @@ class BaseJsonResource(BaseResource):
         )
 
 
-# Mirrors the server's AI_MAX_QUERY_RESULTS; asking above it is a 400.
-MAX_PAGE_SIZE = 1000
-
-
 def as_result_bound(max_results):
     """The caller's result bound, or None when there isn't one.
 
-    None, 0 and negatives all mean "no bound". Stated once so the page size and
-    the stop condition can't disagree about whether a bound exists.
+    None, 0 and negatives all mean "no bound".
     """
     if not max_results or max_results < 0:
         return None
     return max_results
-
-
-def page_size_for(max_results):
-    """Page size for a bounded read, or None for the server default.
-
-    Not the bound itself: a 5000 ask gets 1000-row pages and still stops at 5000.
-    """
-    bound = as_result_bound(max_results)
-    if bound is None:
-        return None
-    return min(bound, MAX_PAGE_SIZE)
 
 
 # ── Hash helpers ───────────────────────────────────────────────────

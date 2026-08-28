@@ -224,6 +224,13 @@ class JsonResourceTestCase(TestCase):
         assert obj._get('path1.path3.path5') is None
 
 
+def _favorites_or_empty(api):
+    """The starred rulesets, or [] when the server answers 204."""
+    try:
+        return list(api.ruleset_list(favorites_only=True))
+    except exceptions.NoResultsException:
+        return []
+
 class ScanTestCaseV2(TestCase):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -612,9 +619,17 @@ class ScanTestCaseV2(TestCase):
             # used is a BOUND because the stack budget is shared across runs
             assert fav.favorites_limit == 5
             assert 1 <= fav.favorites_used <= fav.favorites_limit
-            favorites = list(api.ruleset_list(favorites_only=True))
-            assert any(r.id == rule.id for r in favorites)
-            assert all(r.favorite for r in favorites)
+            # The star was written on the line above — the sharpest
+            # read-after-write here, so it polls like the rest (specs/04).
+            # The star was written on the line above — the sharpest
+            # read-after-write here, so it polls like the rest (specs/04).
+            # One read per attempt: the rows are kept for the arm below.
+            starred = []
+            def _is_starred():
+                starred[:] = _favorites_or_empty(api)
+                return rule.id in {r.id for r in starred}
+            assert poll_equals(_is_starred, True)
+            assert all(r.favorite for r in starred)
             # unstarring here is the CONTRACT assertion; slot hygiene does not
             # depend on reaching it — the finally's ruleset_delete soft-deletes
             # and the server's budget counts only deleted=false rows, so a

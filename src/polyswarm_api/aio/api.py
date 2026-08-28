@@ -18,7 +18,7 @@ import logging
 import time
 
 from polyswarm_api import exceptions, resources, settings
-from polyswarm_api.core import PolyswarmRequest, as_result_bound, page_size_for
+from polyswarm_api.core import PolyswarmRequest, as_result_bound
 
 from .session import AsyncPolyswarmSession
 
@@ -516,18 +516,15 @@ class PolySwarmAsyncAPI:
         :param community: Community to retrieve live results from, or public/private.
         :param livescan_id: Scope the feed to one live hunt's results.
         :param max_results: Stop after this many results. None, 0 or a negative
-            means no bound — the previous behaviour, every page up to the
-            client's page cap. Set it for a bounded read; it also sizes the
-            page request, so a small ask fetches a small page.
+            means no bound — the previous behaviour, every page.
         :return: Generator of HuntResult resources
         """
-        # One normalised bound drives the page size and the stop condition.
         bound = as_result_bound(max_results)
         yielded = 0
         async for item in self._paginate(resources.LiveHuntResult.list(
             self, since=since, rule_name=rule_name, family=family,
             polyscore_lower=polyscore_lower, polyscore_upper=polyscore_upper,
-            livescan_id=livescan_id, limit=page_size_for(bound),
+            livescan_id=livescan_id,
             community=community or self.community)):
             yield item
             yielded += 1

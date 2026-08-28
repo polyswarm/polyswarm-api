@@ -135,9 +135,7 @@ class Hash(Hashable): ...
 def is_valid_sha1 / _sha256 / _md5(value) -> bool
 def parse_isoformat(date_string)
 
-MAX_PAGE_SIZE: int                       # the largest page the server will grant
 def as_result_bound(max_results)         # None / 0 / negative -> None (no bound)
-def page_size_for(max_results)           # the page a bounded read should request
 ```
 
 These are stable but less curated than the top-level exports. Downstream callers that subclass `BaseJsonResource` to add custom resource types are supported. Downstream callers that construct `PolyswarmRequest` manually and hand it to `session.execute` are supported.
@@ -330,12 +328,16 @@ Migrating from 3.x to 4.0, callers retain:
   change was ever made, and the opposite is the intended semantics.
 
 - **`live_feed(max_results=)` is new and additive.** It defaults to `None`,
-  which is the historical behaviour — every page, up to the client's page cap.
-  Set it to bound a read; it also sizes the page request (`core.page_size_for`),
-  so a small ask does not fetch a full default page. Worth knowing that the
-  server has never served an unbounded query — it caps every page — while this
-  client follows cursors until `has_more` clears, so the bound this offers is
-  a client-side one.
+  which is the historical behaviour — every page. It bounds how many results
+  the generator yields and nothing else: the request is unchanged, so the
+  default call stays byte-compatible with every recorded cassette.
+
+  It deliberately does **not** size the page. Sending `limit` looked like a
+  free optimisation — a small ask need not fetch a full page — but the server's
+  cap is `AI_MAX_QUERY_RESULTS`, an env var set per deployment (300 in the
+  chart, 1000 in the code default), and asking above it is a **400**. The SDK
+  cannot know a value the deployment chooses, so it does not guess: the server
+  picks the page, the client stops at the bound.
 
 ### Required code changes
 

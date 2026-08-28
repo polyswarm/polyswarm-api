@@ -149,39 +149,16 @@ class TestLiveFeedScopeBuilder:
         assert req.params == {'since': 60, 'livescan_id': '45392847561029383',
                               'community': 'gamma'}
 
-class TestPageSizeForBound:
-    """``core.page_size_for`` — the page a bounded read should ask for.
+class TestResultBound:
+    """``core.as_result_bound`` — one definition of "is there a bound"."""
 
-    The server caps a page itself and has never served an unbounded query; what
-    is unbounded is this client, which follows cursors until ``has_more``
-    clears. So a caller asking for N needs a page big enough to hold N, and
-    never more than the server would grant anyway."""
-
-    def test_no_bound_takes_the_server_default(self):
-        # None is the historical behaviour — every page, server-sized.
-        assert core.page_size_for(None) is None
-        # 0 is not a bound either; it would otherwise ask for a zero-row page.
-        assert core.page_size_for(0) is None
-        # nor is a negative, which would otherwise put limit=-1 on the wire
-        # and the server would answer with nothing.
-        assert core.page_size_for(-1) is None
-
-    def test_the_bound_and_the_page_are_normalised_the_same_way(self):
-        # The two used to disagree about what counts as a bound at all, which
-        # is how max_results=0 asked for a full page and then stopped after
-        # one row. One definition now answers both.
+    def test_no_bound_forms(self):
         for no_bound in (None, 0, -1):
             assert core.as_result_bound(no_bound) is None
-            assert core.page_size_for(no_bound) is None
-        # a real bound is NOT clamped away — only the page it implies is
+
+    def test_a_real_bound_passes_through_unclamped(self):
+        assert core.as_result_bound(5) == 5
         assert core.as_result_bound(10_000) == 10_000
-        assert core.page_size_for(10_000) == core.MAX_PAGE_SIZE
-
-    def test_a_small_bound_asks_for_a_small_page(self):
-        assert core.page_size_for(5) == 5
-
-    def test_a_large_bound_is_clamped_to_what_the_server_grants(self):
-        assert core.page_size_for(10_000) == core.MAX_PAGE_SIZE
 
 
 class TestLiveFeedMaxResults:
@@ -213,20 +190,18 @@ class TestLiveFeedMaxResults:
         assert list(self._api_yielding(4).live_feed(max_results=-1)) == list(range(4))
 
     def test_zero_is_no_bound_not_a_bound_of_one(self):
-        # 0 has to mean the same thing here as it does in page_size_for and in
-        # `since` on this same call: no bound. Testing `is not None` instead of
-        # truthiness makes max_results=0 yield exactly one result, which is the
-        # two halves of the bound disagreeing.
+        # 0 means no bound, as it does for `since` on the same call. Testing
+        # `is not None` instead makes max_results=0 yield exactly one result.
         assert list(self._api_yielding(7).live_feed(max_results=0)) == list(range(7))
 
 class TestLiveFeedLimitOnTheWire:
-    """``max_results`` must actually SIZE the request, not just truncate.
+    """``max_results`` must NOT put ``limit`` on the wire.
 
-    The truncation tests replace ``_paginate`` wholesale, so the descriptor is
-    never built and dropping the ``limit`` argument entirely would keep them all
-    green. This is the assertion that fails if the wiring goes away — and the
-    unbounded case pins that no ``limit`` is sent at all, which is what keeps the
-    default request byte-compatible with every recorded cassette."""
+    Sizing the page looked free, but the server's cap is AI_MAX_QUERY_RESULTS —
+    an env var set per deployment (300 in the chart) — and asking above it is a
+    400. Keeping ``limit`` off the request also keeps the default call
+    byte-compatible with every recorded cassette.
+    """
 
     @staticmethod
     def _params(**kwargs):
@@ -243,15 +218,10 @@ class TestLiveFeedLimitOnTheWire:
         list(api.live_feed(**kwargs))
         return captured
 
-    def test_a_bound_sizes_the_page(self):
-        assert self._params(max_results=5)['limit'] == 5
-
-    def test_a_large_bound_asks_only_for_what_the_server_grants(self):
-        assert self._params(max_results=10_000)['limit'] == core.MAX_PAGE_SIZE
-
-    def test_no_bound_sends_no_limit_at_all(self):
-        for no_bound in ({}, {'max_results': 0}, {'max_results': -1}):
-            assert 'limit' not in self._params(**no_bound)
+    def test_no_limit_is_ever_sent(self):
+        for kwargs in ({}, {'max_results': 5}, {'max_results': 10_000},
+                       {'max_results': 0}, {'max_results': -1}):
+            assert 'limit' not in self._params(**kwargs)
 
 
 class TestLiveFeedSinceOnTheWire:
@@ -308,12 +278,8 @@ class TestAsyncLiveFeedMaxResults:
             api, _ = self._api_yielding(4)
             assert self._collect(api.live_feed(max_results=no_bound)) == list(range(4))
 
-    def test_the_bound_sizes_the_page(self):
-        api, captured = self._api_yielding(0)
-        self._collect(api.live_feed(max_results=5))
-        assert captured['limit'] == 5
-
-    def test_no_bound_sends_no_limit(self):
-        api, captured = self._api_yielding(0)
-        self._collect(api.live_feed())
-        assert 'limit' not in captured
+    def test_no_limit_is_ever_sent(self):
+        for kwargs in ({}, {'max_results': 5}, {'max_results': 0}):
+            api, captured = self._api_yielding(0)
+            self._collect(api.live_feed(**kwargs))
+            assert 'limit' not in captured
