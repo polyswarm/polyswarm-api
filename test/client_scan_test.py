@@ -621,8 +621,6 @@ class ScanTestCaseV2(TestCase):
             assert 1 <= fav.favorites_used <= fav.favorites_limit
             # The star was written on the line above — the sharpest
             # read-after-write here, so it polls like the rest (specs/04).
-            # The star was written on the line above — the sharpest
-            # read-after-write here, so it polls like the rest (specs/04).
             # One read per attempt: the rows are kept for the arm below.
             starred = []
             def _is_starred():
