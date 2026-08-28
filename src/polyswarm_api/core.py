@@ -16,7 +16,8 @@ parsing logic have a single source of truth:
   builders (``create``, ``get``, ``head``, ``update``, ``delete``,
   ``list``) construct ``PolyswarmRequest`` descriptors.
 - ``Hashable`` + ``is_valid_*`` validators, ``parse_isoformat``,
-  ``_normalise_bool_params``, ``RequestParamsEncoder``.
+  ``_normalise_bool_params``, ``RequestParamsEncoder``,
+  ``as_result_bound``.
 
 Both transports import from here.
 """

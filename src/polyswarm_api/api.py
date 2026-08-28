@@ -574,7 +574,7 @@ class PolyswarmAPI:
         """
         Get live hunts feed
 
-        :param since: Window in SECONDS (this said "minutes" before 4.4 and was
+        :param since: Window in SECONDS (this said "minutes" in earlier releases and was
             wrong). Absent or 0 means no time filter at all.
         :param rule_name: Filter hunt results on the provided rule name (exact match).
         :param family: Filter hunt results based on the family name (exact match).

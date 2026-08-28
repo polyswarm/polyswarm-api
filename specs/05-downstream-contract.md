@@ -312,7 +312,7 @@ Migrating from 3.x to 4.0, callers retain:
   already getting a minute; nothing changed underneath them.
 
   Moving the *wire* to minutes was considered and rejected. Every surface
-  around the parameter was written for minutes (the CLI's `1440` default is
+  around the parameter was written for minutes (the CLI's old `1440` default was
   `24 * 60`), so re-basing the server looked like the fix that made all three
   agree — but the endpoint takes ~197k requests carrying `since` per 30 days
   from 10 distinct API keys and 12 user agents, all SDK or script clients,
