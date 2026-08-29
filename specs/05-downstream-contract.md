@@ -312,6 +312,15 @@ A populated `matched_strings` with a non-null count is the normal shape for a ve
 ruleset. The first string of a match is never withheld, so this can never accompany an
 empty list.
 
+**How much of this is pinned against a real server.** The live pair
+(`LiveHuntResult` / `LiveHuntResultList`) is verified end to end — `test_live` /
+`test_async_live` assert the detail route carries evidence, that list rows do not, and
+that the server serves `matched_strings_dropped`. The **historical** pair follows by
+symmetry, not by measurement: the e2e stack does not reliably populate historical results
+inside a test window, so nothing pins that those routes emit either key. The server
+renders both pairs through the same helpers, which is why symmetry is a reasonable
+assumption — but it is an assumption. See `specs/99-open-questions.md`.
+
 **Evidence lives on the detail routes only.** `live_feed()` and `historical_results()`
 page over list endpoints and will always yield `None` here; fetch a single result
 (`live_result(id)` / `historical_result(id)`) to get the strings.

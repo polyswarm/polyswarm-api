@@ -342,10 +342,15 @@ server, removed evidence, or a **list** endpoint, which sends an explicit `null`
 than fetch a blob per row), `[]` means *matched with no byte evidence*, and a populated list is evidence.
 
 **`matched_strings_dropped`.** A sibling `int`/`None`, parsed the same additive way:
-how many matched strings the server's byte budget withheld from this result. `None` means
-none were, which is also what a server predating the budget reports. It never accompanies
-an empty `matched_strings` — a match's first string is never withheld — so a non-null
-count always means "the list you have is short by this much".
+how many matched strings the server's byte budget withheld from this result. `None` is
+**ambiguous in the same way as `matched_strings`** and must be read the same way: on a
+**detail** route it means nothing was withheld, on a **list** route that the route did not
+look, and on an older server that the field did not exist. It is never a claim that the
+evidence is complete — which matters because the list endpoints always send `None` (below),
+so on a list row the two readings are not interchangeable.
+
+A non-null count always means "the list you have is short by this much". It never
+accompanies an empty `matched_strings` — a match's first string is never withheld.
 
 Both `…List` subclasses inherit these from their parent's `__init__`, so all four
 hunt-result classes carry them — but on the list endpoints the values are always `None`

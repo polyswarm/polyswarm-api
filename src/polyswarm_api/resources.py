@@ -772,9 +772,11 @@ class LiveHuntResult(core.BaseJsonResource):
         # evidence), [...] (the evidence, a lower bound). See
         # specs/05-downstream-contract.md.
         self.matched_strings = content.get('matched_strings')
-        # How many matched strings the server's byte budget cost this result, or None
-        # when nothing was dropped (also what every result predating the budget reports).
-        # A sibling field, so `matched_strings` stays a plain list.
+        # How many matched strings the server's byte budget withheld from this result.
+        # A sibling field, so `matched_strings` stays a plain list. None is AMBIGUOUS in
+        # the same way as matched_strings: on a detail route it means nothing was withheld,
+        # on a list route that the route did not look, and on an older server that the
+        # field did not exist. It is not a claim that the evidence is complete.
         self.matched_strings_dropped = content.get('matched_strings_dropped')
         self.polyscore = content['polyscore']
         self.malware_family = content['malware_family']
@@ -830,9 +832,11 @@ class HistoricalHuntResult(core.BaseJsonResource):
         # evidence), [...] (the evidence, a lower bound). See
         # specs/05-downstream-contract.md.
         self.matched_strings = content.get('matched_strings')
-        # How many matched strings the server's byte budget cost this result, or None
-        # when nothing was dropped (also what every result predating the budget reports).
-        # A sibling field, so `matched_strings` stays a plain list.
+        # How many matched strings the server's byte budget withheld from this result.
+        # A sibling field, so `matched_strings` stays a plain list. None is AMBIGUOUS in
+        # the same way as matched_strings: on a detail route it means nothing was withheld,
+        # on a list route that the route did not look, and on an older server that the
+        # field did not exist. It is not a claim that the evidence is complete.
         self.matched_strings_dropped = content.get('matched_strings_dropped')
         self.polyscore = content['polyscore']
         self.malware_family = content['malware_family']

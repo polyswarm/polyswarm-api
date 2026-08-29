@@ -24,6 +24,8 @@ How the test suite is organised. Three layers: pure unit tests (no HTTP at all �
 - `test/metadata_field_properties_test.py` — the canonical example of the parametrised `ClientTestCase` harness with `respx`-backed mocking.
 - `test/client_scan_test.py` — sync, VCR-backed integration tests (not yet on the parametrised harness — follow-up work).
 - `test/async_client_test.py` — async, VCR-backed integration tests (not yet on the parametrised harness — follow-up work).
+- `test/hunt_matched_strings_test.py` — pure-unit tests for the three-state `matched_strings` contract and its `matched_strings_dropped` sibling, across all four hunt-result classes. The endpoint behaviour they cannot see (that the detail route actually emits the keys and the list route sends `null`) is pinned live in `client_scan_test.py::test_live` / `async_client_test.py::test_async_live` — the e2e-first + pure-unit pairing invariant 1 asks for.
+- `test/known_good_test.py` — pure-unit tests for the known-good resource fields.
 - `test/jmespath_test.py` — unit tests for `BaseJsonResource.jmespath`.
 - `test/vcr/*.vcr` — recorded cassettes.
 - `test/eicar.yara`, `test/malicious` — fixture files for upload tests.

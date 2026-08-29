@@ -82,10 +82,20 @@ def test_populated_list_is_passed_through_verbatim(cls):
 
 
 @pytest.mark.parametrize("cls", ALL_CLASSES)
-def test_raw_json_still_carries_the_key(cls):
-    """`.json` is part of the contract, so JSON-mode consumers see it without SDK work."""
-    result = cls(_content(cls, matched_strings=_STRINGS))
-    assert result.json["matched_strings"] == _STRINGS
+def test_parsing_does_not_mutate_the_raw_json(cls):
+    """`.json` is part of the contract: JSON-mode consumers read the server's payload
+    unchanged, so parsing must not reshape or strip what it read.
+
+    (Asserting `result.json[k] == content[k]` alone would be tautological -- __init__
+    assigns `self.json = content` -- so this compares the parsed attributes against the
+    raw dict instead, which is the property that would actually break.)
+    """
+    content = _content(cls, matched_strings=_STRINGS, matched_strings_dropped=19)
+    result = cls(content)
+    assert result.json is content
+    assert result.matched_strings == content["matched_strings"]
+    assert result.matched_strings_dropped == content["matched_strings_dropped"]
+    assert set(content) <= set(result.json), "parsing must not drop keys from .json"
 
 
 @pytest.mark.parametrize("cls", ALL_CLASSES)
@@ -102,8 +112,13 @@ def test_dropped_is_none_when_absent(cls):
 
 
 @pytest.mark.parametrize("cls", ALL_CLASSES)
-def test_dropped_is_independent_of_the_strings_list(cls):
-    """A truncated list is still a list; the count is what says it is short."""
+def test_a_populated_list_and_a_count_coexist(cls):
+    """The normal shape for a verbose ruleset, and the pairing the contract turns on.
+
+    A truncated list is still a list -- nothing marks it short from the inside -- so the
+    count is the only thing that says so. Both must survive parsing together.
+    """
     result = cls(_content(cls, matched_strings=_STRINGS, matched_strings_dropped=19))
     assert isinstance(result.matched_strings, list)
     assert len(result.matched_strings) == 2
+    assert result.matched_strings_dropped == 19

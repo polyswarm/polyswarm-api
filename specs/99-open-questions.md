@@ -168,3 +168,22 @@ def test_rescans(self):
 ```
 
 Cleanup with `try/finally` + `except NotFoundException: pass` tolerates the ioc-cache divergence (GET-by-host can serve a cached id that DELETE-by-id no longer finds). When that artifact-index bug is fixed the `except` becomes redundant.
+
+## Historical hunt-result fields are not pinned against a live server
+
+**Status:** gap, blocked on the e2e stack.
+
+`matched_strings` / `matched_strings_dropped` are asserted end to end for the **live**
+hunt pair only. `test_historical_results` tolerates an empty result set by design — the
+stack does not reliably populate historical results inside a test window — so nothing
+verifies that `/hunt/historical/results` emits either key, or that
+`/hunt/historical/results/list` sends the explicit `null`.
+
+Both specs previously stated the contract for "all four classes" as established fact;
+they now say the historical half follows by symmetry. The server renders both pairs
+through the same serializer helpers, so the assumption is reasonable — but a fabricated
+response asserts what we *think* the server returns (invariant 1), and that is the state
+the historical half is in.
+
+**Action:** if the stack gains a way to produce a historical result deterministically,
+add the same assertions to a historical live test and delete this entry.
