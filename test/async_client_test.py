@@ -733,7 +733,13 @@ class TestAsyncScanCase:
                 # server never grew the field; only a cassette shows what it actually sent.
                 assert result.matched_strings, 'detail route should carry the yara evidence'
                 assert my_results[0].matched_strings is None, \
-                    'list rows omit the evidence -- it is a per-row blob fetch'
+                    'list rows do not carry the evidence -- it is a per-row blob fetch'
+                # On .json, not the attribute: `is None` cannot tell a served null from an
+                # absent key, and what needs pinning is that the server SENDS this field.
+                assert 'matched_strings_dropped' in result.json, \
+                    'server must serve the withheld-count field'
+                assert result.matched_strings_dropped is None, \
+                    'nothing withheld for a match this small'
 
                 await api.live_feed_delete([result_id])
                 with pytest.raises(exceptions.NotFoundException):

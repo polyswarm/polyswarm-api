@@ -338,8 +338,8 @@ dict shape and the lower-bound caveat live in
 [`05-downstream-contract.md`](./05-downstream-contract.md)
 §"`matched_strings` on hunt results" — read it there rather than inferring from the
 attribute. The short version a parser needs: `None` means *not reported* (an older
-server, removed evidence, or a **list** endpoint, which omits it rather than fetch a blob
-per row), `[]` means *matched with no byte evidence*, and a populated list is evidence.
+server, removed evidence, or a **list** endpoint, which sends an explicit `null` rather
+than fetch a blob per row), `[]` means *matched with no byte evidence*, and a populated list is evidence.
 
 **`matched_strings_dropped`.** A sibling `int`/`None`, parsed the same additive way:
 how many matched strings the server's byte budget withheld from this result. `None` means

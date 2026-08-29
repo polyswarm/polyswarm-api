@@ -281,7 +281,7 @@ Three values are possible and consumers **must not** collapse them:
 
 | Value | Meaning |
 |---|---|
-| `None` | Not reported. Either the server predates the field, the stored evidence was deleted, or this came from a **list** endpoint — those omit it rather than fetch a blob per row. "We don't know", *not* "there was nothing". |
+| `None` | Not reported. The **list** endpoints send the key as an explicit `null` rather than fetch a blob per row; a server predating the field omits it entirely; and stored evidence may have been deleted. `.get()` collapses all three. "We don't know", *not* "there was nothing". |
 | `[]` | The rule matched and there is no byte evidence to show — a rule with no strings section, one whose matching strings are all `private`, or one that matched on absence (`not $a`, `none of them`). |
 | `[…]` | The evidence. A **lower bound**, not a match count: `any of them` prints only the strings that hit, `private` strings never appear, and the server may withhold some past a size limit (see `matched_strings_dropped`). |
 
@@ -302,8 +302,10 @@ strings the server's per-result byte budget withheld, and it exists because a tr
 list is otherwise indistinguishable from a complete one: a consumer reading twelve
 entries would conclude the rule hit twelve times when it hit thirty-one.
 
-`None` means nothing was withheld — which is also what every result predating the budget
-reports, so no consumer needs to special-case the older shape. It is deliberately a
+`None` carries the same ambiguity as `matched_strings` itself and should be read the same
+way: on a **detail** route it means nothing was withheld, but on a **list** route it means
+the route did not look, and on an older server it means the field did not exist. It is not
+a claim that the evidence is complete. It is deliberately a
 **sibling** rather than a key inside `matched_strings`, which stays a plain list.
 
 A populated `matched_strings` with a non-null count is the normal shape for a verbose
