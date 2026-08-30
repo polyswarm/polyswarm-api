@@ -360,10 +360,15 @@ by design.
 `live_feed()` builds its request with `LiveHuntResult.list(...)`, which hits
 `/hunt/live/list` but parses rows as **`LiveHuntResult`** (see
 [`03-endpoints.md`](./03-endpoints.md)). `LiveHuntResultList` is only ever a *delete*
-builder and is never instantiated from a response; only `historical_results()` yields
-`…List` instances. So a `LiveHuntResult` carrying `matched_strings is None` may well have
-come from the list route — which is exactly why that `None` is ambiguous and must not be
-read as "nothing to show".
+**builder** — but the delete response is parsed **through** it (`_build_request` sets
+`result_parser=cls`), so `live_feed_delete()` and `historical_results_delete()` both yield
+`…List` instances, with both fields `None`. From a *read*, only `historical_results()`
+yields them.
+
+So `None` reaches a caller from four places, not three: an older server, deleted evidence,
+a list route, and a **delete response**. A `LiveHuntResult` carrying
+`matched_strings is None` may well have come from the list route — which is exactly why
+that `None` is ambiguous and must not be read as "nothing to show".
 
 ### `LocalArtifact`
 

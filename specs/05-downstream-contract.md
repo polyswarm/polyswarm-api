@@ -281,7 +281,7 @@ Three values are possible and consumers **must not** collapse them:
 
 | Value | Meaning |
 |---|---|
-| `None` | Not reported. The **list** endpoints send the key as an explicit `null` rather than fetch a blob per row; a server predating the field omits it entirely; and stored evidence may have been deleted. `.get()` collapses all three. "We don't know", *not* "there was nothing". |
+| `None` | Not reported. **Four** causes, which `.get()` collapses: the **list** endpoints send an explicit `null` rather than fetch a blob per row; **delete** responses (`live_feed_delete` / `historical_results_delete`) are parsed through the `…List` classes and carry `null` the same way; a server predating the field omits it entirely; and stored evidence may have been deleted. "We don't know", *not* "there was nothing". |
 | `[]` | The rule matched and there is no byte evidence to show — a rule with no strings section, one whose matching strings are all `private`, or one that matched on absence (`not $a`, `none of them`). |
 | `[…]` | The evidence. A **lower bound**, not a match count: `any of them` prints only the strings that hit, `private` strings never appear, and the server may withhold some past a size limit (see `matched_strings_dropped`). |
 

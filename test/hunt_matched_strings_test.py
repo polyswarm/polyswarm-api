@@ -37,7 +37,7 @@ _STRINGS = [
 
 # Both concrete classes plus their `…List` subclasses, which inherit __init__ and must
 # behave identically. NB the subclass does not imply the route: live_feed parses list
-# rows as LiveHuntResult, and LiveHuntResultList is only ever a delete builder.
+# rows as LiveHuntResult, while the ...List classes parse DELETE responses.
 ALL_CLASSES = [
     LiveHuntResult, LiveHuntResultList,
     HistoricalHuntResult, HistoricalHuntResultList,
