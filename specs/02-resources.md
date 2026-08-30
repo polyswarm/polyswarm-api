@@ -356,6 +356,15 @@ Both `…List` subclasses inherit these from their parent's `__init__`, so all f
 hunt-result classes carry them — but on the list endpoints the values are always `None`
 by design.
 
+**Do not read the class as telling you the route.** For the live pair it does not:
+`live_feed()` builds its request with `LiveHuntResult.list(...)`, which hits
+`/hunt/live/list` but parses rows as **`LiveHuntResult`** (see
+[`03-endpoints.md`](./03-endpoints.md)). `LiveHuntResultList` is only ever a *delete*
+builder and is never instantiated from a response; only `historical_results()` yields
+`…List` instances. So a `LiveHuntResult` carrying `matched_strings is None` may well have
+come from the list route — which is exactly why that `None` is ambiguous and must not be
+read as "nothing to show".
+
 ### `LocalArtifact`
 
 A file-system or in-memory artifact prepared for upload. Constructed via:

@@ -35,8 +35,9 @@ _STRINGS = [
      "data": "4D 5A 90 00 ...", "truncated": True},
 ]
 
-# Both concrete classes plus their list-endpoint subclasses, which inherit __init__
-# and must therefore behave identically.
+# Both concrete classes plus their `…List` subclasses, which inherit __init__ and must
+# behave identically. NB the subclass does not imply the route: live_feed parses list
+# rows as LiveHuntResult, and LiveHuntResultList is only ever a delete builder.
 ALL_CLASSES = [
     LiveHuntResult, LiveHuntResultList,
     HistoricalHuntResult, HistoricalHuntResultList,

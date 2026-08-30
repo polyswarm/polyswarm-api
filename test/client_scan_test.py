@@ -513,6 +513,11 @@ class ScanTestCaseV2(TestCase):
                 'server must serve the withheld-count field'
             assert result.matched_strings_dropped is None, \
                 'nothing withheld for a match this small'
+            # The per-entry shape is contract (specs/05) but was pinned only by a hand-written
+            # fixture -- i.e. what we THINK the server sends. This asserts it against what the
+            # server actually sent, so a key rename cannot pass the suite VCR-off.
+            assert set(result.matched_strings[0]) == {
+                'offset', 'identifier', 'length', 'data', 'truncated'}, result.matched_strings[0]
 
             api.live_feed_delete([result_id])
             with pytest.raises(exceptions.NotFoundException):
