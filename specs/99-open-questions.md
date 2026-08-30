@@ -187,3 +187,24 @@ the historical half is in.
 
 **Action:** if the stack gains a way to produce a historical result deterministically,
 add the same assertions to a historical live test and delete this entry.
+
+## The non-null `matched_strings_dropped` path is not pinned against a live server
+
+**Status:** gap, probably not worth closing with a test.
+
+`test_live` / `test_async_live` assert only the `is None` arm — correctly, since the
+per-test rule is small and the server withholds nothing from it. So the two strongest
+claims `05-downstream-contract.md` makes about this field rest entirely on hand-written
+pure-unit dicts:
+
+- a non-null count means "the list you have is short by this much", and
+- it can never accompany an empty `matched_strings`, because a match's first string is
+  never withheld.
+
+That is the same "asserts what we *think* the server returns" gap invariant 1 exists to
+close, and it sits alongside the historical-pair entry above.
+
+Producing an over-budget match on the e2e stack means a rule whose matches exceed the
+server's per-hunt byte budget across a single artifact — engineering a fixture for that is
+disproportionate to what it would pin. **Recorded rather than tested, deliberately.** If a
+stack fixture ever produces one cheaply, assert both claims there and delete this entry.

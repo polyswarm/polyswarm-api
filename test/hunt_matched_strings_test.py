@@ -7,6 +7,8 @@ consumer that collapses them loses the distinction between "we don't know" and
 "the rule matched with no byte evidence".
 """
 
+import copy
+
 import pytest
 
 from polyswarm_api.resources import (
@@ -91,12 +93,16 @@ def test_parsing_does_not_mutate_the_raw_json(cls):
     assigns `self.json = content` -- so this compares the parsed attributes against the
     raw dict instead, which is the property that would actually break.)
     """
-    content = _content(cls, matched_strings=_STRINGS, matched_strings_dropped=19)
+    raw = _content(cls, matched_strings=_STRINGS, matched_strings_dropped=19)
+    content = copy.deepcopy(raw)
     result = cls(content)
-    assert result.json is content
-    assert result.matched_strings == content["matched_strings"]
-    assert result.matched_strings_dropped == content["matched_strings_dropped"]
-    assert set(content) <= set(result.json), "parsing must not drop keys from .json"
+    # Compared against an independent copy, so both of these can actually fail. Asserting
+    # `result.json is content` and then `set(content) <= set(result.json)` only restated
+    # the identity -- the tautology moved rather than went away.
+    assert content == raw, "parsing must not mutate the payload it was handed"
+    assert set(raw) <= set(result.json), "parsing must not drop keys from .json"
+    assert result.matched_strings == raw["matched_strings"]
+    assert result.matched_strings_dropped == raw["matched_strings_dropped"]
 
 
 @pytest.mark.parametrize("cls", ALL_CLASSES)
