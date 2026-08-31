@@ -121,11 +121,13 @@ _LONG_POLE_FRAGMENTS = (
     "sample",           # sandbox completion + metadata
     "stream",           # global archiver batching
     "rescan",           # rescan retry loop + settle
-    "_rules",           # test_rules / test_async_rules — live enable/stop +
-                        # ~6 poll loops. NOT "rules" (a prefix of "ruleset", so it
-                        # also matches the instant ruleset_favorite respx suite)
-                        # and NOT "test_rules" (which misses test_async_rules
-                        # entirely — it is test_ + async_rules).
+    # Exact, because every substring of these two is also a prefix of
+    # test_ruleset_* — "rules", "test_rules" and "_rules" each caught the
+    # instant unit tests as well. A "::" fragment is matched as a nodeid
+    # SUFFIX (see _long_pole_rank), which is the only form that can name a
+    # test whose name is a prefix of another's.
+    "::test_rules",       # live enable/stop + ~6 poll loops
+    "::test_async_rules", # the async twin
     "hash_search",      # search-index lag
     "existence_probe",  # submit + settle + search-index lag (the HEAD probe tests)
     "sandboxtask",      # sandbox completion + index lag
@@ -135,7 +137,9 @@ _LONG_POLE_FRAGMENTS = (
 def _long_pole_rank(item):
     name = item.nodeid
     for rank, frag in enumerate(_LONG_POLE_FRAGMENTS):
-        if frag in name:
+        # A "::" fragment names one test exactly; anything else is a substring
+        # hint that may legitimately span several.
+        if name.endswith(frag) if frag.startswith('::') else frag in name:
             return rank
     return len(_LONG_POLE_FRAGMENTS)  # unit/respx tests backfill the tail
 
