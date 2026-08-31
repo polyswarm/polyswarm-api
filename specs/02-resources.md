@@ -241,7 +241,7 @@ from .core import BaseJsonResource, Hashable, PolyswarmRequest
 
 class FooBar(BaseJsonResource):
     RESOURCE_ENDPOINT = '/foobar'
-    RESOURCE_ID_KEYS = ['foo_id']   # only needed if the identifier isn't 'id'
+    RESOURCE_ID_KEYS = ['foo_id']   # keys routed to the query string, not the body
 
     # Optional: parametrised path
     # RESOURCE_ENDPOINT = '/foobar/{foo_id}'
