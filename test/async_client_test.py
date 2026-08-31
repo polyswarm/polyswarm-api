@@ -732,8 +732,11 @@ class TestAsyncScanCase:
                 # The pure-unit tests exercise dict.get and would pass identically if the
                 # server never grew the field; only a cassette shows what it actually sent.
                 assert result.matched_strings, 'detail route should carry the yara evidence'
-                assert my_results[0].matched_strings is None, \
-                    'list rows do not carry the evidence -- it is a per-row blob fetch'
+                # On .json for the same reason as the count below: the attribute cannot
+                # distinguish a served null from an absent key, and specs/05 claims the
+                # list route sends an explicit null.
+                assert my_results[0].json['matched_strings'] is None, \
+                    'list rows carry the key as null, not the evidence'
                 # On .json, not the attribute: `is None` cannot tell a served null from an
                 # absent key, and what needs pinning is that the server SENDS this field.
                 assert 'matched_strings_dropped' in result.json, \

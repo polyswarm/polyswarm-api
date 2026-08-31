@@ -77,8 +77,13 @@ def test_empty_list_is_preserved_and_is_not_none(cls):
 
 @pytest.mark.parametrize("cls", ALL_CLASSES)
 def test_populated_list_is_passed_through_verbatim(cls):
-    """The SDK does not reshape entries — `data` in particular stays as yara rendered it."""
-    result = cls(_content(cls, matched_strings=_STRINGS))
+    """The SDK does not reshape entries — `data` in particular stays as yara rendered it.
+
+    Deep-copied: passing the module-level _STRINGS stores it BY REFERENCE, so these
+    assertions compared the object with itself and no in-place reshape could fail them.
+    Same trap as test_parsing_does_not_mutate_the_raw_json.
+    """
+    result = cls(_content(cls, matched_strings=copy.deepcopy(_STRINGS)))
     assert result.matched_strings == _STRINGS
     assert result.matched_strings[0]["identifier"] == "$stub"
     assert result.matched_strings[1]["truncated"] is True
