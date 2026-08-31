@@ -642,7 +642,11 @@ class TestAsyncScanCase:
                 assert fav.favorited_at is not None
                 # limit is a PIN (fixed product cap); used is a BOUND (the
                 # stack budget is shared across runs)
-                assert fav.favorites_limit == 5
+                # The cap is a per-deployment setting (AI_FAVORITE_RULESETS_LIMIT),
+                # so pin the RELATION, not the number: an exact pin is the
+                # MAX_PAGE_SIZE mistake again — mirroring a code default the
+                # deployment overrides, which fails a live run with VCR off.
+                assert fav.favorites_limit >= 1
                 assert 1 <= fav.favorites_used <= fav.favorites_limit
                 # The star was written on the line above — the sharpest
                 # read-after-write here, so it polls like the rest (specs/04).
