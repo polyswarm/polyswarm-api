@@ -630,7 +630,7 @@ class TestAsyncScanCase:
                 rules = [r async for r in api.ruleset_list()]
                 assert any(r.id == rule.id for r in rules)
                 # Universal arms, not presence-only — an ignored param would
-                # pass the membership check alone (F9).
+                # pass the membership check alone.
                 by_name = [r async for r in api.ruleset_list(name=uid)]
                 assert rule.id in {r.id for r in by_name}
                 assert all(uid.lower() in (r.name or '').lower() for r in by_name)

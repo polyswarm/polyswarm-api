@@ -607,7 +607,7 @@ class ScanTestCaseV2(TestCase):
             # Both arms are UNIVERSAL, not presence-only: `rule.id in by_name`
             # holds identically if the server ignored the param and returned
             # the unfiltered list, which is exactly the regression a filter
-            # test exists to catch (F9).
+            # test exists to catch.
             by_name = list(api.ruleset_list(name=uid))
             assert rule.id in {r.id for r in by_name}
             assert all(uid.lower() in (r.name or '').lower() for r in by_name)
