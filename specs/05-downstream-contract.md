@@ -135,7 +135,6 @@ class Hash(Hashable): ...
 def is_valid_sha1 / _sha256 / _md5(value) -> bool
 def parse_isoformat(date_string)
 
-def as_result_bound(max_results)         # None / 0 / negative -> None (no bound)
 ```
 
 These are stable but less curated than the top-level exports. Downstream callers that subclass `BaseJsonResource` to add custom resource types are supported. Downstream callers that construct `PolyswarmRequest` manually and hand it to `session.execute` are supported.
@@ -314,18 +313,18 @@ Migrating from 3.x to 4.0, callers retain:
   Moving the *wire* to minutes was considered and rejected. Every surface
   around the parameter was written for minutes (the CLI's old `1440` default was
   `24 * 60`), so re-basing the server looked like the fix that made all three
-  agree — but the endpoint takes ~197k requests carrying `since` per 30 days
-  from 10 distinct API keys and 12 user agents, all SDK or script clients,
-  with values from `2100` to `2592000`. Re-reading those as minutes widens
-  every one 60x and returns more data with no error. The wire stays seconds;
+  agree — but the endpoint carries substantial live traffic passing `since`, from
+  SDK and script clients outside our control, across a wide range of values.
+  Re-reading every one of those as minutes widens each window 60x and returns
+  more data with no error, silently. The wire stays seconds;
   the one caller in our control (the CLI's default) was corrected instead.
 
 - **`since` absent or `0` means no time filter at all** — the feed pages over
   everything. That is the server's contract (it applies the filter on a
   truthiness test), and it is what a caller wanting the full history relies
-  on. An earlier revision of this document claimed the server was tightening
-  this to `is not None` so that `since=0` would mean an empty window: no such
-  change was ever made, and the opposite is the intended semantics.
+  on. Note the shape of the server-side test: it is truthiness, not
+  `is not None`, and tightening it would turn `since=0` into an empty window
+  rather than no filter.
 
 - **`live_feed(max_results=)` is new and additive.** It defaults to `None`,
   which is the historical behaviour — every page. It bounds how many results
@@ -336,10 +335,10 @@ Migrating from 3.x to 4.0, callers retain:
   page is the server's to choose (50 for the web service, capped by
   `AI_MAX_QUERY_RESULTS`), and `_next_page` echoes the size it reports back on
   each subsequent request; a bounded read keeps paginating in those same small,
-  API-friendly chunks and simply stops once it has enough. An earlier revision
-  sent `limit=max_results`, which conflated the two — and, since the cap is an
-  env var each deployment sets (300 in the chart), would have turned a large
-  bound into a 400.
+  API-friendly chunks and simply stops once it has enough. Sending
+  `limit=max_results` would conflate the two — and, since the cap is an
+  env var each deployment sets — and set well below a large bound — would have
+  turned that bound into a 400.
 
 ### Required code changes
 

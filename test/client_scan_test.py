@@ -620,10 +620,9 @@ class ScanTestCaseV2(TestCase):
             assert fav.favorited_at is not None
             # the limit is a PIN (the fixed product cap, no plan scaling);
             # used is a BOUND because the stack budget is shared across runs
-            # The cap is a per-deployment setting (AI_FAVORITE_RULESETS_LIMIT),
-            # so pin the RELATION, not the number: an exact pin is the
-            # MAX_PAGE_SIZE mistake again — mirroring a code default the
-            # deployment overrides, which fails a live run with VCR off.
+            # The cap is a per-deployment setting, so pin the RELATION rather
+            # than the number: an exact pin mirrors a code default the
+            # deployment can override, and fails a live run with VCR off.
             assert fav.favorites_limit >= 1
             assert 1 <= fav.favorites_used <= fav.favorites_limit
             # The star was written on the line above — the sharpest

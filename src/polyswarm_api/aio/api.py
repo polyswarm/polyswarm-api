@@ -18,7 +18,7 @@ import logging
 import time
 
 from polyswarm_api import exceptions, resources, settings
-from polyswarm_api.core import PolyswarmRequest, as_result_bound
+from polyswarm_api.core import PolyswarmRequest, _as_result_bound
 
 from .session import AsyncPolyswarmSession
 
@@ -520,7 +520,7 @@ class PolySwarmAsyncAPI:
             None, 0 or a negative means no bound: every page, as before.
         :return: Generator of HuntResult resources
         """
-        bound = as_result_bound(max_results)
+        bound = _as_result_bound(max_results)
         yielded = 0
         async for item in self._paginate(resources.LiveHuntResult.list(
             self, since=since, rule_name=rule_name, family=family,

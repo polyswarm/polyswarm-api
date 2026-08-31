@@ -150,15 +150,15 @@ class TestLiveFeedScopeBuilder:
                               'community': 'gamma'}
 
 class TestResultBound:
-    """``core.as_result_bound`` — one definition of "is there a bound"."""
+    """``core._as_result_bound`` — one definition of "is there a bound"."""
 
     def test_no_bound_forms(self):
         for no_bound in (None, 0, -1):
-            assert core.as_result_bound(no_bound) is None
+            assert core._as_result_bound(no_bound) is None
 
     def test_a_real_bound_passes_through_unclamped(self):
-        assert core.as_result_bound(5) == 5
-        assert core.as_result_bound(10_000) == 10_000
+        assert core._as_result_bound(5) == 5
+        assert core._as_result_bound(10_000) == 10_000
 
 
 class TestLiveFeedMaxResults:
@@ -197,9 +197,9 @@ class TestLiveFeedMaxResults:
 class TestLiveFeedLimitOnTheWire:
     """``max_results`` is a total, so it must not reach the wire as ``limit``.
 
-    The page stays the server's to choose and the read keeps paginating in those
-    chunks; sending the total as a page size also 400s above the deployment's
-    AI_MAX_QUERY_RESULTS (300 in the chart).
+    The page stays the server's to choose and the read keeps paginating in
+    those chunks; sending the total as a page size also 400s above whatever
+    per-page cap the deployment configures.
     """
 
     @staticmethod

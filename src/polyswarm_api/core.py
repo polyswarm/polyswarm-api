@@ -17,7 +17,7 @@ parsing logic have a single source of truth:
   ``list``) construct ``PolyswarmRequest`` descriptors.
 - ``Hashable`` + ``is_valid_*`` validators, ``parse_isoformat``,
   ``_normalise_bool_params``, ``RequestParamsEncoder``,
-  ``as_result_bound``.
+  ``_as_result_bound``.
 
 Both transports import from here.
 """
@@ -669,7 +669,7 @@ class BaseJsonResource(BaseResource):
         )
 
 
-def as_result_bound(max_results):
+def _as_result_bound(max_results):
     """The caller's result bound, or None when there isn't one.
 
     None, 0 and negatives all mean "no bound".

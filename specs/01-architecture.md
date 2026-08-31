@@ -42,7 +42,7 @@ Hand-written. No I/O. Three sub-concerns:
 
 **Resource bases**: `BaseResource`, `BaseJsonResource`. The latter has classmethod builders (`create` / `get` / `head` / `update` / `delete` / `list`) that each return a `PolyswarmRequest` descriptor. Per-domain resources in `resources.py` inherit from `BaseJsonResource` and may add custom classmethods (`ArtifactInstance.search_hash`, `IOC.iocs_by_hash`, etc.) — all returning descriptors.
 
-**Helpers**: `Hashable` + `Hash` + `is_valid_sha1/sha256/md5`, `parse_isoformat`, `_normalise_bool_params`, `RequestParamsEncoder`, `as_result_bound` (the one definition of a caller's result bound), `_raise_for_status` (the shared non-2xx → typed-exception mapper, used by both `parse_response` and the session's streaming-download path). Downloads stream straight to their destination from the session — there is no response adapter; see [`99-open-questions.md`](./99-open-questions.md) §"Streaming downloads".
+**Helpers**: `Hashable` + `Hash` + `is_valid_sha1/sha256/md5`, `parse_isoformat`, `_normalise_bool_params`, `RequestParamsEncoder`, `_as_result_bound` (the one definition of a caller's result bound — private, like its sibling helpers: nothing outside this package calls it), `_raise_for_status` (the shared non-2xx → typed-exception mapper, used by both `parse_response` and the session's streaming-download path). Downloads stream straight to their destination from the session — there is no response adapter; see [`99-open-questions.md`](./99-open-questions.md) §"Streaming downloads".
 
 ### Layer 2 — transport (`session.py` / `aio/session.py`)
 
