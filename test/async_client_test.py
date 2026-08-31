@@ -614,15 +614,17 @@ class TestAsyncScanCase:
             # stack, deterministic rule_count of 1.
             contents = uid_yara(uid)
             rule = await api.ruleset_create(uid, contents)
-            assert rule.name == uid
-            assert rule.yara == contents
-            # Tracking fields are live from creation.
-            assert rule.rule_count == 1
-            assert rule.favorite is False
-            assert rule.favorited_at is None
-            assert rule.historical_hunt_count == 0
             hunt = None
+            # try opens IMMEDIATELY — see the sync twin: a failed assertion
+            # must still reach the finally's ruleset_delete.
             try:
+                assert rule.name == uid
+                assert rule.yara == contents
+                # Tracking fields are live from creation.
+                assert rule.rule_count == 1
+                assert rule.favorite is False
+                assert rule.favorited_at is None
+                assert rule.historical_hunt_count == 0
                 # The e2e may carry leftover rulesets from prior runs; use
                 # a presence assertion instead of an exact count.
                 rules = [r async for r in api.ruleset_list()]

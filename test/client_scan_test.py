@@ -585,16 +585,19 @@ class ScanTestCaseV2(TestCase):
         uid = self._testMethodName
         contents = uid_yara(uid)
         rule = api.ruleset_create(uid, contents)
-        assert rule.name == uid
-        assert rule.yara == contents
-        # The tracking fields are live from creation: the body was counted on
-        # the way in, nothing is starred yet, no hunts have been triggered.
-        assert rule.rule_count == 1
-        assert rule.favorite is False
-        assert rule.favorited_at is None
-        assert rule.historical_hunt_count == 0
         hunt = None
+        # try opens IMMEDIATELY: every assertion below is inside it, so a
+        # failure still reaches the finally's ruleset_delete. A leaked ruleset
+        # on the shared stack is not free — a starred one holds a favorite slot.
         try:
+            assert rule.name == uid
+            assert rule.yara == contents
+            # The tracking fields are live from creation: the body was counted
+            # on the way in, nothing is starred yet, no hunts triggered.
+            assert rule.rule_count == 1
+            assert rule.favorite is False
+            assert rule.favorited_at is None
+            assert rule.historical_hunt_count == 0
             # listing — the created rule must be in the list; the e2e may carry
             # other rulesets from earlier runs, so use a presence assertion
             # rather than an exact count.
