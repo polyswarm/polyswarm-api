@@ -23,6 +23,7 @@ import hashlib
 import os
 import re
 import tempfile
+import time
 from concurrent.futures import ThreadPoolExecutor
 from contextlib import contextmanager
 
@@ -75,8 +76,8 @@ def uid_yara(uid):
 
     The artifact embeds ``uid`` (see ``malicious_artifact``), so a rule keying on
     that literal matches just this run's submission — isolating a live/historical
-    hunt from every other test's EICAR artifact (the generic eicar.yara substring
-    rule would match them all).
+    hunt from every other test's EICAR artifact (a generic EICAR-substring rule
+    would match them all).
     """
     ident = re.sub(r'\W', '_', uid)
     return f'rule sdk_{ident} {{ strings: $u = "{uid}" condition: $u }}'
@@ -132,3 +133,51 @@ async def run_concurrently_async(coros):
     if _vcr_off() and len(coros) > 1:
         return await asyncio.gather(*coros)
     return [await c for c in coros]
+
+
+def poll_equals(read, want, tries=30, delay=1.0):
+    """Poll a zero-arg ``read`` until it returns ``want`` (or tries run out),
+    returning the last value read. For read-after-write assertions against
+    replica-backed GET endpoints (specs/04 in the server repo): on the e2e
+    stack the replica IS the primary so the first read usually wins, but a
+    real-replica stack lags — without the poll those assertions are
+    lag-flaky, and the changed-since-freeze one flakes in the silent
+    direction (stale source body reads as "unchanged"). Not-found during the
+    lag window counts as "not yet" — which is exactly why ``want`` must never
+    be None: a 404 would compare equal to it and turn a vanished resource
+    into a passing assertion (poll a boolean instead — ``read`` returning
+    ``value is None``, want=True). Enforced below. Sleeps are free on VCR
+    replay (``_skip_poll_sleep_on_replay``)."""
+    if want is None:
+        raise ValueError('poll_equals(want=None) would treat a 404 as a match; '
+                         'poll a boolean instead (read: value is None, want=True).')
+    from polyswarm_api import exceptions as _exceptions
+    value = None
+    for _ in range(tries):
+        try:
+            value = read()
+        except (_exceptions.NotFoundException, _exceptions.NoResultsException):
+            value = None
+        if value == want:
+            return value
+        time.sleep(delay)
+    return value
+
+
+async def poll_equals_async(read, want, tries=30, delay=1.0):
+    """The asyncio twin of ``poll_equals`` (``read`` is a zero-arg coroutine
+    function), including the want-is-None refusal."""
+    if want is None:
+        raise ValueError('poll_equals_async(want=None) would treat a 404 as a '
+                         'match; poll a boolean instead.')
+    from polyswarm_api import exceptions as _exceptions
+    value = None
+    for _ in range(tries):
+        try:
+            value = await read()
+        except (_exceptions.NotFoundException, _exceptions.NoResultsException):
+            value = None
+        if value == want:
+            return value
+        await asyncio.sleep(delay)
+    return value
