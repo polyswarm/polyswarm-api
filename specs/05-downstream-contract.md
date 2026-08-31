@@ -455,6 +455,19 @@ result = req._result          # the parsed resource (or list);
 
 No feature PR should touch `pyproject.toml`'s `version` unless the maintainer asks. See `AGENTS.md` §Gitflow.
 
+**One case always asks: a consumer pinning a floor at this change.** A sibling repo that needs a
+surface added here expresses that as a version requirement — `polyswarm_api>=X.Y.0` — because a
+version pin is checkable by `pip` at install time, before any code runs. That floor cannot name a
+version this repo has not declared, so the bump belongs in the feature PR and step 3's "bump at the
+release step" does not apply. Consequences worth stating plainly:
+
+- **Order is forced.** This repo's `develop → master` must merge and release before the consumer can
+  be released, because the consumer's floor is unsatisfiable from PyPI until then. Consumer CI is
+  unaffected — it installs this repo straight from git by branch name.
+- **The version string must be clean.** `4.4.0.dev0` does not satisfy `>=4.4.0` (PEP 440 orders
+  pre-releases below the release). Verify what `bump-my-version` emitted before pushing; the
+  serialize config here can produce a dev form.
+
 ## Companion repos
 
 - **polyswarm-cli** — wraps these methods in CLI subcommands. CLI changes that need an SDK surface ship as a pair: SDK PR opens first, CLI PR depends on it via `## Requires` in the description.

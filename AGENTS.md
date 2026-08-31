@@ -40,6 +40,7 @@ feature/*  ─┐
 - **`develop → master` PRs are how `master` advances.** They're opened by a maintainer when a release-worthy batch of work is on `develop`. Most contributors never open one of these.
 - **Direct PRs to `master`** are wrong. If you opened one, close it, branch off `develop` instead, and re-open against `develop`.
 - **PyPI release happens automatically** when `pyproject.toml`'s `version` changes on `master`. Don't bump the version inside a feature PR unless the maintainer specifically asks — version bumps belong to the `develop → master` step.
+- **The standing exception: a downstream floor that must point at this change.** When a sibling repo needs a surface this PR adds, that repo raises its `polyswarm_api>=` floor to the version introducing it — and the floor cannot name a version this repo has not declared yet. So the bump lands **here, in the feature PR**, not at the release step. Bump with `bump-my-version` and **check the emitted string is a clean `X.Y.0`**: the config can serialize a `.devN+sha` form, and PEP 440 orders `4.4.0.dev0 < 4.4.0`, so a dev suffix silently fails the sibling's floor and sends its CI to PyPI for a version that does not exist yet.
 
 **Why this matters:** `master` is the published surface of the SDK. PyPI consumers see whatever shows up there. Skipping `develop` skips the integration soak that protects against accidentally shipping a half-baked change.
 
