@@ -697,7 +697,7 @@ class PolySwarmAsyncAPI:
         return await self._single(resources.YaraRuleset.delete(self, id=ruleset_id, community=self.community))
 
     async def ruleset_list(self, name=None, status=None, favorites_only=None,
-                           has_new_results=None):
+                           has_new_results=None, sort=None):
         """
         List all YaraRulesets for the current account.
 
@@ -711,12 +711,21 @@ class PolySwarmAsyncAPI:
             maintained server-side by a scheduled refresh; rows carry it as
             ``new_results_count`` with ``new_results_counted_at`` marking when
             it was last refreshed. There is no per-request window parameter.
+        :param sort: ``'active_first'`` returns the rulesets with a running
+            live hunt first — as recorded by the server's live-hunt link, the
+            same link ``livescan_id`` renders from — newest first within each
+            block. Default (None) is newest first. Applied SERVER-side, across
+            pages — the list is keyset-paginated, so a client-side sort would
+            only ever reorder one page; the SDK never re-orders rows. Reuse a
+            page's ``offset`` only with the same ``sort``: the server refuses
+            a cursor minted under the other order.
         :return: A generator of YaraRuleset resources
         """
         logger.info('List rulesets')
         async for item in self._paginate(resources.YaraRuleset.list(
                 self, name=name, status=status, favorites_only=favorites_only,
-                has_new_results=has_new_results, community=self.community)):
+                has_new_results=has_new_results, sort=sort,
+                community=self.community)):
             yield item
 
     async def ruleset_favorite(self, ruleset_id, favorite=True):

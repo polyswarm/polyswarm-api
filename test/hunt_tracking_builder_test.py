@@ -238,6 +238,100 @@ class TestLiveFeedSinceOnTheWire:
         omitted = resources.LiveHuntResult.list(_FakeApi(), since=None, community='gamma')
         assert 'since' not in omitted.params
 
+
+class TestRulesetListSortOnTheWire:
+    """``ruleset_list(sort='active_first')`` — the hunt page's active-first
+    order is an opt-in server token, and it must REACH the server
+    exactly as such: the unsorted call sends no ``sort`` at all (the request
+    stays byte-compatible with the pre-sort contract and the list keeps its
+    id-desc order), and the SDK never re-orders client-side — the list is
+    keyset-paginated, so a local sort would only ever reorder one page.
+
+    Both transports are driven: the sync mirror (what ``polyswarm-cli``
+    calls) and the canonical async source unasync generates it from."""
+
+    @staticmethod
+    def _sync_params(**kwargs):
+        api = PolyswarmAPI.__new__(PolyswarmAPI)
+        api.uri = _FakeApi.uri
+        api.community = _FakeApi.community
+        captured = {}
+
+        def capture(request, *a, **kw):
+            captured.update(request.params)
+            captured['__url__'] = request.url
+            return iter(())
+
+        api._paginate = capture
+        list(api.ruleset_list(**kwargs))
+        return captured
+
+    @staticmethod
+    def _async_params(**kwargs):
+        api = PolySwarmAsyncAPI.__new__(PolySwarmAsyncAPI)
+        api.uri = _FakeApi.uri
+        api.community = _FakeApi.community
+        captured = {}
+
+        async def paginate(request, *a, **kw):
+            captured.update(request.params)
+            return
+            yield  # pragma: no cover — makes this an async generator
+
+        api._paginate = paginate
+
+        async def run():
+            return [item async for item in api.ruleset_list(**kwargs)]
+
+        asyncio.run(run())
+        return captured
+
+    def test_sync_sends_the_server_token_and_nothing_else_new(self):
+        sent = self._sync_params(sort='active_first')
+        assert sent['__url__'] == f'{_FakeApi.uri}/hunt/rule/list'
+        assert {k: v for k, v in sent.items() if k != '__url__'} == {
+            'sort': 'active_first', 'community': 'gamma'}
+
+    def test_sync_default_sends_no_sort(self):
+        sent = self._sync_params()
+        assert 'sort' not in sent
+
+    def test_sort_composes_with_the_filters(self):
+        sent = self._sync_params(sort='active_first', status='active',
+                                 favorites_only=True)
+        assert sent['sort'] == 'active_first'
+        assert sent['status'] == 'active'
+        assert sent['favorites_only'] == 1
+
+    def test_async_canonical_sends_the_same_token(self):
+        sent = self._async_params(sort='active_first')
+        assert sent == {'sort': 'active_first', 'community': 'gamma'}
+        assert 'sort' not in self._async_params()
+
+    def test_sort_survives_onto_the_next_page(self):
+        # The order is only meaningful across pages, and page 2 is built by
+        # _next_page cloning the descriptor's params — the one place a
+        # rewrite could rebuild them from scratch and drop `sort` silently.
+        # The _paginate stubs above never reach it, so drive it directly.
+        api = PolySwarmAsyncAPI.__new__(PolySwarmAsyncAPI)
+        api.uri = _FakeApi.uri
+        api.community = _FakeApi.community
+        dispatched = []
+
+        class _Session:
+            async def execute(self, request, *a, **kw):
+                dispatched.append(request)
+                return request
+
+        api.session = _Session()
+        first = resources.YaraRuleset.list(api, sort='active_first', community='gamma')
+        first.offset, first.limit = 'opaque-cursor', 25
+        asyncio.run(api._next_page(first))
+        assert len(dispatched) == 1
+        assert dispatched[0].params == {'sort': 'active_first', 'community': 'gamma',
+                                        'offset': 'opaque-cursor', 'limit': 25}
+
+
 class TestAsyncLiveFeedMaxResults:
     """The CANONICAL async bound loop, not the generated mirror.
 
