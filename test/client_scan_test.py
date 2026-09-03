@@ -17,7 +17,7 @@ from polyswarm_api import core
 from polyswarm_api import exceptions
 
 from test._e2e_helpers import (
-    EICAR_STRING, malicious_artifact, artifact_file, uid_ip, uid_host, uid_yara,
+    EICAR_STRING, malicious_artifact, artifact_file, uid_ip, uid_host, uid_yara, poll_equals,
     assert_scanned, run_concurrently,
 )
 
@@ -223,6 +223,13 @@ class JsonResourceTestCase(TestCase):
         assert obj._get('path1.path2[1].path4') is None
         assert obj._get('path1.path3.path5') is None
 
+
+def _favorites_or_empty(api):
+    """The starred rulesets, or [] when the server answers 204."""
+    try:
+        return list(api.ruleset_list(favorites_only=True))
+    except exceptions.NoResultsException:
+        return []
 
 class ScanTestCaseV2(TestCase):
     def __init__(self, *args, **kwargs):
@@ -527,10 +534,14 @@ class ScanTestCaseV2(TestCase):
                 api.live_result(result_id)
 
             # Stop returns the just-stopped livescan_id; the ruleset's stored
-            # livescan_id flips back to None on the next read.
+            # livescan_id flips back to None on a subsequent read — which hits
+            # the replica, so poll instead of reading one line later. Poll a
+            # BOOLEAN, never want=None: the helper maps a 404 during the lag
+            # window to None, so want=None would let a vanished ruleset pass
+            # the assertion the old direct read would have raised on.
             api.live_stop(rule_id=rule_id)
-            stopped = api.ruleset_get(rule_id)
-            assert stopped.livescan_id is None
+            assert poll_equals(
+                lambda: api.ruleset_get(rule_id).livescan_id is None, True)
         finally:
             # Always tear the hunt down, even on a mid-test failure: a left-
             # over active live hunt captures every later EICAR submission in
@@ -590,34 +601,163 @@ class ScanTestCaseV2(TestCase):
     @vcr.use_cassette()
     def test_rules(self):
         api = PolyswarmAPI(self.test_api_key, uri=f'http://ai:9696/{self.api_version}', community='gamma')
-        # creating
-        with open('test/eicar.yara') as rule:
-            contents = rule.read()
-            rule = api.ruleset_create('test', contents)
-        assert rule.name == 'test'
-        assert rule.yara == contents
+        # creating — a uid-namespaced single-rule body, so the name is unique
+        # on the shared stack and rule_count is deterministically 1.
+        uid = self._testMethodName
+        contents = uid_yara(uid)
+        rule = api.ruleset_create(uid, contents)
+        hunt = None
+        # try opens IMMEDIATELY: every assertion below is inside it, so a
+        # failure still reaches the finally's ruleset_delete. A leaked ruleset
+        # on the shared stack is not free — a starred one holds a favorite slot.
         try:
+            assert rule.name == uid
+            assert rule.yara == contents
+            # The tracking fields are live from creation: the body was counted
+            # on the way in, nothing is starred yet, no hunts triggered.
+            assert rule.rule_count == 1
+            assert rule.favorite is False
+            assert rule.favorited_at is None
+            assert rule.historical_hunt_count == 0
             # listing — the created rule must be in the list; the e2e may carry
             # other rulesets from earlier runs, so use a presence assertion
             # rather than an exact count.
             rules = list(api.ruleset_list())
             assert any(r.id == rule.id for r in rules)
+            # the name filter narrows to this test's own rule
+            # Both arms are UNIVERSAL, not presence-only: `rule.id in by_name`
+            # holds identically if the server ignored the param and returned
+            # the unfiltered list, which is exactly the regression a filter
+            # test exists to catch.
+            by_name = list(api.ruleset_list(name=uid))
+            assert rule.id in {r.id for r in by_name}
+            assert all(uid.lower() in (r.name or '').lower() for r in by_name)
             # getting
             got = api.ruleset_get(rule.id)
-            assert got.name == 'test'
-            # updating
-            updated = api.ruleset_update(rule.id, name='test2', description='test')
-            assert updated.name == 'test2'
+            assert got.name == uid
+            # favorite round-trip, with the budget counts the server owns
+            fav = api.ruleset_favorite(rule.id, True)
+            assert fav.favorite is True
+            assert fav.favorited_at is not None
+            # the limit is a PIN (the fixed product cap, no plan scaling);
+            # used is a BOUND because the stack budget is shared across runs
+            # The cap is a per-deployment setting, so pin the RELATION rather
+            # than the number: an exact pin mirrors a code default the
+            # deployment can override, and fails a live run with VCR off.
+            assert fav.favorites_limit >= 1
+            assert 1 <= fav.favorites_used <= fav.favorites_limit
+            # The star was written on the line above — the sharpest
+            # read-after-write here, so it polls like the rest (specs/04).
+            # One read per attempt: the rows are kept for the arm below.
+            starred = []
+            def _is_starred():
+                starred[:] = _favorites_or_empty(api)
+                return rule.id in {r.id for r in starred}
+            assert poll_equals(_is_starred, True)
+            assert all(r.favorite for r in starred)
+            # unstarring here is the CONTRACT assertion; slot hygiene does not
+            # depend on reaching it — the finally's ruleset_delete soft-deletes
+            # and the server's budget counts only deleted=false rows, so a
+            # failed run's star frees itself with the rule
+            unfav = api.ruleset_favorite(rule.id, False)
+            assert unfav.favorite is False
+            assert unfav.favorited_at is None
+            # live-hunt scope: the stored new-results counter and the
+            # livescan_id feed both need a running hunt. The badge is written
+            # ONLY by the server's scheduled refresh job (never on a request),
+            # and that job does not run on the e2e stack — so the row reads
+            # null ("never refreshed"), which is exactly the additive-field
+            # contract this SDK pins: never 0, and the staleness marker rides
+            # with it. The counting semantics themselves are pinned by the
+            # server's own HTTP + CLI suites.
+            api.live_start(int(rule.id))
+            try:
+                # the enable lands asynchronously and the GET reads the
+                # replica — poll rather than read-one-line-later
+                assert poll_equals(
+                    lambda: api.ruleset_get(rule.id).livescan_id is not None,
+                    True)
+                livescan_id = api.ruleset_get(rule.id).livescan_id
+                assert rule.id in {r.id for r in api.ruleset_list(status='active')}
+                row = next(r for r in api.ruleset_list() if r.id == rule.id)
+                assert row.new_results_count is None
+                assert row.new_results_counted_at is None
+                # has_new_results reads the stored counter (> 0): a never-
+                # refreshed hunt must NOT match
+                try:
+                    hot_ids = {r.id for r in api.ruleset_list(has_new_results=True)}
+                except exceptions.NoResultsException:
+                    hot_ids = set()
+                assert rule.id not in hot_ids
+                # NOTE: with a zero-result hunt the feed check pins only the
+                # wire shape and the empty pass-through — it cannot tell a
+                # working filter from an ignored param (that would need a
+                # second hunt WITH results). The scoping semantics are pinned
+                # by the server's own HTTP suite.
+                try:
+                    assert list(api.live_feed(livescan_id=livescan_id)) == []
+                except exceptions.NoResultsException:
+                    pass
+            finally:
+                # MUST stop before the outer finally's ruleset_delete — a
+                # running live hunt blocks deletion server-side
+                api.live_stop(int(rule.id))
+
+            def _active_ids():
+                try:
+                    return {r.id for r in api.ruleset_list(status='active')}
+                except exceptions.NoResultsException:
+                    return set()   # nothing live anywhere: also a pass
+            # the stop's detach reads back off the replica too — poll
+            assert poll_equals(lambda: rule.id not in _active_ids(), True)
+            # a historical hunt triggered FROM the ruleset carries the
+            # provenance and bumps the ruleset's counter; the create response
+            # answers source_rule_changed=False directly — the freeze stamped
+            # the anchor from the very row it froze, so the answer is knowable
+            # without a re-read
+            hunt = api.historical_create(int(rule.id))
+            assert hunt.rule_id == rule.id
+            assert hunt.rule_modified is not None
+            assert hunt.source_rule_changed is False
+            # the GETs below read the replica; poll so a lagging replica
+            # (real stacks, not e2e — a fresh hunt can even 404 there for a
+            # beat) can't flake these. Note the False poll below cannot defend
+            # against a stale False (it returns on the first False, stale or
+            # not); its poll exists for the 404-window, while the later TRUE
+            # poll is the one that genuinely rides out a stale read.
+            assert poll_equals(
+                lambda: api.ruleset_get(rule.id).historical_hunt_count, 1) == 1
+            # a read of the fresh hunt resolves the comparison: unchanged body
+            hunt_read = api.historical_get(hunt.id)
+            assert hunt_read.rule_id == rule.id
+            assert poll_equals(
+                lambda: api.historical_get(hunt.id).source_rule_changed, False) is False
+            # updating — a body edit flips the hunt's source_rule_changed
+            updated = api.ruleset_update(
+                rule.id, name=f'{uid}2', rules=f'{contents}\n// edited', description='test')
+            assert updated.name == f'{uid}2'
             assert updated.description == 'test'
+            assert poll_equals(
+                lambda: api.historical_get(hunt.id).source_rule_changed, True) is True
         finally:
-            # deleting — the created rule disappears from the list.
-            api.ruleset_delete(rule.id)
-        remaining_ids = []
-        try:
-            remaining_ids = [r.id for r in api.ruleset_list()]
-        except exceptions.NoResultsException:
-            pass
-        assert rule.id not in remaining_ids
+            # The ruleset delete is the slot-hygiene guarantee other comments
+            # lean on, so it must not sit behind the hunt delete (a transient
+            # 5xx, or a hunt already DELETING, would otherwise leak a ruleset
+            # on the shared stack).
+            try:
+                if hunt is not None:
+                    api.historical_delete(hunt.id)
+            finally:
+                # deleting — the created rule disappears from the list.
+                api.ruleset_delete(rule.id)
+        def _listed_ids():
+            try:
+                return {r.id for r in api.ruleset_list()}
+            except exceptions.NoResultsException:
+                return set()
+        # the delete reads back off the replica — poll like the other
+        # read-after-writes in this test
+        assert poll_equals(lambda: rule.id not in _listed_ids(), True)
 
     @vcr.use_cassette()
     def test_tool_metadata(self):

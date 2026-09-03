@@ -86,6 +86,7 @@ Internal-only CRUD for the `/known-good` binary resource (distinct from the IOC 
 | `ruleset_create(name, rules, description=None)` | `YaraRuleset.create` |
 | `ruleset_get(ruleset_id=None)` | `YaraRuleset.get` |
 | `ruleset_update(ruleset_id, name=None, rules=None, description=None)` | `YaraRuleset.update` |
+| `ruleset_favorite(ruleset_id, favorite=True)` | `YaraRulesetFavorite.update` — idempotent star/unstar; the response carries the team's `favorites_used`/`favorites_limit`, and an over-budget star is refused with a machine-readable `FAVORITE_LIMIT` error. The id and favorite ride the PUT **body**; `community` rides the query (see the `RESOURCE_ID_KEYS = ['community']` note in specs/02) |
 | `ruleset_delete(ruleset_id)` | `YaraRuleset.delete` |
 | `tag_link_get(sha256)` | `TagLink.get` |
 | `tag_link_update(sha256, tags=None, families=None, emerging=None, remove=False)` | `TagLink.update` |
@@ -186,10 +187,10 @@ refusal.
 | `iocs_by_hash(hash_type, hash_value, hide_known_good=False, beta=False)` | `IOC.iocs_by_hash` |
 | `search_by_ioc(ip=None, domain=None, ttp=None, imphash=None)` | `IOC.ioc_search` |
 | `check_known_hosts(ips=[], domains=[])` | `IOC.check_known_hosts` |
-| `live_feed(since=None, …)` | `LiveHuntResult.list` |
+| `live_feed(since=None, …, livescan_id=None, max_results=None)` | `LiveHuntResult.list` — `livescan_id` scopes the feed to one live hunt (the hunt-page per-ruleset feed); `since` is in **SECONDS** (the server converts with `timedelta(seconds=since)`; the 3.x/4.x docstring said minutes and was wrong), and absent-or-`0` means no time filter at all — the server applies it on a truthiness test; `max_results` bounds how many results the generator yields — `None`/`0`/negative means no bound; it does not alter the request |
 | `historical_list(since=None)` | `HistoricalHunt.list` |
 | `historical_results(hunt=None, …)` | `HistoricalHuntResultList.get` |
-| `ruleset_list()` | `YaraRuleset.list` |
+| `ruleset_list(name=None, status=None, favorites_only=None, has_new_results=None)` | `YaraRuleset.list` — the hunt-page filters, conjunctive and optional; unset filters are omitted from the query so the no-filter request is byte-compatible with the old contract. `has_new_results` selects on the server's STORED counter (no window parameter — the window belongs to the server's scheduled refresh; rows carry `new_results_count` + `new_results_counted_at`) |
 | `tag_list()` | `Tag.list` |
 | `family_list()` | `MalwareFamily.list` |
 | `assertions_list(engine_id)` | `AssertionsJob.list` |

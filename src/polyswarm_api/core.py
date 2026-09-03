@@ -16,7 +16,8 @@ parsing logic have a single source of truth:
   builders (``create``, ``get``, ``head``, ``update``, ``delete``,
   ``list``) construct ``PolyswarmRequest`` descriptors.
 - ``Hashable`` + ``is_valid_*`` validators, ``parse_isoformat``,
-  ``_normalise_bool_params``, ``RequestParamsEncoder``.
+  ``_normalise_bool_params``, ``RequestParamsEncoder``,
+  ``_as_result_bound``.
 
 Both transports import from here.
 """
@@ -666,6 +667,16 @@ class BaseJsonResource(BaseResource):
             api, 'GET', cls._list_endpoint(api, **kwargs),
             cls._list_headers(api), *cls._list_params(**kwargs),
         )
+
+
+def _as_result_bound(max_results):
+    """The caller's result bound, or None when there isn't one.
+
+    None, 0 and negatives all mean "no bound".
+    """
+    if not max_results or max_results < 0:
+        return None
+    return max_results
 
 
 # ── Hash helpers ───────────────────────────────────────────────────
