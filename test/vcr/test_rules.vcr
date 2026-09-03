@@ -1,17 +1,7 @@
 interactions:
 - request:
-    body: '{"yara":"rule eicar_av_test {\n    /*\n       Per standard, match only
-      if entire file is EICAR string plus optional trailing whitespace.\n       The
-      raw EICAR string to be matched is:\n       X5O!P%@AP[4\\PZX54(P^)7CC)7}$EICAR-STANDARD-ANTIVIRUS-TEST-FILE!$H+H*\n    */\n\n    meta:\n        description
-      = \"This is a standard AV test, intended to verify that BinaryAlert is working
-      correctly.\"\n        author = \"Austin Byers | Airbnb CSIRT\"\n        reference
-      = \"http://www.eicar.org/86-0-Intended-use.html\"\n\n    strings:\n        $eicar_regex
-      = /^X5O!P%@AP\\[4\\\\PZX54\\(P\\^\\)7CC\\)7\\}\\$EICAR-STANDARD-ANTIVIRUS-TEST-FILE!\\$H\\+H\\*\\s*$/\n\n    condition:\n        all
-      of them\n}\n\nrule eicar_substring_test {\n    /*\n       More generic - match
-      just the embedded EICAR string (e.g. in packed executables, PDFs, etc)\n    */\n\n    meta:\n        description
-      = \"Standard AV test, checking for an EICAR substring\"\n        author = \"Austin
-      Byers | Airbnb CSIRT\"\n\n    strings:\n        $eicar_substring = \"$EICAR-STANDARD-ANTIVIRUS-TEST-FILE!\"\n\n    condition:\n        all
-      of them\n}","name":"test"}'
+    body: '{"yara":"rule sdk_test_rules { strings: $u = \"test_rules\" condition:
+      $u }","name":"test_rules"}'
     headers:
       accept:
       - '*/*'
@@ -22,49 +12,37 @@ interactions:
       connection:
       - keep-alive
       content-length:
-      - '1126'
+      - '97'
       content-type:
       - application/json
       host:
       - ai:9696
       user-agent:
-      - polyswarm_api/3.21.0 (x86_64-Linux-CPython-3.14.4)
+      - polyswarm_api/4.3.0 (x86_64-Darwin-CPython-3.11.3)
     method: POST
     uri: http://ai:9696/v3/hunt/rule
   response:
     body:
-      string: '{"result":{"created":"2026-06-02T21:32:01.681881+00:00","deleted":false,"description":null,"id":"68232116824597140","livescan_created":null,"livescan_id":null,"modified":"2026-06-02T21:32:01.681881+00:00","name":"test","yara":"rule
-        eicar_av_test {\n    /*\n       Per standard, match only if entire file is
-        EICAR string plus optional trailing whitespace.\n       The raw EICAR string
-        to be matched is:\n       X5O!P%@AP[4\\PZX54(P^)7CC)7}$EICAR-STANDARD-ANTIVIRUS-TEST-FILE!$H+H*\n    */\n\n    meta:\n        description
-        = \"This is a standard AV test, intended to verify that BinaryAlert is working
-        correctly.\"\n        author = \"Austin Byers | Airbnb CSIRT\"\n        reference
-        = \"http://www.eicar.org/86-0-Intended-use.html\"\n\n    strings:\n        $eicar_regex
-        = /^X5O!P%@AP\\[4\\\\PZX54\\(P\\^\\)7CC\\)7\\}\\$EICAR-STANDARD-ANTIVIRUS-TEST-FILE!\\$H\\+H\\*\\s*$/\n\n    condition:\n        all
-        of them\n}\n\nrule eicar_substring_test {\n    /*\n       More generic - match
-        just the embedded EICAR string (e.g. in packed executables, PDFs, etc)\n    */\n\n    meta:\n        description
-        = \"Standard AV test, checking for an EICAR substring\"\n        author =
-        \"Austin Byers | Airbnb CSIRT\"\n\n    strings:\n        $eicar_substring
-        = \"$EICAR-STANDARD-ANTIVIRUS-TEST-FILE!\"\n\n    condition:\n        all
-        of them\n}"},"status":"OK"}
+      string: '{"result":{"created":"2026-08-25T18:23:50.641609+00:00","deleted":false,"description":null,"favorite":false,"favorited_at":null,"historical_hunt_count":0,"id":"46961337172843885","livescan_created":null,"livescan_id":null,"modified":"2026-08-25T18:23:50.641609+00:00","name":"test_rules","rule_count":1,"yara":"rule
+        sdk_test_rules { strings: $u = \"test_rules\" condition: $u }"},"status":"OK"}
 
         '
     headers:
-      Access-Control-Allow-Origin:
+      access-control-allow-origin:
       - '*'
-      Access-Control-Expose-Headers:
+      access-control-expose-headers:
       - Authorization
-      Connection:
+      connection:
       - keep-alive
-      Content-Length:
-      - '1346'
-      Content-Type:
+      content-length:
+      - '395'
+      content-type:
       - application/json
-      Date:
-      - Tue, 02 Jun 2026 21:32:01 GMT
-      Server:
+      date:
+      - Tue, 25 Aug 2026 18:23:50 GMT
+      server:
       - gunicorn
-      X-Billing-ID:
+      x-billing-id:
       - '111'
     status:
       code: 200
@@ -83,30 +61,30 @@ interactions:
       host:
       - ai:9696
       user-agent:
-      - polyswarm_api/3.21.0 (x86_64-Linux-CPython-3.14.4)
+      - polyswarm_api/4.3.0 (x86_64-Darwin-CPython-3.11.3)
     method: GET
     uri: http://ai:9696/v3/hunt/rule/list?community=gamma
   response:
     body:
-      string: '{"has_more":false,"limit":50,"result":[{"created":"2026-06-02T21:32:01.681881+00:00","deleted":false,"description":null,"id":"68232116824597140","livescan_created":null,"livescan_id":null,"modified":"2026-06-02T21:32:01.681881+00:00","name":"test","yara":null}],"status":"OK"}
+      string: '{"has_more":false,"limit":50,"result":[{"created":"2026-08-25T18:23:50.641609+00:00","deleted":false,"description":null,"favorite":false,"favorited_at":null,"historical_hunt_count":0,"id":"46961337172843885","livescan_created":null,"livescan_id":null,"modified":"2026-08-25T18:23:50.641609+00:00","name":"test_rules","new_results_count":null,"new_results_counted_at":null,"rule_count":1,"yara":null}],"status":"OK"}
 
         '
     headers:
-      Access-Control-Allow-Origin:
+      access-control-allow-origin:
       - '*'
-      Access-Control-Expose-Headers:
+      access-control-expose-headers:
       - Authorization
-      Connection:
+      connection:
       - keep-alive
-      Content-Length:
-      - '277'
-      Content-Type:
+      content-length:
+      - '416'
+      content-type:
       - application/json
-      Date:
-      - Tue, 02 Jun 2026 21:32:01 GMT
-      Server:
+      date:
+      - Tue, 25 Aug 2026 18:23:56 GMT
+      server:
       - gunicorn
-      X-Billing-ID:
+      x-billing-id:
       - '111'
     status:
       code: 200
@@ -125,49 +103,79 @@ interactions:
       host:
       - ai:9696
       user-agent:
-      - polyswarm_api/3.21.0 (x86_64-Linux-CPython-3.14.4)
+      - polyswarm_api/4.3.0 (x86_64-Darwin-CPython-3.11.3)
     method: GET
-    uri: http://ai:9696/v3/hunt/rule?id=68232116824597140&community=gamma
+    uri: http://ai:9696/v3/hunt/rule/list?name=test_rules&community=gamma
   response:
     body:
-      string: '{"result":{"created":"2026-06-02T21:32:01.681881+00:00","deleted":false,"description":null,"id":"68232116824597140","livescan_created":null,"livescan_id":null,"modified":"2026-06-02T21:32:01.681881+00:00","name":"test","yara":"rule
-        eicar_av_test {\n    /*\n       Per standard, match only if entire file is
-        EICAR string plus optional trailing whitespace.\n       The raw EICAR string
-        to be matched is:\n       X5O!P%@AP[4\\PZX54(P^)7CC)7}$EICAR-STANDARD-ANTIVIRUS-TEST-FILE!$H+H*\n    */\n\n    meta:\n        description
-        = \"This is a standard AV test, intended to verify that BinaryAlert is working
-        correctly.\"\n        author = \"Austin Byers | Airbnb CSIRT\"\n        reference
-        = \"http://www.eicar.org/86-0-Intended-use.html\"\n\n    strings:\n        $eicar_regex
-        = /^X5O!P%@AP\\[4\\\\PZX54\\(P\\^\\)7CC\\)7\\}\\$EICAR-STANDARD-ANTIVIRUS-TEST-FILE!\\$H\\+H\\*\\s*$/\n\n    condition:\n        all
-        of them\n}\n\nrule eicar_substring_test {\n    /*\n       More generic - match
-        just the embedded EICAR string (e.g. in packed executables, PDFs, etc)\n    */\n\n    meta:\n        description
-        = \"Standard AV test, checking for an EICAR substring\"\n        author =
-        \"Austin Byers | Airbnb CSIRT\"\n\n    strings:\n        $eicar_substring
-        = \"$EICAR-STANDARD-ANTIVIRUS-TEST-FILE!\"\n\n    condition:\n        all
-        of them\n}"},"status":"OK"}
+      string: '{"has_more":false,"limit":50,"result":[{"created":"2026-08-25T18:23:50.641609+00:00","deleted":false,"description":null,"favorite":false,"favorited_at":null,"historical_hunt_count":0,"id":"46961337172843885","livescan_created":null,"livescan_id":null,"modified":"2026-08-25T18:23:50.641609+00:00","name":"test_rules","new_results_count":null,"new_results_counted_at":null,"rule_count":1,"yara":null}],"status":"OK"}
 
         '
     headers:
-      Access-Control-Allow-Origin:
+      access-control-allow-origin:
       - '*'
-      Access-Control-Expose-Headers:
+      access-control-expose-headers:
       - Authorization
-      Connection:
+      connection:
       - keep-alive
-      Content-Length:
-      - '1346'
-      Content-Type:
+      content-length:
+      - '416'
+      content-type:
       - application/json
-      Date:
-      - Tue, 02 Jun 2026 21:32:01 GMT
-      Server:
+      date:
+      - Tue, 25 Aug 2026 18:23:56 GMT
+      server:
       - gunicorn
-      X-Billing-ID:
+      x-billing-id:
       - '111'
     status:
       code: 200
       message: OK
 - request:
-    body: '{"name":"test2","description":"test","community":"gamma"}'
+    body: ''
+    headers:
+      accept:
+      - '*/*'
+      accept-encoding:
+      - gzip, deflate
+      authorization:
+      - '11111111111111111111111111111111'
+      connection:
+      - keep-alive
+      host:
+      - ai:9696
+      user-agent:
+      - polyswarm_api/4.3.0 (x86_64-Darwin-CPython-3.11.3)
+    method: GET
+    uri: http://ai:9696/v3/hunt/rule?id=46961337172843885&community=gamma
+  response:
+    body:
+      string: '{"result":{"created":"2026-08-25T18:23:50.641609+00:00","deleted":false,"description":null,"favorite":false,"favorited_at":null,"historical_hunt_count":0,"id":"46961337172843885","livescan_created":null,"livescan_id":null,"modified":"2026-08-25T18:23:50.641609+00:00","name":"test_rules","rule_count":1,"yara":"rule
+        sdk_test_rules { strings: $u = \"test_rules\" condition: $u }"},"status":"OK"}
+
+        '
+    headers:
+      access-control-allow-origin:
+      - '*'
+      access-control-expose-headers:
+      - Authorization
+      connection:
+      - keep-alive
+      content-length:
+      - '395'
+      content-type:
+      - application/json
+      date:
+      - Tue, 25 Aug 2026 18:23:56 GMT
+      server:
+      - gunicorn
+      x-billing-id:
+      - '111'
+    status:
+      code: 200
+      message: OK
+- request:
+    body: '{"id":"46961337172843885","favorite":1}'
     headers:
       accept:
       - '*/*'
@@ -178,49 +186,763 @@ interactions:
       connection:
       - keep-alive
       content-length:
-      - '57'
+      - '39'
       content-type:
       - application/json
       host:
       - ai:9696
       user-agent:
-      - polyswarm_api/3.21.0 (x86_64-Linux-CPython-3.14.4)
+      - polyswarm_api/4.3.0 (x86_64-Darwin-CPython-3.11.3)
     method: PUT
-    uri: http://ai:9696/v3/hunt/rule?id=68232116824597140
+    uri: http://ai:9696/v3/hunt/rule/favorite?community=gamma
   response:
     body:
-      string: '{"result":{"created":"2026-06-02T21:32:01.681881+00:00","deleted":false,"description":"test","id":"68232116824597140","livescan_created":null,"livescan_id":null,"modified":"2026-06-02T21:32:01.681881+00:00","name":"test2","yara":"rule
-        eicar_av_test {\n    /*\n       Per standard, match only if entire file is
-        EICAR string plus optional trailing whitespace.\n       The raw EICAR string
-        to be matched is:\n       X5O!P%@AP[4\\PZX54(P^)7CC)7}$EICAR-STANDARD-ANTIVIRUS-TEST-FILE!$H+H*\n    */\n\n    meta:\n        description
-        = \"This is a standard AV test, intended to verify that BinaryAlert is working
-        correctly.\"\n        author = \"Austin Byers | Airbnb CSIRT\"\n        reference
-        = \"http://www.eicar.org/86-0-Intended-use.html\"\n\n    strings:\n        $eicar_regex
-        = /^X5O!P%@AP\\[4\\\\PZX54\\(P\\^\\)7CC\\)7\\}\\$EICAR-STANDARD-ANTIVIRUS-TEST-FILE!\\$H\\+H\\*\\s*$/\n\n    condition:\n        all
-        of them\n}\n\nrule eicar_substring_test {\n    /*\n       More generic - match
-        just the embedded EICAR string (e.g. in packed executables, PDFs, etc)\n    */\n\n    meta:\n        description
-        = \"Standard AV test, checking for an EICAR substring\"\n        author =
-        \"Austin Byers | Airbnb CSIRT\"\n\n    strings:\n        $eicar_substring
-        = \"$EICAR-STANDARD-ANTIVIRUS-TEST-FILE!\"\n\n    condition:\n        all
-        of them\n}"},"status":"OK"}
+      string: '{"result":{"favorite":true,"favorited_at":"2026-08-25T18:23:56.845109+00:00","favorites_limit":5,"favorites_used":1,"id":"46961337172843885"},"status":"OK"}
 
         '
     headers:
-      Access-Control-Allow-Origin:
+      access-control-allow-origin:
       - '*'
-      Access-Control-Expose-Headers:
+      access-control-expose-headers:
       - Authorization
-      Connection:
+      connection:
       - keep-alive
-      Content-Length:
-      - '1349'
-      Content-Type:
+      content-length:
+      - '157'
+      content-type:
       - application/json
-      Date:
-      - Tue, 02 Jun 2026 21:32:01 GMT
-      Server:
+      date:
+      - Tue, 25 Aug 2026 18:23:56 GMT
+      server:
       - gunicorn
-      X-Billing-ID:
+      x-billing-id:
+      - '111'
+    status:
+      code: 200
+      message: OK
+- request:
+    body: ''
+    headers:
+      accept:
+      - '*/*'
+      accept-encoding:
+      - gzip, deflate
+      authorization:
+      - '11111111111111111111111111111111'
+      connection:
+      - keep-alive
+      host:
+      - ai:9696
+      user-agent:
+      - polyswarm_api/4.3.0 (x86_64-Darwin-CPython-3.11.3)
+    method: GET
+    uri: http://ai:9696/v3/hunt/rule/list?favorites_only=1&community=gamma
+  response:
+    body:
+      string: '{"has_more":false,"limit":50,"result":[{"created":"2026-08-25T18:23:50.641609+00:00","deleted":false,"description":null,"favorite":true,"favorited_at":"2026-08-25T18:23:56.845109+00:00","historical_hunt_count":0,"id":"46961337172843885","livescan_created":null,"livescan_id":null,"modified":"2026-08-25T18:23:50.641609+00:00","name":"test_rules","new_results_count":null,"new_results_counted_at":null,"rule_count":1,"yara":null}],"status":"OK"}
+
+        '
+    headers:
+      access-control-allow-origin:
+      - '*'
+      access-control-expose-headers:
+      - Authorization
+      connection:
+      - keep-alive
+      content-length:
+      - '445'
+      content-type:
+      - application/json
+      date:
+      - Tue, 25 Aug 2026 18:23:57 GMT
+      server:
+      - gunicorn
+      x-billing-id:
+      - '111'
+    status:
+      code: 200
+      message: OK
+- request:
+    body: '{"id":"46961337172843885","favorite":0}'
+    headers:
+      accept:
+      - '*/*'
+      accept-encoding:
+      - gzip, deflate
+      authorization:
+      - '11111111111111111111111111111111'
+      connection:
+      - keep-alive
+      content-length:
+      - '39'
+      content-type:
+      - application/json
+      host:
+      - ai:9696
+      user-agent:
+      - polyswarm_api/4.3.0 (x86_64-Darwin-CPython-3.11.3)
+    method: PUT
+    uri: http://ai:9696/v3/hunt/rule/favorite?community=gamma
+  response:
+    body:
+      string: '{"result":{"favorite":false,"favorited_at":null,"favorites_limit":5,"favorites_used":0,"id":"46961337172843885"},"status":"OK"}
+
+        '
+    headers:
+      access-control-allow-origin:
+      - '*'
+      access-control-expose-headers:
+      - Authorization
+      connection:
+      - keep-alive
+      content-length:
+      - '128'
+      content-type:
+      - application/json
+      date:
+      - Tue, 25 Aug 2026 18:23:57 GMT
+      server:
+      - gunicorn
+      x-billing-id:
+      - '111'
+    status:
+      code: 200
+      message: OK
+- request:
+    body: '{"rule_id":"46961337172843885"}'
+    headers:
+      accept:
+      - '*/*'
+      accept-encoding:
+      - gzip, deflate
+      authorization:
+      - '11111111111111111111111111111111'
+      connection:
+      - keep-alive
+      content-length:
+      - '31'
+      content-type:
+      - application/json
+      host:
+      - ai:9696
+      user-agent:
+      - polyswarm_api/4.3.0 (x86_64-Darwin-CPython-3.11.3)
+    method: POST
+    uri: http://ai:9696/v3/hunt/rule/live
+  response:
+    body:
+      string: '{"result":{"created":"2026-08-25T18:23:50.641609+00:00","deleted":false,"description":null,"favorite":false,"favorited_at":null,"historical_hunt_count":0,"id":"46961337172843885","livescan_created":"2026-08-25T18:23:58.370832+00:00","livescan_id":"72927285313305230","modified":"2026-08-25T18:23:58.358140+00:00","name":"test_rules","rule_count":1,"yara":"rule
+        sdk_test_rules { strings: $u = \"test_rules\" condition: $u }"},"status":"OK"}
+
+        '
+    headers:
+      access-control-allow-origin:
+      - '*'
+      access-control-expose-headers:
+      - Authorization
+      connection:
+      - keep-alive
+      content-length:
+      - '440'
+      content-type:
+      - application/json
+      date:
+      - Tue, 25 Aug 2026 18:23:58 GMT
+      server:
+      - gunicorn
+      x-billing-id:
+      - '111'
+    status:
+      code: 200
+      message: OK
+- request:
+    body: ''
+    headers:
+      accept:
+      - '*/*'
+      accept-encoding:
+      - gzip, deflate
+      authorization:
+      - '11111111111111111111111111111111'
+      connection:
+      - keep-alive
+      host:
+      - ai:9696
+      user-agent:
+      - polyswarm_api/4.3.0 (x86_64-Darwin-CPython-3.11.3)
+    method: GET
+    uri: http://ai:9696/v3/hunt/rule?id=46961337172843885&community=gamma
+  response:
+    body:
+      string: '{"result":{"created":"2026-08-25T18:23:50.641609+00:00","deleted":false,"description":null,"favorite":false,"favorited_at":null,"historical_hunt_count":0,"id":"46961337172843885","livescan_created":"2026-08-25T18:23:58.370832+00:00","livescan_id":"72927285313305230","modified":"2026-08-25T18:23:58.358140+00:00","name":"test_rules","rule_count":1,"yara":"rule
+        sdk_test_rules { strings: $u = \"test_rules\" condition: $u }"},"status":"OK"}
+
+        '
+    headers:
+      access-control-allow-origin:
+      - '*'
+      access-control-expose-headers:
+      - Authorization
+      connection:
+      - keep-alive
+      content-length:
+      - '440'
+      content-type:
+      - application/json
+      date:
+      - Tue, 25 Aug 2026 18:23:59 GMT
+      server:
+      - gunicorn
+      x-billing-id:
+      - '111'
+    status:
+      code: 200
+      message: OK
+- request:
+    body: ''
+    headers:
+      accept:
+      - '*/*'
+      accept-encoding:
+      - gzip, deflate
+      authorization:
+      - '11111111111111111111111111111111'
+      connection:
+      - keep-alive
+      host:
+      - ai:9696
+      user-agent:
+      - polyswarm_api/4.3.0 (x86_64-Darwin-CPython-3.11.3)
+    method: GET
+    uri: http://ai:9696/v3/hunt/rule?id=46961337172843885&community=gamma
+  response:
+    body:
+      string: '{"result":{"created":"2026-08-25T18:23:50.641609+00:00","deleted":false,"description":null,"favorite":false,"favorited_at":null,"historical_hunt_count":0,"id":"46961337172843885","livescan_created":"2026-08-25T18:23:58.370832+00:00","livescan_id":"72927285313305230","modified":"2026-08-25T18:23:58.358140+00:00","name":"test_rules","rule_count":1,"yara":"rule
+        sdk_test_rules { strings: $u = \"test_rules\" condition: $u }"},"status":"OK"}
+
+        '
+    headers:
+      access-control-allow-origin:
+      - '*'
+      access-control-expose-headers:
+      - Authorization
+      connection:
+      - keep-alive
+      content-length:
+      - '440'
+      content-type:
+      - application/json
+      date:
+      - Tue, 25 Aug 2026 18:23:59 GMT
+      server:
+      - gunicorn
+      x-billing-id:
+      - '111'
+    status:
+      code: 200
+      message: OK
+- request:
+    body: ''
+    headers:
+      accept:
+      - '*/*'
+      accept-encoding:
+      - gzip, deflate
+      authorization:
+      - '11111111111111111111111111111111'
+      connection:
+      - keep-alive
+      host:
+      - ai:9696
+      user-agent:
+      - polyswarm_api/4.3.0 (x86_64-Darwin-CPython-3.11.3)
+    method: GET
+    uri: http://ai:9696/v3/hunt/rule/list?status=active&community=gamma
+  response:
+    body:
+      string: '{"has_more":false,"limit":50,"result":[{"created":"2026-08-25T18:23:50.641609+00:00","deleted":false,"description":null,"favorite":false,"favorited_at":null,"historical_hunt_count":0,"id":"46961337172843885","livescan_created":"2026-08-25T18:23:58.370832+00:00","livescan_id":"72927285313305230","modified":"2026-08-25T18:23:58.358140+00:00","name":"test_rules","new_results_count":null,"new_results_counted_at":null,"rule_count":1,"yara":null}],"status":"OK"}
+
+        '
+    headers:
+      access-control-allow-origin:
+      - '*'
+      access-control-expose-headers:
+      - Authorization
+      connection:
+      - keep-alive
+      content-length:
+      - '461'
+      content-type:
+      - application/json
+      date:
+      - Tue, 25 Aug 2026 18:24:00 GMT
+      server:
+      - gunicorn
+      x-billing-id:
+      - '111'
+    status:
+      code: 200
+      message: OK
+- request:
+    body: ''
+    headers:
+      accept:
+      - '*/*'
+      accept-encoding:
+      - gzip, deflate
+      authorization:
+      - '11111111111111111111111111111111'
+      connection:
+      - keep-alive
+      host:
+      - ai:9696
+      user-agent:
+      - polyswarm_api/4.3.0 (x86_64-Darwin-CPython-3.11.3)
+    method: GET
+    uri: http://ai:9696/v3/hunt/rule/list?community=gamma
+  response:
+    body:
+      string: '{"has_more":false,"limit":50,"result":[{"created":"2026-08-25T18:23:50.641609+00:00","deleted":false,"description":null,"favorite":false,"favorited_at":null,"historical_hunt_count":0,"id":"46961337172843885","livescan_created":"2026-08-25T18:23:58.370832+00:00","livescan_id":"72927285313305230","modified":"2026-08-25T18:23:58.358140+00:00","name":"test_rules","new_results_count":null,"new_results_counted_at":null,"rule_count":1,"yara":null}],"status":"OK"}
+
+        '
+    headers:
+      access-control-allow-origin:
+      - '*'
+      access-control-expose-headers:
+      - Authorization
+      connection:
+      - keep-alive
+      content-length:
+      - '461'
+      content-type:
+      - application/json
+      date:
+      - Tue, 25 Aug 2026 18:24:00 GMT
+      server:
+      - gunicorn
+      x-billing-id:
+      - '111'
+    status:
+      code: 200
+      message: OK
+- request:
+    body: ''
+    headers:
+      accept:
+      - '*/*'
+      accept-encoding:
+      - gzip, deflate
+      authorization:
+      - '11111111111111111111111111111111'
+      connection:
+      - keep-alive
+      host:
+      - ai:9696
+      user-agent:
+      - polyswarm_api/4.3.0 (x86_64-Darwin-CPython-3.11.3)
+    method: GET
+    uri: http://ai:9696/v3/hunt/rule/list?has_new_results=1&community=gamma
+  response:
+    body:
+      string: ''
+    headers:
+      access-control-allow-origin:
+      - '*'
+      access-control-expose-headers:
+      - Authorization
+      connection:
+      - keep-alive
+      content-type:
+      - text/html; charset=utf-8
+      date:
+      - Tue, 25 Aug 2026 18:24:00 GMT
+      server:
+      - gunicorn
+    status:
+      code: 204
+      message: NO CONTENT
+- request:
+    body: ''
+    headers:
+      accept:
+      - '*/*'
+      accept-encoding:
+      - gzip, deflate
+      authorization:
+      - '11111111111111111111111111111111'
+      connection:
+      - keep-alive
+      host:
+      - ai:9696
+      user-agent:
+      - polyswarm_api/4.3.0 (x86_64-Darwin-CPython-3.11.3)
+    method: GET
+    uri: http://ai:9696/v3/hunt/live/list?livescan_id=72927285313305230&community=gamma
+  response:
+    body:
+      string: ''
+    headers:
+      access-control-allow-origin:
+      - '*'
+      access-control-expose-headers:
+      - Authorization
+      connection:
+      - keep-alive
+      content-type:
+      - text/html; charset=utf-8
+      date:
+      - Tue, 25 Aug 2026 18:24:00 GMT
+      server:
+      - gunicorn
+    status:
+      code: 204
+      message: NO CONTENT
+- request:
+    body: '{"rule_id":"46961337172843885"}'
+    headers:
+      accept:
+      - '*/*'
+      accept-encoding:
+      - gzip, deflate
+      authorization:
+      - '11111111111111111111111111111111'
+      connection:
+      - keep-alive
+      content-length:
+      - '31'
+      content-type:
+      - application/json
+      host:
+      - ai:9696
+      user-agent:
+      - polyswarm_api/4.3.0 (x86_64-Darwin-CPython-3.11.3)
+    method: DELETE
+    uri: http://ai:9696/v3/hunt/rule/live
+  response:
+    body:
+      string: '{"result":{"created":"2026-08-25T18:23:50.641609+00:00","deleted":false,"description":null,"favorite":false,"favorited_at":null,"historical_hunt_count":0,"id":"46961337172843885","livescan_created":null,"livescan_id":null,"modified":"2026-08-25T18:24:00.810701+00:00","name":"test_rules","rule_count":1,"yara":"rule
+        sdk_test_rules { strings: $u = \"test_rules\" condition: $u }"},"status":"OK"}
+
+        '
+    headers:
+      access-control-allow-origin:
+      - '*'
+      access-control-expose-headers:
+      - Authorization
+      connection:
+      - keep-alive
+      content-length:
+      - '395'
+      content-type:
+      - application/json
+      date:
+      - Tue, 25 Aug 2026 18:24:00 GMT
+      server:
+      - gunicorn
+      x-billing-id:
+      - '111'
+    status:
+      code: 200
+      message: OK
+- request:
+    body: ''
+    headers:
+      accept:
+      - '*/*'
+      accept-encoding:
+      - gzip, deflate
+      authorization:
+      - '11111111111111111111111111111111'
+      connection:
+      - keep-alive
+      host:
+      - ai:9696
+      user-agent:
+      - polyswarm_api/4.3.0 (x86_64-Darwin-CPython-3.11.3)
+    method: GET
+    uri: http://ai:9696/v3/hunt/rule/list?status=active&community=gamma
+  response:
+    body:
+      string: ''
+    headers:
+      access-control-allow-origin:
+      - '*'
+      access-control-expose-headers:
+      - Authorization
+      connection:
+      - keep-alive
+      content-type:
+      - text/html; charset=utf-8
+      date:
+      - Tue, 25 Aug 2026 18:24:01 GMT
+      server:
+      - gunicorn
+    status:
+      code: 204
+      message: NO CONTENT
+- request:
+    body: '{"rule_id":"46961337172843885","community":"gamma"}'
+    headers:
+      accept:
+      - '*/*'
+      accept-encoding:
+      - gzip, deflate
+      authorization:
+      - '11111111111111111111111111111111'
+      connection:
+      - keep-alive
+      content-length:
+      - '51'
+      content-type:
+      - application/json
+      host:
+      - ai:9696
+      user-agent:
+      - polyswarm_api/4.3.0 (x86_64-Darwin-CPython-3.11.3)
+    method: POST
+    uri: http://ai:9696/v3/hunt/historical
+  response:
+    body:
+      string: '{"result":{"account_number":"111","archives_in_flight":0,"archives_scanned":0,"archives_total":0,"communities":["gamma"],"created":"2026-08-25T18:24:01.406656+00:00","failed_max_retries":0,"failed_other":0,"id":"64777357306306635","progress":null,"results_csv_uri":null,"rule_id":"46961337172843885","rule_modified":"2026-08-25T18:24:00.810701+00:00","ruleset_name":"test_rules","source_rule_changed":false,"status":"PENDING","summary":null,"user_account_number":"111","yara":"rule
+        sdk_test_rules { strings: $u = \"test_rules\" condition: $u }"},"status":"OK"}
+
+        '
+    headers:
+      access-control-allow-origin:
+      - '*'
+      access-control-expose-headers:
+      - Authorization
+      connection:
+      - keep-alive
+      content-length:
+      - '561'
+      content-type:
+      - application/json
+      date:
+      - Tue, 25 Aug 2026 18:24:01 GMT
+      server:
+      - gunicorn
+      x-billing-id:
+      - '111'
+    status:
+      code: 200
+      message: OK
+- request:
+    body: ''
+    headers:
+      accept:
+      - '*/*'
+      accept-encoding:
+      - gzip, deflate
+      authorization:
+      - '11111111111111111111111111111111'
+      connection:
+      - keep-alive
+      host:
+      - ai:9696
+      user-agent:
+      - polyswarm_api/4.3.0 (x86_64-Darwin-CPython-3.11.3)
+    method: GET
+    uri: http://ai:9696/v3/hunt/rule?id=46961337172843885&community=gamma
+  response:
+    body:
+      string: '{"result":{"created":"2026-08-25T18:23:50.641609+00:00","deleted":false,"description":null,"favorite":false,"favorited_at":null,"historical_hunt_count":1,"id":"46961337172843885","livescan_created":null,"livescan_id":null,"modified":"2026-08-25T18:24:00.810701+00:00","name":"test_rules","rule_count":1,"yara":"rule
+        sdk_test_rules { strings: $u = \"test_rules\" condition: $u }"},"status":"OK"}
+
+        '
+    headers:
+      access-control-allow-origin:
+      - '*'
+      access-control-expose-headers:
+      - Authorization
+      connection:
+      - keep-alive
+      content-length:
+      - '395'
+      content-type:
+      - application/json
+      date:
+      - Tue, 25 Aug 2026 18:24:01 GMT
+      server:
+      - gunicorn
+      x-billing-id:
+      - '111'
+    status:
+      code: 200
+      message: OK
+- request:
+    body: ''
+    headers:
+      accept:
+      - '*/*'
+      accept-encoding:
+      - gzip, deflate
+      authorization:
+      - '11111111111111111111111111111111'
+      connection:
+      - keep-alive
+      host:
+      - ai:9696
+      user-agent:
+      - polyswarm_api/4.3.0 (x86_64-Darwin-CPython-3.11.3)
+    method: GET
+    uri: http://ai:9696/v3/hunt/historical?id=64777357306306635&community=gamma
+  response:
+    body:
+      string: '{"result":{"account_number":"111","archives_in_flight":0,"archives_scanned":0,"archives_total":0,"communities":["gamma"],"created":"2026-08-25T18:24:01.406656+00:00","failed_max_retries":0,"failed_other":0,"id":"64777357306306635","progress":null,"results_csv_uri":null,"rule_id":"46961337172843885","rule_modified":"2026-08-25T18:24:00.810701+00:00","ruleset_name":"test_rules","source_rule_changed":false,"status":"PENDING","summary":null,"user_account_number":"111","yara":"rule
+        sdk_test_rules { strings: $u = \"test_rules\" condition: $u }"},"status":"OK"}
+
+        '
+    headers:
+      access-control-allow-origin:
+      - '*'
+      access-control-expose-headers:
+      - Authorization
+      connection:
+      - keep-alive
+      content-length:
+      - '561'
+      content-type:
+      - application/json
+      date:
+      - Tue, 25 Aug 2026 18:24:02 GMT
+      server:
+      - gunicorn
+      x-billing-id:
+      - '111'
+    status:
+      code: 200
+      message: OK
+- request:
+    body: ''
+    headers:
+      accept:
+      - '*/*'
+      accept-encoding:
+      - gzip, deflate
+      authorization:
+      - '11111111111111111111111111111111'
+      connection:
+      - keep-alive
+      host:
+      - ai:9696
+      user-agent:
+      - polyswarm_api/4.3.0 (x86_64-Darwin-CPython-3.11.3)
+    method: GET
+    uri: http://ai:9696/v3/hunt/historical?id=64777357306306635&community=gamma
+  response:
+    body:
+      string: '{"result":{"account_number":"111","archives_in_flight":0,"archives_scanned":0,"archives_total":0,"communities":["gamma"],"created":"2026-08-25T18:24:01.406656+00:00","failed_max_retries":0,"failed_other":0,"id":"64777357306306635","progress":null,"results_csv_uri":null,"rule_id":"46961337172843885","rule_modified":"2026-08-25T18:24:00.810701+00:00","ruleset_name":"test_rules","source_rule_changed":false,"status":"PENDING","summary":null,"user_account_number":"111","yara":"rule
+        sdk_test_rules { strings: $u = \"test_rules\" condition: $u }"},"status":"OK"}
+
+        '
+    headers:
+      access-control-allow-origin:
+      - '*'
+      access-control-expose-headers:
+      - Authorization
+      connection:
+      - keep-alive
+      content-length:
+      - '561'
+      content-type:
+      - application/json
+      date:
+      - Tue, 25 Aug 2026 18:24:02 GMT
+      server:
+      - gunicorn
+      x-billing-id:
+      - '111'
+    status:
+      code: 200
+      message: OK
+- request:
+    body: '{"name":"test_rules2","yara":"rule sdk_test_rules { strings: $u = \"test_rules\"
+      condition: $u }\n// edited","description":"test","community":"gamma"}'
+    headers:
+      accept:
+      - '*/*'
+      accept-encoding:
+      - gzip, deflate
+      authorization:
+      - '11111111111111111111111111111111'
+      connection:
+      - keep-alive
+      content-length:
+      - '150'
+      content-type:
+      - application/json
+      host:
+      - ai:9696
+      user-agent:
+      - polyswarm_api/4.3.0 (x86_64-Darwin-CPython-3.11.3)
+    method: PUT
+    uri: http://ai:9696/v3/hunt/rule?id=46961337172843885
+  response:
+    body:
+      string: '{"result":{"created":"2026-08-25T18:23:50.641609+00:00","deleted":false,"description":"test","favorite":false,"favorited_at":null,"historical_hunt_count":1,"id":"46961337172843885","livescan_created":null,"livescan_id":null,"modified":"2026-08-25T18:24:02.939069+00:00","name":"test_rules2","rule_count":1,"yara":"rule
+        sdk_test_rules { strings: $u = \"test_rules\" condition: $u }\n// edited"},"status":"OK"}
+
+        '
+    headers:
+      access-control-allow-origin:
+      - '*'
+      access-control-expose-headers:
+      - Authorization
+      connection:
+      - keep-alive
+      content-length:
+      - '409'
+      content-type:
+      - application/json
+      date:
+      - Tue, 25 Aug 2026 18:24:03 GMT
+      server:
+      - gunicorn
+      x-billing-id:
+      - '111'
+    status:
+      code: 200
+      message: OK
+- request:
+    body: ''
+    headers:
+      accept:
+      - '*/*'
+      accept-encoding:
+      - gzip, deflate
+      authorization:
+      - '11111111111111111111111111111111'
+      connection:
+      - keep-alive
+      host:
+      - ai:9696
+      user-agent:
+      - polyswarm_api/4.3.0 (x86_64-Darwin-CPython-3.11.3)
+    method: GET
+    uri: http://ai:9696/v3/hunt/historical?id=64777357306306635&community=gamma
+  response:
+    body:
+      string: '{"result":{"account_number":"111","archives_in_flight":0,"archives_scanned":0,"archives_total":0,"communities":["gamma"],"created":"2026-08-25T18:24:01.406656+00:00","failed_max_retries":0,"failed_other":0,"id":"64777357306306635","progress":null,"results_csv_uri":null,"rule_id":"46961337172843885","rule_modified":"2026-08-25T18:24:00.810701+00:00","ruleset_name":"test_rules","source_rule_changed":true,"status":"PENDING","summary":null,"user_account_number":"111","yara":"rule
+        sdk_test_rules { strings: $u = \"test_rules\" condition: $u }"},"status":"OK"}
+
+        '
+    headers:
+      access-control-allow-origin:
+      - '*'
+      access-control-expose-headers:
+      - Authorization
+      connection:
+      - keep-alive
+      content-length:
+      - '560'
+      content-type:
+      - application/json
+      date:
+      - Tue, 25 Aug 2026 18:24:03 GMT
+      server:
+      - gunicorn
+      x-billing-id:
       - '111'
     status:
       code: 200
@@ -243,43 +965,78 @@ interactions:
       host:
       - ai:9696
       user-agent:
-      - polyswarm_api/3.21.0 (x86_64-Linux-CPython-3.14.4)
+      - polyswarm_api/4.3.0 (x86_64-Darwin-CPython-3.11.3)
     method: DELETE
-    uri: http://ai:9696/v3/hunt/rule?id=68232116824597140
+    uri: http://ai:9696/v3/hunt/historical?id=64777357306306635
   response:
     body:
-      string: '{"result":{"created":"2026-06-02T21:32:01.681881+00:00","deleted":true,"description":"test","id":"68232116824597140","livescan_created":null,"livescan_id":null,"modified":"2026-06-02T21:32:01.766631+00:00","name":"test2","yara":"rule
-        eicar_av_test {\n    /*\n       Per standard, match only if entire file is
-        EICAR string plus optional trailing whitespace.\n       The raw EICAR string
-        to be matched is:\n       X5O!P%@AP[4\\PZX54(P^)7CC)7}$EICAR-STANDARD-ANTIVIRUS-TEST-FILE!$H+H*\n    */\n\n    meta:\n        description
-        = \"This is a standard AV test, intended to verify that BinaryAlert is working
-        correctly.\"\n        author = \"Austin Byers | Airbnb CSIRT\"\n        reference
-        = \"http://www.eicar.org/86-0-Intended-use.html\"\n\n    strings:\n        $eicar_regex
-        = /^X5O!P%@AP\\[4\\\\PZX54\\(P\\^\\)7CC\\)7\\}\\$EICAR-STANDARD-ANTIVIRUS-TEST-FILE!\\$H\\+H\\*\\s*$/\n\n    condition:\n        all
-        of them\n}\n\nrule eicar_substring_test {\n    /*\n       More generic - match
-        just the embedded EICAR string (e.g. in packed executables, PDFs, etc)\n    */\n\n    meta:\n        description
-        = \"Standard AV test, checking for an EICAR substring\"\n        author =
-        \"Austin Byers | Airbnb CSIRT\"\n\n    strings:\n        $eicar_substring
-        = \"$EICAR-STANDARD-ANTIVIRUS-TEST-FILE!\"\n\n    condition:\n        all
-        of them\n}"},"status":"OK"}
+      string: '{"result":{"account_number":"111","archives_in_flight":0,"archives_scanned":0,"archives_total":0,"communities":["gamma"],"created":"2026-08-25T18:24:01.406656+00:00","failed_max_retries":0,"failed_other":0,"id":"64777357306306635","progress":null,"results_csv_uri":null,"rule_id":"46961337172843885","rule_modified":"2026-08-25T18:24:00.810701+00:00","ruleset_name":"test_rules","source_rule_changed":true,"status":"DELETING","summary":null,"user_account_number":"111","yara":"rule
+        sdk_test_rules { strings: $u = \"test_rules\" condition: $u }"},"status":"OK"}
 
         '
     headers:
-      Access-Control-Allow-Origin:
+      access-control-allow-origin:
       - '*'
-      Access-Control-Expose-Headers:
+      access-control-expose-headers:
       - Authorization
-      Connection:
+      connection:
       - keep-alive
-      Content-Length:
-      - '1348'
-      Content-Type:
+      content-length:
+      - '561'
+      content-type:
       - application/json
-      Date:
-      - Tue, 02 Jun 2026 21:32:01 GMT
-      Server:
+      date:
+      - Tue, 25 Aug 2026 18:24:03 GMT
+      server:
       - gunicorn
-      X-Billing-ID:
+      x-billing-id:
+      - '111'
+    status:
+      code: 200
+      message: OK
+- request:
+    body: '{"community":"gamma"}'
+    headers:
+      accept:
+      - '*/*'
+      accept-encoding:
+      - gzip, deflate
+      authorization:
+      - '11111111111111111111111111111111'
+      connection:
+      - keep-alive
+      content-length:
+      - '21'
+      content-type:
+      - application/json
+      host:
+      - ai:9696
+      user-agent:
+      - polyswarm_api/4.3.0 (x86_64-Darwin-CPython-3.11.3)
+    method: DELETE
+    uri: http://ai:9696/v3/hunt/rule?id=46961337172843885
+  response:
+    body:
+      string: '{"result":{"created":"2026-08-25T18:23:50.641609+00:00","deleted":true,"description":"test","favorite":false,"favorited_at":null,"historical_hunt_count":1,"id":"46961337172843885","livescan_created":null,"livescan_id":null,"modified":"2026-08-25T18:24:03.962187+00:00","name":"test_rules2","rule_count":1,"yara":"rule
+        sdk_test_rules { strings: $u = \"test_rules\" condition: $u }\n// edited"},"status":"OK"}
+
+        '
+    headers:
+      access-control-allow-origin:
+      - '*'
+      access-control-expose-headers:
+      - Authorization
+      connection:
+      - keep-alive
+      content-length:
+      - '408'
+      content-type:
+      - application/json
+      date:
+      - Tue, 25 Aug 2026 18:24:04 GMT
+      server:
+      - gunicorn
+      x-billing-id:
       - '111'
     status:
       code: 200
@@ -298,24 +1055,24 @@ interactions:
       host:
       - ai:9696
       user-agent:
-      - polyswarm_api/3.21.0 (x86_64-Linux-CPython-3.14.4)
+      - polyswarm_api/4.3.0 (x86_64-Darwin-CPython-3.11.3)
     method: GET
     uri: http://ai:9696/v3/hunt/rule/list?community=gamma
   response:
     body:
       string: ''
     headers:
-      Access-Control-Allow-Origin:
+      access-control-allow-origin:
       - '*'
-      Access-Control-Expose-Headers:
+      access-control-expose-headers:
       - Authorization
-      Connection:
+      connection:
       - keep-alive
-      Content-Type:
+      content-type:
       - text/html; charset=utf-8
-      Date:
-      - Tue, 02 Jun 2026 21:32:01 GMT
-      Server:
+      date:
+      - Tue, 25 Aug 2026 18:24:04 GMT
+      server:
       - gunicorn
     status:
       code: 204

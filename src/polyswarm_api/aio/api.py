@@ -18,7 +18,7 @@ import logging
 import time
 
 from polyswarm_api import exceptions, resources, settings
-from polyswarm_api.core import PolyswarmRequest
+from polyswarm_api.core import PolyswarmRequest, _as_result_bound
 
 from .session import AsyncPolyswarmSession
 
@@ -502,23 +502,35 @@ class PolySwarmAsyncAPI:
         return await self._single(resources.LiveYaraRuleset.delete(self, rule_id=rule_id))
 
     async def live_feed(self, since=None, rule_name=None, family=None,
-                           polyscore_lower=None, polyscore_upper=None, community=None):
+                           polyscore_lower=None, polyscore_upper=None, community=None,
+                           livescan_id=None, max_results=None):
         """
         Get live hunts feed
 
-        :param since: Fetch results from the last "since" minutes
+        :param since: Window in SECONDS (this said "minutes" in earlier releases and was
+            wrong). Absent or 0 means no time filter at all.
         :param rule_name: Filter hunt results on the provided rule name (exact match).
         :param family: Filter hunt results based on the family name (exact match).
         :param polyscore_lower: Polyscore lower bound for the hunt results.
         :param polyscore_upper: Polyscore upper bound for the hunt results.
         :param community: Community to retrieve live results from, or public/private.
+        :param livescan_id: Scope the feed to one live hunt's results.
+        :param max_results: Total results to yield, not a page size — paging
+            continues in the server's own chunks until the total is reached.
+            None, 0 or a negative means no bound: every page, as before.
         :return: Generator of HuntResult resources
         """
+        bound = _as_result_bound(max_results)
+        yielded = 0
         async for item in self._paginate(resources.LiveHuntResult.list(
             self, since=since, rule_name=rule_name, family=family,
             polyscore_lower=polyscore_lower, polyscore_upper=polyscore_upper,
+            livescan_id=livescan_id,
             community=community or self.community)):
             yield item
+            yielded += 1
+            if bound is not None and yielded >= bound:
+                return
 
     async def live_feed_delete(self, result_ids):
         """
@@ -684,14 +696,44 @@ class PolySwarmAsyncAPI:
         logger.info('Delete ruleset %s', ruleset_id)
         return await self._single(resources.YaraRuleset.delete(self, id=ruleset_id, community=self.community))
 
-    async def ruleset_list(self):
+    async def ruleset_list(self, name=None, status=None, favorites_only=None,
+                           has_new_results=None):
         """
         List all YaraRulesets for the current account.
+
+        All filters are optional and conjunctive:
+        :param name: Case-insensitive substring match on the ruleset name.
+        :param status: 'active' returns only rulesets whose live hunt is
+            currently running.
+        :param favorites_only: True returns only favorited rulesets.
+        :param has_new_results: True returns only rulesets whose stored
+            new-results counter is positive. The counter (and its window) is
+            maintained server-side by a scheduled refresh; rows carry it as
+            ``new_results_count`` with ``new_results_counted_at`` marking when
+            it was last refreshed. There is no per-request window parameter.
         :return: A generator of YaraRuleset resources
         """
         logger.info('List rulesets')
-        async for item in self._paginate(resources.YaraRuleset.list(self, community=self.community)):
+        async for item in self._paginate(resources.YaraRuleset.list(
+                self, name=name, status=status, favorites_only=favorites_only,
+                has_new_results=has_new_results, community=self.community)):
             yield item
+
+    async def ruleset_favorite(self, ruleset_id, favorite=True):
+        """
+        Favorite or unfavorite a YaraRuleset. Idempotent; works while a live
+        hunt is running. Favorites are shared by the whole team and capped
+        (the response carries favorites_used / favorites_limit); when the
+        budget is exhausted the server refuses with a machine-readable
+        FAVORITE_LIMIT error.
+
+        :param ruleset_id: Id of the ruleset
+        :param favorite: True to star, False to unstar
+        :return: A YaraRulesetFavorite resource
+        """
+        logger.info('%s ruleset %s', 'Favorite' if favorite else 'Unfavorite', ruleset_id)
+        return await self._single(resources.YaraRulesetFavorite.update(
+            self, id=ruleset_id, favorite=favorite, community=self.community))
 
     async def tag_link_get(self, sha256):
         """

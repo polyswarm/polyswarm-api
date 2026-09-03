@@ -150,7 +150,9 @@ This is environment, not bug — but it does mean the test can't be hermetic wit
 
 ### 2. `live` (sync + async) — requires the bounty / microengine pipeline
 
-`live_start` returns a `LiveYaraRuleset` with `livescan_id=None` because the local e2e has no microengines processing submissions. The lifecycle calls (`ruleset_create`, `live_start`, `live_stop`) all return 200, but the feed never receives results and `livescan_id` doesn't get assigned. Same shape as #1 — environment, not bug.
+The local e2e has no microengines processing submissions, so a live hunt never receives results and its feed stays empty — which is why the rules tests assert a zero-result `livescan_id` feed rather than a populated one. Same shape as #1 — environment, not bug.
+
+(This previously said `livescan_id` itself is never assigned. That is no longer true and may never have been: `live_start` does get a `livescan_id`, the rules tests now assert it as a hard contract, and `test/vcr/test_rules.vcr` records a real one. Only the *results* are missing on this stack.)
 
 ## What works (the other 42 cassettes)
 
