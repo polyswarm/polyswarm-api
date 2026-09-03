@@ -327,6 +327,50 @@ Classmethod builders (each returns a `PolyswarmRequest` descriptor):
 
 **No instance methods** that issue HTTP. Uploading to the pre-signed S3 URL is done via the session: `await api.session.upload_file(instance.upload_url, artifact)` (or `api.session.upload_file(...)` for sync).
 
+### `LiveHuntResult` / `HistoricalHuntResult`
+
+**`matched_strings`.** The yara strings behind a hunt hit, so a consumer can see *why*
+a rule fired rather than only which one did. Additive and optional, parsed with `.get()`
+like `known_good` / `state` above — a server too old to emit it parses to `None` with no
+behaviour change, and a subscript would raise on every result instead.
+
+It is **three-state** and the states are not interchangeable; the table, the per-entry
+dict shape and the lower-bound caveat live in
+[`05-downstream-contract.md`](./05-downstream-contract.md)
+§"`matched_strings` on hunt results" — read it there rather than inferring from the
+attribute. The short version a parser needs: `None` means *not reported* — **four**
+distinct causes, enumerated in that table and revisited under "four places, not three"
+below — `[]` means *matched with no byte evidence*, and a populated list is evidence.
+
+**`matched_strings_dropped`.** A sibling `int`/`None`, parsed the same additive way:
+how many matched strings the server's byte budget withheld from this result. `None` is
+**ambiguous in the same way as `matched_strings`** and must be read the same way: on a
+**detail** route it means nothing was withheld; under any of the other three causes it
+means nothing looked. It is never a claim that the
+evidence is complete — which matters because the list endpoints always send `None` (below),
+so on a list row the two readings are not interchangeable.
+
+A non-null count always means "the list you have is short by this much". It never
+accompanies an empty `matched_strings` — a match's first string is never withheld.
+
+Both `…List` subclasses inherit these from their parent's `__init__`, so all four
+hunt-result classes carry them — but on the list endpoints the values are always `None`
+by design.
+
+**Do not read the class as telling you the route.** For the live pair it does not:
+`live_feed()` builds its request with `LiveHuntResult.list(...)`, which hits
+`/hunt/live/list` but parses rows as **`LiveHuntResult`** (see
+[`03-endpoints.md`](./03-endpoints.md)). `LiveHuntResultList` is only ever a *delete*
+**builder** — but the delete response is parsed **through** it (`_build_request` sets
+`result_parser=cls`), so `live_feed_delete()` and `historical_results_delete()` both yield
+`…List` instances, with both fields `None`. From a *read*, only `historical_results()`
+yields them.
+
+So `None` reaches a caller from four places, not three: an older server, deleted evidence,
+a list route, and a **delete response**. A `LiveHuntResult` carrying
+`matched_strings is None` may well have come from the list route — which is exactly why
+that `None` is ambiguous and must not be read as "nothing to show".
+
 ### `LocalArtifact`
 
 A file-system or in-memory artifact prepared for upload. Constructed via:

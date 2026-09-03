@@ -273,6 +273,61 @@ What is **not** part of the contract:
 - The exact server JSON shape — that lives in the artifact-index repo's contract.
 - The order of fields in the JSON.
 
+### `matched_strings` on hunt results — a three-state attribute
+
+`LiveHuntResult.matched_strings` / `HistoricalHuntResult.matched_strings` (and therefore
+their `…List` subclasses) carry the yara strings behind a hunt hit. It is read with
+`.get()` rather than a subscript, deliberately: the key is **additive**, so a server
+older than it omits the key entirely and a subscript would raise on every result.
+
+Three values are possible and consumers **must not** collapse them:
+
+| Value | Meaning |
+|---|---|
+| `None` | Not reported. **Four** causes, which `.get()` collapses: the **list** endpoints send an explicit `null` rather than fetch a blob per row; **delete** responses (`live_feed_delete` / `historical_results_delete`) are parsed through the `…List` classes and carry `null` the same way; a server predating the field omits it entirely; and stored evidence may have been deleted. "We don't know", *not* "there was nothing". |
+| `[]` | The rule matched and there is no byte evidence to show — a rule with no strings section, one whose matching strings are all `private`, or one that matched on absence (`not $a`, `none of them`). |
+| `[…]` | The evidence. A **lower bound**, not a match count: `any of them` prints only the strings that hit, `private` strings never appear, and the server may withhold some past a size limit (see `matched_strings_dropped`). |
+
+Each entry is a dict:
+
+```python
+{'offset': 78, 'identifier': '$stub', 'length': 14, 'data': '54 68 69 …', 'truncated': False}
+```
+
+- `data` is kept **exactly as yara rendered it** — a hex string comes back as byte pairs, a text string as ASCII with `\xNN` escapes. Only yara knows which applies, so it is not decoded back to bytes.
+- `length` is the **stored** length, capped server-side. Past the cap the true length is unrecoverable.
+- `truncated` means "there was more than this". It over-reports at exactly the cap, because nothing in the output distinguishes a match that ended there from one that was cut.
+
+### `matched_strings_dropped` — the count that keeps a short list honest
+
+A sibling attribute on the same four classes, `int` or `None`. It is how many matched
+strings the server's per-result byte budget withheld, and it exists because a truncated
+list is otherwise indistinguishable from a complete one: a consumer reading twelve
+entries would conclude the rule hit twelve times when it hit thirty-one.
+
+`None` carries the same ambiguity as `matched_strings` itself and should be read the same
+way: on a **detail** route it means nothing was withheld; under any of the other three
+causes in the table above, it means nothing looked. It is not
+a claim that the evidence is complete. It is deliberately a
+**sibling** rather than a key inside `matched_strings`, which stays a plain list.
+
+A populated `matched_strings` with a non-null count is the normal shape for a verbose
+ruleset. The first string of a match is never withheld, so this can never accompany an
+empty list.
+
+**How much of this is pinned against a real server.** The live pair
+(`LiveHuntResult` / `LiveHuntResultList`) is verified end to end — `test_live` /
+`test_async_live` assert the detail route carries evidence, that list rows do not, and
+that the server serves `matched_strings_dropped`. The **historical** pair follows by
+symmetry, not by measurement: the e2e stack does not reliably populate historical results
+inside a test window, so nothing pins that those routes emit either key. The server
+renders both pairs through the same helpers, which is why symmetry is a reasonable
+assumption — but it is an assumption. See `specs/99-open-questions.md`.
+
+**Evidence lives on the detail routes only.** `live_feed()` and `historical_results()`
+page over list endpoints and will always yield `None` here; fetch a single result
+(`live_result(id)` / `historical_result(id)`) to get the strings.
+
 ## Pagination
 
 Generator endpoints return an iterable:

@@ -170,3 +170,43 @@ def test_rescans(self):
 ```
 
 Cleanup with `try/finally` + `except NotFoundException: pass` tolerates the ioc-cache divergence (GET-by-host can serve a cached id that DELETE-by-id no longer finds). When that artifact-index bug is fixed the `except` becomes redundant.
+
+## Historical hunt-result fields are not pinned against a live server
+
+**Status:** gap, blocked on the e2e stack.
+
+`matched_strings` / `matched_strings_dropped` are asserted end to end for the **live**
+hunt pair only. `test_historical_results` tolerates an empty result set by design — the
+stack does not reliably populate historical results inside a test window — so nothing
+verifies that `/hunt/historical/results` emits either key, or that
+`/hunt/historical/results/list` sends the explicit `null`.
+
+Both specs previously stated the contract for "all four classes" as established fact;
+they now say the historical half follows by symmetry. The server renders both pairs
+through the same serializer helpers, so the assumption is reasonable — but a fabricated
+response asserts what we *think* the server returns (invariant 1), and that is the state
+the historical half is in.
+
+**Action:** if the stack gains a way to produce a historical result deterministically,
+add the same assertions to a historical live test and delete this entry.
+
+## The non-null `matched_strings_dropped` path is not pinned against a live server
+
+**Status:** gap, probably not worth closing with a test.
+
+`test_live` / `test_async_live` assert only the `is None` arm — correctly, since the
+per-test rule is small and the server withholds nothing from it. So the two strongest
+claims `05-downstream-contract.md` makes about this field rest entirely on hand-written
+pure-unit dicts:
+
+- a non-null count means "the list you have is short by this much", and
+- it can never accompany an empty `matched_strings`, because a match's first string is
+  never withheld.
+
+That is the same "asserts what we *think* the server returns" gap invariant 1 exists to
+close, and it sits alongside the historical-pair entry above.
+
+Producing an over-budget match on the e2e stack means a rule whose matches exceed the
+server's per-hunt byte budget across a single artifact — engineering a fixture for that is
+disproportionate to what it would pin. **Recorded rather than tested, deliberately.** If a
+stack fixture ever produces one cheaply, assert both claims there and delete this entry.
