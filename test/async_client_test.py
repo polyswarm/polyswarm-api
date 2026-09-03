@@ -868,7 +868,10 @@ class TestAsyncScanCase:
                 # The list/detail split, pinned against the real server rather than prose.
                 # The pure-unit tests exercise dict.get and would pass identically if the
                 # server never grew the field; only a cassette shows what it actually sent.
-                assert result.matched_strings, 'detail route should carry the yara evidence'
+                assert result.matched_strings, (
+                    'detail route should carry the yara evidence. A null here against an\n'
+                    'otherwise-green stack means the analyzer image predates the change\n'
+                    'that emits `strings` -- check the analyzer, not this repo.')
                 # On .json for the same reason as the count below: the attribute cannot
                 # distinguish a served null from an absent key, and specs/05 claims the
                 # list route sends an explicit null.
