@@ -338,15 +338,15 @@ It is **three-state** and the states are not interchangeable; the table, the per
 dict shape and the lower-bound caveat live in
 [`05-downstream-contract.md`](./05-downstream-contract.md)
 §"`matched_strings` on hunt results" — read it there rather than inferring from the
-attribute. The short version a parser needs: `None` means *not reported* (an older
-server, removed evidence, or a **list** endpoint, which sends an explicit `null` rather
-than fetch a blob per row), `[]` means *matched with no byte evidence*, and a populated list is evidence.
+attribute. The short version a parser needs: `None` means *not reported* — **four**
+distinct causes, enumerated in that table and revisited under "four places, not three"
+below — `[]` means *matched with no byte evidence*, and a populated list is evidence.
 
 **`matched_strings_dropped`.** A sibling `int`/`None`, parsed the same additive way:
 how many matched strings the server's byte budget withheld from this result. `None` is
 **ambiguous in the same way as `matched_strings`** and must be read the same way: on a
-**detail** route it means nothing was withheld, on a **list** route that the route did not
-look, and on an older server that the field did not exist. It is never a claim that the
+**detail** route it means nothing was withheld; under any of the other three causes it
+means nothing looked. It is never a claim that the
 evidence is complete — which matters because the list endpoints always send `None` (below),
 so on a list row the two readings are not interchangeable.
 

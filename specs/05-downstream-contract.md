@@ -306,8 +306,8 @@ list is otherwise indistinguishable from a complete one: a consumer reading twel
 entries would conclude the rule hit twelve times when it hit thirty-one.
 
 `None` carries the same ambiguity as `matched_strings` itself and should be read the same
-way: on a **detail** route it means nothing was withheld, but on a **list** route it means
-the route did not look, and on an older server it means the field did not exist. It is not
+way: on a **detail** route it means nothing was withheld; under any of the other three
+causes in the table above, it means nothing looked. It is not
 a claim that the evidence is complete. It is deliberately a
 **sibling** rather than a key inside `matched_strings`, which stays a plain list.
 
