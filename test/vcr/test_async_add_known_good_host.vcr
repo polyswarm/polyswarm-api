@@ -15,11 +15,11 @@ interactions:
       content-type:
       - application/json
       host:
-      - artifact-index-e2e:9696
+      - ai:9696
       user-agent:
       - polyswarm_api/3.21.0 (x86_64-Linux-CPython-3.14.4)
     method: POST
-    uri: http://artifact-index-e2e:9696/v3/ioc/known
+    uri: http://ai:9696/v3/ioc/known
   response:
     body:
       string: '{"result":{"good":true,"host":"test-async-add-known-good-host.sdk.test","id":5,"source":"test","type":"domain"},"status":"OK"}

@@ -134,6 +134,7 @@ class Hashable: ...
 class Hash(Hashable): ...
 def is_valid_sha1 / _sha256 / _md5(value) -> bool
 def parse_isoformat(date_string)
+
 ```
 
 These are stable but less curated than the top-level exports. Downstream callers that subclass `BaseJsonResource` to add custom resource types are supported. Downstream callers that construct `PolyswarmRequest` manually and hand it to `session.execute` are supported.
@@ -149,7 +150,7 @@ Metadata, MetadataMapping, MetadataFieldProperties
 IOC
 LiveYaraRuleset, LiveHuntResult, LiveHuntResultList
 HistoricalHunt, HistoricalHuntResult, HistoricalHuntResultList, HistoricalHuntList
-YaraRuleset
+YaraRuleset, YaraRulesetFavorite
 Tag, MalwareFamily, TagLink
 AssertionsJob, VotesJob
 SandboxTask, SandboxProvider
@@ -179,6 +180,8 @@ class TimeoutException(PolyswarmException): ...
 ```
 
 `KnownGoodWithheldException` is the 404 raised when a download is refused because the artifact is a known-good binary — the platform never stores or serves those bytes. It **subclasses `NotFoundException`** precisely so invariant 3 holds for existing consumers: code that already does `except NotFoundException:` keeps catching the refusal with no change, and only callers that want to distinguish "withheld by design" from a plain miss catch the subclass. It adds one attribute, `.sources` — the known-good feeds that flagged the hash (e.g. `['nsrl']`), `[]` when the server named none. The contract is only this: **always a list of strings**, whatever the envelope carried, so `for feed in exc.sources` needs no shape check. Which wire shapes are coerced, and which are dropped and logged, is `exceptions._normalise_sources`' business rather than a promise to consumers — the server sends a list of strings today. Note it is **not** normalised the same way as `ArtifactInstance.known_good_sources`, which is the same concept reached from the instance response: that one is sorted and de-duplicated, while `.sources` preserves the order the envelope carried and can repeat a feed. Don't assume parity between the two. The raw envelope stays reachable at `exc.request.errors` (`{'code': 'KNOWN_GOOD', 'known_good': True, 'sources': [...]}`). The artifact's metadata — the flagging feeds plus any scan data already collected — remains readable through the search / instance endpoints; only the bytes are withheld, and the instance's `KNOWN_GOOD` state/status is the signal for the typed refusal (there is no separate "withheld" field; a `NOT_STORED` instance has no bytes either, but 404s plainly — see below).
+
+`FAVORITE_LIMIT` (a refused ruleset star: the team's favorite budget is spent) has **no typed exception** — deliberately, since no pre-existing consumer needs re-routing the way `NotFoundException` did. It surfaces as the generic 400 `RequestException`, and the machine-readable path is the raw envelope: `exc.request.errors == {'code': 'FAVORITE_LIMIT', 'favorites_used': N, 'favorites_limit': M}`. The counters are the same pair a successful toggle returns, so a caller can render the "budget full" state from either outcome. Pinned by the dual-transport respx suite `test/ruleset_favorite_respx_test.py`.
 
 **What "known-good" means on the server, as of artifact-index's two-predicate model** (its `specs/05`): the refusal fires on the server's *current understanding* — a catalogue entry exists for the sha256 **and** that entry's extension passes an executable allow-list — evaluated live on every request. Two consequences worth knowing as a consumer: the same download can start working again with no action on your part (the entry is deleted, or the policy narrows), and `ArtifactInstance.state` can report the new value **`NOT_STORED`** — a submission the server declined as known-good at the time whose hash is no longer currently known-good, so nothing was ever stored for it and a fresh submit of the same file works. `state` is a plain string here; the SDK does not enumerate it, so a new member needs no SDK release.
 
@@ -299,6 +302,44 @@ Migrating from 3.x to 4.0, callers retain:
 
 ## Backward compatibility — what changes
 
+### Documentation corrections that read like behaviour changes
+
+- **`live_feed(since=)` was always SECONDS.** The 3.x/4.x docstring said
+  "minutes", but the server has always converted the parameter with
+  `timedelta(seconds=since)` — the docstring was corrected, not the wire. A
+  caller who read the old docstring and passed `60` meaning an hour was
+  already getting a minute; nothing changed underneath them.
+
+  Moving the *wire* to minutes was considered and rejected. Every surface
+  around the parameter was written for minutes (the CLI's old `1440` default was
+  `24 * 60`), so re-basing the server looked like the fix that made all three
+  agree — but the endpoint carries substantial live traffic passing `since`, from
+  SDK and script clients outside our control, across a wide range of values.
+  Re-reading every one of those as minutes widens each window 60x and returns
+  more data with no error, silently. The wire stays seconds;
+  the one caller in our control (the CLI's default) was corrected instead.
+
+- **`since` absent or `0` means no time filter at all** — the feed pages over
+  everything. That is the server's contract (it applies the filter on a
+  truthiness test), and it is what a caller wanting the full history relies
+  on. Note the shape of the server-side test: it is truthiness, not
+  `is not None`, and tightening it would turn `since=0` into an empty window
+  rather than no filter.
+
+- **`live_feed(max_results=)` is new and additive.** It defaults to `None`,
+  which is the historical behaviour — every page. It bounds how many results
+  the generator yields and nothing else: the request is unchanged, so the
+  default call stays byte-compatible with every recorded cassette.
+
+  **`max_results` is a total, not a page size — the two are independent.** The
+  page is the server's to choose (50 for the web service, capped by
+  `AI_MAX_QUERY_RESULTS`), and `_next_page` echoes the size it reports back on
+  each subsequent request; a bounded read keeps paginating in those same small,
+  API-friendly chunks and simply stops once it has enough. Sending
+  `limit=max_results` would conflate the two — and, since the cap is an
+  env var each deployment sets — and set well below a large bound — would have
+  turned that bound into a 400.
+
 ### Required code changes
 
 - **File-upload module-level callables removed.** `polyswarm_api.aio.upload.async_upload_file` / `async_upload_logo` (and the bare-module aliases) are gone. The 3.x monkey-patch pattern doesn't carry forward. Customization is via subclassing `AsyncPolyswarmSession` and overriding `upload_file`.
@@ -396,7 +437,8 @@ result = req._result          # the parsed resource (or list);
 | **New exception class that subclasses an existing one** | **minor** — additive: every `except <base>` keeps catching it (invariant 3), so no consumer has to change. Raising the *base* class where a narrower one used to be raised is the major-bump direction |
 | **Narrowing which exception a status maps to** (same status code, more specific class) | **minor**, on the same reasoning — but only while the new class is a subclass of the old one. A sibling class is a behaviour change on a documented contract, i.e. major |
 | Bug fix in request/response handling | patch |
-| Signature change on a public method | major |
+| **New optional keyword argument on an existing method**, with a default that preserves the current behaviour | **minor** — additive on the same reasoning as the exception rows above: every existing call site keeps working untouched, so no consumer has to react |
+| Signature change on a public method **that an existing caller must react to** — a parameter removed, reordered, renamed, or made required | major |
 | Rename / removal of a public symbol | major |
 | Behaviour change on a documented contract | major |
 | Internal refactor (private symbols, helper rewrites) | patch |
@@ -411,6 +453,19 @@ result = req._result          # the parsed resource (or list);
 4. Merge to `master` fires the PyPI release pipeline.
 
 No feature PR should touch `pyproject.toml`'s `version` unless the maintainer asks. See `AGENTS.md` §Gitflow.
+
+**One case always asks: a consumer pinning a floor at this change.** A sibling repo that needs a
+surface added here expresses that as a version requirement — `polyswarm_api>=X.Y.0` — because a
+version pin is checkable by `pip` at install time, before any code runs. That floor cannot name a
+version this repo has not declared, so the bump belongs in the feature PR and step 3's "bump at the
+release step" does not apply. Consequences worth stating plainly:
+
+- **Order is forced.** This repo's `develop → master` must merge and release before the consumer can
+  be released, because the consumer's floor is unsatisfiable from PyPI until then. Consumer CI is
+  unaffected — it installs this repo straight from git by branch name.
+- **The version string must be clean.** `4.4.0.dev0` does not satisfy `>=4.4.0` (PEP 440 orders
+  pre-releases below the release). Verify what `bump-my-version` emitted before pushing; the
+  serialize config here can produce a dev form.
 
 ## Companion repos
 

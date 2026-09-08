@@ -15,11 +15,11 @@ interactions:
       content-type:
       - application/json
       host:
-      - artifact-index-e2e:9696
+      - ai:9696
       user-agent:
       - polyswarm_api/3.21.0 (x86_64-Linux-CPython-3.14.4)
     method: POST
-    uri: http://artifact-index-e2e:9696/v3/instance
+    uri: http://ai:9696/v3/instance
   response:
     body:
       string: '{"result":{"artifact_id":"64625941818817200","assertions":[],"bounty_state":0,"community":"gamma","country":"","created":"2026-06-03T22:36:49.931921+00:00","detections":null,"expiration_window":null,"expire_at":null,"extended_type":null,"failed":false,"filename":"artifact","first_seen":"2026-06-03T22:36:49.931921+00:00","id":"64625941818817200","last_scanned":null,"last_seen":null,"md5":null,"metadata":[],"mimetype":null,"permalink":"https://polyswarm.network/scan/results/file/None/64625941818817200","polyscore":null,"result":null,"sha1":null,"sha256":null,"size":null,"type":"FILE","upload_url":"http://minio:9000/artifact-index/instances/c1/e2/6e/c1e26e49-7311-47d3-b74e-0745b006467a?X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Credential=AKIAIOSFODNN7EXAMPLE%2F20260603%2Fus-east-1%2Fs3%2Faws4_request&X-Amz-Date=20260603T223649Z&X-Amz-Expires=300&X-Amz-SignedHeaders=host&X-Amz-Signature=9b838169541d89a92df1d55eba1c195521b7189b0bf7c092ab99137d6fe57199","votes":[],"window_closed":false},"status":"OK"}
@@ -116,11 +116,11 @@ interactions:
       content-type:
       - application/json
       host:
-      - artifact-index-e2e:9696
+      - ai:9696
       user-agent:
       - polyswarm_api/3.21.0 (x86_64-Linux-CPython-3.14.4)
     method: PUT
-    uri: http://artifact-index-e2e:9696/v3/instance?id=64625941818817200
+    uri: http://ai:9696/v3/instance?id=64625941818817200
   response:
     body:
       string: '{"result":{"artifact_id":"64625941818817200","assertions":[],"bounty_state":0,"community":"gamma","country":"","created":"2026-06-03T22:36:49.931921+00:00","detections":null,"expiration_window":null,"expire_at":null,"extended_type":null,"failed":false,"filename":"artifact","first_seen":"2026-06-03T22:36:49.931921+00:00","id":"64625941818817200","last_scanned":null,"last_seen":null,"md5":null,"metadata":[],"mimetype":null,"permalink":"https://polyswarm.network/scan/results/file/None/64625941818817200","polyscore":null,"result":null,"sha1":null,"sha256":null,"size":null,"type":"FILE","upload_url":"http://minio:9000/artifact-index/instances/c1/e2/6e/c1e26e49-7311-47d3-b74e-0745b006467a?X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Credential=AKIAIOSFODNN7EXAMPLE%2F20260603%2Fus-east-1%2Fs3%2Faws4_request&X-Amz-Date=20260603T223649Z&X-Amz-Expires=300&X-Amz-SignedHeaders=host&X-Amz-Signature=9b838169541d89a92df1d55eba1c195521b7189b0bf7c092ab99137d6fe57199","votes":[],"window_closed":false},"status":"OK"}
@@ -162,11 +162,11 @@ interactions:
       content-type:
       - application/json
       host:
-      - artifact-index-e2e:9696
+      - ai:9696
       user-agent:
       - polyswarm_api/3.21.0 (x86_64-Linux-CPython-3.14.4)
     method: POST
-    uri: http://artifact-index-e2e:9696/v3/artifact/metadata
+    uri: http://ai:9696/v3/artifact/metadata
   response:
     body:
       string: '{"result":{"created":"2026-06-03T22:36:49.972655+00:00","tool":"test_tool_1","tool_metadata":{"key":"value"},"updated":"2026-06-03T22:36:49.972655+00:00"},"status":"OK"}
@@ -208,11 +208,11 @@ interactions:
       content-type:
       - application/json
       host:
-      - artifact-index-e2e:9696
+      - ai:9696
       user-agent:
       - polyswarm_api/3.21.0 (x86_64-Linux-CPython-3.14.4)
     method: POST
-    uri: http://artifact-index-e2e:9696/v3/artifact/metadata
+    uri: http://ai:9696/v3/artifact/metadata
   response:
     body:
       string: '{"result":{"created":"2026-06-03T22:36:49.988737+00:00","tool":"test_tool_2","tool_metadata":{"key2":"value2"},"updated":"2026-06-03T22:36:49.988737+00:00"},"status":"OK"}
@@ -250,11 +250,11 @@ interactions:
       connection:
       - keep-alive
       host:
-      - artifact-index-e2e:9696
+      - ai:9696
       user-agent:
       - polyswarm_api/3.21.0 (x86_64-Linux-CPython-3.14.4)
     method: GET
-    uri: http://artifact-index-e2e:9696/v3/artifact/metadata/list?instance_id=64625941818817200
+    uri: http://ai:9696/v3/artifact/metadata/list?instance_id=64625941818817200
   response:
     body:
       string: '{"has_more":false,"limit":50,"result":[{"created":"2026-06-03T22:36:49.991172+00:00","tool":"test_tool_2","tool_metadata":{"key2":"value2"},"updated":"2026-06-03T22:36:49.991172+00:00"},{"created":"2026-06-03T22:36:49.976422+00:00","tool":"test_tool_1","tool_metadata":{"key":"value"},"updated":"2026-06-03T22:36:49.976422+00:00"}],"status":"OK"}

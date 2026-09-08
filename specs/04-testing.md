@@ -26,7 +26,9 @@ How the test suite is organised. Three layers: pure unit tests (no HTTP at all �
 - `test/async_client_test.py` — async, VCR-backed integration tests (not yet on the parametrised harness — follow-up work).
 - `test/jmespath_test.py` — unit tests for `BaseJsonResource.jmespath`.
 - `test/vcr/*.vcr` — recorded cassettes.
-- `test/eicar.yara`, `test/malicious` — fixture files for upload tests.
+- `test/malicious` — fixture file for upload tests (`test/eicar.yara` was retired when the rules tests moved to per-test `uid_yara` bodies).
+- `test/hunt_tracking_builder_test.py` — pure-unit request-shape and parse tests for the hunt-page tracking builders/resources.
+- `test/ruleset_favorite_respx_test.py` — dual-transport (`ClientTestCase`) respx suite for the favorite toggle: the `FAVORITE_LIMIT` refusal envelope and the query/body split.
 
 ## Three test layers
 
@@ -55,7 +57,7 @@ A respx body for that same arm was written first and deleted once the live cover
 
 ## The parametrised `ClientTestCase` harness
 
-Implemented in `test/_client_harness.py`, importable by any `respx` module that wants one body over both transports; `metadata_field_properties_test.py` is the canonical user, joined by `exists_probe_mapping_test.py` (the `exists()` `404`→`False` arm, which was async-only until the harness existed — the mapping is transport-independent, so one body covers both). The remaining `respx` bodies are the single-transport cases invariant 5 exempts. The shape:
+Implemented in `test/_client_harness.py`, importable by any `respx` module that wants one body over both transports; `metadata_field_properties_test.py` is the canonical user, joined by `exists_probe_mapping_test.py` (the `exists()` `404`→`False` arm, which was async-only until the harness existed — the mapping is transport-independent, so one body covers both) and `ruleset_favorite_respx_test.py` (the favorite toggle's refusal envelope + query/body split). The remaining `respx` bodies are the single-transport cases invariant 5 exempts. The shape:
 
 ```python
 # test/_client_harness.py
@@ -262,6 +264,10 @@ An earlier plan hedged that `-n 8` might need (a) poll windows scaled by `PYTEST
 ### Scheduling, ordering, and intra-test concurrency
 
 The runner uses `--dist worksteal` (idle workers steal queued tests from busy ones — ≥ static `load` for tail balance; `loadscope` is avoided because it groups by module and would *concentrate* the heavy live tests on fewer workers). `conftest.py`'s `pytest_collection_modifyitems` then front-loads the long-pole live tests so they start at t=0 and the ~100 unit/respx tests backfill the tail. Both are deterministic (keyed on `nodeid`) so every xdist worker collects the same order.
+
+`poll_equals` / `poll_equals_async` (in `_e2e_helpers.py`) is the read-after-write helper: poll a zero-arg `read` until it returns `want`. Use it for any assertion that reads back what the test just wrote through a replica-backed GET — on the e2e stack the replica *is* the primary so the first read usually wins, but a real-replica stack lags and the assertion flakes. The changed-since-freeze one flakes **silently** (a stale source body reads as "unchanged"), which is why it polls rather than sleeps.
+
+**`want` must never be `None`, and the helper refuses it.** Not-found during the lag window is treated as "not yet" and yields `None`, so `want=None` would compare equal and turn a *vanished* resource into a passing assertion. Poll a boolean instead — `read` returning `value is None`, `want=True`. Note the mirror-image limit: a `False` poll cannot ride out a stale `False`, so it only proves the value settled, not that it ever changed.
 
 A few tests submit/dispatch several artifacts in one body; `run_concurrently` / `run_concurrently_async` (in `_e2e_helpers.py`) fan those out **only on the live run** and stay serial on replay — vcrpy patches the transport via `mock.patch`, which isn't thread-safe, and replay no-ops the sleeps anyway, so serial replay is both deterministic and instant (no cassette re-record needed).
 

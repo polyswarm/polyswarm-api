@@ -746,10 +746,49 @@ class YaraRuleset(core.BaseJsonResource):
         self.modified = core.parse_isoformat(content.get('modified'))
         self.deleted = content.get('deleted')
         self.yara = content.get('yara')
+        # Hunt-page tracking fields. All additive — an older server simply
+        # leaves them None.
+        self.favorite = content.get('favorite')
+        self.favorited_at = core.parse_isoformat(content.get('favorited_at'))
+        # Number of rules in the ruleset body. None means "no answer" (the
+        # server could not or has not counted), which is different from 0.
+        self.rule_count = content.get('rule_count')
+        self.historical_hunt_count = content.get('historical_hunt_count')
+        # Live results collected in the product window — a STORED counter the
+        # server refreshes on a schedule, always present on list rows with a
+        # running live hunt. None means "not yet refreshed / no live hunt",
+        # which is different from 0 ("refreshed, nothing new").
+        self.new_results_count = content.get('new_results_count')
+        # When the server last refreshed the counter — the staleness marker
+        # that makes a stored count trustworthy (None iff the count is None).
+        self.new_results_counted_at = core.parse_isoformat(
+            content.get('new_results_counted_at'))
 
 
 class LiveYaraRuleset(YaraRuleset):
     RESOURCE_ENDPOINT = '/hunt/rule/live'
+
+
+class YaraRulesetFavorite(core.BaseJsonResource):
+    """The favorite-toggle response: the ruleset's new star state plus the
+    team's budget usage, so callers can render "N of M used" without counting
+    client-side."""
+    RESOURCE_ENDPOINT = '/hunt/rule/favorite'
+    # The toggle's payload ({id, favorite}) rides the JSON body — the server
+    # reads BOTH from the body — so the default RESOURCE_ID_KEYS (['id'])
+    # would move `id` into the query string and the server would 400 with
+    # "A valid rule id must be provided". `community` stays a query-string
+    # key to match where every ruleset GET/list sends it (the server accepts
+    # it from either the query or the body, but never from both at once).
+    RESOURCE_ID_KEYS = ['community']
+
+    def __init__(self, content, api=None):
+        super().__init__(content, api=api)
+        self.id = content.get('id')
+        self.favorite = content.get('favorite')
+        self.favorited_at = core.parse_isoformat(content.get('favorited_at'))
+        self.favorites_used = content.get('favorites_used')
+        self.favorites_limit = content.get('favorites_limit')
 
 
 class LiveHuntResult(core.BaseJsonResource):
@@ -794,6 +833,16 @@ class HistoricalHunt(core.BaseJsonResource):
         self.progress = content['progress']
         self.results_csv_uri = content['results_csv_uri']
         self.communities = content.get('communities')
+        # Source-rule provenance. rule_id is the ruleset this hunt was
+        # triggered from (None for raw-yara hunts and hunts predating the
+        # tracking); rule_modified is a freeze-time audit timestamp.
+        self.rule_id = content.get('rule_id')
+        self.rule_modified = core.parse_isoformat(content.get('rule_modified'))
+        # Tri-state: has the source ruleset's body changed SINCE THE HUNT
+        # FROZE IT? True/False when the server could compare; None means
+        # unknown (no source rule, or nothing to compare against) — not
+        # "unchanged".
+        self.source_rule_changed = content.get('source_rule_changed')
 
 
 class HistoricalHuntList(HistoricalHunt):

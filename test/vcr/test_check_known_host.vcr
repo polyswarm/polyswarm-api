@@ -15,11 +15,11 @@ interactions:
       content-type:
       - application/json
       host:
-      - artifact-index-e2e:9696
+      - ai:9696
       user-agent:
       - polyswarm_api/3.21.0 (x86_64-Linux-CPython-3.14.4)
     method: POST
-    uri: http://artifact-index-e2e:9696/v3/ioc/known
+    uri: http://ai:9696/v3/ioc/known
   response:
     body:
       string: '{"result":{"good":true,"host":"9.42.37.148","id":2,"source":"test","type":"ip"},"status":"OK"}
@@ -57,11 +57,11 @@ interactions:
       connection:
       - keep-alive
       host:
-      - artifact-index-e2e:9696
+      - ai:9696
       user-agent:
       - polyswarm_api/3.21.0 (x86_64-Linux-CPython-3.14.4)
     method: GET
-    uri: http://artifact-index-e2e:9696/v3/ioc/known?ip=9.42.37.148
+    uri: http://ai:9696/v3/ioc/known?ip=9.42.37.148
   response:
     body:
       string: '{"result":[{"good":true,"host":"9.42.37.148","id":2,"source":"test","type":"ip"}],"status":"OK"}

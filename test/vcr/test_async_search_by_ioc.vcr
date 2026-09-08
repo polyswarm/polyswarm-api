@@ -15,11 +15,11 @@ interactions:
       content-type:
       - application/json
       host:
-      - artifact-index-e2e:9696
+      - ai:9696
       user-agent:
       - polyswarm_api/3.21.0 (x86_64-Linux-CPython-3.14.4)
     method: POST
-    uri: http://artifact-index-e2e:9696/v3/instance
+    uri: http://ai:9696/v3/instance
   response:
     body:
       string: '{"result":{"artifact_id":"52135846770494741","assertions":[],"bounty_state":0,"community":"gamma","country":"","created":"2026-06-03T22:20:50.651682+00:00","detections":null,"expiration_window":null,"expire_at":null,"extended_type":null,"failed":false,"filename":"artifact","first_seen":"2026-06-03T22:20:50.651682+00:00","id":"52135846770494741","last_scanned":null,"last_seen":null,"md5":null,"metadata":[],"mimetype":null,"permalink":"https://polyswarm.network/scan/results/file/None/52135846770494741","polyscore":null,"result":null,"sha1":null,"sha256":null,"size":null,"type":"FILE","upload_url":"http://minio:9000/artifact-index/instances/fc/a4/6b/fca46b8f-0e9a-4dda-8586-c05bc3f33c1a?X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Credential=AKIAIOSFODNN7EXAMPLE%2F20260603%2Fus-east-1%2Fs3%2Faws4_request&X-Amz-Date=20260603T222050Z&X-Amz-Expires=300&X-Amz-SignedHeaders=host&X-Amz-Signature=e62d91405cc9e5631d75d60970c16ff249d0371e412fa11628ca19b28fb88b6e","votes":[],"window_closed":false},"status":"OK"}
@@ -116,11 +116,11 @@ interactions:
       content-type:
       - application/json
       host:
-      - artifact-index-e2e:9696
+      - ai:9696
       user-agent:
       - polyswarm_api/3.21.0 (x86_64-Linux-CPython-3.14.4)
     method: PUT
-    uri: http://artifact-index-e2e:9696/v3/instance?id=52135846770494741
+    uri: http://ai:9696/v3/instance?id=52135846770494741
   response:
     body:
       string: '{"result":{"artifact_id":"52135846770494741","assertions":[],"bounty_state":0,"community":"gamma","country":"","created":"2026-06-03T22:20:50.651682+00:00","detections":null,"expiration_window":null,"expire_at":null,"extended_type":null,"failed":false,"filename":"artifact","first_seen":"2026-06-03T22:20:50.651682+00:00","id":"52135846770494741","last_scanned":null,"last_seen":null,"md5":null,"metadata":[],"mimetype":null,"permalink":"https://polyswarm.network/scan/results/file/None/52135846770494741","polyscore":null,"result":null,"sha1":null,"sha256":null,"size":null,"type":"FILE","upload_url":"http://minio:9000/artifact-index/instances/fc/a4/6b/fca46b8f-0e9a-4dda-8586-c05bc3f33c1a?X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Credential=AKIAIOSFODNN7EXAMPLE%2F20260603%2Fus-east-1%2Fs3%2Faws4_request&X-Amz-Date=20260603T222050Z&X-Amz-Expires=300&X-Amz-SignedHeaders=host&X-Amz-Signature=e62d91405cc9e5631d75d60970c16ff249d0371e412fa11628ca19b28fb88b6e","votes":[],"window_closed":false},"status":"OK"}
@@ -162,11 +162,11 @@ interactions:
       content-type:
       - application/json
       host:
-      - artifact-index-e2e:9696
+      - ai:9696
       user-agent:
       - polyswarm_api/3.21.0 (x86_64-Linux-CPython-3.14.4)
     method: POST
-    uri: http://artifact-index-e2e:9696/v3/artifact/metadata
+    uri: http://ai:9696/v3/artifact/metadata
   response:
     body:
       string: '{"result":{"created":"2026-06-03T22:20:50.701441+00:00","tool":"cape_sandbox_v2","tool_metadata":{"extracted_c2_ips":["9.42.154.68"],"extracted_c2_urls":["www.mock-ioc.test"],"ttp":["T1081","T1060","T1069"]},"updated":"2026-06-03T22:20:50.701441+00:00"},"status":"OK"}
@@ -204,11 +204,11 @@ interactions:
       connection:
       - keep-alive
       host:
-      - artifact-index-e2e:9696
+      - ai:9696
       user-agent:
       - polyswarm_api/3.21.0 (x86_64-Linux-CPython-3.14.4)
     method: GET
-    uri: http://artifact-index-e2e:9696/v3/ioc/search?community=gamma&ip=9.42.154.68
+    uri: http://ai:9696/v3/ioc/search?community=gamma&ip=9.42.154.68
   response:
     body:
       string: ''
@@ -240,11 +240,11 @@ interactions:
       connection:
       - keep-alive
       host:
-      - artifact-index-e2e:9696
+      - ai:9696
       user-agent:
       - polyswarm_api/3.21.0 (x86_64-Linux-CPython-3.14.4)
     method: GET
-    uri: http://artifact-index-e2e:9696/v3/ioc/search?community=gamma&ip=9.42.154.68
+    uri: http://ai:9696/v3/ioc/search?community=gamma&ip=9.42.154.68
   response:
     body:
       string: ''
@@ -276,11 +276,11 @@ interactions:
       connection:
       - keep-alive
       host:
-      - artifact-index-e2e:9696
+      - ai:9696
       user-agent:
       - polyswarm_api/3.21.0 (x86_64-Linux-CPython-3.14.4)
     method: GET
-    uri: http://artifact-index-e2e:9696/v3/ioc/search?community=gamma&ip=9.42.154.68
+    uri: http://ai:9696/v3/ioc/search?community=gamma&ip=9.42.154.68
   response:
     body:
       string: ''
@@ -312,11 +312,11 @@ interactions:
       connection:
       - keep-alive
       host:
-      - artifact-index-e2e:9696
+      - ai:9696
       user-agent:
       - polyswarm_api/3.21.0 (x86_64-Linux-CPython-3.14.4)
     method: GET
-    uri: http://artifact-index-e2e:9696/v3/ioc/search?community=gamma&ip=9.42.154.68
+    uri: http://ai:9696/v3/ioc/search?community=gamma&ip=9.42.154.68
   response:
     body:
       string: ''
@@ -348,11 +348,11 @@ interactions:
       connection:
       - keep-alive
       host:
-      - artifact-index-e2e:9696
+      - ai:9696
       user-agent:
       - polyswarm_api/3.21.0 (x86_64-Linux-CPython-3.14.4)
     method: GET
-    uri: http://artifact-index-e2e:9696/v3/ioc/search?community=gamma&ip=9.42.154.68
+    uri: http://ai:9696/v3/ioc/search?community=gamma&ip=9.42.154.68
   response:
     body:
       string: ''
@@ -384,11 +384,11 @@ interactions:
       connection:
       - keep-alive
       host:
-      - artifact-index-e2e:9696
+      - ai:9696
       user-agent:
       - polyswarm_api/3.21.0 (x86_64-Linux-CPython-3.14.4)
     method: GET
-    uri: http://artifact-index-e2e:9696/v3/ioc/search?community=gamma&ip=9.42.154.68
+    uri: http://ai:9696/v3/ioc/search?community=gamma&ip=9.42.154.68
   response:
     body:
       string: ''
@@ -420,11 +420,11 @@ interactions:
       connection:
       - keep-alive
       host:
-      - artifact-index-e2e:9696
+      - ai:9696
       user-agent:
       - polyswarm_api/3.21.0 (x86_64-Linux-CPython-3.14.4)
     method: GET
-    uri: http://artifact-index-e2e:9696/v3/ioc/search?community=gamma&ip=9.42.154.68
+    uri: http://ai:9696/v3/ioc/search?community=gamma&ip=9.42.154.68
   response:
     body:
       string: ''
@@ -456,11 +456,11 @@ interactions:
       connection:
       - keep-alive
       host:
-      - artifact-index-e2e:9696
+      - ai:9696
       user-agent:
       - polyswarm_api/3.21.0 (x86_64-Linux-CPython-3.14.4)
     method: GET
-    uri: http://artifact-index-e2e:9696/v3/ioc/search?community=gamma&ip=9.42.154.68
+    uri: http://ai:9696/v3/ioc/search?community=gamma&ip=9.42.154.68
   response:
     body:
       string: ''
@@ -492,11 +492,11 @@ interactions:
       connection:
       - keep-alive
       host:
-      - artifact-index-e2e:9696
+      - ai:9696
       user-agent:
       - polyswarm_api/3.21.0 (x86_64-Linux-CPython-3.14.4)
     method: GET
-    uri: http://artifact-index-e2e:9696/v3/ioc/search?community=gamma&ip=9.42.154.68
+    uri: http://ai:9696/v3/ioc/search?community=gamma&ip=9.42.154.68
   response:
     body:
       string: ''
@@ -528,11 +528,11 @@ interactions:
       connection:
       - keep-alive
       host:
-      - artifact-index-e2e:9696
+      - ai:9696
       user-agent:
       - polyswarm_api/3.21.0 (x86_64-Linux-CPython-3.14.4)
     method: GET
-    uri: http://artifact-index-e2e:9696/v3/ioc/search?community=gamma&ip=9.42.154.68
+    uri: http://ai:9696/v3/ioc/search?community=gamma&ip=9.42.154.68
   response:
     body:
       string: ''
@@ -564,11 +564,11 @@ interactions:
       connection:
       - keep-alive
       host:
-      - artifact-index-e2e:9696
+      - ai:9696
       user-agent:
       - polyswarm_api/3.21.0 (x86_64-Linux-CPython-3.14.4)
     method: GET
-    uri: http://artifact-index-e2e:9696/v3/ioc/search?community=gamma&ip=9.42.154.68
+    uri: http://ai:9696/v3/ioc/search?community=gamma&ip=9.42.154.68
   response:
     body:
       string: ''
@@ -600,11 +600,11 @@ interactions:
       connection:
       - keep-alive
       host:
-      - artifact-index-e2e:9696
+      - ai:9696
       user-agent:
       - polyswarm_api/3.21.0 (x86_64-Linux-CPython-3.14.4)
     method: GET
-    uri: http://artifact-index-e2e:9696/v3/ioc/search?community=gamma&ip=9.42.154.68
+    uri: http://ai:9696/v3/ioc/search?community=gamma&ip=9.42.154.68
   response:
     body:
       string: ''
@@ -636,11 +636,11 @@ interactions:
       connection:
       - keep-alive
       host:
-      - artifact-index-e2e:9696
+      - ai:9696
       user-agent:
       - polyswarm_api/3.21.0 (x86_64-Linux-CPython-3.14.4)
     method: GET
-    uri: http://artifact-index-e2e:9696/v3/ioc/search?community=gamma&ip=9.42.154.68
+    uri: http://ai:9696/v3/ioc/search?community=gamma&ip=9.42.154.68
   response:
     body:
       string: ''
@@ -672,11 +672,11 @@ interactions:
       connection:
       - keep-alive
       host:
-      - artifact-index-e2e:9696
+      - ai:9696
       user-agent:
       - polyswarm_api/3.21.0 (x86_64-Linux-CPython-3.14.4)
     method: GET
-    uri: http://artifact-index-e2e:9696/v3/ioc/search?community=gamma&ip=9.42.154.68
+    uri: http://ai:9696/v3/ioc/search?community=gamma&ip=9.42.154.68
   response:
     body:
       string: ''
@@ -708,11 +708,11 @@ interactions:
       connection:
       - keep-alive
       host:
-      - artifact-index-e2e:9696
+      - ai:9696
       user-agent:
       - polyswarm_api/3.21.0 (x86_64-Linux-CPython-3.14.4)
     method: GET
-    uri: http://artifact-index-e2e:9696/v3/ioc/search?community=gamma&ip=9.42.154.68
+    uri: http://ai:9696/v3/ioc/search?community=gamma&ip=9.42.154.68
   response:
     body:
       string: ''
@@ -744,11 +744,11 @@ interactions:
       connection:
       - keep-alive
       host:
-      - artifact-index-e2e:9696
+      - ai:9696
       user-agent:
       - polyswarm_api/3.21.0 (x86_64-Linux-CPython-3.14.4)
     method: GET
-    uri: http://artifact-index-e2e:9696/v3/ioc/search?community=gamma&ip=9.42.154.68
+    uri: http://ai:9696/v3/ioc/search?community=gamma&ip=9.42.154.68
   response:
     body:
       string: ''
@@ -780,11 +780,11 @@ interactions:
       connection:
       - keep-alive
       host:
-      - artifact-index-e2e:9696
+      - ai:9696
       user-agent:
       - polyswarm_api/3.21.0 (x86_64-Linux-CPython-3.14.4)
     method: GET
-    uri: http://artifact-index-e2e:9696/v3/ioc/search?community=gamma&ip=9.42.154.68
+    uri: http://ai:9696/v3/ioc/search?community=gamma&ip=9.42.154.68
   response:
     body:
       string: ''
@@ -816,11 +816,11 @@ interactions:
       connection:
       - keep-alive
       host:
-      - artifact-index-e2e:9696
+      - ai:9696
       user-agent:
       - polyswarm_api/3.21.0 (x86_64-Linux-CPython-3.14.4)
     method: GET
-    uri: http://artifact-index-e2e:9696/v3/ioc/search?community=gamma&ip=9.42.154.68
+    uri: http://ai:9696/v3/ioc/search?community=gamma&ip=9.42.154.68
   response:
     body:
       string: ''
@@ -852,11 +852,11 @@ interactions:
       connection:
       - keep-alive
       host:
-      - artifact-index-e2e:9696
+      - ai:9696
       user-agent:
       - polyswarm_api/3.21.0 (x86_64-Linux-CPython-3.14.4)
     method: GET
-    uri: http://artifact-index-e2e:9696/v3/ioc/search?community=gamma&ip=9.42.154.68
+    uri: http://ai:9696/v3/ioc/search?community=gamma&ip=9.42.154.68
   response:
     body:
       string: ''
@@ -888,11 +888,11 @@ interactions:
       connection:
       - keep-alive
       host:
-      - artifact-index-e2e:9696
+      - ai:9696
       user-agent:
       - polyswarm_api/3.21.0 (x86_64-Linux-CPython-3.14.4)
     method: GET
-    uri: http://artifact-index-e2e:9696/v3/ioc/search?community=gamma&ip=9.42.154.68
+    uri: http://ai:9696/v3/ioc/search?community=gamma&ip=9.42.154.68
   response:
     body:
       string: ''
@@ -924,11 +924,11 @@ interactions:
       connection:
       - keep-alive
       host:
-      - artifact-index-e2e:9696
+      - ai:9696
       user-agent:
       - polyswarm_api/3.21.0 (x86_64-Linux-CPython-3.14.4)
     method: GET
-    uri: http://artifact-index-e2e:9696/v3/ioc/search?community=gamma&ip=9.42.154.68
+    uri: http://ai:9696/v3/ioc/search?community=gamma&ip=9.42.154.68
   response:
     body:
       string: ''
@@ -960,11 +960,11 @@ interactions:
       connection:
       - keep-alive
       host:
-      - artifact-index-e2e:9696
+      - ai:9696
       user-agent:
       - polyswarm_api/3.21.0 (x86_64-Linux-CPython-3.14.4)
     method: GET
-    uri: http://artifact-index-e2e:9696/v3/ioc/search?community=gamma&ip=9.42.154.68
+    uri: http://ai:9696/v3/ioc/search?community=gamma&ip=9.42.154.68
   response:
     body:
       string: ''
@@ -996,11 +996,11 @@ interactions:
       connection:
       - keep-alive
       host:
-      - artifact-index-e2e:9696
+      - ai:9696
       user-agent:
       - polyswarm_api/3.21.0 (x86_64-Linux-CPython-3.14.4)
     method: GET
-    uri: http://artifact-index-e2e:9696/v3/ioc/search?community=gamma&ip=9.42.154.68
+    uri: http://ai:9696/v3/ioc/search?community=gamma&ip=9.42.154.68
   response:
     body:
       string: ''
@@ -1032,11 +1032,11 @@ interactions:
       connection:
       - keep-alive
       host:
-      - artifact-index-e2e:9696
+      - ai:9696
       user-agent:
       - polyswarm_api/3.21.0 (x86_64-Linux-CPython-3.14.4)
     method: GET
-    uri: http://artifact-index-e2e:9696/v3/ioc/search?community=gamma&ip=9.42.154.68
+    uri: http://ai:9696/v3/ioc/search?community=gamma&ip=9.42.154.68
   response:
     body:
       string: ''
@@ -1068,11 +1068,11 @@ interactions:
       connection:
       - keep-alive
       host:
-      - artifact-index-e2e:9696
+      - ai:9696
       user-agent:
       - polyswarm_api/3.21.0 (x86_64-Linux-CPython-3.14.4)
     method: GET
-    uri: http://artifact-index-e2e:9696/v3/ioc/search?community=gamma&ip=9.42.154.68
+    uri: http://ai:9696/v3/ioc/search?community=gamma&ip=9.42.154.68
   response:
     body:
       string: ''
@@ -1104,11 +1104,11 @@ interactions:
       connection:
       - keep-alive
       host:
-      - artifact-index-e2e:9696
+      - ai:9696
       user-agent:
       - polyswarm_api/3.21.0 (x86_64-Linux-CPython-3.14.4)
     method: GET
-    uri: http://artifact-index-e2e:9696/v3/ioc/search?community=gamma&ip=9.42.154.68
+    uri: http://ai:9696/v3/ioc/search?community=gamma&ip=9.42.154.68
   response:
     body:
       string: ''
@@ -1140,11 +1140,11 @@ interactions:
       connection:
       - keep-alive
       host:
-      - artifact-index-e2e:9696
+      - ai:9696
       user-agent:
       - polyswarm_api/3.21.0 (x86_64-Linux-CPython-3.14.4)
     method: GET
-    uri: http://artifact-index-e2e:9696/v3/ioc/search?community=gamma&ip=9.42.154.68
+    uri: http://ai:9696/v3/ioc/search?community=gamma&ip=9.42.154.68
   response:
     body:
       string: ''
@@ -1176,11 +1176,11 @@ interactions:
       connection:
       - keep-alive
       host:
-      - artifact-index-e2e:9696
+      - ai:9696
       user-agent:
       - polyswarm_api/3.21.0 (x86_64-Linux-CPython-3.14.4)
     method: GET
-    uri: http://artifact-index-e2e:9696/v3/ioc/search?community=gamma&ip=9.42.154.68
+    uri: http://ai:9696/v3/ioc/search?community=gamma&ip=9.42.154.68
   response:
     body:
       string: '{"has_more":false,"limit":50,"result":["903b32d15854635ff609c18fcdd686ce8b23b65ab7f451876555cd66d7135137"],"status":"OK"}

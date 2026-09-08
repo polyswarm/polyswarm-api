@@ -37,6 +37,7 @@ BaseResource                          # holds .api, ._content, .parse_result cla
     ├── HistoricalHuntResult / List   # /hunt/historical/results (+ /results/list)
     ├── LiveHuntResult / List         # /hunt/live (+ /hunt/live/list)
     ├── YaraRuleset                   # /hunt/rule
+    ├── YaraRulesetFavorite           # /hunt/rule/favorite
     ├── Tag, MalwareFamily, TagLink   # /tags/tag, /tags/family, /tags/link
     ├── AssertionsJob, VotesJob       # /consumer/assertions-job, /consumer/votes-job
     ├── SandboxTask, SandboxProvider  # /sandbox/sandboxtask, /sandbox/provider
@@ -240,7 +241,7 @@ from .core import BaseJsonResource, Hashable, PolyswarmRequest
 
 class FooBar(BaseJsonResource):
     RESOURCE_ENDPOINT = '/foobar'
-    RESOURCE_ID_KEYS = ['foo_id']   # only needed if the identifier isn't 'id'
+    RESOURCE_ID_KEYS = ['foo_id']   # keys routed to the query string, not the body
 
     # Optional: parametrised path
     # RESOURCE_ENDPOINT = '/foobar/{foo_id}'
@@ -343,7 +344,8 @@ Holds `handle`, `artifact_name`, `artifact_type`, `sha256`, `sha1`, `md5`. Also 
 Several resources add domain-specific classmethods on top of the standard CRUD set:
 
 - `IOC` — `iocs_by_hash`, `ioc_search`, `check_known_hosts`, `create_known_good`, `create_known_bad`, `update_known_good`, `delete_known_good`.
-- `LiveYaraRuleset` / `HistoricalHunt` / `YaraRuleset` — standard CRUD plus list/delete-batch variants.
+- `LiveYaraRuleset` / `HistoricalHunt` / `YaraRuleset` — standard CRUD plus list/delete-batch variants. `YaraRuleset` also parses the hunt-page tracking fields (`favorite`, `favorited_at`, `rule_count` — `None` means the server had no answer, distinct from 0 — `historical_hunt_count`, and the stored `new_results_count` with its staleness marker `new_results_counted_at`: the server refreshes the counter on a schedule and the marker says when, so `None` means "not yet refreshed / no live hunt", never 0), and `HistoricalHunt` the source-rule provenance (`rule_id`, `rule_modified`, and the tri-state `source_rule_changed` — `None` is "unknown", never "unchanged"). All additive `.get()` parses; an older server leaves them `None`.
+- `YaraRulesetFavorite` — `RESOURCE_ENDPOINT = '/hunt/rule/favorite'`, **`RESOURCE_ID_KEYS = ['community']`**: a deliberate deviation from the default `['id']`, splitting the request the way the server reads it — the toggle reads BOTH `id` and `favorite` from the PUT **body** (the default would move `id` into the query string and the server would 400 with "A valid rule id must be provided"), while `community` rides the **query string** to match where the ruleset GET/list calls send it. (The server's community middleware accepts the value from either the query or the body — but never both at once — so the placement here is about consistency and the id-400, not about a silently-ignored body value.) `favorite` serialises as `1`/`0` (the `_params` bool→int coercion), which the server's boolean parser accepts. Response carries the star state plus the team's `favorites_used`/`favorites_limit`. Pinned by `test/hunt_tracking_builder_test.py` and both transports of `test/ruleset_favorite_respx_test.py`.
 - `SandboxTask` — `create_file`, `update_file`, `latest`, `my_tasks` for the various sandbox-submission shapes. **No `upload_file` instance method** in 4.0.
 - `Sample` — `create` with `endpoint_fmt={'sha256': sha256}` for the URL-parametrised path.
 - `Webhook` — `test(api, webhook_id)` for the test-payload endpoint.

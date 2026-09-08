@@ -15,11 +15,11 @@ interactions:
       content-type:
       - application/json
       host:
-      - artifact-index-e2e:9696
+      - ai:9696
       user-agent:
       - polyswarm_api/3.21.0 (x86_64-Linux-CPython-3.14.4)
     method: POST
-    uri: http://artifact-index-e2e:9696/v3/instance
+    uri: http://ai:9696/v3/instance
   response:
     body:
       string: '{"result":{"artifact_id":"91146897712374264","assertions":[],"bounty_state":0,"community":"gamma","country":"","created":"2026-06-03T22:37:52.901008+00:00","detections":null,"expiration_window":null,"expire_at":null,"extended_type":null,"failed":false,"filename":"artifact","first_seen":"2026-06-03T22:37:52.901008+00:00","id":"91146897712374264","last_scanned":null,"last_seen":null,"md5":null,"metadata":[],"mimetype":null,"permalink":"https://polyswarm.network/scan/results/file/None/91146897712374264","polyscore":null,"result":null,"sha1":null,"sha256":null,"size":null,"type":"FILE","upload_url":"http://minio:9000/artifact-index/instances/1d/48/4d/1d484d24-377b-4017-b360-851a0fd498bc?X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Credential=AKIAIOSFODNN7EXAMPLE%2F20260603%2Fus-east-1%2Fs3%2Faws4_request&X-Amz-Date=20260603T223752Z&X-Amz-Expires=300&X-Amz-SignedHeaders=host&X-Amz-Signature=21d28aa47289d7c962d34226ed183162da86045573fc9f3810b88d78b0ef09ff","votes":[],"window_closed":false},"status":"OK"}
@@ -116,11 +116,11 @@ interactions:
       content-type:
       - application/json
       host:
-      - artifact-index-e2e:9696
+      - ai:9696
       user-agent:
       - polyswarm_api/3.21.0 (x86_64-Linux-CPython-3.14.4)
     method: PUT
-    uri: http://artifact-index-e2e:9696/v3/instance?id=91146897712374264
+    uri: http://ai:9696/v3/instance?id=91146897712374264
   response:
     body:
       string: '{"result":{"artifact_id":"91146897712374264","assertions":[],"bounty_state":0,"community":"gamma","country":"","created":"2026-06-03T22:37:52.901008+00:00","detections":null,"expiration_window":null,"expire_at":null,"extended_type":null,"failed":false,"filename":"artifact","first_seen":"2026-06-03T22:37:52.901008+00:00","id":"91146897712374264","last_scanned":null,"last_seen":null,"md5":null,"metadata":[],"mimetype":null,"permalink":"https://polyswarm.network/scan/results/file/None/91146897712374264","polyscore":null,"result":null,"sha1":null,"sha256":null,"size":null,"type":"FILE","upload_url":"http://minio:9000/artifact-index/instances/1d/48/4d/1d484d24-377b-4017-b360-851a0fd498bc?X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Credential=AKIAIOSFODNN7EXAMPLE%2F20260603%2Fus-east-1%2Fs3%2Faws4_request&X-Amz-Date=20260603T223752Z&X-Amz-Expires=300&X-Amz-SignedHeaders=host&X-Amz-Signature=21d28aa47289d7c962d34226ed183162da86045573fc9f3810b88d78b0ef09ff","votes":[],"window_closed":false},"status":"OK"}
@@ -158,11 +158,11 @@ interactions:
       connection:
       - keep-alive
       host:
-      - artifact-index-e2e:9696
+      - ai:9696
       user-agent:
       - polyswarm_api/3.21.0 (x86_64-Linux-CPython-3.14.4)
     method: GET
-    uri: http://artifact-index-e2e:9696/v3/consumer/download/sha256/e2e4696fdcd4f626578f0c9d4ca5f3d32d2256b2130d87bb910c56ac90f26533?community=gamma
+    uri: http://ai:9696/v3/consumer/download/sha256/e2e4696fdcd4f626578f0c9d4ca5f3d32d2256b2130d87bb910c56ac90f26533?community=gamma
   response:
     body:
       string: '{"errors":null,"result":"No instance found for the hash sha256=e2e4696fdcd4f626578f0c9d4ca5f3d32d2256b2130d87bb910c56ac90f26533
@@ -199,11 +199,11 @@ interactions:
       connection:
       - keep-alive
       host:
-      - artifact-index-e2e:9696
+      - ai:9696
       user-agent:
       - polyswarm_api/3.21.0 (x86_64-Linux-CPython-3.14.4)
     method: GET
-    uri: http://artifact-index-e2e:9696/v3/consumer/download/sha256/e2e4696fdcd4f626578f0c9d4ca5f3d32d2256b2130d87bb910c56ac90f26533?community=gamma
+    uri: http://ai:9696/v3/consumer/download/sha256/e2e4696fdcd4f626578f0c9d4ca5f3d32d2256b2130d87bb910c56ac90f26533?community=gamma
   response:
     body:
       string: '<!doctype html>
