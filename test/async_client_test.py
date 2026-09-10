@@ -865,6 +865,30 @@ class TestAsyncScanCase:
                     result = await api.live_result(result_id)
                 assert result.download_url
 
+                # The list/detail split, pinned against the real server rather than prose.
+                # The pure-unit tests exercise dict.get and would pass identically if the
+                # server never grew the field; only a cassette shows what it actually sent.
+                assert result.matched_strings, (
+                    'detail route should carry the yara evidence. A null here against an\n'
+                    'otherwise-green stack means the analyzer image predates the change\n'
+                    'that emits `strings` -- check the analyzer, not this repo.')
+                # On .json for the same reason as the count below: the attribute cannot
+                # distinguish a served null from an absent key, and specs/05 claims the
+                # list route sends an explicit null.
+                assert my_results[0].json['matched_strings'] is None, \
+                    'list rows carry the key as null, not the evidence'
+                # On .json, not the attribute: `is None` cannot tell a served null from an
+                # absent key, and what needs pinning is that the server SENDS this field.
+                assert 'matched_strings_dropped' in result.json, \
+                    'server must serve the withheld-count field'
+                assert result.matched_strings_dropped is None, \
+                    'nothing withheld for a match this small'
+                # The per-entry shape is contract (specs/05) but was pinned only by a hand-written
+                # fixture -- i.e. what we THINK the server sends. This asserts it against what the
+                # server actually sent, so a key rename cannot pass the suite VCR-off.
+                assert set(result.matched_strings[0]) == {
+                    'offset', 'identifier', 'length', 'data', 'truncated'}, result.matched_strings[0]
+
                 await api.live_feed_delete([result_id])
                 with pytest.raises(exceptions.NotFoundException):
                     await api.live_result(result_id)
