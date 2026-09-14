@@ -637,8 +637,12 @@ class ScanTestCaseV2(TestCase):
                     return ids.index(running.id) < ids.index(idle.id)
 
                 assert poll_equals(lambda: _running_precedes_idle(sort='active_first'), True)
-                # the default order is untouched: the newer (idle) ruleset first
-                assert _running_precedes_idle() is False
+                # The default order is untouched: the newer (idle) ruleset
+                # first. Polled like the sorted arm above — the helper returns
+                # None while either row is missing, so an unpolled read would
+                # assert `None is False` on a lagging replica instead of
+                # retrying. `want=False` is not None, so poll_equals accepts it.
+                assert poll_equals(_running_precedes_idle, False) is False
                 # a sort the server does not know is refused, never ignored
                 with self.assertRaises(exceptions.RequestException):
                     list(api.ruleset_list(sort='bogus'))

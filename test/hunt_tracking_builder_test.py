@@ -243,9 +243,11 @@ class TestRulesetListSortOnTheWire:
     """``ruleset_list(sort='active_first')`` — the hunt page's active-first
     order is an opt-in server token, and it must REACH the server
     exactly as such: the unsorted call sends no ``sort`` at all (the request
-    stays byte-compatible with the pre-sort contract and the list keeps its
-    id-desc order), and the SDK never re-orders client-side — the list is
-    keyset-paginated, so a local sort would only ever reorder one page.
+    stays byte-compatible with the pre-sort contract and the list keeps the
+    server's default newest-first order — by the server's own insertion key,
+    NOT by the ``id`` on the rows, which is unique but unordered), and the SDK
+    never re-orders client-side — the list is keyset-paginated, so a local sort
+    would only ever reorder one page.
 
     Both transports are driven: the sync mirror (what ``polyswarm-cli``
     calls) and the canonical async source unasync generates it from."""

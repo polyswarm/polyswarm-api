@@ -635,7 +635,10 @@ class TestAsyncScanCase:
                     async def _sorted():
                         return await _running_precedes_idle(sort='active_first')
                     assert await poll_equals_async(_sorted, True)
-                    assert await _running_precedes_idle() is False
+                    # Polled like the sorted arm — see the sync twin.
+                    async def _unsorted():
+                        return await _running_precedes_idle()
+                    assert await poll_equals_async(_unsorted, False) is False
                     with pytest.raises(exceptions.RequestException):
                         _ = [r async for r in api.ruleset_list(sort='bogus')]
                 finally:
