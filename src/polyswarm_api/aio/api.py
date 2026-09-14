@@ -711,20 +711,28 @@ class PolySwarmAsyncAPI:
             maintained server-side by a scheduled refresh; rows carry it as
             ``new_results_count`` with ``new_results_counted_at`` marking when
             it was last refreshed. There is no per-request window parameter.
-        :param sort: ``'active_first'`` returns the rulesets with a running
-            live hunt first — as recorded by the server's live-hunt link, the
-            same link ``livescan_id`` renders from — newest first within each
-            block. Default (None) is newest first. Applied SERVER-side, across
-            pages — the list is keyset-paginated, so a client-side sort would
-            only ever reorder one page; the SDK never re-orders rows. Reuse a
-            page's ``offset`` only with the same ``sort``: the server refuses
-            a cursor minted under the other order. The key is MUTABLE, unlike
-            the id-desc default: a ruleset whose live hunt stops mid-walk falls
-            back into the idle block below the cursor and is yielded twice,
-            and one started mid-walk moves above the cursor and is skipped for
-            the rest of that walk. This generator streams pages and does not
-            dedupe — dedupe by ``id`` if you consume more than one page; a
-            fresh walk from the first page is always self-consistent.
+        :param sort: ``'active_first'`` returns the rulesets that carry a live
+            hunt link first, newest first within each block. Default (None) is
+            newest first. Applied SERVER-side, across pages — the list is
+            keyset-paginated, so a client-side sort would only ever reorder one
+            page; the SDK never re-orders rows. Reuse a page's ``offset`` only
+            with the same ``sort``: the server refuses a cursor minted under
+            the other order.
+
+            Two server-side properties of that key, neither of them SDK
+            behaviour. It ranks on the stored link, which is a WIDER predicate
+            than the one ``livescan_id`` is rendered under: a legacy row whose
+            hunt was stopped without clearing the link ranks in the leading
+            block while still serializing ``livescan_id`` as ``None``. Read the
+            field to decide whether a ruleset is running; never the position.
+
+            And the key is MUTABLE, unlike the id-desc default: a ruleset whose
+            live hunt stops mid-walk falls back into the idle block below the
+            cursor and is yielded twice, and one started mid-walk moves above
+            the cursor and is skipped for the rest of that walk. That is a
+            property of the walk, so starting fresh from the first page does
+            not avoid it. This generator streams pages and does not dedupe —
+            dedupe by ``id`` if you consume more than one page.
         :return: A generator of YaraRuleset resources
         """
         logger.info('List rulesets')

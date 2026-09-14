@@ -625,7 +625,15 @@ class ScanTestCaseV2(TestCase):
                     lambda: api.ruleset_get(running.id).livescan_id is not None, True)
 
                 def _running_precedes_idle(**kwargs):
+                    # Membership-tolerant on purpose: this is polled, and a
+                    # replica that has not applied `idle` yet must read as "not
+                    # yet true" and be retried. `.index()` would raise
+                    # ValueError, which poll_equals does not absorb, and the
+                    # lag the poll exists for would surface as an error on the
+                    # first attempt instead.
                     ids = [r.id for r in api.ruleset_list(**kwargs)]
+                    if running.id not in ids or idle.id not in ids:
+                        return None
                     return ids.index(running.id) < ids.index(idle.id)
 
                 assert poll_equals(lambda: _running_precedes_idle(sort='active_first'), True)

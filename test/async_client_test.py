@@ -624,7 +624,12 @@ class TestAsyncScanCase:
                     assert await poll_equals_async(_enabled, True)
 
                     async def _running_precedes_idle(**kwargs):
+                        # Membership-tolerant on purpose — see the sync twin:
+                        # a replica missing `idle` must read as "not yet true"
+                        # and be retried, not raise out of the poll.
                         ids = [r.id async for r in api.ruleset_list(**kwargs)]
+                        if running.id not in ids or idle.id not in ids:
+                            return None
                         return ids.index(running.id) < ids.index(idle.id)
 
                     async def _sorted():
