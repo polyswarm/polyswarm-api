@@ -718,7 +718,13 @@ class PolySwarmAsyncAPI:
             pages — the list is keyset-paginated, so a client-side sort would
             only ever reorder one page; the SDK never re-orders rows. Reuse a
             page's ``offset`` only with the same ``sort``: the server refuses
-            a cursor minted under the other order.
+            a cursor minted under the other order. The key is MUTABLE, unlike
+            the id-desc default: a ruleset whose live hunt stops mid-walk falls
+            back into the idle block below the cursor and is yielded twice,
+            and one started mid-walk moves above the cursor and is skipped for
+            the rest of that walk. This generator streams pages and does not
+            dedupe — dedupe by ``id`` if you consume more than one page; a
+            fresh walk from the first page is always self-consistent.
         :return: A generator of YaraRuleset resources
         """
         logger.info('List rulesets')
