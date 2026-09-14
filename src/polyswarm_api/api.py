@@ -859,7 +859,10 @@ class PolyswarmAPI:
             it was last refreshed. There is no per-request window parameter.
         :param sort: ``'active_first'`` returns the rulesets that carry a live
             hunt link first, newest first within each block. Default (None) is
-            newest first. Applied SERVER-side, across pages — the list is
+            newest first. "Newest first" is the server's own insertion key, NOT
+            the ``id`` on the rows you get back — that one is unique but
+            unordered, so dedupe with it and never resume or bound a walk with
+            it. Applied SERVER-side, across pages — the list is
             keyset-paginated, so a client-side sort would only ever reorder one
             page; the SDK never re-orders rows. Reuse a page's ``offset`` only
             with the same ``sort``: the server refuses a cursor minted under
@@ -872,7 +875,7 @@ class PolyswarmAPI:
             block while still serializing ``livescan_id`` as ``None``. Read the
             field to decide whether a ruleset is running; never the position.
 
-            And the key is MUTABLE, unlike the id-desc default: a ruleset whose
+            And the key is MUTABLE, unlike that default: a ruleset whose
             live hunt stops mid-walk falls back into the idle block below the
             cursor and is yielded twice, and one started mid-walk moves above
             the cursor and is skipped for the rest of that walk. That is a
