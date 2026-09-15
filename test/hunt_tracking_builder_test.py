@@ -65,12 +65,23 @@ class TestRulesetListFilterBuilder:
             'name': 'alpha', 'status': 'active', 'favorites_only': 1,
             'has_new_results': 1, 'community': 'gamma'}
 
+    def test_exclude_favorites_rides_the_query_as_an_int_bool(self):
+        """The inverse filter, for clients that render the favorites as their
+        own list: leaving them in the paginated list too makes a page repeat a
+        row or come back short. Same int-bool coercion as its sibling."""
+        api = _FakeApi()
+        req = resources.YaraRuleset.list(
+            api, exclude_favorites=True, sort='active_first',
+            community=api.community)
+        assert req.params == {
+            'exclude_favorites': 1, 'sort': 'active_first', 'community': 'gamma'}
+
     def test_list_omits_every_unset_filter(self):
         # The no-filter request is byte-compatible with the pre-filter
         # contract: nothing but community rides the query string.
         req = resources.YaraRuleset.list(
             _FakeApi(), name=None, status=None, favorites_only=None,
-            has_new_results=None, community='gamma')
+            has_new_results=None, exclude_favorites=None, community='gamma')
         assert req.params == {'community': 'gamma'}
 
 

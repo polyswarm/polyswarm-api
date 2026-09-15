@@ -697,7 +697,8 @@ class PolySwarmAsyncAPI:
         return await self._single(resources.YaraRuleset.delete(self, id=ruleset_id, community=self.community))
 
     async def ruleset_list(self, name=None, status=None, favorites_only=None,
-                           has_new_results=None, sort=None):
+                           has_new_results=None, sort=None,
+                           exclude_favorites=None):
         """
         List all YaraRulesets for the current account.
 
@@ -706,6 +707,15 @@ class PolySwarmAsyncAPI:
         :param status: 'active' returns only rulesets whose live hunt is
             currently running.
         :param favorites_only: True returns only favorited rulesets.
+        :param exclude_favorites: True returns only the rulesets that are NOT
+            favorited — the inverse of ``favorites_only``, and refused together
+            with it (a contradiction, answered with an error rather than an
+            empty list). It exists for clients that render the favorites as
+            their own list: the favorites are a separate, unpaginated fetch
+            bounded by the account's budget, so leaving them in the paginated
+            list too makes a page either repeat a row or come back short.
+            Appended to the signature rather than placed beside
+            ``favorites_only`` so a positional caller keeps working.
         :param has_new_results: True returns only rulesets whose stored
             new-results counter is positive. The counter (and its window) is
             maintained server-side by a scheduled refresh; rows carry it as
@@ -742,6 +752,7 @@ class PolySwarmAsyncAPI:
         async for item in self._paginate(resources.YaraRuleset.list(
                 self, name=name, status=status, favorites_only=favorites_only,
                 has_new_results=has_new_results, sort=sort,
+                exclude_favorites=exclude_favorites,
                 community=self.community)):
             yield item
 
