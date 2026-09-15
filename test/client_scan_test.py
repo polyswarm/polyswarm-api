@@ -508,6 +508,30 @@ class ScanTestCaseV2(TestCase):
                 result = api.live_result(result_id)
             assert result.download_url
 
+            # The list/detail split, pinned against the real server rather than prose.
+            # The pure-unit tests exercise dict.get and would pass identically if the
+            # server never grew the field; only a cassette shows what it actually sent.
+            assert result.matched_strings, (
+                'detail route should carry the yara evidence. A null here against an\n'
+                'otherwise-green stack means the analyzer image predates the change\n'
+                'that emits `strings` -- check the analyzer, not this repo.')
+            # On .json for the same reason as the count below: the attribute cannot
+            # distinguish a served null from an absent key, and specs/05 claims the
+            # list route sends an explicit null.
+            assert my_results[0].json['matched_strings'] is None, \
+                'list rows carry the key as null, not the evidence'
+            # On .json, not the attribute: `is None` cannot tell a served null from an
+            # absent key, and what needs pinning is that the server SENDS this field.
+            assert 'matched_strings_dropped' in result.json, \
+                'server must serve the withheld-count field'
+            assert result.matched_strings_dropped is None, \
+                'nothing withheld for a match this small'
+            # The per-entry shape is contract (specs/05) but was pinned only by a hand-written
+            # fixture -- i.e. what we THINK the server sends. This asserts it against what the
+            # server actually sent, so a key rename cannot pass the suite VCR-off.
+            assert set(result.matched_strings[0]) == {
+                'offset', 'identifier', 'length', 'data', 'truncated'}, result.matched_strings[0]
+
             api.live_feed_delete([result_id])
             with pytest.raises(exceptions.NotFoundException):
                 api.live_result(result_id)
@@ -576,6 +600,74 @@ class ScanTestCaseV2(TestCase):
                 assert entry.rule_name
         except (exceptions.NotFoundException, exceptions.NoResultsException):
             pass
+
+    @vcr.use_cassette()
+    # NO e2e arm for `exclude_favorites`, deliberately and with a cost.
+    # specs/04 invariant 1 wants endpoint behaviour tested against the real
+    # server, and the reason is spelled out below: the server ignores unknown
+    # query args, so a renamed token leaves builder tests green and the list
+    # unfiltered. What covers it instead:
+    #   * `TestRulesetListSortOnTheWire` drives BOTH client methods and fails if
+    #     either stops forwarding the keyword (verified by deleting the
+    #     pass-through: one test fails, the rest stay green);
+    #   * the server side pins the filter itself, and the 400 for the
+    #     contradictory pair, in its own HTTP suite against a real database.
+    # What stays uncovered is a rename that both sides make in lockstep with
+    # the server's spelling — the case only a live request catches. Recording
+    # the cassette needs a stack whose AKM carries the fixture account; ours
+    # answers 500 for a hand-seeded one, so it is honest to say this is
+    # missing rather than to fake a recording.
+    def test_rules_sort_active_first(self):
+        """``sort='active_first'`` is an order the SERVER applies: two rulesets
+        owned by this test, the older one with a live hunt running, the newer
+        one idle. Newest-first (the default) puts the idle one ahead; the
+        active-first order puts the running one ahead — a relation the server
+        must actually satisfy, which no pure-unit test can express (the server
+        ignores unknown query args, so a renamed token would leave the builder
+        tests green and the list unsorted). Relative positions only: the
+        shared stack carries other tests' rulesets."""
+        api = PolyswarmAPI(self.test_api_key, uri=f'http://ai:9696/{self.api_version}', community='gamma')
+        uid = self._testMethodName
+        running = api.ruleset_create(f'{uid}-running', uid_yara(f'{uid}-running'))
+        idle = None
+        try:
+            idle = api.ruleset_create(f'{uid}-idle', uid_yara(f'{uid}-idle'))
+            api.live_start(int(running.id))
+            try:
+                # the enable lands asynchronously and reads come off the
+                # replica — poll (specs/04)
+                assert poll_equals(
+                    lambda: api.ruleset_get(running.id).livescan_id is not None, True)
+
+                def _running_precedes_idle(**kwargs):
+                    # Membership-tolerant on purpose: this is polled, and a
+                    # replica that has not applied `idle` yet must read as "not
+                    # yet true" and be retried. `.index()` would raise
+                    # ValueError, which poll_equals does not absorb, and the
+                    # lag the poll exists for would surface as an error on the
+                    # first attempt instead.
+                    ids = [r.id for r in api.ruleset_list(**kwargs)]
+                    if running.id not in ids or idle.id not in ids:
+                        return None
+                    return ids.index(running.id) < ids.index(idle.id)
+
+                assert poll_equals(lambda: _running_precedes_idle(sort='active_first'), True)
+                # The default order is untouched: the newer (idle) ruleset
+                # first. Polled like the sorted arm above — the helper returns
+                # None while either row is missing, so an unpolled read would
+                # assert `None is False` on a lagging replica instead of
+                # retrying. `want=False` is not None, so poll_equals accepts it.
+                assert poll_equals(_running_precedes_idle, False) is False
+                # a sort the server does not know is refused, never ignored
+                with self.assertRaises(exceptions.RequestException):
+                    list(api.ruleset_list(sort='bogus'))
+            finally:
+                # a running live hunt blocks deletion server-side
+                api.live_stop(int(running.id))
+        finally:
+            api.ruleset_delete(int(running.id))
+            if idle is not None:
+                api.ruleset_delete(int(idle.id))
 
     @vcr.use_cassette()
     def test_rules(self):

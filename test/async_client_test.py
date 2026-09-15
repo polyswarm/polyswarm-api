@@ -608,6 +608,47 @@ class TestAsyncScanCase:
     # ── YARA Rulesets ─────────────────────────────────────────────────────────
 
     @vcr.use_cassette()
+    async def test_async_rules_sort_active_first(self, uid):
+        """Async twin of the sync ``test_rules_sort_active_first``: the
+        canonical transport must send the same token and read the same
+        server-applied order."""
+        async with self._api() as api:
+            running = await api.ruleset_create(f'{uid}-running', uid_yara(f'{uid}-running'))
+            idle = None
+            try:
+                idle = await api.ruleset_create(f'{uid}-idle', uid_yara(f'{uid}-idle'))
+                await api.live_start(int(running.id))
+                try:
+                    async def _enabled():
+                        return (await api.ruleset_get(running.id)).livescan_id is not None
+                    assert await poll_equals_async(_enabled, True)
+
+                    async def _running_precedes_idle(**kwargs):
+                        # Membership-tolerant on purpose — see the sync twin:
+                        # a replica missing `idle` must read as "not yet true"
+                        # and be retried, not raise out of the poll.
+                        ids = [r.id async for r in api.ruleset_list(**kwargs)]
+                        if running.id not in ids or idle.id not in ids:
+                            return None
+                        return ids.index(running.id) < ids.index(idle.id)
+
+                    async def _sorted():
+                        return await _running_precedes_idle(sort='active_first')
+                    assert await poll_equals_async(_sorted, True)
+                    # Polled like the sorted arm — see the sync twin.
+                    async def _unsorted():
+                        return await _running_precedes_idle()
+                    assert await poll_equals_async(_unsorted, False) is False
+                    with pytest.raises(exceptions.RequestException):
+                        _ = [r async for r in api.ruleset_list(sort='bogus')]
+                finally:
+                    await api.live_stop(int(running.id))
+            finally:
+                await api.ruleset_delete(int(running.id))
+                if idle is not None:
+                    await api.ruleset_delete(int(idle.id))
+
+    @vcr.use_cassette()
     async def test_async_rules(self, uid):
         async with self._api() as api:
             # A uid-namespaced single-rule body: unique name on the shared
@@ -864,6 +905,30 @@ class TestAsyncScanCase:
                     await asyncio.sleep(1)
                     result = await api.live_result(result_id)
                 assert result.download_url
+
+                # The list/detail split, pinned against the real server rather than prose.
+                # The pure-unit tests exercise dict.get and would pass identically if the
+                # server never grew the field; only a cassette shows what it actually sent.
+                assert result.matched_strings, (
+                    'detail route should carry the yara evidence. A null here against an\n'
+                    'otherwise-green stack means the analyzer image predates the change\n'
+                    'that emits `strings` -- check the analyzer, not this repo.')
+                # On .json for the same reason as the count below: the attribute cannot
+                # distinguish a served null from an absent key, and specs/05 claims the
+                # list route sends an explicit null.
+                assert my_results[0].json['matched_strings'] is None, \
+                    'list rows carry the key as null, not the evidence'
+                # On .json, not the attribute: `is None` cannot tell a served null from an
+                # absent key, and what needs pinning is that the server SENDS this field.
+                assert 'matched_strings_dropped' in result.json, \
+                    'server must serve the withheld-count field'
+                assert result.matched_strings_dropped is None, \
+                    'nothing withheld for a match this small'
+                # The per-entry shape is contract (specs/05) but was pinned only by a hand-written
+                # fixture -- i.e. what we THINK the server sends. This asserts it against what the
+                # server actually sent, so a key rename cannot pass the suite VCR-off.
+                assert set(result.matched_strings[0]) == {
+                    'offset', 'identifier', 'length', 'data', 'truncated'}, result.matched_strings[0]
 
                 await api.live_feed_delete([result_id])
                 with pytest.raises(exceptions.NotFoundException):

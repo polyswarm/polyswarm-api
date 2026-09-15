@@ -697,7 +697,8 @@ class PolySwarmAsyncAPI:
         return await self._single(resources.YaraRuleset.delete(self, id=ruleset_id, community=self.community))
 
     async def ruleset_list(self, name=None, status=None, favorites_only=None,
-                           has_new_results=None):
+                           has_new_results=None, sort=None,
+                           exclude_favorites=None):
         """
         List all YaraRulesets for the current account.
 
@@ -706,17 +707,53 @@ class PolySwarmAsyncAPI:
         :param status: 'active' returns only rulesets whose live hunt is
             currently running.
         :param favorites_only: True returns only favorited rulesets.
+        :param exclude_favorites: True returns only the rulesets that are NOT
+            favorited — the inverse of ``favorites_only``, and refused together
+            with it (a contradiction, answered with an error rather than an
+            empty list). It exists for clients that render the favorites as
+            their own list: the favorites are a separate, unpaginated fetch
+            bounded by the account's budget, so leaving them in the paginated
+            list too makes a page either repeat a row or come back short.
+            Appended to the signature rather than placed beside
+            ``favorites_only`` so a positional caller keeps working.
         :param has_new_results: True returns only rulesets whose stored
             new-results counter is positive. The counter (and its window) is
             maintained server-side by a scheduled refresh; rows carry it as
             ``new_results_count`` with ``new_results_counted_at`` marking when
             it was last refreshed. There is no per-request window parameter.
+        :param sort: ``'active_first'`` returns the rulesets that carry a live
+            hunt link first, newest first within each block. Default (None) is
+            newest first. "Newest first" is the server's own insertion key, NOT
+            the ``id`` on the rows you get back — that one is unique but
+            unordered, so dedupe with it and never resume or bound a walk with
+            it. Applied SERVER-side, across pages — the list is
+            keyset-paginated, so a client-side sort would only ever reorder one
+            page; the SDK never re-orders rows. Reuse a page's ``offset`` only
+            with the same ``sort``: the server refuses a cursor minted under
+            the other order.
+
+            Two server-side properties of that key, neither of them SDK
+            behaviour. It ranks on the stored link, which is a WIDER predicate
+            than the one ``livescan_id`` is rendered under: a legacy row whose
+            hunt was stopped without clearing the link ranks in the leading
+            block while still serializing ``livescan_id`` as ``None``. Read the
+            field to decide whether a ruleset is running; never the position.
+
+            And the key is MUTABLE, unlike that default: a ruleset whose
+            live hunt stops mid-walk falls back into the idle block below the
+            cursor and is yielded twice, and one started mid-walk moves above
+            the cursor and is skipped for the rest of that walk. That is a
+            property of the walk, so starting fresh from the first page does
+            not avoid it. This generator streams pages and does not dedupe —
+            dedupe by ``id`` if you consume more than one page.
         :return: A generator of YaraRuleset resources
         """
         logger.info('List rulesets')
         async for item in self._paginate(resources.YaraRuleset.list(
                 self, name=name, status=status, favorites_only=favorites_only,
-                has_new_results=has_new_results, community=self.community)):
+                has_new_results=has_new_results, sort=sort,
+                exclude_favorites=exclude_favorites,
+                community=self.community)):
             yield item
 
     async def ruleset_favorite(self, ruleset_id, favorite=True):
