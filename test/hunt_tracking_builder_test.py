@@ -68,7 +68,12 @@ class TestRulesetListFilterBuilder:
     def test_exclude_favorites_rides_the_query_as_an_int_bool(self):
         """The inverse filter, for clients that render the favorites as their
         own list: leaving them in the paginated list too makes a page repeat a
-        row or come back short. Same int-bool coercion as its sibling."""
+        row or come back short. Same int-bool coercion as its sibling.
+
+        NOTE this exercises the generic builder, which this change does not
+        touch — the test that actually covers the new code is
+        ``TestRulesetListSortOnTheWire`` below, which drives both CLIENT
+        methods and would fail if either stopped forwarding the keyword."""
         api = _FakeApi()
         req = resources.YaraRuleset.list(
             api, exclude_favorites=True, sort='active_first',
@@ -320,6 +325,23 @@ class TestRulesetListSortOnTheWire:
         sent = self._async_params(sort='active_first')
         assert sent == {'sort': 'active_first', 'community': 'gamma'}
         assert 'sort' not in self._async_params()
+
+    def test_exclude_favorites_reaches_the_server_on_both_clients(self):
+        """The keyword the hunt page pairs with the sort, driven through the
+        CLIENT methods rather than the shared builder: dropping it from either
+        transport's signature or its pass-through fails here, which is what the
+        builder-level test cannot see."""
+        sent = self._sync_params(sort='active_first', exclude_favorites=True)
+        assert sent['exclude_favorites'] == 1
+        assert sent['sort'] == 'active_first'
+        assert self._async_params(sort='active_first', exclude_favorites=True) == {
+            'exclude_favorites': 1, 'sort': 'active_first', 'community': 'gamma'}
+
+    def test_exclude_favorites_is_omitted_when_unset(self):
+        # Same rule as every other filter: the unfiltered request stays
+        # byte-compatible with the pre-change contract.
+        assert 'exclude_favorites' not in self._sync_params()
+        assert 'exclude_favorites' not in self._async_params(sort='active_first')
 
     def test_sort_survives_onto_the_next_page(self):
         # The order is only meaningful across pages, and page 2 is built by

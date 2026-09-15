@@ -602,6 +602,21 @@ class ScanTestCaseV2(TestCase):
             pass
 
     @vcr.use_cassette()
+    # NO e2e arm for `exclude_favorites`, deliberately and with a cost.
+    # specs/04 invariant 1 wants endpoint behaviour tested against the real
+    # server, and the reason is spelled out below: the server ignores unknown
+    # query args, so a renamed token leaves builder tests green and the list
+    # unfiltered. What covers it instead:
+    #   * `TestRulesetListSortOnTheWire` drives BOTH client methods and fails if
+    #     either stops forwarding the keyword (verified by deleting the
+    #     pass-through: one test fails, the rest stay green);
+    #   * the server side pins the filter itself, and the 400 for the
+    #     contradictory pair, in its own HTTP suite against a real database.
+    # What stays uncovered is a rename that both sides make in lockstep with
+    # the server's spelling — the case only a live request catches. Recording
+    # the cassette needs a stack whose AKM carries the fixture account; ours
+    # answers 500 for a hand-seeded one, so it is honest to say this is
+    # missing rather than to fake a recording.
     def test_rules_sort_active_first(self):
         """``sort='active_first'`` is an order the SERVER applies: two rulesets
         owned by this test, the older one with a live hunt running, the newer
