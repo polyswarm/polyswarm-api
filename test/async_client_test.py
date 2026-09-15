@@ -608,6 +608,47 @@ class TestAsyncScanCase:
     # ── YARA Rulesets ─────────────────────────────────────────────────────────
 
     @vcr.use_cassette()
+    async def test_async_rules_sort_active_first(self, uid):
+        """Async twin of the sync ``test_rules_sort_active_first``: the
+        canonical transport must send the same token and read the same
+        server-applied order."""
+        async with self._api() as api:
+            running = await api.ruleset_create(f'{uid}-running', uid_yara(f'{uid}-running'))
+            idle = None
+            try:
+                idle = await api.ruleset_create(f'{uid}-idle', uid_yara(f'{uid}-idle'))
+                await api.live_start(int(running.id))
+                try:
+                    async def _enabled():
+                        return (await api.ruleset_get(running.id)).livescan_id is not None
+                    assert await poll_equals_async(_enabled, True)
+
+                    async def _running_precedes_idle(**kwargs):
+                        # Membership-tolerant on purpose — see the sync twin:
+                        # a replica missing `idle` must read as "not yet true"
+                        # and be retried, not raise out of the poll.
+                        ids = [r.id async for r in api.ruleset_list(**kwargs)]
+                        if running.id not in ids or idle.id not in ids:
+                            return None
+                        return ids.index(running.id) < ids.index(idle.id)
+
+                    async def _sorted():
+                        return await _running_precedes_idle(sort='active_first')
+                    assert await poll_equals_async(_sorted, True)
+                    # Polled like the sorted arm — see the sync twin.
+                    async def _unsorted():
+                        return await _running_precedes_idle()
+                    assert await poll_equals_async(_unsorted, False) is False
+                    with pytest.raises(exceptions.RequestException):
+                        _ = [r async for r in api.ruleset_list(sort='bogus')]
+                finally:
+                    await api.live_stop(int(running.id))
+            finally:
+                await api.ruleset_delete(int(running.id))
+                if idle is not None:
+                    await api.ruleset_delete(int(idle.id))
+
+    @vcr.use_cassette()
     async def test_async_rules(self, uid):
         async with self._api() as api:
             # A uid-namespaced single-rule body: unique name on the shared
