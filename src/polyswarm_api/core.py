@@ -364,11 +364,17 @@ def _raise_for_status(response, request):
         # The raw ``sources`` payload goes in as-is — the exception normalises it
         # into the documented list-of-feed-names shape.
         errors = request.errors
-        if isinstance(errors, dict) and errors.get('code') == 'KNOWN_GOOD':
+        code = errors.get('code') if isinstance(errors, dict) else None
+        if code == 'KNOWN_GOOD':
             raise exceptions.KnownGoodWithheldException(
                 request, request._result, sources=errors.get('sources'),
             )
-        raise exceptions.NotFoundException(request, request._result)
+        # Every other 404 stays a plain NotFoundException, but now carries the code
+        # when the envelope had one. `NOT_STORED` in particular is a different fact
+        # from a miss — the platform knows the hash and deliberately never kept its
+        # bytes — and callers were previously forced to match on the message prose to
+        # see it. None when the server sent no code.
+        raise exceptions.NotFoundException(request, request._result, code=code)
     elif request.status_code == 422:
         raise exceptions.FailedInstanceException(request, request._result)
     else:

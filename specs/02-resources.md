@@ -436,7 +436,7 @@ This keeps the body off the heap for `folder`/file-handle destinations — parit
 ## Exceptions thrown by parsing
 
 - `NoResultsException` — HTTP 204 with a typed `result_parser`.
-- `NotFoundException` — HTTP 404, or a JSON-decode failure on a 404.
+- `NotFoundException` — HTTP 404, or a JSON-decode failure on a 404. Carries `.code`: the server's machine-readable `errors['code']` when the envelope had one, else `None`. Today's values are `KNOWN_GOOD`, `NOT_STORED` (the platform knows the hash and deliberately never stored its bytes — it was declined as known-good at submission; resubmitting the file works), `DELETED` and `EXPIRED`. These strings are wire-frozen while the human message is prose, so `.code` is the supported way to branch — callers previously had to match on the message text to tell a deliberate withholding from a genuine miss.
 - `KnownGoodWithheldException` (a `NotFoundException` subclass) — HTTP 404 whose `errors` payload is a dict with `code == 'KNOWN_GOOD'`: the artifact is a known-good binary and its bytes are withheld by design. Carries `.sources` (the flagging known-good feeds, always a list of strings — normalised in the exception's constructor — and `[]` when none were named or the payload arrived in another shape). Any other 404 — a different code, a legacy list-shaped `errors`, or no `errors` at all — stays a plain `NotFoundException`.
 - `FailedInstanceException` — HTTP 422.
 - `UsageLimitsExceededException` — HTTP 429.

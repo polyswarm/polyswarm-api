@@ -34,7 +34,19 @@ class UsageLimitsExceededException(RequestException):
 
 
 class NotFoundException(RequestException):
-    pass
+    """404, with the server's machine-readable cause when the envelope carried one.
+
+    ``code`` is the ``errors.code`` string — today ``'KNOWN_GOOD'`` (bytes withheld
+    by design), ``'NOT_STORED'`` (declined as known-good at submission, so nothing was
+    ever stored — a fresh submit works), ``'DELETED'`` or ``'EXPIRED'``. It is the
+    supported way to tell those apart: the human message is prose and may be reworded,
+    while these values are wire-frozen. ``None`` when the server sent no code — an
+    endpoint 404, a non-JSON body, or a server predating the field.
+    """
+
+    def __init__(self, request, *args, code=None):
+        super().__init__(request, *args)
+        self.code = code
 
 
 def _normalise_sources(sources):
@@ -74,8 +86,8 @@ class KnownGoodWithheldException(NotFoundException):
     instance endpoints.
     """
 
-    def __init__(self, request, *args, sources=None):
-        super().__init__(request, *args)
+    def __init__(self, request, *args, sources=None, code='KNOWN_GOOD'):
+        super().__init__(request, *args, code=code)
         # Known-good feeds that flagged the hash (e.g. ``['nsrl']``); always a list
         # of strings — normalised here, at the boundary, so the documented shape
         # holds whatever the envelope carried. Empty when the server named none.

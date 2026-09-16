@@ -276,6 +276,9 @@ class TestParseResponseErrors:
         # Existing ``except NotFoundException`` handlers must keep catching it.
         assert isinstance(ei.value, exceptions.NotFoundException)
         assert ei.value.sources == ['nsrl']
+        # The subclass carries the same `.code` the plain 404 arm sets, so a caller can
+        # branch on the code uniformly whether or not it catches the subclass.
+        assert ei.value.code == 'KNOWN_GOOD'
         assert ei.value.request is req
         assert req.errors == body['errors']
 
@@ -330,7 +333,15 @@ class TestParseResponseErrors:
         # Only the known-good code gets the subclass; every other 404 — including
         # a differently-coded or legacy list-shaped ``errors`` payload — stays a
         # plain NotFoundException.
-        for errors in ({'code': 'DELETED'}, ['not found'], None):
+        # ...but the code itself is still exposed on the plain exception, so a caller can
+        # branch without catching a new class and without matching on the message prose.
+        # NOT_STORED is the case that motivated it: the platform knows the hash and
+        # deliberately never stored its bytes, which is a different fact from a miss.
+        for errors, expected_code in (({'code': 'DELETED'}, 'DELETED'),
+                                      ({'code': 'NOT_STORED'}, 'NOT_STORED'),
+                                      ({'code': 'EXPIRED'}, 'EXPIRED'),
+                                      (['not found'], None),
+                                      (None, None)):
             req = PolyswarmRequest(api=_FakeApi(), method='GET', url='u',
                                    result_parser=_SampleResource)
             with pytest.raises(exceptions.NotFoundException) as ei:
@@ -341,6 +352,7 @@ class TestParseResponseErrors:
                     req,
                 )
             assert not isinstance(ei.value, exceptions.KnownGoodWithheldException)
+            assert ei.value.code == expected_code
 
     def test_422_raises_failed_instance(self):
         req = PolyswarmRequest(api=_FakeApi(), method='POST', url='u',
