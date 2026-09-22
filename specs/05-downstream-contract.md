@@ -37,6 +37,7 @@ __version__: str
 __release_url__: str
 api: module                          # contains PolyswarmAPI
 exceptions: module                   # contains the exception hierarchy
+refang: module                       # IoC refanging helpers — see "IoC refanging" below
 PolyswarmAPI: class                  # sync client
 PolySwarmAsyncAPI: class             # async client (re-exported from polyswarm_api.aio)
 ```
@@ -48,7 +49,7 @@ PolySwarmAsyncAPI: class             # async client (re-exported from polyswarm_
 ```python
 class PolyswarmAPI:
     def __init__(self, key=None, uri=None, community=None, timeout=None,
-                 verify=True, *, session=None, **httpx_kwargs): ...
+                 verify=True, *, session=None, refang_iocs=True, **httpx_kwargs): ...
     def close(self): ...
     def __enter__(self): ...
     def __exit__(self, *exc): ...
@@ -202,6 +203,7 @@ PolyswarmAPI(
     verify: bool = True,
     *,
     session: PolyswarmSession | None = None,    # pre-built session; mutually exclusive with `**httpx_kwargs`
+    refang_iocs: bool = True,                   # refang defanged URL/domain/IP inputs — see "IoC refanging"
     **httpx_kwargs,                             # forwarded to httpx.Client when constructing default session
 )
 ```
@@ -209,6 +211,24 @@ PolyswarmAPI(
 If `session=` is provided, the api client uses it as-is (no construction) and `key=` is ignored; passing `session=` together with `**httpx_kwargs` raises `InvalidValueException` (configure the injected session directly). Otherwise the api client constructs a default `PolyswarmSession(key, retries=…, verify=verify, timeout=timeout, **httpx_kwargs)`. `key=` is optional — omitting it (and `session=`) builds a keyless session, valid for unauthenticated endpoints.
 
 Same shape for `PolySwarmAsyncAPI` with `AsyncPolyswarmSession`.
+
+## IoC refanging
+
+Threat-intel reports print indicators defanged (`hxxps[:]//evil[.]com`, `127[.]0[.]0[.]1`). The server looks URLs up by an exact hash of the string and stores a submitted URL verbatim, so a defanged value silently misses a search or becomes a broken URL artifact — and the server deliberately does not guess. The SDK therefore refangs at its own edge (added in 4.6.0).
+
+**`polyswarm_api.refang`** (public, pure, no I/O):
+
+| Function | Contract |
+|---|---|
+| `refang_text(text)` | Every rewrite, ungated and untrimmed: `[://]`→`://`, `[:]`→`:`, `[/]`→`/`, `[.]` `(.)` `{.}` `[dot]` `(dot)` `{dot}`→`.` (inner whitespace allowed), then the anchored schemes `hxxps`/`h**ps`→`https`, `hxxp`/`h**p`→`http`, `fxps`→`ftps`, `fxp`→`ftp`. |
+| `is_network_ioc(candidate)` | URL (optional http(s)/ftp(s) scheme, userinfo, port, path), domain, IPv4, or bracketed IPv6 host. |
+| `refang_ioc(value, accept=None)` | The gated form: returns the refanged value only when something was defanged, the result has no whitespace or `"`, the input is not already a live URL with a clean host, the result is a network IoC, and the optional `accept(candidate)` agrees. Otherwise returns `value` unchanged (untrimmed). Non-strings pass through. |
+
+Invariants: the rules, their order, the gate and the case table (`test/fixtures/refang_cases.json`) are a contract other PolySwarm clients implement too — the table is kept byte-identical across them, so changing a rule means changing it everywhere. Out of scope: email `[at]`, bare-word ` dot `, `http__host` / `http:\\host`, bare-bracket stripping (IPv6 syntax), non-ASCII hosts.
+
+**Where the client applies it** (when `refang_iocs=True`, the default): `search_url(url)`; `search_by_metadata(ips=, urls=, domains=)` — **never** the free-form `query`; `search_by_ioc(ip=, domain=)`; `check_known_hosts(ips=, domains=)`; the `host` of `add_known_good_host` / `add_known_bad_host` / `update_known_good_host`; and the URL of every URL submission (`submit(..., artifact_type=URL)` and `sandbox_file(..., artifact_type=URL)` from a string, `sandbox_url(url)`) — both the uploaded content and the default artifact name. An explicit `artifact_name` is kept as given. Hashes, ids and QR-code preprocessing paths are never touched. Pass `refang_iocs=False` to send inputs verbatim.
+
+Compatibility: the default changes behaviour only for inputs that were defanged network IoCs, which previously could never match or produced a broken URL artifact; any live value is sent byte-for-byte as before.
 
 `**httpx_kwargs` is forwarded to `httpx.{,Async}Client` (formerly to `requests.Session` in 3.x). Kwargs that worked on both (`timeout`, `verify`, `headers`) are unchanged. `requests`-only kwargs (e.g. `proxies` as a dict-of-protocol-strings) need translation to httpx's equivalent.
 

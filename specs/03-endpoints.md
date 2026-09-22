@@ -205,6 +205,8 @@ refusal.
 | `notification_webhook_list()` | `Webhook.list` |
 | `report_template_list(is_default=None, **kwargs)` | `ReportTemplate.list` |
 
+IoC inputs of `search_url`, `search_by_metadata` (`ips` / `urls` / `domains` only), `search_by_ioc` (`ip` / `domain`) and `check_known_hosts` are refanged before the builder runs when the client's `refang_iocs` is on (the default) — see [`05-downstream-contract.md`](./05-downstream-contract.md) §"IoC refanging". The builders themselves are unchanged and never refang. The known-host writes (`add_known_good_host` / `add_known_bad_host` / `update_known_good_host`) refang their `host` the same way.
+
 ## Special methods
 
 | Method | Why it's special |
@@ -261,6 +263,8 @@ async def submit(self, artifact, ...):
 ```
 
 Generated (`api.py`) is the same with `await`/`async` lowered. (`sandbox_file` / `sandbox_url` follow the same create → `upload_file` → finalize shape, finalizing via `_finalize_sandbox_task`.)
+
+A URL passed as a string to `submit` / `sandbox_file` (with `artifact_type=URL`) or as `sandbox_url(url)` is refanged before `LocalArtifact.from_content` when `refang_iocs` is on, so the uploaded content and the default artifact name both carry the live URL (§"IoC refanging" in [`05-downstream-contract.md`](./05-downstream-contract.md)).
 
 `upload_file` is a method on the session class (`AsyncPolyswarmSession.upload_file` / `PolyswarmSession.upload_file`). Both strip the session-level `Authorization` header so the PolySwarm API key doesn't leak to the pre-signed S3 origin. Downstream consumers customize behaviour by subclassing the session — see [`05-downstream-contract.md`](./05-downstream-contract.md) §"Customizing transport behaviour".
 
