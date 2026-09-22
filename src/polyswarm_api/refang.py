@@ -63,7 +63,9 @@ _SCHEME = r'(?:[hH][tT][tT][pP][sS]?|[fF][tT][pP][sS]?)'
 _NETWORK_IOC = re.compile(
     rf'(?:{_SCHEME}://)?(?:[^ \t\n\r\f\v/?#@]+@)?{_HOST}(?::[0-9]{{1,5}})?(?:[/?#][^ \t\n\r\f\v]*)?'
 )
-_LIVE_URL_HOST = re.compile(rf'^{_SCHEME}://([^/?#]*)')
+# An optional scheme-like token (live or defanged, e.g. ``hxxps``) plus the
+# host: everything before the first ``/``, ``?`` or ``#``.
+_SCHEME_AND_HOST = re.compile(r'^(?:[a-zA-Z*]+://)?[^/?#]*')
 _QUERY_SYNTAX = re.compile(r'[ \t\n\r\f\v"]')
 
 
@@ -96,8 +98,9 @@ def refang_ioc(value, accept=None):
     * nothing was defanged -> unchanged;
     * the rewrite contains ASCII whitespace or a double quote -> unchanged: that is
       a query or quoted data, never a single indicator;
-    * the input is already a live http(s)/ftp(s) URL whose host has no defang
-      token -> unchanged, so a legitimate ``[.]`` in a path survives;
+    * the rewrite keeps the input's scheme and host intact (with or without
+      a scheme) -> unchanged: only a path, query or fragment would change,
+      so a legitimate ``[.]`` in ``example.com/a[.]b`` survives;
     * the rewrite is not a URL, domain or IP -> unchanged;
     * ``accept`` (optional) rejects the rewrite -> unchanged. Callers use it
       to require their own routing to agree, e.g. "this would be searched as
@@ -113,8 +116,7 @@ def refang_ioc(value, accept=None):
         return value
     if _QUERY_SYNTAX.search(candidate):
         return value
-    live = _LIVE_URL_HOST.match(trimmed)
-    if live and refang_text(live.group(1)) == live.group(1):
+    if candidate.startswith(_SCHEME_AND_HOST.match(trimmed).group(0)):
         return value
     if not is_network_ioc(candidate):
         return value

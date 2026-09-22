@@ -27,7 +27,7 @@ CASES = json.loads(CASES_PATH.read_text(encoding='utf-8'))
 # Drift guard: the web UI pins the same digest over its copy, so editing the
 # table here fails this suite until the other copy -- and both pins -- change
 # together.
-SHARED_CASES_SHA256 = '78359d1ac589055146fee033fd7908713dca768c6631aaf8dc41de6524995fa9'
+SHARED_CASES_SHA256 = '4bda4b2f8f0dacdd3fa80632fe2a6044b9d0ff5194402968cac9698605a72da8'
 
 
 def test_contract_table_is_byte_identical_to_the_pinned_copy():
