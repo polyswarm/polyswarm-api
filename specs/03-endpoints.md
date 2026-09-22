@@ -205,7 +205,7 @@ refusal.
 | `notification_webhook_list()` | `Webhook.list` |
 | `report_template_list(is_default=None, **kwargs)` | `ReportTemplate.list` |
 
-IoC inputs of `search_url`, `search_by_metadata` (`ips` / `urls` / `domains` only), `search_by_ioc` (`ip` / `domain`) and `check_known_hosts` are refanged before the builder runs when the client's `refang_iocs` is on (the default) — see [`05-downstream-contract.md`](./05-downstream-contract.md) §"IoC refanging". The builders themselves are unchanged and never refang. The known-host writes (`add_known_good_host` / `add_known_bad_host` / `update_known_good_host`) refang their `host` the same way.
+IoC inputs of `search_url`, `search_by_metadata` (`ips` / `urls` / `domains` only), `search_by_ioc` (`ip` / `domain`) and `check_known_hosts` are refanged before the builder runs when the client was constructed with `refang_iocs=True` (opt-in; off by default) — see [`05-downstream-contract.md`](./05-downstream-contract.md) §"IoC refanging". The builders themselves are unchanged and never refang. The known-host writes (`add_known_good_host` / `add_known_bad_host` / `update_known_good_host`) refang their `host` the same way.
 
 ## Special methods
 

@@ -5,8 +5,13 @@ No HTTP at all (the pure-unit tier — see specs/04-testing.md). This is input
 normalization, not a new endpoint: the server contract is unchanged, so what
 needs pinning is (a) the refang function itself and (b) the request shape each
 client method builds — that the outgoing params/body carry the refanged value
-when ``refang_iocs`` is on, and the raw value when it is off. The request is
-captured at the ``_paginate`` / ``_single`` boundary, before any transport.
+when ``refang_iocs`` is on, and the raw value when it is off (the default).
+The request is captured at the ``_paginate`` / ``_single`` boundary, before any
+transport, rather than through ``test/_client_harness.py``: what is under test
+is the value an endpoint method hands its builder, and the fully built
+``PolyswarmRequest`` (params *and* JSON body, for the search and the write
+paths alike) is the most direct place to read it. The wire shape itself is
+unchanged by refanging, so nothing below that boundary needs re-proving.
 """
 import hashlib
 import json
@@ -98,6 +103,8 @@ class _Captured(Exception):
 
 
 def _sync_client(**kwargs):
+    # Refanging is opt-in; every test that is not about the default says so.
+    kwargs.setdefault('refang_iocs', True)
     api = PolyswarmAPI(key='k' * 32, uri='https://api.example.test', community='gamma', **kwargs)
     captured = []
 
@@ -115,6 +122,7 @@ def _sync_client(**kwargs):
 
 
 def _async_client(**kwargs):
+    kwargs.setdefault('refang_iocs', True)
     api = PolySwarmAsyncAPI(key='k' * 32, uri='https://api.example.test', community='gamma', **kwargs)
     captured = []
 
@@ -254,10 +262,7 @@ def test_explicit_artifact_name_is_kept():
     assert captured[0].input_json['artifact_name'] == 'my label'
 
 
-@pytest.mark.parametrize('method,args,kwargs', SUBMIT_CALLS)
-def test_uploaded_url_content_is_refanged(monkeypatch, method, args, kwargs):
-    # The server stores the uploaded content as the URL artifact, so the
-    # content — not only the default artifact name — must be refanged.
+def _spy_uploaded_content(monkeypatch):
     from polyswarm_api import resources
     contents = []
     original = resources.LocalArtifact.from_content.__func__
@@ -267,9 +272,55 @@ def test_uploaded_url_content_is_refanged(monkeypatch, method, args, kwargs):
         return original(cls, api, content, *a, **kw)
 
     monkeypatch.setattr(resources.LocalArtifact, 'from_content', classmethod(spy))
-    api, _ = _sync_client()
-    _run_sync(api, method, *args, **kwargs)
-    assert contents == ['https://evil.com/x']
+    return contents
+
+
+# The server stores the uploaded content as the URL artifact, so the content —
+# not only the default artifact name — must be refanged, on both transports,
+# and left raw when refanging is off.
+@pytest.mark.parametrize('method,args,kwargs', SUBMIT_CALLS)
+class TestUploadedUrlContent:
+    def test_sync_content_is_refanged(self, monkeypatch, method, args, kwargs):
+        contents = _spy_uploaded_content(monkeypatch)
+        api, _ = _sync_client()
+        _run_sync(api, method, *args, **kwargs)
+        assert contents == ['https://evil.com/x']
+
+    def test_sync_opt_out_uploads_raw_content(self, monkeypatch, method, args, kwargs):
+        contents = _spy_uploaded_content(monkeypatch)
+        api, _ = _sync_client(refang_iocs=False)
+        _run_sync(api, method, *args, **kwargs)
+        assert contents == [args[0]]
+
+    async def test_async_content_is_refanged(self, monkeypatch, method, args, kwargs):
+        contents = _spy_uploaded_content(monkeypatch)
+        api, _ = _async_client()
+        await _run_async(api, method, *args, **kwargs)
+        assert contents == ['https://evil.com/x']
+
+    async def test_async_opt_out_uploads_raw_content(self, monkeypatch, method, args, kwargs):
+        contents = _spy_uploaded_content(monkeypatch)
+        api, _ = _async_client(refang_iocs=False)
+        await _run_async(api, method, *args, **kwargs)
+        assert contents == [args[0]]
+
+
+# Refanging is OFF unless asked for: a default that preserves 4.5.0 behaviour is
+# what makes this a minor release (specs/05-downstream-contract.md, Versioning).
+class TestDefaultIsOff:
+    def test_sync_default_sends_raw(self):
+        api = PolyswarmAPI(key='k' * 32, uri='https://api.example.test', community='gamma')
+        assert api.refang_iocs is False
+        api, captured = _sync_client(refang_iocs=api.refang_iocs)
+        _run_sync(api, 'search_url', 'hxxps[:]//evil[.]com/x')
+        assert ('url', 'hxxps[:]//evil[.]com/x') in _params(captured[0])
+
+    async def test_async_default_sends_raw(self):
+        api = PolySwarmAsyncAPI(key='k' * 32, uri='https://api.example.test', community='gamma')
+        assert api.refang_iocs is False
+        api, captured = _async_client(refang_iocs=api.refang_iocs)
+        await _run_async(api, 'search_url', 'hxxps[:]//evil[.]com/x')
+        assert ('url', 'hxxps[:]//evil[.]com/x') in _params(captured[0])
 
 
 # (method, args) — known-host catalogue writes; the host rides the JSON body.

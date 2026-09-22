@@ -53,7 +53,7 @@ class PolySwarmAsyncAPI:
         verify: bool = True,
         *,
         session: AsyncPolyswarmSession | None = None,
-        refang_iocs: bool = True,
+        refang_iocs: bool = False,
         **httpx_kwargs,
     ):
         key_masked = '******' + (key[-4:] if key and len(key) > 16 else '')
@@ -66,8 +66,9 @@ class PolySwarmAsyncAPI:
         self.timeout = timeout or settings.DEFAULT_HTTP_TIMEOUT
         self.verify = verify
         # Refang defanged URL / domain / IP inputs (``hxxps[:]//evil[.]com``)
-        # before building a request. See ``polyswarm_api.refang`` and
-        # ``_refang`` below for exactly which inputs are touched.
+        # before building a request. Opt-in: the default preserves the 4.5.0
+        # behaviour of sending every input verbatim. See ``polyswarm_api.refang``
+        # and ``_refang`` below for exactly which inputs are touched.
         self.refang_iocs = refang_iocs
         self._engines = None
         # Either accept a pre-built session (customization point) or
@@ -1406,7 +1407,7 @@ class PolySwarmAsyncAPI:
                     self, artifact, artifact_type=artifact_type, artifact_name=artifact_name
                 )
             elif artifact_type == resources.ArtifactType.URL:
-                if preprocessing and preprocessing["type"] == "qrcode":
+                if preprocessing and preprocessing.get("type") == "qrcode":
                     artifact = resources.LocalArtifact.from_path(
                         self, artifact, artifact_type=artifact_type, artifact_name=artifact_name
                     )
