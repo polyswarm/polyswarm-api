@@ -166,6 +166,9 @@ SEARCH_CALLS = [
     ('search_by_ioc', (), {'domain': 'evil(.)com'}, 'domain', 'evil.com', 'evil(.)com'),
     ('check_known_hosts', (), {'ips': ['8[.]8[.]8[.]8']}, 'ip', '8.8.8.8', '8[.]8[.]8[.]8'),
     ('check_known_hosts', (), {'domains': ['good[.]example']}, 'domain', 'good.example', 'good[.]example'),
+    # A bare string where a list is expected (``_refang_all``'s str branch).
+    ('check_known_hosts', (), {'ips': '8[.]8[.]8[.]8'}, 'ip', '8.8.8.8', '8[.]8[.]8[.]8'),
+    ('check_known_hosts', (), {'domains': 'good[.]example'}, 'domain', 'good.example', 'good[.]example'),
 ]
 
 
@@ -284,3 +287,61 @@ class TestKnownHostWritesRefang:
         api, captured = _async_client()
         await _run_async(api, method, *args)
         assert captured[0].input_json['host'] == 'good.example'
+
+    async def test_async_opt_out_writes_raw_host(self, method, args):
+        api, captured = _async_client(refang_iocs=False)
+        await _run_async(api, method, *args)
+        assert captured[0].input_json['host'] == 'good[.]example'
+
+
+# ── QR-code submissions: the argument is an image PATH, never a URL ────────
+#
+# ``qr[.]png`` refangs to ``qr.png``, which is shaped like a domain, so these
+# fail if the QR branch ever runs the refang. ``submit`` reads the image with
+# ``LocalArtifact.from_path``; ``sandbox_file`` hands the string to
+# ``from_content`` (its URL branch has no path reader), so each is spied where
+# the value actually lands.
+
+QR_PREPROCESSING = {'type': 'qrcode'}
+
+
+def _spy(monkeypatch, name):
+    from polyswarm_api import resources
+    seen = []
+
+    def spy(cls, api, value, *a, **kw):
+        seen.append(value)
+        raise _Captured()
+
+    monkeypatch.setattr(resources.LocalArtifact, name, classmethod(spy))
+    return seen
+
+
+def test_sync_submit_qrcode_path_is_never_refanged(monkeypatch):
+    seen = _spy(monkeypatch, 'from_path')
+    api, _ = _sync_client()
+    _run_sync(api, 'submit', 'qr[.]png', artifact_type='URL', preprocessing=QR_PREPROCESSING)
+    assert seen == ['qr[.]png']
+
+
+async def test_async_submit_qrcode_path_is_never_refanged(monkeypatch):
+    seen = _spy(monkeypatch, 'from_path')
+    api, _ = _async_client()
+    await _run_async(api, 'submit', 'qr[.]png', artifact_type='URL', preprocessing=QR_PREPROCESSING)
+    assert seen == ['qr[.]png']
+
+
+def test_sync_sandbox_file_qrcode_value_is_never_refanged(monkeypatch):
+    seen = _spy(monkeypatch, 'from_content')
+    api, _ = _sync_client()
+    _run_sync(api, 'sandbox_file', 'qr[.]png', 'provider', 'vm', artifact_type='URL',
+              preprocessing=QR_PREPROCESSING)
+    assert seen == ['qr[.]png']
+
+
+async def test_async_sandbox_file_qrcode_value_is_never_refanged(monkeypatch):
+    seen = _spy(monkeypatch, 'from_content')
+    api, _ = _async_client()
+    await _run_async(api, 'sandbox_file', 'qr[.]png', 'provider', 'vm', artifact_type='URL',
+                     preprocessing=QR_PREPROCESSING)
+    assert seen == ['qr[.]png']
