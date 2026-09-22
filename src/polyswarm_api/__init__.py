@@ -4,6 +4,7 @@ __release_url__ = 'https://api.github.com/repos/polyswarm/polyswarm-api/releases
 
 from . import api
 from . import exceptions
+from . import refang
 from .api import PolyswarmAPI
 from .session import PolyswarmSession
 from .aio import PolySwarmAsyncAPI, AsyncPolyswarmSession
