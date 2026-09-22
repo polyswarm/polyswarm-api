@@ -10,9 +10,16 @@ own edge, before the request is built.
 
 This module is the SDK's implementation of a contract other PolySwarm clients
 implement too: same rules, same order, same gate, same case table
-(``test/fixtures/refang_cases.json``, kept byte-identical across clients). The
-regexes avoid ``\\b``, ``\\d`` and ``\\w`` on purpose so every implementation
-matches the same characters.
+(``test/fixtures/refang_cases.json``, kept byte-identical across clients).
+
+Portability is part of that contract, because the same pattern can match
+different characters in different regex engines. So: no case-insensitive
+flag (Python's folds Unicode, e.g. U+212A KELVIN SIGN matches ``k``) — letters
+are spelled as explicit ``[aA]`` classes; no ``\\b``, ``\\d``, ``\\w``, ``\\s``
+or ``\\S`` (their Unicode sets differ between engines) — whitespace is the
+explicit ASCII set ``[ \\t\\n\\r\\f\\v]``, and trimming strips only that set;
+and full matches use ``fullmatch`` (Python's ``$`` also matches before a
+trailing newline).
 
 Out of scope, everywhere: email ``[at]``, a bare-word `` dot ``, ``http__host``
 and ``http:\\\\host`` variants, stripping bare brackets (they are IPv6 literal
@@ -23,36 +30,41 @@ import re
 
 __all__ = ['is_network_ioc', 'refang_ioc', 'refang_text']
 
+# ASCII whitespace only — see the module docstring on portability.
+_WS_CHARS = ' \t\n\r\f\v'
+_WS = r'[ \t\n\r\f\v]'
+
 # Applied in order. The bracket rules run first so that ``hxxps[:]//`` has
 # become ``hxxps://`` by the time the (anchored) scheme rules look for ``://``.
 # ``hxxps`` is matched before ``hxxp``: the shorter rule would otherwise leave
 # a stray ``s`` behind. Each scheme rule is a literal replacement — a capture
 # group would carry the input's case (``HXXPS`` -> ``httpS``).
 _RULES = (
-    (re.compile(r'[\[({]\s*:\s*/\s*/\s*[\])}]'), '://'),
-    (re.compile(r'[\[({]\s*:\s*[\])}]'), ':'),
-    (re.compile(r'[\[({]\s*/\s*[\])}]'), '/'),
-    (re.compile(r'[\[({]\s*\.\s*[\])}]'), '.'),
-    (re.compile(r'[\[({]\s*dot\s*[\])}]', re.IGNORECASE), '.'),
-    (re.compile(r'^h[x*]{2}ps(?=://)', re.IGNORECASE), 'https'),
-    (re.compile(r'^h[x*]{2}p(?=://)', re.IGNORECASE), 'http'),
-    (re.compile(r'^fxps(?=://)', re.IGNORECASE), 'ftps'),
-    (re.compile(r'^fxp(?=://)', re.IGNORECASE), 'ftp'),
+    (re.compile(rf'[\[({{]{_WS}*:{_WS}*/{_WS}*/{_WS}*[\])}}]'), '://'),
+    (re.compile(rf'[\[({{]{_WS}*:{_WS}*[\])}}]'), ':'),
+    (re.compile(rf'[\[({{]{_WS}*/{_WS}*[\])}}]'), '/'),
+    (re.compile(rf'[\[({{]{_WS}*\.{_WS}*[\])}}]'), '.'),
+    (re.compile(rf'[\[({{]{_WS}*[dD][oO][tT]{_WS}*[\])}}]'), '.'),
+    (re.compile(r'^[hH][xX*]{2}[pP][sS](?=://)'), 'https'),
+    (re.compile(r'^[hH][xX*]{2}[pP](?=://)'), 'http'),
+    (re.compile(r'^[fF][xX][pP][sS](?=://)'), 'ftps'),
+    (re.compile(r'^[fF][xX][pP](?=://)'), 'ftp'),
 )
 
 _OCTET = r'(?:25[0-5]|2[0-4][0-9]|1[0-9][0-9]|[1-9]?[0-9])'
 _IPV4 = rf'{_OCTET}(?:\.{_OCTET}){{3}}'
-_LABEL = r'[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?'
-_TLD = r'(?:[a-z]{2,63}|xn--[a-z0-9-]{1,59})'
+_LABEL = r'[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?'
+_TLD = r'(?:[a-zA-Z]{2,63}|[xX][nN]--[a-zA-Z0-9-]{1,59})'
 _DOMAIN = rf'(?:{_LABEL}\.)+{_TLD}'
-_IPV6 = r'\[[0-9a-f:.]+\]'
+_IPV6 = r'\[[0-9a-fA-F:.]+\]'
 _HOST = rf'(?:{_DOMAIN}|{_IPV4}|{_IPV6})'
+_SCHEME = r'(?:[hH][tT][tT][pP][sS]?|[fF][tT][pP][sS]?)'
+# Used with ``fullmatch`` — never ``^…$``, whose ``$`` accepts a trailing ``\n``.
 _NETWORK_IOC = re.compile(
-    rf'^(?:(?:https?|ftps?)://)?(?:[^\s/?#@]+@)?{_HOST}(?::[0-9]{{1,5}})?(?:[/?#]\S*)?$',
-    re.IGNORECASE,
+    rf'(?:{_SCHEME}://)?(?:[^ \t\n\r\f\v/?#@]+@)?{_HOST}(?::[0-9]{{1,5}})?(?:[/?#][^ \t\n\r\f\v]*)?'
 )
-_LIVE_URL_HOST = re.compile(r'^(?:https?|ftps?)://([^/?#]*)', re.IGNORECASE)
-_QUERY_SYNTAX = re.compile(r'[\s"]')
+_LIVE_URL_HOST = re.compile(rf'^{_SCHEME}://([^/?#]*)')
+_QUERY_SYNTAX = re.compile(r'[ \t\n\r\f\v"]')
 
 
 def refang_text(text):
@@ -72,7 +84,7 @@ def is_network_ioc(candidate):
     A URL may carry an http(s)/ftp(s) scheme, userinfo, a port and a path; an
     IPv6 host is accepted only in its bracketed URL form.
     """
-    return bool(_NETWORK_IOC.match(candidate))
+    return bool(_NETWORK_IOC.fullmatch(candidate))
 
 
 def refang_ioc(value, accept=None):
@@ -82,7 +94,7 @@ def refang_ioc(value, accept=None):
     run on every IoC-shaped input. The gate, in order:
 
     * nothing was defanged -> unchanged;
-    * the rewrite contains whitespace or a double quote -> unchanged: that is
+    * the rewrite contains ASCII whitespace or a double quote -> unchanged: that is
       a query or quoted data, never a single indicator;
     * the input is already a live http(s)/ftp(s) URL whose host has no defang
       token -> unchanged, so a legitimate ``[.]`` in a path survives;
@@ -91,11 +103,11 @@ def refang_ioc(value, accept=None):
       to require their own routing to agree, e.g. "this would be searched as
       a URL".
 
-    A refanged value is returned trimmed.
+    A refanged value is returned trimmed of ASCII whitespace.
     """
     if not isinstance(value, str):
         return value
-    trimmed = value.strip()
+    trimmed = value.strip(_WS_CHARS)
     candidate = refang_text(trimmed)
     if candidate == trimmed:
         return value

@@ -71,6 +71,11 @@ class TestIsNetworkIoc:
 
     @pytest.mark.parametrize('value', [
         '', 'evil', 'hash.sha256', '999.1.1.1', 'evil .com', 'a_b.com', 'hxxp://evil.com',
+        # Python's ``$`` also matches before a trailing newline; a full match
+        # must not, or this engine accepts what the others reject.
+        'evil.com\n',
+        # A case-insensitive flag would fold U+212A KELVIN SIGN onto ``k``.
+        'evil.\u212aom',
     ])
     def test_rejects(self, value):
         assert not refang.is_network_ioc(value)
