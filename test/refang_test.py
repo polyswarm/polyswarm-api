@@ -8,6 +8,7 @@ client method builds — that the outgoing params/body carry the refanged value
 when ``refang_iocs`` is on, and the raw value when it is off. The request is
 captured at the ``_paginate`` / ``_single`` boundary, before any transport.
 """
+import hashlib
 import json
 import pathlib
 
@@ -20,9 +21,17 @@ from polyswarm_api.api import PolyswarmAPI
 # The case table is shared VERBATIM with the other PolySwarm clients that
 # implement the same refang contract. Keep this file byte-identical across
 # them: a change here is a change to the contract, and lands everywhere.
-CASES = json.loads(
-    (pathlib.Path(__file__).parent / 'fixtures' / 'refang_cases.json').read_text(encoding='utf-8')
-)
+CASES_PATH = pathlib.Path(__file__).parent / 'fixtures' / 'refang_cases.json'
+CASES = json.loads(CASES_PATH.read_text(encoding='utf-8'))
+
+# Drift guard: the web UI pins the same digest over its copy, so editing the
+# table here fails this suite until the other copy -- and both pins -- change
+# together.
+SHARED_CASES_SHA256 = '78359d1ac589055146fee033fd7908713dca768c6631aaf8dc41de6524995fa9'
+
+
+def test_contract_table_is_byte_identical_to_the_pinned_copy():
+    assert hashlib.sha256(CASES_PATH.read_bytes()).hexdigest() == SHARED_CASES_SHA256
 
 
 @pytest.mark.parametrize('case', CASES, ids=[c['why'] for c in CASES])
