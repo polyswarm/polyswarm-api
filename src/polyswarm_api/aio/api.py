@@ -419,8 +419,11 @@ class PolySwarmAsyncAPI:
         :param ttp: ttp to search by
         :param imphash: ImpHash to search by
         :param with_artifacts: True yields a Metadata resource per matching artifact
-            (a metadata-search row trimmed to the artifact and scan summary fields)
-            instead of its bare sha256. Needs a server that supports the parameter:
+            (a metadata-search row trimmed to a field set the server owns: artifact.*,
+            the scan summary, ssdeep/tlsh and the malware family) instead of its bare
+            sha256. With no ip/domain/ttp/imphash the server refuses it with a 400
+            (a typed exception); without it a bare call behaves as it always has.
+            Needs a server that supports the parameter:
             an older one ignores it and answers bare sha256 strings, which fail to
             parse as Metadata (TypeError).
         :return: Generator of IOC resources whose ``json`` is a sha256 string, or of

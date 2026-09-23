@@ -216,7 +216,8 @@ stack fixture ever produces one cheaply, assert both claims there and delete thi
 **Status:** gap, blocked on the server leg reaching the e2e stack.
 
 The artifact-row shape is asserted only against a fabricated respx envelope
-(`test/ioc_search_test.py`), cut by hand to the include set the server is meant to keep.
+(`test/ioc_search_test.py`), cut by hand to the server's current include set (`IOC_ARTIFACT_INCLUDES`
+upstream; listed in `03-endpoints.md`), so it drifts silently if the server changes that set.
 The default sha256 path is still covered live by `test_search_by_ioc` /
 `test_async_search_by_ioc`. That is the "asserts what we *think* the server returns" gap
 invariant 1 exists to close.

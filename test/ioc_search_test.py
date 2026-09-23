@@ -27,8 +27,8 @@ _SHA256 = '0285922fdd731d6905d5a6dc51d75e3bd504c5ac418b8c7b431063c6cee8d064'
 
 
 def _artifact_row():
-    """A metadata-search ``_source`` row cut to the fields the server keeps for
-    ``with_artifacts`` (artifact.*, the scan summary, polyunite family)."""
+    """A metadata-search ``_source`` row holding exactly the server's include set
+    for ``with_artifacts`` (``IOC_ARTIFACT_INCLUDES`` upstream)."""
     return {
         'artifact': {
             'created': '2026-06-05T19:01:38.104756+00:00',
@@ -39,18 +39,21 @@ def _artifact_row():
             'size': 89,
         },
         'scan': {
-            'detections': {'benign': 0, 'malicious': 1, 'total': 1},
-            'filename': ['artifact'],
-            'first_seen': '2026-06-05T19:01:38.104756+00:00',
+            'first_seen': '2026-06-04T10:00:00+00:00',
+            'first_scan': {'created': '2026-06-04T10:00:00+00:00'},
             'last_seen': '2026-06-05T19:01:38.104756+00:00',
+            'detections': {'benign': 0, 'malicious': 1, 'total': 1},
+            'mimetype': {'extended': 'EICAR virus test files', 'mime': 'text/plain'},
             'latest_scan': {
+                'polyscore': 0.97,
                 'artifact_instance_id': '88272874449980049',
                 'created': '2026-06-05T19:01:38.104756+00:00',
-                'polyscore': 0.97,
             },
-            'mimetype': {'extended': 'EICAR virus test files', 'mime': 'text/plain'},
+            'filename': ['artifact'],
+            'url': [],
         },
         'polyunite': {'malware_family': 'EICAR'},
+        'hash': {'ssdeep': '3:a+JraNvsgzsVqSwHq9:tJuOgzsko', 'tlsh': 'T1A1B2C3'},
     }
 
 
@@ -179,6 +182,12 @@ class IocSearchWithArtifactsTestCase(ClientTestCase):
         assert row.mimetype == 'text/plain'
         assert row.filenames == ['artifact']
         assert row.json['polyunite']['malware_family'] == 'EICAR'
+        assert row.first_seen.isoformat() == '2026-06-04T10:00:00+00:00'
+        assert row.ssdeep == '3:a+JraNvsgzsVqSwHq9:tJuOgzsko'
+        assert row.tlsh == 'T1A1B2C3'
+        # strings.* is outside the include set, so its attributes stay unset.
+        assert row.domains is None
+        assert row.ipv4 is None
 
     def test_default_rows_stay_sha256_strings(self):
         self.mock.add('GET', self._URL, json={
