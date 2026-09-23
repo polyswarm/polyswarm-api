@@ -169,7 +169,7 @@ class IOC(core.BaseJsonResource):
         )
 
     @classmethod
-    def ioc_search(cls, api, ip=None, domain=None, ttp=None, imphash=None):
+    def ioc_search(cls, api, ip=None, domain=None, ttp=None, imphash=None, with_artifacts=False):
         params = dict(community=api.community)
         if ip is not None:
             params['ip'] = ip
@@ -179,12 +179,17 @@ class IOC(core.BaseJsonResource):
             params['ttp'] = ttp
         if imphash is not None:
             params['imphash'] = imphash
+        if with_artifacts:
+            # An int, not a bool: the session renders bools as 'True', which the
+            # server's boolean parser refuses (it accepts only 0/1/false/true).
+            params['with_artifacts'] = 1
         return core.PolyswarmRequest(
             api=api,
             method='GET',
             url=f'{api.uri}/ioc/search',
             params=params,
-            result_parser=cls,
+            # Opt-in rows are metadata-search documents; the default is bare sha256s.
+            result_parser=Metadata if with_artifacts else cls,
         )
 
     @classmethod

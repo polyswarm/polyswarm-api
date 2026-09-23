@@ -459,7 +459,9 @@ class PolyswarmAPI:
         ):
             yield item
 
-    def search_by_ioc(self, ip=None, domain=None, ttp=None, imphash=None):
+    def search_by_ioc(
+        self, ip=None, domain=None, ttp=None, imphash=None, with_artifacts=False
+    ):
         """
         Search artifacts by IOC (ip, domain, ttp, or imphash)
 
@@ -467,15 +469,33 @@ class PolyswarmAPI:
         :param domain: domain address to search by
         :param ttp: ttp to search by
         :param imphash: ImpHash to search by
-        :return: Generator of ArtifactInstance resources
+        :param with_artifacts: True yields a Metadata resource per matching artifact
+            (a metadata-search row trimmed to the artifact and scan summary fields)
+            instead of its bare sha256. Needs a server that supports the parameter:
+            an older one ignores it and answers bare sha256 strings, which fail to
+            parse as Metadata (TypeError).
+        :return: Generator of IOC resources whose ``json`` is a sha256 string, or of
+            Metadata resources when ``with_artifacts`` is True
         """
         ip, domain = self._refang(ip), self._refang(domain)
         logger.info(
-            "Searching by ioc %s", dict(ip=ip, domain=domain, ttp=ttp, imphash=imphash)
+            "Searching by ioc %s",
+            dict(
+                ip=ip,
+                domain=domain,
+                ttp=ttp,
+                imphash=imphash,
+                with_artifacts=with_artifacts,
+            ),
         )
         for item in self._paginate(
             resources.IOC.ioc_search(
-                self, ip=ip, domain=domain, ttp=ttp, imphash=imphash
+                self,
+                ip=ip,
+                domain=domain,
+                ttp=ttp,
+                imphash=imphash,
+                with_artifacts=with_artifacts,
             )
         ):
             yield item
