@@ -17,7 +17,7 @@ import io
 import logging
 import time
 
-from polyswarm_api import exceptions, resources, settings
+from polyswarm_api import exceptions, refang, resources, settings
 from polyswarm_api.core import PolyswarmRequest, _as_result_bound
 
 from .session import AsyncPolyswarmSession
@@ -53,6 +53,7 @@ class PolySwarmAsyncAPI:
         verify: bool = True,
         *,
         session: AsyncPolyswarmSession | None = None,
+        refang_iocs: bool = False,
         **httpx_kwargs,
     ):
         key_masked = '******' + (key[-4:] if key and len(key) > 16 else '')
@@ -64,6 +65,11 @@ class PolySwarmAsyncAPI:
         self.community = community or settings.DEFAULT_COMMUNITY
         self.timeout = timeout or settings.DEFAULT_HTTP_TIMEOUT
         self.verify = verify
+        # Refang defanged URL / domain / IP inputs (``hxxps[:]//evil[.]com``)
+        # before building a request. Opt-in: the default preserves the 4.5.0
+        # behaviour of sending every input verbatim. See ``polyswarm_api.refang``
+        # and ``_refang`` below for exactly which inputs are touched.
+        self.refang_iocs = refang_iocs
         self._engines = None
         # Either accept a pre-built session (customization point) or
         # build the default from ``key``. Passing both is ambiguous.
@@ -87,6 +93,27 @@ class PolySwarmAsyncAPI:
         clsname = f'{type(self).__module__}.{type(self).__name__}'
         attrs = f'uri={self.uri!r}, community={self.community!r}, timeout={self.timeout!r}'
         return f'<{clsname}({attrs}) at 0x{id(self):x}>'
+
+    def _refang(self, value):
+        """Refang one URL / domain / IP input when ``refang_iocs`` is on.
+
+        Applied only to arguments that name a network indicator (a URL to
+        search or submit, an ``ips=`` / ``urls=`` / ``domains=`` entry, an IoC
+        ``ip`` / ``domain``, a known-host ``host``) — never to a free-form
+        metadata query or a hash.
+        Anything that is not a defanged network IoC is returned unchanged.
+        """
+        if not self.refang_iocs:
+            return value
+        return refang.refang_ioc(value)
+
+    def _refang_all(self, values):
+        """``_refang`` over a list argument; ``None`` / empty pass through."""
+        if not values or not self.refang_iocs:
+            return values
+        if isinstance(values, str):
+            return self._refang(values)
+        return [self._refang(v) for v in values]
 
     async def aclose(self):
         """Close the underlying HTTP client."""
@@ -340,6 +367,7 @@ class PolySwarmAsyncAPI:
         :param url: A url to be searched by exact match
         :return: Generator of ArtifactInstance resources
         """
+        url = self._refang(url)
         logger.info('Searching for url %s', url)
         async for item in self._paginate(resources.ArtifactInstance.search_url(self, url)):
             yield item
@@ -365,6 +393,7 @@ class PolySwarmAsyncAPI:
         :param exclude: A list of fields to be excluded from the result (.* wildcards are accepted)
         :return: Generator of ArtifactInstance resources
         """
+        ips, urls, domains = self._refang_all(ips), self._refang_all(urls), self._refang_all(domains)
         logger.info('Searching for metadata %s', query)
         async for item in self._paginate(resources.Metadata.get(self, query=query, community=self.community, include=include, exclude=exclude, ips=ips, urls=urls, domains=domains)):
             yield item
@@ -391,6 +420,7 @@ class PolySwarmAsyncAPI:
         :param imphash: ImpHash to search by
         :return: Generator of ArtifactInstance resources
         """
+        ip, domain = self._refang(ip), self._refang(domain)
         logger.info('Searching by ioc %s', dict(ip=ip, domain=domain, ttp=ttp, imphash=imphash))
         async for item in self._paginate(resources.IOC.ioc_search(self, ip=ip, domain=domain, ttp=ttp, imphash=imphash)):
             yield item
@@ -403,6 +433,7 @@ class PolySwarmAsyncAPI:
         :param domains
         :return: Generator of IOC resources
         """
+        ips, domains = self._refang_all(ips), self._refang_all(domains)
         logger.info('Checking known hosts ips: %s, domains: %s', ips, domains)
         async for item in self._paginate(resources.IOC.check_known_hosts(self, ips, domains)):
             yield item
@@ -416,6 +447,7 @@ class PolySwarmAsyncAPI:
         :param host
         :return: IOC resource
         """
+        host = self._refang(host)
         logger.info('Creating known good ioc %s %s %s', type, host, source)
         return await self._single(resources.IOC.create_known_good(self, type, host, source))
 
@@ -428,6 +460,7 @@ class PolySwarmAsyncAPI:
         :param host
         :return: IOC resource
         """
+        host = self._refang(host)
         logger.info('Creating known bad ioc %s %s %s', type, host, source)
         return await self._single(resources.IOC.create_known_bad(self, type, host, source))
 
@@ -440,6 +473,7 @@ class PolySwarmAsyncAPI:
         :param host
         :return: IOC resource
         """
+        host = self._refang(host)
         logger.info('Updating known good ioc %s %s %s %s', id, type, host, source)
         return await self._single(resources.IOC.update_known_good(self, id, type, host, source, good))
 
@@ -1373,11 +1407,12 @@ class PolySwarmAsyncAPI:
                     self, artifact, artifact_type=artifact_type, artifact_name=artifact_name
                 )
             elif artifact_type == resources.ArtifactType.URL:
-                if preprocessing and preprocessing["type"] == "qrcode":
+                if preprocessing and preprocessing.get("type") == "qrcode":
                     artifact = resources.LocalArtifact.from_path(
                         self, artifact, artifact_type=artifact_type, artifact_name=artifact_name
                     )
                 else:
+                    artifact = self._refang(artifact)
                     artifact = resources.LocalArtifact.from_content(
                         self, artifact, artifact_name=artifact_name or artifact,
                         artifact_type=artifact_type,
@@ -1480,6 +1515,10 @@ class PolySwarmAsyncAPI:
                     self, artifact, artifact_type=artifact_type, artifact_name=artifact_name
                 )
             elif artifact_type == resources.ArtifactType.URL:
+                # A QR-code submission's argument is an image path, not a URL
+                # (same rule as ``submit``), so it is never refanged.
+                if not (preprocessing and preprocessing.get("type") == "qrcode"):
+                    artifact = self._refang(artifact)
                 artifact = resources.LocalArtifact.from_content(
                     self, artifact, artifact_name=artifact_name or artifact,
                     artifact_type=artifact_type,
@@ -1542,6 +1581,7 @@ class PolySwarmAsyncAPI:
             else:
                 local = artifact
         else:
+            url = self._refang(url)
             local = resources.LocalArtifact.from_content(
                 self, url, artifact_name=artifact_name or url,
                 artifact_type=resources.ArtifactType.URL,

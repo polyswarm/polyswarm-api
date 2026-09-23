@@ -30,6 +30,7 @@ How the test suite is organised. Three layers: pure unit tests (no HTTP at all �
 - `test/vcr/*.vcr` — recorded cassettes.
 - `test/malicious` — fixture file for upload tests (`test/eicar.yara` was retired when the rules tests moved to per-test `uid_yara` bodies).
 - `test/hunt_tracking_builder_test.py` — pure-unit request-shape and parse tests for the hunt-page tracking builders/resources.
+- `test/refang_test.py` — pure-unit tests for `polyswarm_api.refang` (driven by the shared case table `test/fixtures/refang_cases.json`, kept byte-identical with the other clients that implement the same contract) and request-shape tests for every client method that refangs its IoC inputs, captured at the `_paginate` / `_single` boundary for both transports. Pure-unit because this is client-side input normalization: the server contract is unchanged, so there is no new endpoint behaviour for a cassette to pin.
 - `test/ruleset_favorite_respx_test.py` — dual-transport (`ClientTestCase`) respx suite for the favorite toggle: the `FAVORITE_LIMIT` refusal envelope and the query/body split.
 
 ## Three test layers
