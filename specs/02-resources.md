@@ -377,7 +377,7 @@ A file-system or in-memory artifact prepared for upload. Constructed via:
 
 - `LocalArtifact.from_path(api, path, artifact_type, artifact_name=None)` — opens a file.
 - `LocalArtifact.from_handle(api, handle, artifact_name, artifact_type)` — wraps an open file-like.
-- `LocalArtifact.from_content(api, content, artifact_name, artifact_type)` — wraps an in-memory string (URL submissions).
+- `LocalArtifact.from_content(api, content, artifact_name, artifact_type)` — wraps an in-memory string (URL submissions, except QR-code submissions, which name an image file and use `from_path`).
 
 Holds `handle`, `artifact_name`, `artifact_type`, `sha256`, `sha1`, `md5`. Also has classmethod builders `download`, `download_id`, `download_archive`, `download_sandbox_artifact` that return `PolyswarmRequest` descriptors (with `result_parser=LocalArtifact` — the non-JSON parsing path).
 
