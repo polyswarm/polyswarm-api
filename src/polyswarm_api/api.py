@@ -1862,15 +1862,22 @@ class PolyswarmAPI:
                 )
             elif artifact_type == resources.ArtifactType.URL:
                 # A QR-code submission's argument is an image path, not a URL
-                # (same rule as ``submit``), so it is never refanged.
-                if not (preprocessing and preprocessing.get("type") == "qrcode"):
+                # (same rule as ``submit``): read the image, never refang it.
+                if preprocessing and preprocessing.get("type") == "qrcode":
+                    artifact = resources.LocalArtifact.from_path(
+                        self,
+                        artifact,
+                        artifact_type=artifact_type,
+                        artifact_name=artifact_name,
+                    )
+                else:
                     artifact = self._refang(artifact)
-                artifact = resources.LocalArtifact.from_content(
-                    self,
-                    artifact,
-                    artifact_name=artifact_name or artifact,
-                    artifact_type=artifact_type,
-                )
+                    artifact = resources.LocalArtifact.from_content(
+                        self,
+                        artifact,
+                        artifact_name=artifact_name or artifact,
+                        artifact_type=artifact_type,
+                    )
 
         json_params = {
             "artifact_name": artifact.artifact_name,

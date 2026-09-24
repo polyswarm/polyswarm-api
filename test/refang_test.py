@@ -29,13 +29,14 @@ from polyswarm_api.api import PolyswarmAPI
 CASES_PATH = pathlib.Path(__file__).parent / 'fixtures' / 'refang_cases.json'
 CASES = json.loads(CASES_PATH.read_text(encoding='utf-8'))
 
-# Drift guard: the web UI pins the same digest over its copy, so editing the
-# table here fails this suite until the other copy -- and both pins -- change
-# together.
+# Drift guard, for this copy only: the pin catches an edit to this file made
+# without updating the pin (a formatter rewrite, say). It cannot see the other
+# clients' copies (the web UI pins the same digest over its own), so keeping
+# them identical is manual: change every copy and every pin together.
 SHARED_CASES_SHA256 = '4bda4b2f8f0dacdd3fa80632fe2a6044b9d0ff5194402968cac9698605a72da8'
 
 
-def test_contract_table_is_byte_identical_to_the_pinned_copy():
+def test_contract_table_matches_its_pinned_digest():
     assert hashlib.sha256(CASES_PATH.read_bytes()).hexdigest() == SHARED_CASES_SHA256
 
 
@@ -357,10 +358,10 @@ class TestKnownHostWritesRefang:
 # ── QR-code submissions: the argument is an image PATH, never a URL ────────
 #
 # ``qr[.]png`` refangs to ``qr.png``, which is shaped like a domain, so these
-# fail if the QR branch ever runs the refang. ``submit`` reads the image with
-# ``LocalArtifact.from_path``; ``sandbox_file`` hands the string to
-# ``from_content`` (its URL branch has no path reader), so each is spied where
-# the value actually lands.
+# fail if the QR branch ever runs the refang. Both ``submit`` and
+# ``sandbox_file`` must READ the image with ``LocalArtifact.from_path``: handing
+# the path string to ``from_content`` would upload the text of the path, which
+# the server rejects as an unrecognised image.
 
 QR_PREPROCESSING = {'type': 'qrcode'}
 
@@ -391,17 +392,21 @@ async def test_async_submit_qrcode_path_is_never_refanged(monkeypatch):
     assert seen == ['qr[.]png']
 
 
-def test_sync_sandbox_file_qrcode_value_is_never_refanged(monkeypatch):
-    seen = _spy(monkeypatch, 'from_content')
+def test_sync_sandbox_file_qrcode_reads_the_image_path_unrefanged(monkeypatch):
+    uploaded_as_text = _spy(monkeypatch, 'from_content')
+    seen = _spy(monkeypatch, 'from_path')
     api, _ = _sync_client()
     _run_sync(api, 'sandbox_file', 'qr[.]png', 'provider', 'vm', artifact_type='URL',
               preprocessing=QR_PREPROCESSING)
     assert seen == ['qr[.]png']
+    assert uploaded_as_text == []
 
 
-async def test_async_sandbox_file_qrcode_value_is_never_refanged(monkeypatch):
-    seen = _spy(monkeypatch, 'from_content')
+async def test_async_sandbox_file_qrcode_reads_the_image_path_unrefanged(monkeypatch):
+    uploaded_as_text = _spy(monkeypatch, 'from_content')
+    seen = _spy(monkeypatch, 'from_path')
     api, _ = _async_client()
     await _run_async(api, 'sandbox_file', 'qr[.]png', 'provider', 'vm', artifact_type='URL',
                      preprocessing=QR_PREPROCESSING)
     assert seen == ['qr[.]png']
+    assert uploaded_as_text == []
