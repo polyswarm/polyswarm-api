@@ -15,8 +15,13 @@ import tempfile
 
 from polyswarm_api.aio import PolySwarmAsyncAPI
 from polyswarm_api.api import PolyswarmAPI
-
-from test._client_harness import API_KEY, BASE_URL, COMMUNITY, ClientTestCase, _AsyncToSync
+from test._client_harness import (
+    API_KEY,
+    BASE_URL,
+    COMMUNITY,
+    ClientTestCase,
+    _AsyncToSync,
+)
 
 _TASK_URL = f'{BASE_URL}/sandbox/sandboxtask/instance'
 _UPLOAD_URL = 'https://s3.example.test/upload?signature=abc'
