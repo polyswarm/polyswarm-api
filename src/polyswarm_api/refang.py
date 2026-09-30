@@ -1,18 +1,6 @@
 """Refang defanged indicators of compromise (IoCs).
 
-Threat-intel reports print every indicator defanged — ``hxxps[:]//evil[.]com``,
-``127[.]0[.]0[.]1`` — so that nobody clicks it by accident. Pasted as-is into a
-search or a URL submission it never matches anything: the server looks URLs up
-by an exact hash of the string and stores a submitted URL verbatim, so a
-defanged value silently misses (search) or becomes a new, broken URL artifact
-(submission). The server deliberately does not guess, so clients refang at their
-own edge, before the request is built.
-
-This module is the SDK's implementation of a contract other PolySwarm clients
-implement too: same rules, same order, same gate, same case table
-(``test/fixtures/refang_cases.json``, kept byte-identical across clients).
-
-Portability is part of that contract, because the same pattern can match
+Portability is part of the contract, because the same pattern can match
 different characters in different regex engines. So: no case-insensitive
 flag (Python's folds Unicode, e.g. U+212A KELVIN SIGN matches ``k``) — letters
 are spelled as explicit ``[aA]`` classes; no ``\\b``, ``\\d``, ``\\w``, ``\\s``
@@ -21,9 +9,9 @@ explicit ASCII set ``[ \\t\\n\\r\\f\\v]``, and trimming strips only that set;
 and full matches use ``fullmatch`` (Python's ``$`` also matches before a
 trailing newline).
 
-Out of scope, everywhere: email ``[at]``, a bare-word `` dot ``, ``http__host``
-and ``http:\\\\host`` variants, stripping bare brackets (they are IPv6 literal
-syntax), and non-ASCII (IDN) hosts.
+What the contract is, why clients refang at their own edge, where the client
+applies it and what is out of scope: ``specs/05-downstream-contract.md``
+§"IoC refanging".
 """
 
 import re
