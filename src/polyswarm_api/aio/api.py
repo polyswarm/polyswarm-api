@@ -410,19 +410,28 @@ class PolySwarmAsyncAPI:
         async for item in self._paginate(resources.IOC.iocs_by_hash(self, hash_value, hash_type, hide_known_good=hide_known_good, beta=beta)):
             yield item
 
-    async def search_by_ioc(self, ip=None, domain=None, ttp=None, imphash=None):
+    async def search_by_ioc(self, ip=None, domain=None, ttp=None, imphash=None, with_artifacts=False):
         """
         Search artifacts by IOC (ip, domain, ttp, or imphash)
-        
+
         :param ip: ip address to search by
         :param domain: domain address to search by
         :param ttp: ttp to search by
         :param imphash: ImpHash to search by
-        :return: Generator of ArtifactInstance resources
+        :param with_artifacts: True yields a Metadata resource per matching artifact
+            (a metadata-search row trimmed to a field set the server owns: artifact.*,
+            the scan summary, ssdeep/tlsh and the malware family) instead of its bare
+            sha256. With no ip/domain/ttp/imphash the server refuses it with a 400
+            (a typed exception); without it a bare call behaves as it always has.
+            Needs a server that supports the parameter:
+            an older one ignores it and answers bare sha256 strings, which fail to
+            parse as Metadata (TypeError).
+        :return: Generator of IOC resources whose ``json`` is a sha256 string, or of
+            Metadata resources when ``with_artifacts`` is True
         """
         ip, domain = self._refang(ip), self._refang(domain)
-        logger.info('Searching by ioc %s', dict(ip=ip, domain=domain, ttp=ttp, imphash=imphash))
-        async for item in self._paginate(resources.IOC.ioc_search(self, ip=ip, domain=domain, ttp=ttp, imphash=imphash)):
+        logger.info('Searching by ioc %s', dict(ip=ip, domain=domain, ttp=ttp, imphash=imphash, with_artifacts=with_artifacts))
+        async for item in self._paginate(resources.IOC.ioc_search(self, ip=ip, domain=domain, ttp=ttp, imphash=imphash, with_artifacts=with_artifacts)):
             yield item
 
     async def check_known_hosts(self, ips=[], domains=[]):

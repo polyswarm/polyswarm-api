@@ -13,7 +13,7 @@ This spec describes the **4.0 surface**. The 3.x → 4.0 migration is covered in
 3. **Exception class names and the inheritance hierarchy are part of the contract.** Callers catch on specific subclasses (`except NotFoundException:`).
 4. **The session classes `PolyswarmSession` / `AsyncPolyswarmSession` are the customization point.** Subclass them, override the methods you want to change, and pass via `PolyswarmAPI(session=...)` / `PolySwarmAsyncAPI(session=...)`. There are no module-level monkey-patch sites.
 5. **The `[async]` extras group is preserved.** Downstream consumers pin `polyswarm-api[async]`. The extra is an empty list (since `httpx` is a core dependency) but the name must remain so old pin specs parse.
-6. **Version bumps go on the `develop → master` step, not feature PRs.** A PyPI release fires automatically when `pyproject.toml` `version` changes on `master`.
+6. **Version bumps go on the `develop → master` step, not feature PRs.** A PyPI release fires automatically when `pyproject.toml` `version` changes on `master`. The one exception is AGENTS.md's standing exception: when a sibling resolves this repo from source by branch name and must raise its `polyswarm_api>=` floor to the version introducing a surface, the feature PR carries the bump, because a floor cannot name a version this repo has not declared. That bump must emit a clean `X.Y.0`: PEP 440 orders a `.devN` suffix below the release, so a suffixed version fails the sibling's floor and sends its CI to PyPI for a version that does not exist yet.
 
 ## Files
 
