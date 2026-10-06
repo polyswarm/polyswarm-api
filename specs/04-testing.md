@@ -30,7 +30,10 @@ How the test suite is organised. Three layers: pure unit tests (no HTTP at all �
 - `test/vcr/*.vcr` — recorded cassettes.
 - `test/malicious` — fixture file for upload tests (`test/eicar.yara` was retired when the rules tests moved to per-test `uid_yara` bodies).
 - `test/hunt_tracking_builder_test.py` — pure-unit request-shape and parse tests for the hunt-page tracking builders/resources.
+- `test/refang_test.py` — pure-unit tests for `polyswarm_api.refang` (driven by the shared case table `test/fixtures/refang_cases.json`, kept byte-identical with the other clients that implement the same contract) and request-shape tests for every client method that refangs its IoC inputs, captured at the `_paginate` / `_single` boundary for both transports. Pure-unit because this is client-side input normalization: the server contract is unchanged, so there is no new endpoint behaviour for a cassette to pin.
+- `test/ioc_search_test.py` — `search_by_ioc(with_artifacts=)`: pure-unit request shape (the int flag, the unchanged default and bare call), pass-through on both client methods, and a dual-transport (`ClientTestCase`) respx parse of an artifact row — a stand-in until the e2e stack serves the parameter (see `99-open-questions.md`).
 - `test/ruleset_favorite_respx_test.py` — dual-transport (`ClientTestCase`) respx suite for the favorite toggle: the `FAVORITE_LIMIT` refusal envelope and the query/body split.
+- `test/sandbox_file_qrcode_respx_test.py` — dual-transport (`ClientTestCase`) respx suite pinning that a QR-code `sandbox_file` submission uploads the image's bytes (the S3 PUT body) under its unrefanged basename. Respx rather than e2e because the stack's sandbox providers cannot reasonably process a QR image.
 
 ## Three test layers
 

@@ -185,7 +185,7 @@ refusal.
 | `search_scans(hash_)` | `ArtifactInstance.list_scans` |
 | `search_by_metadata(query, include=None, exclude=None, ips=None, urls=None, domains=None)` | `Metadata.get` |
 | `iocs_by_hash(hash_type, hash_value, hide_known_good=False, beta=False)` | `IOC.iocs_by_hash` |
-| `search_by_ioc(ip=None, domain=None, ttp=None, imphash=None)` | `IOC.ioc_search` |
+| `search_by_ioc(ip=None, domain=None, ttp=None, imphash=None, with_artifacts=False)` | `IOC.ioc_search` — the reverse IOC search. By default each item is an `IOC` whose `json` is a bare sha256 string, and the request carries no `with_artifacts`, so it is byte-compatible with the old contract. `with_artifacts=True` (4.7.0) sends `with_artifacts=1` (an int: the session renders a bool as `'True'`, which the server's boolean parser refuses) and yields `Metadata` resources instead — metadata-search rows trimmed to an include set the SERVER owns (today `artifact.*`; `scan.first_seen`, `scan.first_scan.created`, `scan.last_seen`, `scan.detections`, `scan.mimetype`; `scan.latest_scan.{polyscore,artifact_instance_id,created}`; `scan.filename`, `scan.url`; `polyunite.malware_family`; `hash.ssdeep`, `hash.tlsh`). So `first_seen`, `last_scanned`, the detection counts, mimetypes, filenames, `ssdeep` and `tlsh` are populated; attributes read from outside the set (the `strings.*` IOC lists, for instance) parse as `None` or empty. The SDK does not restate the set: a server-side change to it shows up here without an SDK release. Against a server that predates the parameter the flag is ignored upstream and the sha256 strings fail to parse as `Metadata` with a `TypeError` — so this SDK version must not be released ahead of that server. The SDK does not validate the terms. With `with_artifacts=True` and none of ip/domain/ttp/imphash the server answers 400, which surfaces as the usual typed exception; without the flag a bare call behaves exactly as before. |
 | `check_known_hosts(ips=[], domains=[])` | `IOC.check_known_hosts` |
 | `live_feed(since=None, …, livescan_id=None, max_results=None)` | `LiveHuntResult.list` — `livescan_id` scopes the feed to one live hunt (the hunt-page per-ruleset feed); `since` is in **SECONDS** (the server converts with `timedelta(seconds=since)`; the 3.x/4.x docstring said minutes and was wrong), and absent-or-`0` means no time filter at all — the server applies it on a truthiness test; `max_results` bounds how many results the generator yields — `None`/`0`/negative means no bound; it does not alter the request |
 | `historical_list(since=None)` | `HistoricalHunt.list` |
@@ -204,6 +204,8 @@ refusal.
 | `prompt_config_list(**kwargs)` | `LLMPromptConfig.list` |
 | `notification_webhook_list()` | `Webhook.list` |
 | `report_template_list(is_default=None, **kwargs)` | `ReportTemplate.list` |
+
+IoC inputs of `search_url`, `search_by_metadata` (`ips` / `urls` / `domains` only), `search_by_ioc` (`ip` / `domain`) and `check_known_hosts` are refanged before the builder runs when the client was constructed with `refang_iocs=True` (opt-in; off by default) — see [`05-downstream-contract.md`](./05-downstream-contract.md) §"IoC refanging". The builders themselves are unchanged and never refang. The known-host writes (`add_known_good_host` / `add_known_bad_host` / `update_known_good_host`) refang their `host` the same way.
 
 ## Special methods
 
@@ -261,6 +263,8 @@ async def submit(self, artifact, ...):
 ```
 
 Generated (`api.py`) is the same with `await`/`async` lowered. (`sandbox_file` / `sandbox_url` follow the same create → `upload_file` → finalize shape, finalizing via `_finalize_sandbox_task`.)
+
+A URL passed as a string to `submit` / `sandbox_file` (with `artifact_type=URL`) or as `sandbox_url(url)` is refanged before `LocalArtifact.from_content` when `refang_iocs` is on, so the uploaded content and the default artifact name both carry the live URL (§"IoC refanging" in [`05-downstream-contract.md`](./05-downstream-contract.md)). A QR-code submission (`preprocessing={'type': 'qrcode'}`) is the exception on both `submit` and `sandbox_file`: its argument names an image file, not a URL, so it is read from disk with `LocalArtifact.from_path` (the uploaded body is the image's bytes; the default artifact name is the file's basename) and is never refanged.
 
 `upload_file` is a method on the session class (`AsyncPolyswarmSession.upload_file` / `PolyswarmSession.upload_file`). Both strip the session-level `Authorization` header so the PolySwarm API key doesn't leak to the pre-signed S3 origin. Downstream consumers customize behaviour by subclassing the session — see [`05-downstream-contract.md`](./05-downstream-contract.md) §"Customizing transport behaviour".
 

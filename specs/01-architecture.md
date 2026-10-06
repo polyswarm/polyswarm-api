@@ -23,6 +23,7 @@ How a call flows from the user's code through the SDK to the server and back. Co
 | `src/polyswarm_api/resources.py` | yes | Per-domain wrappers. Builders return `PolyswarmRequest`. |
 | `src/polyswarm_api/exceptions.py` | yes | Hierarchy. |
 | `src/polyswarm_api/settings.py` | yes | Default URI, timeouts, etc. |
+| `src/polyswarm_api/refang.py` | yes | Pure IoC refanging (`refang_text`, `is_network_ioc`, `refang_ioc`). No I/O, shared by both transports, not unasync'd. The clients apply it at their edge when `refang_iocs` is on. Contract: `05-downstream-contract.md` §"IoC refanging". |
 | `src/polyswarm_api/aio/__init__.py` | yes | Re-exports. |
 | `src/polyswarm_api/aio/session.py` | yes (canonical async) | `AsyncPolyswarmSession`. |
 | `src/polyswarm_api/aio/api.py` | yes (canonical async) | `PolySwarmAsyncAPI` + endpoint methods. |

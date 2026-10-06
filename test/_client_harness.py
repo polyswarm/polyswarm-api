@@ -64,6 +64,15 @@ class _MockBoundary:
         return str(self._router.calls[-1].request.url)
 
     @property
+    def requests(self):
+        """Every request the mock received, in order (``httpx.Request`` objects).
+
+        For multi-request flows (create, upload, finalize) that need to read a
+        specific request's raw ``content`` rather than only the last JSON body.
+        """
+        return [call.request for call in self._router.calls]
+
+    @property
     def last_request_body(self):
         """The JSON body of the most recent request (None if it carried none)."""
         content = self._router.calls[-1].request.content

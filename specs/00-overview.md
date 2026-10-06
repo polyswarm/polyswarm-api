@@ -83,6 +83,8 @@ polyswarm-api/
 │   │                               # return PolyswarmRequest descriptors.
 │   ├── exceptions.py               # HAND-WRITTEN. Exception hierarchy.
 │   ├── settings.py                 # HAND-WRITTEN. Default URI, timeouts, etc.
+│   ├── refang.py                   # HAND-WRITTEN. Pure IoC refanging helpers
+│   │                               #   (refang_text / is_network_ioc / refang_ioc).
 │   ├── session.py                  # GENERATED from aio/session.py.
 │   │                               #   PolyswarmSession (httpx.Client wrapper).
 │   │                               #   .execute(request), .upload_file, .close

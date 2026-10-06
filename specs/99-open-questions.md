@@ -210,3 +210,19 @@ Producing an over-budget match on the e2e stack means a rule whose matches excee
 server's per-hunt byte budget across a single artifact — engineering a fixture for that is
 disproportionate to what it would pin. **Recorded rather than tested, deliberately.** If a
 stack fixture ever produces one cheaply, assert both claims there and delete this entry.
+
+## `search_by_ioc(with_artifacts=True)` is not pinned against a live server
+
+**Status:** gap, blocked on the server leg reaching the e2e stack.
+
+The artifact-row shape is asserted only against a fabricated respx envelope
+(`test/ioc_search_test.py`), cut by hand to the server's current include set (`IOC_ARTIFACT_INCLUDES`
+upstream; listed in `03-endpoints.md`), so it drifts silently if the server changes that set.
+The default sha256 path is still covered live by `test_search_by_ioc` /
+`test_async_search_by_ioc`. That is the "asserts what we *think* the server returns" gap
+invariant 1 exists to close.
+
+**Action:** once the e2e stack serves the parameter, add a `with_artifacts=True` pass to
+the live `test_search_by_ioc` pair, record both cassettes against a fresh stack, and delete
+the respx `IocSearchWithArtifactsTestCase` along with this entry. The builder and
+pass-through tests in that module stay: they pin request shape, which a cassette cannot.
