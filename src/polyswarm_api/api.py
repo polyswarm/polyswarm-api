@@ -327,12 +327,17 @@ class PolyswarmAPI:
             complete.
 
             ``partial`` speaks for the aggregations and the search as a whole.
-            Whether a hit *count* is exact is a different question, answered by
+            Whether a hit *count* is exact is a separate question, answered by
             ``hits.total.relation``: ``eq`` is exact, ``gte`` means the engine
             stopped counting at ``track_total_hits``. That is the engine's own
-            field and passes through untouched. A capped total is not reported
-            as partial - it is what every large query returns, and the server
-            suppresses it entirely when the body asked for no hits.
+            field and passes through untouched.
+
+            A request that asks for hits and matches more than
+            ``track_total_hits`` documents does carry a ``partial`` reason for
+            that capped total, so a large query normally has one - it is not a
+            sign the aggregations are truncated. The server omits it when the
+            body asked for no documents, where a hit counter says nothing about
+            the answer. Read ``hits.total.relation`` to tell the two apart.
         """
         logger.info("Running a raw metadata search")
         return self._single(resources.MetadataRawSearch.search(self, body, community))
