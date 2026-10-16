@@ -77,6 +77,10 @@ class MetadataMapping(core.BaseJsonResource):
     RESOURCE_ENDPOINT = '/search/metadata/mappings'
 
 
+class MetadataRawSearch(core.BaseJsonResource):
+    RESOURCE_ENDPOINT = '/search/metadata/raw'
+
+
 class MetadataFieldProperties(core.BaseJsonResource):
     RESOURCE_ENDPOINT = '/search/metadata/properties'
     RESOURCE_ID_KEYS = ['field_path']

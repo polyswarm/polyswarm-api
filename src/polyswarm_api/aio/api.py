@@ -288,6 +288,34 @@ class PolySwarmAsyncAPI:
             result_parser=resources.MetadataMapping,
         )
 
+    async def metadata_raw_search(self, body, community=None):
+        """Run a raw OpenSearch query body against the metadata corpus.
+
+        The server overlays the community filter itself and caps the work, so
+        ``body`` is a plain ``_search`` body and the community travels in the
+        query string rather than in it. The accepted grammar is closed: a
+        construct the server does not recognise is refused rather than passed
+        through, and so is a top-level ``community``/``communities`` key.
+
+        Entitlement-gated and metered per query, including a query the server
+        refuses after running it.
+
+        :param body: An OpenSearch ``_search`` body (``query``, ``aggs``,
+            ``size``, ``sort``, ``_source``, ...).
+        :param community: Community to search; defaults to the client's.
+        :return: A ``MetadataRawSearch`` whose ``json`` carries the engine's
+            ``hits`` and ``aggregations``, plus ``partial`` when the server
+            could not establish that the answer is complete.
+        """
+        logger.info('Running a raw metadata search')
+        return await self._single(
+            {'method': 'POST',
+             'url': f'{self.uri}{resources.MetadataRawSearch.RESOURCE_ENDPOINT}',
+             'params': {'community': community or self.community},
+             'json': body},
+            result_parser=resources.MetadataRawSearch,
+        )
+
     async def metadata_field_properties_write(self, field_path, description,
                                         example=None, category=None, aliases=None):
         """Upsert a metadata field properties entry (the single write path).
