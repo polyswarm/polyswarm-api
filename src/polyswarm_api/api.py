@@ -335,15 +335,7 @@ class PolyswarmAPI:
             suppresses it entirely when the body asked for no hits.
         """
         logger.info("Running a raw metadata search")
-        return self._single(
-            {
-                "method": "POST",
-                "url": f"{self.uri}{resources.MetadataRawSearch.RESOURCE_ENDPOINT}",
-                "params": {"community": community or self.community},
-                "json": body,
-            },
-            result_parser=resources.MetadataRawSearch,
-        )
+        return self._single(resources.MetadataRawSearch.search(self, body, community))
 
     def metadata_field_properties_write(
         self, field_path, description, example=None, category=None, aliases=None
