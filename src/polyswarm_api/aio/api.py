@@ -301,11 +301,16 @@ class PolySwarmAsyncAPI:
         refuses after running it.
 
         :param body: An OpenSearch ``_search`` body (``query``, ``aggs``,
-            ``size``, ``sort``, ``_source``, ...).
+            ``size``, ``sort``, ``_source``, ...). Omitting ``size`` returns
+            **no documents**: the server defaults it to 0 so an aggregation
+            caller does not pay for hits they did not ask for. Ask for hits
+            by setting it.
         :param community: Community to search; defaults to the client's.
         :return: A ``MetadataRawSearch`` whose ``json`` carries the engine's
-            ``hits`` and ``aggregations``, plus ``partial`` when the server
-            could not establish that the answer is complete.
+            ``hits`` and ``aggregations``, plus ``partial`` - a list of
+            reasons - when the server could not establish that the answer is
+            complete. Treat its absence, not an empty ``hits``, as the signal
+            that a count is whole.
         """
         logger.info('Running a raw metadata search')
         return await self._single(
