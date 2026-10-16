@@ -309,8 +309,15 @@ class PolySwarmAsyncAPI:
         :return: A ``MetadataRawSearch`` whose ``json`` carries the engine's
             ``hits`` and ``aggregations``, plus ``partial`` - a list of
             reasons - when the server could not establish that the answer is
-            complete. Treat its absence, not an empty ``hits``, as the signal
-            that a count is whole.
+            complete.
+
+            ``partial`` speaks for the aggregations and the search as a whole.
+            Whether a hit *count* is exact is a different question, answered by
+            ``hits.total.relation``: ``eq`` is exact, ``gte`` means the engine
+            stopped counting at ``track_total_hits``. That is the engine's own
+            field and passes through untouched. A capped total is not reported
+            as partial - it is what every large query returns, and the server
+            suppresses it entirely when the body asked for no hits.
         """
         logger.info('Running a raw metadata search')
         return await self._single(
