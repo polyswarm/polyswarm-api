@@ -300,13 +300,13 @@ class TestAsyncScanCase:
 
             async def _hit_count():
                 # A 404 is the route missing, not the index lagging - see
-                # _raw_or_skip in client_scan_test.py.
+                # _raw_hit_count in client_scan_test.py.
                 try:
                     result = await api.metadata_raw_search(body)
                 except exceptions.NotFoundException:
-                    pytest.skip('POST /search/metadata/raw is not deployed '
-                                      'on this stack; the server release has to '
-                                      'land first')
+                    pytest.fail('POST /search/metadata/raw answered 404: the '
+                                'route is not on this stack. The server change '
+                                'merges first.')
                 return result.json['hits']['total']['value']
 
             assert await poll_equals_async(_hit_count, 1, tries=90) == 1

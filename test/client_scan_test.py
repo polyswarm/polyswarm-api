@@ -70,22 +70,26 @@ if os.getenv('TESTS_VCR', 'on').lower() == 'off':
 
 
 
-def _raw_or_skip(api, body):
+def _raw_hit_count(api, body):
     """A reader for ``poll_equals`` that tells a missing route from a missing
     document.
 
     poll_equals treats NotFoundException as "the index has not caught up", which
     is right for a document and wrong for an endpoint: a search that matches
-    nothing is a 200 with total 0, so a 404 here means the server route is not
-    deployed. Absorbed as lag it costs 90 polls and then fails as
-    ``assert None == 1``, which names nothing. Drop this once the route ships.
+    nothing is a 200 with total 0, so a 404 here means the route is absent.
+    Absorbed as lag it costs 90 polls and then fails as ``assert None == 1``,
+    which names nothing.
+
+    It fails rather than skips, and stays after the route ships: the e2e job
+    runs ``TESTS_VCR=off`` against a live stack, so a skip here would let a
+    renamed or withdrawn route report green and promote ``:latest``.
     """
     def read():
         try:
             return api.metadata_raw_search(body).json['hits']['total']['value']
         except exceptions.NotFoundException:
-            pytest.skip('POST /search/metadata/raw is not deployed on this '
-                              'stack; the server release has to land first')
+            pytest.fail('POST /search/metadata/raw answered 404: the route is '
+                        'not on this stack. The server change merges first.')
     return read
 
 
@@ -397,7 +401,7 @@ class ScanTestCaseV2(TestCase):
             'aggs': {'extensions': {'terms': {'field': 'extension', 'size': 5}}},
             'size': 1,
         }
-        found = poll_equals(_raw_or_skip(api, body), 1, tries=90)
+        found = poll_equals(_raw_hit_count(api, body), 1, tries=90)
         assert found == 1
         result = api.metadata_raw_search(body)
         assert result.json['aggregations']['extensions']['buckets']
