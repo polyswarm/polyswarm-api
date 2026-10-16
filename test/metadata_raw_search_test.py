@@ -72,9 +72,9 @@ class MetadataRawSearchTestCase(ClientTestCase):
         # from a complete one is this key. Dropping it in the parse layer would
         # turn "we could not establish this is complete" into a hard number.
         self.mock.add('POST', _RESOURCE_URL,
-                      json=_envelope(partial={'terminated_early': True}))
+                      json=_envelope(partial=['the search stopped at terminate_after']))
         result = self.api.metadata_raw_search({'query': {'match_all': {}}})
-        assert result.json['partial'] == {'terminated_early': True}
+        assert result.json['partial'] == ['the search stopped at terminate_after']
 
     def test_a_complete_answer_carries_no_marker(self):
         self.mock.add('POST', _RESOURCE_URL, json=_envelope())
