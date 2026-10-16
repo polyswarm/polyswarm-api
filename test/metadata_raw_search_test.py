@@ -35,7 +35,7 @@ def _envelope(hits=None, aggregations=None, **extra):
 class MetadataRawSearchTestCase(ClientTestCase):
     def test_the_body_reaches_the_server_verbatim(self):
         body = {
-            'query': {'bool': {'must': [{'term': {'artifact.mimetype': 'application/zip'}}]}},
+            'query': {'bool': {'must': [{'term': {'scan.mimetype': 'application/zip'}}]}},
             'aggs': {'families': {'terms': {'field': 'polyunite.malware_family', 'size': 20}}},
             'size': 0,
             'sort': [{'artifact.created': {'order': 'desc'}}],

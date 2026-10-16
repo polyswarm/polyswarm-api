@@ -364,6 +364,27 @@ class ScanTestCaseV2(TestCase):
             lambda: api.search_by_metadata(f'artifact.sha256:{sha}'), tries=90)
         assert result and result[0].sha256 == sha
 
+    @vcr.use_cassette()
+    def test_metadata_raw_search(self):
+        api = PolyswarmAPI(self.test_api_key, uri=f'http://ai:9696/{self.api_version}', community='gamma')
+        # The raw endpoint runs the caller's own query body, so this covers the
+        # two halves the SDK owns: the body survives the trip intact enough to
+        # match a document we just created, and an aggregation comes back beside
+        # the hits. The metadata write lags the scan, so poll for the hit first.
+        _, sha = submit_and_scan(api, self._testMethodName)
+        body = {
+            'query': {'term': {'artifact.sha256': sha}},
+            'aggs': {'extensions': {'terms': {'field': 'extension', 'size': 5}}},
+            'size': 1,
+        }
+        found = poll_equals(
+            lambda: api.metadata_raw_search(body).json['hits']['total']['value'], 1, tries=90)
+        assert found == 1
+        result = api.metadata_raw_search(body)
+        assert result.json['aggregations']['extensions']['buckets']
+        # A complete answer carries no marker; a truncated one would say so.
+        assert 'partial' not in result.json
+
     def test_resolve_engine_name(self):
         with respx.mock(assert_all_called=False) as router:
             ok_payload = {'results': [
