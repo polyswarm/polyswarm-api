@@ -97,8 +97,11 @@ class TestMetadataRawSearchParse:
         # A truncated answer is still a 200, so this list is the only thing
         # separating it from a complete one. Dropping it in the parse layer
         # would turn "we could not establish this is complete" into a number.
-        reasons = ['the search stopped at terminate_after']
-        assert _parsed({'hits': _EMPTY_HITS, 'partial': reasons}).json['partial'] == reasons
+        reasons = [{'code': 'terminated_early',
+                    'message': 'the search stopped at terminate_after'}]
+        parsed = _parsed({'hits': _EMPTY_HITS, 'partial': reasons})
+        assert parsed.json['partial'] == reasons
+        assert parsed.json['partial'][0]['code'] == 'terminated_early'
 
     def test_a_complete_answer_carries_no_marker(self):
         assert 'partial' not in _parsed({'hits': _EMPTY_HITS}).json

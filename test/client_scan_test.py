@@ -69,7 +69,6 @@ if os.getenv('TESTS_VCR', 'on').lower() == 'off':
     vcr.use_cassette = lambda *_a, **_k: (lambda _fn: _fn)
 
 
-
 def _raw_hit_count(api, body):
     """A reader for ``poll_equals`` that tells a missing route from a missing
     document.

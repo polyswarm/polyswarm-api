@@ -322,22 +322,27 @@ class PolyswarmAPI:
             by setting it.
         :param community: Community to search; defaults to the client's.
         :return: A ``MetadataRawSearch`` whose ``json`` carries the engine's
-            ``hits`` and ``aggregations``, plus ``partial`` - a list of
-            reasons - when the server could not establish that the answer is
-            complete.
+            ``hits`` and ``aggregations``, plus ``partial`` when the server
+            could not establish that the answer is complete.
 
-            ``partial`` speaks for the aggregations and the search as a whole.
-            Whether a hit *count* is exact is a separate question, answered by
-            ``hits.total.relation``: ``eq`` is exact, ``gte`` means the engine
-            stopped counting at ``track_total_hits``. That is the engine's own
-            field and passes through untouched.
+            ``partial`` is a **list to inspect, not a flag**. Its entries are
+            ``{'code': ..., 'message': ...}`` and they make different claims,
+            so branch on ``code`` - ``message`` is for a human and may be
+            reworded. The codes are a closed set:
 
-            A request that asks for hits and matches more than
-            ``track_total_hits`` documents does carry a ``partial`` reason for
-            that capped total, so a large query normally has one - it is not a
-            sign the aggregations are truncated. The server omits it when the
-            body asked for no documents, where a hit counter says nothing about
-            the answer. Read ``hits.total.relation`` to tell the two apart.
+            * ``timed_out`` / ``terminated_early`` - the search stopped early.
+            * ``shards_failed`` - a shard was lost; also carries ``failed``.
+            * ``buckets_clamped`` - a ``terms`` list dropped terms.
+            * ``composite_paged`` - a ``composite`` may have more pages; page
+              it with its ``after_key``.
+            * ``bucket_count_approximate`` - a ``terms`` count is approximate
+              rather than truncated.
+            * ``hit_total_capped`` - the hit counter stopped at
+              ``track_total_hits``. This is what *every* large query that asks
+              for hits returns, so on its own it says nothing about the
+              aggregations; the server omits it when the body asked for no
+              documents. ``hits.total.relation`` carries the same fact as the
+              engine's own field, ``eq`` exact and ``gte`` capped.
         """
         logger.info("Running a raw metadata search")
         return self._single(resources.MetadataRawSearch.search(self, body, community))
