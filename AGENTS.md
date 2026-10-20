@@ -126,10 +126,10 @@ TESTS_VCR=off pytest test/ -n 8 --dist worksteal --timeout=600 --timeout-method=
 - Conventional commit prefixes (`feat:`, `fix:`, `refactor:`, `chore:`, `docs:`, `test:`).
 - Small, scoped commits — each one should be independently reviewable.
 - **Don't reference ticket IDs or internal project codes in commit messages, PR titles, or PR descriptions.** This repo is public; published artefacts shouldn't leak internal references. Track tickets in the internal tracker, not the git history.
-- **Don't name private companion repos in PR descriptions or commit messages on this repo.** Internal services are downstream of this SDK; refer to them by category ("the downstream consumers" / "the CLI client") rather than by repo name.
+- **Don't name private companion repos in PR descriptions or commit messages on this repo.** That includes the server repo (`artifact-index`), which is *upstream* of this SDK: write "the server". Internal services *downstream* of this SDK are private too: write "the downstream consumers". Public companions (below) may be named.
 - No AI-attribution trailers on commits (`Co-Authored-By: Claude …`, "Generated with Claude Code", etc.) — they're noise and they don't belong in project history.
 
-## Companion repos (public)
+## Companion repos
 
-- `polyswarm-cli` — wraps these methods in click commands. SDK changes that need a CLI surface usually ship as a pair (`polyswarm-api` PR + `polyswarm-cli` PR with the SDK PR linked under `## Requires`).
-- `artifact-index` — the server-side API the SDK talks to. New endpoints land there first; the SDK PR comes after.
+- `polyswarm-cli` (**public**) — wraps these methods in click commands. SDK changes that need a CLI surface usually ship as a pair (`polyswarm-api` PR + `polyswarm-cli` PR with the SDK PR linked under `## Requires`).
+- `artifact-index` (**private**; in PR and commit text say "the server") — the server-side API the SDK talks to. New endpoints land there first; the SDK PR comes after.
