@@ -31,6 +31,7 @@ BaseResource                          # holds .api, ._content, .parse_result cla
     ├── Metadata                      # /search/metadata/query
     ├── MetadataFieldProperties       # /search/metadata/properties
     ├── MetadataMapping               # /search/metadata/mappings
+    ├── MetadataRawSearch             # /search/metadata/raw
     ├── IOC                           # /ioc (known good / known bad / search)
     ├── LiveYaraRuleset               # /hunt/rule/live
     ├── HistoricalHunt                # /hunt/historical

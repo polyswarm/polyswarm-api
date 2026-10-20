@@ -69,6 +69,29 @@ if os.getenv('TESTS_VCR', 'on').lower() == 'off':
     vcr.use_cassette = lambda *_a, **_k: (lambda _fn: _fn)
 
 
+def _raw_hit_count(api, body):
+    """A reader for ``poll_equals`` that tells a missing route from a missing
+    document.
+
+    poll_equals treats NotFoundException as "the index has not caught up", which
+    is right for a document and wrong for an endpoint: a search that matches
+    nothing is a 200 with total 0, so a 404 here means the route is absent.
+    Absorbed as lag it costs 90 polls and then fails as ``assert None == 1``,
+    which names nothing.
+
+    It fails rather than skips, and stays after the route ships: the e2e job
+    runs ``TESTS_VCR=off`` against a live stack, so a skip here would let a
+    renamed or withdrawn route report green and promote ``:latest``.
+    """
+    def read():
+        try:
+            return api.metadata_raw_search(body).json['hits']['total']['value']
+        except exceptions.NotFoundException:
+            pytest.fail('POST /search/metadata/raw answered 404: the route is '
+                        'not on this stack. The server change merges first.')
+    return read
+
+
 @contextmanager
 def temp_dir(files_dict):
     with tempfile.TemporaryDirectory() as tmp_dir:
@@ -363,6 +386,26 @@ class ScanTestCaseV2(TestCase):
         result = _poll_results(
             lambda: api.search_by_metadata(f'artifact.sha256:{sha}'), tries=90)
         assert result and result[0].sha256 == sha
+
+    @vcr.use_cassette()
+    def test_metadata_raw_search(self):
+        api = PolyswarmAPI(self.test_api_key, uri=f'http://ai:9696/{self.api_version}', community='gamma')
+        # The raw endpoint runs the caller's own query body, so this covers the
+        # two halves the SDK owns: the body survives the trip intact enough to
+        # match a document we just created, and an aggregation comes back beside
+        # the hits. The metadata write lags the scan, so poll for the hit first.
+        _, sha = submit_and_scan(api, self._testMethodName)
+        body = {
+            'query': {'term': {'artifact.sha256': sha}},
+            'aggs': {'extensions': {'terms': {'field': 'extension', 'size': 5}}},
+            'size': 1,
+        }
+        found = poll_equals(_raw_hit_count(api, body), 1, tries=90)
+        assert found == 1
+        result = api.metadata_raw_search(body)
+        assert result.json['aggregations']['extensions']['buckets']
+        # A complete answer carries no marker; a truncated one would say so.
+        assert 'partial' not in result.json
 
     def test_resolve_engine_name(self):
         with respx.mock(assert_all_called=False) as router:

@@ -303,6 +303,50 @@ class PolyswarmAPI:
             result_parser=resources.MetadataMapping,
         )
 
+    def metadata_raw_search(self, body, community=None):
+        """Run a raw OpenSearch query body against the metadata corpus.
+
+        The server overlays the community filter itself and caps the work, so
+        ``body`` is a plain ``_search`` body and the community travels in the
+        query string rather than in it. The accepted grammar is closed: a
+        construct the server does not recognise is refused rather than passed
+        through, and so is a top-level ``community``/``communities`` key.
+
+        Entitlement-gated and metered per query, including a query the server
+        refuses after running it.
+
+        :param body: An OpenSearch ``_search`` body (``query``, ``aggs``,
+            ``size``, ``sort``, ``_source``, ...). Omitting ``size`` returns
+            **no documents**: the server defaults it to 0 so an aggregation
+            caller does not pay for hits they did not ask for. Ask for hits
+            by setting it.
+        :param community: Community to search; defaults to the client's.
+        :return: A ``MetadataRawSearch`` whose ``json`` carries the engine's
+            ``hits`` and ``aggregations``, plus ``partial`` when the server
+            could not establish that the answer is complete.
+
+            ``partial`` is a **list to inspect, not a flag**. Its entries are
+            ``{'code': ..., 'message': ...}`` and they make different claims,
+            so branch on ``code`` - ``message`` is for a human and may be
+            reworded. The codes are a closed set:
+
+            * ``timed_out`` / ``terminated_early`` - the search stopped early.
+            * ``shards_failed`` - a shard was lost; also carries ``failed``.
+            * ``buckets_clamped`` - a ``terms`` list dropped terms.
+            * ``composite_paged`` - a ``composite`` may have more pages; page
+              it with its ``after_key``.
+            * ``bucket_count_approximate`` - a ``terms`` count is approximate
+              rather than truncated.
+            * ``hit_total_capped`` - the hit counter stopped at
+              ``track_total_hits``. This is what *every* large query that asks
+              for hits returns, so on its own it says nothing about the
+              aggregations; the server omits it when the body asked for no
+              documents. ``hits.total.relation`` carries the same fact as the
+              engine's own field, ``eq`` exact and ``gte`` capped.
+        """
+        logger.info("Running a raw metadata search")
+        return self._single(resources.MetadataRawSearch.search(self, body, community))
+
     def metadata_field_properties_write(
         self, field_path, description, example=None, category=None, aliases=None
     ):

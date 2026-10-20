@@ -77,6 +77,25 @@ class MetadataMapping(core.BaseJsonResource):
     RESOURCE_ENDPOINT = '/search/metadata/mappings'
 
 
+class MetadataRawSearch(core.BaseJsonResource):
+    RESOURCE_ENDPOINT = '/search/metadata/raw'
+
+    @classmethod
+    def search(cls, api, body, community=None):
+        """``body`` is the caller's whole query and travels untouched. The
+        community is scope, not query, and the server reads it from the query
+        string - folding it into the body would pick scope with a key the
+        server's grammar then rejects."""
+        return core.PolyswarmRequest(
+            api=api,
+            method='POST',
+            url=f'{api.uri}{cls.RESOURCE_ENDPOINT}',
+            params={'community': community or api.community},
+            json=body,
+            result_parser=cls,
+        )
+
+
 class MetadataFieldProperties(core.BaseJsonResource):
     RESOURCE_ENDPOINT = '/search/metadata/properties'
     RESOURCE_ID_KEYS = ['field_path']

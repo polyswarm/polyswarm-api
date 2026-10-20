@@ -35,6 +35,7 @@ The full catalogue of methods on the public client surface and which transport h
 | Method | Resource builder |
 |---|---|
 | `metadata_mapping()` | inline (GET) — parsed into `MetadataMapping` |
+| `metadata_raw_search(body, community=None)` | `MetadataRawSearch.search` (POST). `body` is sent verbatim: it is an OpenSearch `_search` body, and the server owns the grammar it accepts. `community` rides the **query string**, not the body, because the server overlays the community filter itself. |
 | `metadata_field_properties_write(field_path, description, …)` | inline (POST) |
 | `metadata_field_properties_get(field_path)` | inline (GET) |
 | `metadata_field_properties_delete(field_path)` | inline (DELETE) |

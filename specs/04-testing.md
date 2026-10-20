@@ -26,6 +26,7 @@ How the test suite is organised. Three layers: pure unit tests (no HTTP at all �
 - `test/async_client_test.py` — async, VCR-backed integration tests (not yet on the parametrised harness — follow-up work).
 - `test/hunt_matched_strings_test.py` — pure-unit tests for the three-state `matched_strings` contract and its `matched_strings_dropped` sibling, across all four hunt-result classes. The endpoint behaviour they cannot see (that the detail route actually emits the keys and the list route sends `null`) is pinned live in `client_scan_test.py::test_live` / `async_client_test.py::test_async_live` — the e2e-first + pure-unit pairing invariant 1 asks for.
 - `test/known_good_test.py` — pure-unit tests for the known-good resource fields.
+- `test/metadata_raw_search_test.py` — pure-unit request-shape and parse tests for `metadata_raw_search`: that the query body is sent verbatim and `community` rides the query string (invariant 7 — the builder is pure data, so the routing reads straight off the `PolyswarmRequest`'s `request_parameters`, with no httpx), plus the `partial` reason codes the server returns. The lifecycle is live, in `client_scan_test.py` / `async_client_test.py`.
 - `test/jmespath_test.py` — unit tests for `BaseJsonResource.jmespath`.
 - `test/vcr/*.vcr` — recorded cassettes.
 - `test/malicious` — fixture file for upload tests (`test/eicar.yara` was retired when the rules tests moved to per-test `uid_yara` bodies).
