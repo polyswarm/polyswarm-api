@@ -629,6 +629,24 @@ class ScanTestCaseV2(TestCase):
         assert set(historical_ids) <= listed_ids
 
     @vcr.use_cassette()
+    def test_historical_window_days(self):
+        api = PolyswarmAPI(self.test_api_key, uri=f'http://ai:9696/{self.api_version}', community='gamma')
+        yara_content = uid_yara(self._testMethodName)
+        windowed = api.historical_create(yara_content, window_days=30)
+        unbounded = api.historical_create(yara_content)
+        try:
+            # The server echoes the window on create, get and list; None means none requested.
+            assert (windowed.window_days, unbounded.window_days) == (30, None)
+            assert api.historical_get(windowed.id).window_days == 30
+            assert api.historical_get(unbounded.id).window_days is None
+            ids = {windowed.id, unbounded.id}
+            listed = {h.id: h.window_days for h in api.historical_list() if h.id in ids}
+            assert listed == {windowed.id: 30, unbounded.id: None}
+        finally:
+            for hunt in (windowed, unbounded):
+                api.historical_delete(hunt.id)
+
+    @vcr.use_cassette()
     def test_historical_results(self):
         api = PolyswarmAPI(self.test_api_key, uri=f'http://ai:9696/{self.api_version}', community='gamma')
         # Self-contained: our own unique hunt (uid_yara). The e2e historical scan

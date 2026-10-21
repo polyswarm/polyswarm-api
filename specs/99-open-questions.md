@@ -226,21 +226,3 @@ invariant 1 exists to close.
 the live `test_search_by_ioc` pair, record both cassettes against a fresh stack, and delete
 the respx `IocSearchWithArtifactsTestCase` along with this entry. The builder and
 pass-through tests in that module stay: they pin request shape, which a cassette cannot.
-
-## `window_days` on historical hunts is not pinned against a live server
-
-**Status:** gap, pending a recording against a fresh e2e stack.
-
-The window is asserted only at the SDK boundary (`test/historical_window_test.py`): the body
-each client sends, and the parse of hand-built envelopes. The recorded `test_historical` /
-`test_list_historical` cassettes (sync and async) predate the field, so their responses carry
-no `window_days`, and VCR does not match request bodies — replaying them proves neither that
-the server accepts the key nor that it echoes it back. That is the "asserts what we *think*
-the server returns" gap invariant 1 exists to close.
-
-**Action:** against a fresh e2e stack, record a lifecycle exchange with a window — create with
-`window_days`, then get and list it, asserting the value round-trips (and that a hunt created
-without one reads back `None`) — in the live pair, on both transports. Re-record by deleting
-the cassette, never by editing it. Then delete the respx `HistoricalWindowResponseTestCase`
-along with this entry. The builder, pass-through and parse tests stay: a cassette cannot see
-the request body.

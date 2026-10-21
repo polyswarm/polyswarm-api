@@ -1,8 +1,8 @@
 """``window_days`` on historical hunts: request shape, pass-through on both clients, parse.
 
 Builder and parse cases are pure-unit. The pass-through cases are respx because VCR does
-not match bodies and the recorded cassettes predate the field, so only a mocked boundary
-can see what the body carried. The live round trip is pending (specs/99-open-questions.md).
+not match bodies, so only a mocked boundary can see what the body carried. The server's
+side is pinned live by ``test_historical_window_days`` and its async twin.
 """
 import pytest
 
@@ -101,25 +101,3 @@ class TestHistoricalHuntWindowParse:
         # A server predating the field omits the key altogether.
         assert 'window_days' not in _hunt()
         assert cls(_hunt(), api=None).window_days is None
-
-
-class HistoricalWindowResponseTestCase(ClientTestCase):
-    """The window on the create response, the single GET and the list, through the full
-    pipeline. A fabricated envelope, standing in until a live round trip is recorded.
-    """
-
-    def test_create_returns_the_window(self):
-        self.mock.add('POST', _HUNT_URL, json={'status': 'OK', 'result': _hunt(window_days=30)})
-        assert self.api.historical_create(_YARA, window_days=30).window_days == 30
-
-    def test_get_returns_the_window(self):
-        self.mock.add('GET', f'{_HUNT_URL}?id=7&community={COMMUNITY}',
-                      json={'status': 'OK', 'result': _hunt(window_days=60)})
-        assert self.api.historical_get(7).window_days == 60
-
-    def test_list_returns_the_window_on_every_hunt(self):
-        rows = [_hunt(id='7', window_days=30), _hunt(id='8', window_days=None)]
-        self.mock.add('GET', f'{_HUNT_URL}/list?community={COMMUNITY}', json={
-            'status': 'OK', 'result': rows, 'has_more': False, 'limit': 50, 'offset': None})
-        hunts = list(self.api.historical_list())
-        assert [(h.id, h.window_days) for h in hunts] == [('7', 30), ('8', None)]
