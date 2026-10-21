@@ -1,0 +1,326 @@
+interactions:
+- request:
+    body: '{"yara":"rule sdk_test_historical_window_days { strings: $u = \"test_historical_window_days\"
+      condition: $u }","window_days":30,"community":"gamma"}'
+    headers:
+      accept:
+      - '*/*'
+      accept-encoding:
+      - gzip, deflate
+      authorization:
+      - '11111111111111111111111111111111'
+      connection:
+      - keep-alive
+      content-length:
+      - '148'
+      content-type:
+      - application/json
+      host:
+      - ai:9696
+      user-agent:
+      - polyswarm_api/4.8.0 (x86_64-Linux-CPython-3.12.15)
+    method: POST
+    uri: http://ai:9696/v3/hunt/historical
+  response:
+    body:
+      string: '{"result":{"account_number":"111","archives_in_flight":0,"archives_scanned":0,"archives_total":0,"communities":["gamma"],"created":"2026-10-21T13:14:46.882427+00:00","failed_max_retries":0,"failed_other":0,"id":"55340953576717196","progress":null,"results_csv_uri":null,"rule_id":null,"rule_modified":null,"ruleset_name":null,"source_rule_changed":null,"status":"PENDING","summary":null,"user_account_number":"111","window_days":30,"yara":"rule
+        sdk_test_historical_window_days { strings: $u = \"test_historical_window_days\"
+        condition: $u }"},"status":"OK"}
+
+        '
+    headers:
+      Access-Control-Allow-Origin:
+      - '*'
+      Access-Control-Expose-Headers:
+      - Authorization
+      Connection:
+      - keep-alive
+      Content-Length:
+      - '558'
+      Content-Type:
+      - application/json
+      Date:
+      - Wed, 21 Oct 2026 13:14:46 GMT
+      Server:
+      - gunicorn
+      X-Billing-ID:
+      - '111'
+    status:
+      code: 200
+      message: OK
+- request:
+    body: '{"yara":"rule sdk_test_historical_window_days { strings: $u = \"test_historical_window_days\"
+      condition: $u }","community":"gamma"}'
+    headers:
+      accept:
+      - '*/*'
+      accept-encoding:
+      - gzip, deflate
+      authorization:
+      - '11111111111111111111111111111111'
+      connection:
+      - keep-alive
+      content-length:
+      - '131'
+      content-type:
+      - application/json
+      host:
+      - ai:9696
+      user-agent:
+      - polyswarm_api/4.8.0 (x86_64-Linux-CPython-3.12.15)
+    method: POST
+    uri: http://ai:9696/v3/hunt/historical
+  response:
+    body:
+      string: '{"result":{"account_number":"111","archives_in_flight":0,"archives_scanned":0,"archives_total":0,"communities":["gamma"],"created":"2026-10-21T13:14:46.928345+00:00","failed_max_retries":0,"failed_other":0,"id":"99256637874103471","progress":null,"results_csv_uri":null,"rule_id":null,"rule_modified":null,"ruleset_name":null,"source_rule_changed":null,"status":"PENDING","summary":null,"user_account_number":"111","window_days":null,"yara":"rule
+        sdk_test_historical_window_days { strings: $u = \"test_historical_window_days\"
+        condition: $u }"},"status":"OK"}
+
+        '
+    headers:
+      Access-Control-Allow-Origin:
+      - '*'
+      Access-Control-Expose-Headers:
+      - Authorization
+      Connection:
+      - keep-alive
+      Content-Length:
+      - '560'
+      Content-Type:
+      - application/json
+      Date:
+      - Wed, 21 Oct 2026 13:14:46 GMT
+      Server:
+      - gunicorn
+      X-Billing-ID:
+      - '111'
+    status:
+      code: 200
+      message: OK
+- request:
+    body: ''
+    headers:
+      accept:
+      - '*/*'
+      accept-encoding:
+      - gzip, deflate
+      authorization:
+      - '11111111111111111111111111111111'
+      connection:
+      - keep-alive
+      host:
+      - ai:9696
+      user-agent:
+      - polyswarm_api/4.8.0 (x86_64-Linux-CPython-3.12.15)
+    method: GET
+    uri: http://ai:9696/v3/hunt/historical?id=55340953576717196&community=gamma
+  response:
+    body:
+      string: '{"result":{"account_number":"111","archives_in_flight":0,"archives_scanned":0,"archives_total":0,"communities":["gamma"],"created":"2026-10-21T13:14:46.882427+00:00","failed_max_retries":0,"failed_other":0,"id":"55340953576717196","progress":null,"results_csv_uri":null,"rule_id":null,"rule_modified":null,"ruleset_name":null,"source_rule_changed":null,"status":"PENDING","summary":null,"user_account_number":"111","window_days":30,"yara":"rule
+        sdk_test_historical_window_days { strings: $u = \"test_historical_window_days\"
+        condition: $u }"},"status":"OK"}
+
+        '
+    headers:
+      Access-Control-Allow-Origin:
+      - '*'
+      Access-Control-Expose-Headers:
+      - Authorization
+      Connection:
+      - keep-alive
+      Content-Length:
+      - '558'
+      Content-Type:
+      - application/json
+      Date:
+      - Wed, 21 Oct 2026 13:14:46 GMT
+      Server:
+      - gunicorn
+      X-Billing-ID:
+      - '111'
+    status:
+      code: 200
+      message: OK
+- request:
+    body: ''
+    headers:
+      accept:
+      - '*/*'
+      accept-encoding:
+      - gzip, deflate
+      authorization:
+      - '11111111111111111111111111111111'
+      connection:
+      - keep-alive
+      host:
+      - ai:9696
+      user-agent:
+      - polyswarm_api/4.8.0 (x86_64-Linux-CPython-3.12.15)
+    method: GET
+    uri: http://ai:9696/v3/hunt/historical?id=99256637874103471&community=gamma
+  response:
+    body:
+      string: '{"result":{"account_number":"111","archives_in_flight":0,"archives_scanned":0,"archives_total":0,"communities":["gamma"],"created":"2026-10-21T13:14:46.928345+00:00","failed_max_retries":0,"failed_other":0,"id":"99256637874103471","progress":null,"results_csv_uri":null,"rule_id":null,"rule_modified":null,"ruleset_name":null,"source_rule_changed":null,"status":"PENDING","summary":null,"user_account_number":"111","window_days":null,"yara":"rule
+        sdk_test_historical_window_days { strings: $u = \"test_historical_window_days\"
+        condition: $u }"},"status":"OK"}
+
+        '
+    headers:
+      Access-Control-Allow-Origin:
+      - '*'
+      Access-Control-Expose-Headers:
+      - Authorization
+      Connection:
+      - keep-alive
+      Content-Length:
+      - '560'
+      Content-Type:
+      - application/json
+      Date:
+      - Wed, 21 Oct 2026 13:14:46 GMT
+      Server:
+      - gunicorn
+      X-Billing-ID:
+      - '111'
+    status:
+      code: 200
+      message: OK
+- request:
+    body: ''
+    headers:
+      accept:
+      - '*/*'
+      accept-encoding:
+      - gzip, deflate
+      authorization:
+      - '11111111111111111111111111111111'
+      connection:
+      - keep-alive
+      host:
+      - ai:9696
+      user-agent:
+      - polyswarm_api/4.8.0 (x86_64-Linux-CPython-3.12.15)
+    method: GET
+    uri: http://ai:9696/v3/hunt/historical/list?community=gamma
+  response:
+    body:
+      string: '{"has_more":false,"limit":50,"result":[{"account_number":"111","archives_in_flight":0,"archives_scanned":0,"archives_total":0,"created":"2026-10-21T13:14:46.928345+00:00","id":"99256637874103471","progress":null,"results_csv_uri":null,"rule_id":null,"rule_modified":null,"ruleset_name":null,"source_rule_changed":null,"status":"PENDING","summary":null,"user_account_number":"111","window_days":null,"yara":null},{"account_number":"111","archives_in_flight":0,"archives_scanned":0,"archives_total":0,"created":"2026-10-21T13:14:46.882427+00:00","id":"55340953576717196","progress":null,"results_csv_uri":null,"rule_id":null,"rule_modified":null,"ruleset_name":null,"source_rule_changed":null,"status":"PENDING","summary":null,"user_account_number":"111","window_days":30,"yara":null},{"account_number":"111","archives_in_flight":0,"archives_scanned":0,"archives_total":0,"created":"2026-10-21T13:14:46.809660+00:00","id":"6447048420148760","progress":null,"results_csv_uri":null,"rule_id":null,"rule_modified":null,"ruleset_name":null,"source_rule_changed":null,"status":"PENDING","summary":null,"user_account_number":"111","window_days":null,"yara":null},{"account_number":"111","archives_in_flight":0,"archives_scanned":0,"archives_total":0,"created":"2026-10-21T13:14:46.768119+00:00","id":"27886352331973438","progress":null,"results_csv_uri":null,"rule_id":null,"rule_modified":null,"ruleset_name":null,"source_rule_changed":null,"status":"PENDING","summary":null,"user_account_number":"111","window_days":null,"yara":null},{"account_number":"111","archives_in_flight":0,"archives_scanned":0,"archives_total":0,"created":"2026-10-21T13:14:46.723965+00:00","id":"2049602096428236","progress":null,"results_csv_uri":null,"rule_id":null,"rule_modified":null,"ruleset_name":null,"source_rule_changed":null,"status":"PENDING","summary":null,"user_account_number":"111","window_days":null,"yara":null},{"account_number":"111","archives_in_flight":0,"archives_scanned":0,"archives_total":0,"created":"2026-10-21T13:14:46.681280+00:00","id":"7126890832542907","progress":null,"results_csv_uri":null,"rule_id":null,"rule_modified":null,"ruleset_name":null,"source_rule_changed":null,"status":"PENDING","summary":null,"user_account_number":"111","window_days":null,"yara":null},{"account_number":"111","archives_in_flight":0,"archives_scanned":0,"archives_total":0,"created":"2026-10-21T13:14:46.629460+00:00","id":"59350603088096354","progress":null,"results_csv_uri":null,"rule_id":null,"rule_modified":null,"ruleset_name":null,"source_rule_changed":null,"status":"PENDING","summary":null,"user_account_number":"111","window_days":null,"yara":null}],"status":"OK"}
+
+        '
+    headers:
+      Access-Control-Allow-Origin:
+      - '*'
+      Access-Control-Expose-Headers:
+      - Authorization
+      Connection:
+      - keep-alive
+      Content-Length:
+      - '2661'
+      Content-Type:
+      - application/json
+      Date:
+      - Wed, 21 Oct 2026 13:14:47 GMT
+      Server:
+      - gunicorn
+      X-Billing-ID:
+      - '111'
+    status:
+      code: 200
+      message: OK
+- request:
+    body: '{"community":"gamma"}'
+    headers:
+      accept:
+      - '*/*'
+      accept-encoding:
+      - gzip, deflate
+      authorization:
+      - '11111111111111111111111111111111'
+      connection:
+      - keep-alive
+      content-length:
+      - '21'
+      content-type:
+      - application/json
+      host:
+      - ai:9696
+      user-agent:
+      - polyswarm_api/4.8.0 (x86_64-Linux-CPython-3.12.15)
+    method: DELETE
+    uri: http://ai:9696/v3/hunt/historical?id=55340953576717196
+  response:
+    body:
+      string: '{"result":{"account_number":"111","archives_in_flight":0,"archives_scanned":0,"archives_total":0,"communities":["gamma"],"created":"2026-10-21T13:14:46.882427+00:00","failed_max_retries":0,"failed_other":0,"id":"55340953576717196","progress":null,"results_csv_uri":null,"rule_id":null,"rule_modified":null,"ruleset_name":null,"source_rule_changed":null,"status":"DELETING","summary":null,"user_account_number":"111","window_days":30,"yara":"rule
+        sdk_test_historical_window_days { strings: $u = \"test_historical_window_days\"
+        condition: $u }"},"status":"OK"}
+
+        '
+    headers:
+      Access-Control-Allow-Origin:
+      - '*'
+      Access-Control-Expose-Headers:
+      - Authorization
+      Connection:
+      - keep-alive
+      Content-Length:
+      - '559'
+      Content-Type:
+      - application/json
+      Date:
+      - Wed, 21 Oct 2026 13:14:47 GMT
+      Server:
+      - gunicorn
+      X-Billing-ID:
+      - '111'
+    status:
+      code: 200
+      message: OK
+- request:
+    body: '{"community":"gamma"}'
+    headers:
+      accept:
+      - '*/*'
+      accept-encoding:
+      - gzip, deflate
+      authorization:
+      - '11111111111111111111111111111111'
+      connection:
+      - keep-alive
+      content-length:
+      - '21'
+      content-type:
+      - application/json
+      host:
+      - ai:9696
+      user-agent:
+      - polyswarm_api/4.8.0 (x86_64-Linux-CPython-3.12.15)
+    method: DELETE
+    uri: http://ai:9696/v3/hunt/historical?id=99256637874103471
+  response:
+    body:
+      string: '{"result":{"account_number":"111","archives_in_flight":0,"archives_scanned":0,"archives_total":0,"communities":["gamma"],"created":"2026-10-21T13:14:46.928345+00:00","failed_max_retries":0,"failed_other":0,"id":"99256637874103471","progress":null,"results_csv_uri":null,"rule_id":null,"rule_modified":null,"ruleset_name":null,"source_rule_changed":null,"status":"DELETING","summary":null,"user_account_number":"111","window_days":null,"yara":"rule
+        sdk_test_historical_window_days { strings: $u = \"test_historical_window_days\"
+        condition: $u }"},"status":"OK"}
+
+        '
+    headers:
+      Access-Control-Allow-Origin:
+      - '*'
+      Access-Control-Expose-Headers:
+      - Authorization
+      Connection:
+      - keep-alive
+      Content-Length:
+      - '561'
+      Content-Type:
+      - application/json
+      Date:
+      - Wed, 21 Oct 2026 13:14:47 GMT
+      Server:
+      - gunicorn
+      X-Billing-ID:
+      - '111'
+    status:
+      code: 200
+      message: OK
+version: 1

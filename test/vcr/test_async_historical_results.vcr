@@ -18,12 +18,12 @@ interactions:
       host:
       - ai:9696
       user-agent:
-      - polyswarm_api/3.21.0 (x86_64-Linux-CPython-3.14.4)
+      - polyswarm_api/4.8.0 (x86_64-Linux-CPython-3.12.15)
     method: POST
     uri: http://ai:9696/v3/hunt/historical
   response:
     body:
-      string: '{"result":{"account_number":"111","archives_in_flight":0,"archives_scanned":0,"archives_total":0,"communities":["gamma"],"created":"2026-06-03T22:37:20.755351+00:00","failed_max_retries":0,"failed_other":0,"id":"51213972298513151","progress":null,"results_csv_uri":null,"ruleset_name":null,"status":"PENDING","summary":null,"user_account_number":"111","yara":"rule
+      string: '{"result":{"account_number":"111","archives_in_flight":0,"archives_scanned":0,"archives_total":0,"communities":["gamma"],"created":"2026-10-21T13:14:47.915116+00:00","failed_max_retries":0,"failed_other":0,"id":"88337888683381847","progress":null,"results_csv_uri":null,"rule_id":null,"rule_modified":null,"ruleset_name":null,"source_rule_changed":null,"status":"PENDING","summary":null,"user_account_number":"111","window_days":null,"yara":"rule
         sdk_test_async_historical_results { strings: $u = \"test_async_historical_results\"
         condition: $u }"},"status":"OK"}
 
@@ -36,11 +36,11 @@ interactions:
       Connection:
       - keep-alive
       Content-Length:
-      - '482'
+      - '564'
       Content-Type:
       - application/json
       Date:
-      - Wed, 03 Jun 2026 22:37:20 GMT
+      - Wed, 21 Oct 2026 13:14:47 GMT
       Server:
       - gunicorn
       X-Billing-ID:
@@ -62,9 +62,9 @@ interactions:
       host:
       - ai:9696
       user-agent:
-      - polyswarm_api/3.21.0 (x86_64-Linux-CPython-3.14.4)
+      - polyswarm_api/4.8.0 (x86_64-Linux-CPython-3.12.15)
     method: GET
-    uri: http://ai:9696/v3/hunt/historical/results/list?id=51213972298513151&community=gamma
+    uri: http://ai:9696/v3/hunt/historical/results/list?id=88337888683381847&community=gamma
   response:
     body:
       string: ''
@@ -78,7 +78,7 @@ interactions:
       Content-Type:
       - text/html; charset=utf-8
       Date:
-      - Wed, 03 Jun 2026 22:37:20 GMT
+      - Wed, 21 Oct 2026 13:14:47 GMT
       Server:
       - gunicorn
     status:

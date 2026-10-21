@@ -868,6 +868,24 @@ class TestAsyncScanCase:
             assert set(historical_ids) <= listed_ids
 
     @vcr.use_cassette()
+    async def test_async_historical_window_days(self, uid):
+        async with self._api() as api:
+            yara_content = uid_yara(uid)
+            windowed = await api.historical_create(yara_content, window_days=30)
+            unbounded = await api.historical_create(yara_content)
+            try:
+                # The server echoes the window on create, get and list; None means none requested.
+                assert (windowed.window_days, unbounded.window_days) == (30, None)
+                assert (await api.historical_get(windowed.id)).window_days == 30
+                assert (await api.historical_get(unbounded.id)).window_days is None
+                ids = {windowed.id, unbounded.id}
+                listed = {h.id: h.window_days async for h in api.historical_list() if h.id in ids}
+                assert listed == {windowed.id: 30, unbounded.id: None}
+            finally:
+                for hunt in (windowed, unbounded):
+                    await api.historical_delete(hunt.id)
+
+    @vcr.use_cassette()
     async def test_async_historical_results(self, uid):
         async with self._api() as api:
             # Self-contained: our own unique hunt. The e2e historical scan is

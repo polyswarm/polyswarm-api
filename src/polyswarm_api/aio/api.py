@@ -642,18 +642,21 @@ class PolySwarmAsyncAPI:
         """
         return await self._single(resources.LiveHuntResult.get(self, id=result_id))
 
-    async def historical_create(self, rule=None, ruleset_name=None):
+    async def historical_create(self, rule=None, ruleset_name=None, window_days=None):
         """
         Run a new historical hunt.
 
         :param rule: YaraRuleset object or string containing YARA rules to install
         :param ruleset_name: Name of the ruleset.
+        :param window_days: Days back the hunt reaches: 30, 60, 90 or 180. Omit it for the
+            platform maximum. The server validates the value; the SDK does not.
         :return: The created Hunt resource
         """
         logger.info('Create historical hunt %s', rule)
         rule, rule_id = self._parse_rule(rule)
         return await self._single(resources.HistoricalHunt.create(self, yara=rule.yara if rule else None, rule_id=rule_id,
-                                               ruleset_name=ruleset_name, community=self.community))
+                                               ruleset_name=ruleset_name, window_days=window_days,
+                                               community=self.community))
 
     async def historical_get(self, hunt=None):
         """

@@ -872,6 +872,8 @@ class HistoricalHunt(core.BaseJsonResource):
         # unknown (no source rule, or nothing to compare against) — not
         # "unchanged".
         self.source_rule_changed = content.get('source_rule_changed')
+        # None: no window requested (platform maximum), or a server predating the field.
+        self.window_days = content.get('window_days')
 
 
 class HistoricalHuntList(HistoricalHunt):

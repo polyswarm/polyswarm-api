@@ -72,7 +72,7 @@ Internal-only CRUD for the `/known-good` binary resource (distinct from the IOC 
 
 | Method | Resource builder |
 |---|---|
-| `historical_create(rule=None, ruleset_name=None)` | `HistoricalHunt.create` |
+| `historical_create(rule=None, ruleset_name=None, window_days=None)` | `HistoricalHunt.create` — `window_days` (4.8.0) is how many days back the hunt reaches; the server accepts 30, 60, 90 or 180 and answers anything else with a 400, which surfaces as the usual typed exception (the SDK does not validate it). It is an int and rides the JSON body. `None` leaves the key out, the server keeps its default and the hunt reaches the platform maximum, so a bare call sends exactly what it always did. |
 | `historical_get(hunt=None)` | `HistoricalHunt.get` |
 | `historical_update(hunt)` | `HistoricalHunt.update` |
 | `historical_delete(hunt)` | `HistoricalHunt.delete` |
