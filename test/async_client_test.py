@@ -286,6 +286,34 @@ class TestAsyncScanCase:
                 lambda: api.search_by_metadata(f'artifact.sha256:{sha}'), tries=90)
         assert result and result[0].sha256 == sha
 
+    @vcr.use_cassette()
+    async def test_async_metadata_raw_search(self, uid):
+        # Async twin of the sync test_metadata_raw_search; own cassette, same
+        # exchange. See that test for what the two assertions are covering.
+        async with self._api() as api:
+            _, sha = await submit_and_scan(api, uid)
+            body = {
+                'query': {'term': {'artifact.sha256': sha}},
+                'aggs': {'extensions': {'terms': {'field': 'extension', 'size': 5}}},
+                'size': 1,
+            }
+
+            async def _hit_count():
+                # A 404 is the route missing, not the index lagging - see
+                # _raw_hit_count in client_scan_test.py.
+                try:
+                    result = await api.metadata_raw_search(body)
+                except exceptions.NotFoundException:
+                    pytest.fail('POST /search/metadata/raw answered 404: the '
+                                'route is not on this stack. The server change '
+                                'merges first.')
+                return result.json['hits']['total']['value']
+
+            assert await poll_equals_async(_hit_count, 1, tries=90) == 1
+            result = await api.metadata_raw_search(body)
+        assert result.json['aggregations']['extensions']['buckets']
+        assert 'partial' not in result.json
+
     # ── IOCs ──────────────────────────────────────────────────────────────────
 
     @vcr.use_cassette()
@@ -838,6 +866,24 @@ class TestAsyncScanCase:
                 historical_ids.append(historical.id)
             listed_ids = {h.id async for h in api.historical_list()}
             assert set(historical_ids) <= listed_ids
+
+    @vcr.use_cassette()
+    async def test_async_historical_window_days(self, uid):
+        async with self._api() as api:
+            yara_content = uid_yara(uid)
+            windowed = await api.historical_create(yara_content, window_days=30)
+            unbounded = await api.historical_create(yara_content)
+            try:
+                # The server echoes the window on create, get and list; None means none requested.
+                assert (windowed.window_days, unbounded.window_days) == (30, None)
+                assert (await api.historical_get(windowed.id)).window_days == 30
+                assert (await api.historical_get(unbounded.id)).window_days is None
+                ids = {windowed.id, unbounded.id}
+                listed = {h.id: h.window_days async for h in api.historical_list() if h.id in ids}
+                assert listed == {windowed.id: 30, unbounded.id: None}
+            finally:
+                for hunt in (windowed, unbounded):
+                    await api.historical_delete(hunt.id)
 
     @vcr.use_cassette()
     async def test_async_historical_results(self, uid):

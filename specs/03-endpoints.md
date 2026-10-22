@@ -35,6 +35,7 @@ The full catalogue of methods on the public client surface and which transport h
 | Method | Resource builder |
 |---|---|
 | `metadata_mapping()` | inline (GET) — parsed into `MetadataMapping` |
+| `metadata_raw_search(body, community=None)` | `MetadataRawSearch.search` (POST). `body` is sent verbatim: it is an OpenSearch `_search` body, and the server owns the grammar it accepts. `community` rides the **query string**, not the body, because the server overlays the community filter itself. |
 | `metadata_field_properties_write(field_path, description, …)` | inline (POST) |
 | `metadata_field_properties_get(field_path)` | inline (GET) |
 | `metadata_field_properties_delete(field_path)` | inline (DELETE) |
@@ -71,7 +72,7 @@ Internal-only CRUD for the `/known-good` binary resource (distinct from the IOC 
 
 | Method | Resource builder |
 |---|---|
-| `historical_create(rule=None, ruleset_name=None)` | `HistoricalHunt.create` |
+| `historical_create(rule=None, ruleset_name=None, window_days=None)` | `HistoricalHunt.create` — `window_days` (4.8.0) is how many days back the hunt reaches; the server accepts 30, 60, 90 or 180 and answers anything else with a 400, which surfaces as the usual typed exception (the SDK does not validate it). It is an int and rides the JSON body. `None` leaves the key out, the server keeps its default and the hunt reaches the platform maximum, so a bare call sends exactly what it always did. |
 | `historical_get(hunt=None)` | `HistoricalHunt.get` |
 | `historical_update(hunt)` | `HistoricalHunt.update` |
 | `historical_delete(hunt)` | `HistoricalHunt.delete` |
