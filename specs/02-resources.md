@@ -328,6 +328,14 @@ Classmethod builders (each returns a `PolyswarmRequest` descriptor):
 
 **No instance methods** that issue HTTP. Uploading to the pre-signed S3 URL is done via the session: `await api.session.upload_file(instance.upload_url, artifact)` (or `api.session.upload_file(...)` for sync).
 
+### `Assertion`
+
+Nested in `ArtifactInstance.assertions`. `engine_name` (`engine.name`) and `author_name` are the
+stable identifiers. `engine_display_name` (`engine.display_name`) is the label to show people:
+parsed with `.get()` and falling back to `engine_name` when the key is absent or blank, so a
+server too old to emit it changes nothing. Consumers render the display name and key on the name;
+see `specs/05-downstream-contract.md` § `Assertion.engine_display_name`.
+
 ### `LiveHuntResult` / `HistoricalHuntResult`
 
 **`matched_strings`.** The yara strings behind a hunt hit, so a consumer can see *why*
