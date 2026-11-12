@@ -295,6 +295,17 @@ What is **not** part of the contract:
 - The exact server JSON shape — that lives in the artifact-index repo's contract.
 - The order of fields in the JSON.
 
+### `Assertion.engine_display_name` — render this, key on `engine_name`
+
+`Assertion.engine_display_name` is the engine's human-facing label (`engine.display_name` in the
+assertion JSON). It is **additive**: a server that predates the field omits it, and a blank value
+is treated the same, so the attribute falls back to `engine_name`. It is never `None` unless
+`engine_name` is.
+
+`engine_name` (and `author_name`) stay the stable identifiers and are unchanged: use them for
+lookups, dedupe and JSON output, and `engine_display_name` only where a name is shown to a person.
+The two differ when an engine was renamed for display only.
+
 ### `matched_strings` on hunt results — a three-state attribute
 
 `LiveHuntResult.matched_strings` / `HistoricalHuntResult.matched_strings` (and therefore
