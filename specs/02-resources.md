@@ -331,7 +331,7 @@ Classmethod builders (each returns a `PolyswarmRequest` descriptor):
 ### `Assertion`
 
 Nested in `ArtifactInstance.assertions`. `engine_name` (`engine.name`) and `author_name` are the
-stable identifiers. `engine_display_name` (`engine.display_name`) is the label to show people:
+stable identifiers. `engine_display_name` (4.9.0; `engine.display_name`) is the label to show people:
 parsed with `.get()` and falling back to `engine_name` when the key is absent or blank, so a
 server too old to emit it changes nothing. Consumers render the display name and key on the name;
 see `specs/05-downstream-contract.md` § `Assertion.engine_display_name`.

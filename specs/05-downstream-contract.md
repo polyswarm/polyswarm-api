@@ -297,7 +297,7 @@ What is **not** part of the contract:
 
 ### `Assertion.engine_display_name` — render this, key on `engine_name`
 
-`Assertion.engine_display_name` is the engine's human-facing label (`engine.display_name` in the
+`Assertion.engine_display_name` (4.9.0) is the engine's human-facing label (`engine.display_name` in the
 assertion JSON). It is **additive**: a server that predates the field omits it, and a blank value
 is treated the same, so the attribute falls back to `engine_name`. It is never `None` unless
 `engine_name` is.
