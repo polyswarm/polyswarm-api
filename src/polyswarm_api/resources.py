@@ -991,6 +991,8 @@ class Assertion(core.BaseJsonResource):
         self.author = content['author']
         self.author_name = content['author_name']
         self.engine_name = content['engine'].get('name')
+        # absent on older servers: falls back to the stable name
+        self.engine_display_name = content['engine'].get('display_name') or self.engine_name
         self.bid = int(content['bid'])
         self.mask = content['mask']
         # deal with metadata being a string instead of null

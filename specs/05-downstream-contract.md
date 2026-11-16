@@ -184,6 +184,8 @@ class TimeoutException(PolyswarmException): ...
 
 `FAVORITE_LIMIT` (a refused ruleset star: the team's favorite budget is spent) has **no typed exception** — deliberately, since no pre-existing consumer needs re-routing the way `NotFoundException` did. It surfaces as the generic 400 `RequestException`, and the machine-readable path is the raw envelope: `exc.request.errors == {'code': 'FAVORITE_LIMIT', 'favorites_used': N, 'favorites_limit': M}`. The counters are the same pair a successful toggle returns, so a caller can render the "budget full" state from either outcome. Pinned by the dual-transport respx suite `test/ruleset_favorite_respx_test.py`.
 
+`AMBIGUOUS_HASH` (a refused `iocs_by_hash` sha1/md5 that names several artifacts) follows the same rule — no typed exception: `exc.request.errors == {'code': 'AMBIGUOUS_HASH', 'hash_type': …, 'sha256s': [≤10], 'truncated': bool}`, and the caller retries with one of the sha256s. Pinned by `test/ioc_by_hash_respx_test.py`.
+
 **What "known-good" means on the server, as of artifact-index's two-predicate model** (its `specs/05`): the refusal fires on the server's *current understanding* — a catalogue entry exists for the sha256 **and** that entry's extension passes an executable allow-list — evaluated live on every request. Two consequences worth knowing as a consumer: the same download can start working again with no action on your part (the entry is deleted, or the policy narrows), and `ArtifactInstance.state` can report the new value **`NOT_STORED`** — a submission the server declined as known-good at the time whose hash is no longer currently known-good, so nothing was ever stored for it and a fresh submit of the same file works. `state` is a plain string here; the SDK does not enumerate it, so a new member needs no SDK release.
 
 Each `RequestException` subclass carries a `.request` attribute holding the originating `PolyswarmRequest` (set by `RequestException.__init__`). Callers can read `exc.request.status_code`, `exc.request.json` (the parsed response body after execution), `exc.request.input_json` (the body that was sent), `exc.request.request_parameters` (the request kwargs that built the call), etc. `InvalidValueException` and `TimeoutException` are client-side errors and don't carry a request descriptor.
@@ -292,6 +294,17 @@ What is **not** part of the contract:
 
 - The exact server JSON shape — that lives in the artifact-index repo's contract.
 - The order of fields in the JSON.
+
+### `Assertion.engine_display_name` — render this, key on `engine_name`
+
+`Assertion.engine_display_name` (4.9.0) is the engine's human-facing label (`engine.display_name` in the
+assertion JSON). It is **additive**: a server that predates the field omits it, and a blank value
+is treated the same, so the attribute falls back to `engine_name`. It is never `None` unless
+`engine_name` is.
+
+`engine_name` (and `author_name`) stay the stable identifiers and are unchanged: use them for
+lookups, dedupe and JSON output, and `engine_display_name` only where a name is shown to a person.
+The two differ when an engine was renamed for display only.
 
 ### `matched_strings` on hunt results — a three-state attribute
 

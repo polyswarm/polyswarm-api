@@ -491,8 +491,9 @@ class PolyswarmAPI:
         """
         Retrieve IOCs by artifact hash
 
-        :param hash_type: Hash type of the provided hash_
-        :param hash_value: A list of fields to be included in the result (.* wildcards are accepted)
+        :param hash_type: ``sha256``, ``sha1`` or ``md5``
+        :param hash_value: The hash of the artifact. A sha1/md5 naming several artifacts
+            raises RequestException with ``errors['code'] == 'AMBIGUOUS_HASH'``
         :return: Generator of IOC resources
         """
         logger.info("Getting IOCs by hash %s:%s", hash_type, hash_value)

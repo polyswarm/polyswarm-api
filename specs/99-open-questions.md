@@ -226,3 +226,19 @@ invariant 1 exists to close.
 the live `test_search_by_ioc` pair, record both cassettes against a fresh stack, and delete
 the respx `IocSearchWithArtifactsTestCase` along with this entry. The builder and
 pass-through tests in that module stay: they pin request shape, which a cassette cannot.
+
+## `iocs_by_hash` by sha1/md5 is not pinned against a live server
+
+**Status:** gap, blocked on the server leg reaching the e2e stack.
+
+The server now resolves a sha1/md5 on both the `ioc` and `ioc-beta` routes, but no test
+here exercises that happy path: `test/ioc_by_hash_respx_test.py` pins only the
+`AMBIGUOUS_HASH` refusal, against a fabricated envelope (two artifacts sharing one md5
+cannot be produced on the shared stack). The sha256 path stays covered live by
+`test_iocs_by_hash` / `test_async_iocs_by_hash`.
+
+**Action:** once the e2e stack serves sha1/md5, extend that live pair to also call
+`iocs_by_hash('sha1', …)` and `iocs_by_hash('md5', …)` with the same artifact's hashes, on
+`beta=False` and `beta=True`, asserting the same `ips`/`ttps` as the sha256 lookup; delete
+and re-record both cassettes against a fresh stack, update the `04-testing.md` line, and
+remove this entry. The respx refusal test stays.
