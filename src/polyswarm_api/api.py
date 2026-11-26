@@ -1883,6 +1883,78 @@ class PolyswarmAPI:
             else:
                 time.sleep(settings.POLL_FREQUENCY)
 
+    def analyze_url(self, url):
+        """
+        Submit a URL, domain or IP for analysis only (``POST /instance/url``).
+
+        Runs only the server's ``ip`` analyzer: DNS resolution, GeoIP / ASN,
+        RDAP / WHOIS, the TLS certificate on port 443 and the redirect chain.
+        No engines run and no scan quota is charged.
+
+        The analysis is asynchronous and no webhook fires when it finishes:
+        poll with ``wait_for_url_analysis`` (or call ``url_analysis`` to do
+        both), then read ``ArtifactInstance.ip_analysis``. A target submitted
+        before reuses its existing instance and re-runs the analyzer on it, so
+        the returned instance may already carry the *previous* result; its
+        ``ip_analysis_updated`` moves when the new one lands.
+
+        :param url: A URL, a bare domain or an IP address
+        :return: An ArtifactInstance resource
+        """
+        url = self._refang(url)
+        logger.info("Submitting url for analysis %s", url)
+        return self._single(resources.ArtifactInstance.submit_url_analysis(self, url))
+
+    def wait_for_url_analysis(
+        self, instance, timeout=settings.DEFAULT_URL_ANALYSIS_TIMEOUT, newer_than=None
+    ):
+        """
+        Poll ``lookup`` until the ``ip`` analyzer result is present.
+
+        :param instance: An ArtifactInstance from ``analyze_url``, or its id
+        :param timeout: Seconds to wait before raising TimeoutException (-1 waits forever)
+        :param newer_than: Optional datetime; keep waiting until ``ip_analysis_updated``
+                           is later than it (a fresh result rather than a previous one)
+        :return: The ArtifactInstance, with ``ip_analysis`` populated
+        """
+        instance_id = getattr(instance, "id", instance)
+        start = time.time()
+        while True:
+            result = self.lookup(instance_id)
+            updated = result.ip_analysis_updated
+            if result.ip_analysis is not None and (
+                newer_than is None or (updated is not None and updated > newer_than)
+            ):
+                return result
+            elif -1 < timeout < time.time() - start:
+                raise exceptions.TimeoutException(
+                    f"Timed out waiting for url analysis {instance_id} to finish. Please try again."
+                )
+            else:
+                time.sleep(settings.POLL_FREQUENCY)
+
+    def url_analysis(
+        self, url, timeout=settings.DEFAULT_URL_ANALYSIS_TIMEOUT, fresh=True
+    ):
+        """
+        ``analyze_url`` then ``wait_for_url_analysis``: submit and block until done.
+
+        :param url: A URL, a bare domain or an IP address
+        :param timeout: Seconds to wait for the analyzer (-1 waits forever)
+        :param fresh: When True (default), a previously analyzed target waits for the
+                      re-run to land (typically 10-40 s). When False, a previous result
+                      is returned immediately if there is one.
+        :return: The ArtifactInstance; read ``.ip_analysis`` for the result dict
+        """
+        instance = self.analyze_url(url)
+        if instance.ip_analysis is None:
+            return self.wait_for_url_analysis(instance, timeout=timeout)
+        if not fresh:
+            return instance
+        return self.wait_for_url_analysis(
+            instance, timeout=timeout, newer_than=instance.ip_analysis_updated
+        )
+
     def _finalize_sandbox_task(self, task):
         """Finalize a sandbox submission after the create + S3 upload steps.
 

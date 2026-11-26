@@ -27,6 +27,9 @@ The full catalogue of methods on the public client surface and which transport h
 |---|---|---|
 | `exists(hash_, hash_type=None, require_scan=False)` | `ArtifactInstance.exists_hash` | HEAD; `bool` from status code — `True` **only** for `200` (present). `204` means "absent" (the request succeeded but matched no artifact) and `404` also maps to absent, so both are `False`. Do **not** treat this as a generic `2xx` check: `204` is a successful status that means the opposite of "exists". `require_scan=True` narrows *found* to artifacts that were actually **scanned**: being catalogued as known-good is not a scan, so a hash whose only record is a known-good reference reports absent under `require_scan` and present without it. **The server's codes here are a frozen contract** — see artifact-index `specs/09-hash-search-head-contract.md`; neither side may widen what counts as found, because a widening moves a caller's case from `False` to `True` with no error and no log line (that is the 4.0 `exists()` inversion, shipped in 4.0.0/4.1.0 and fixed in 4.2.0). |
 | `lookup(scan)` | `ArtifactInstance.lookup_uuid` | |
+| `analyze_url(url)` | `ArtifactInstance.submit_url_analysis` | `POST /instance/url`, `url` in the JSON body, `community` in the query. Analysis-only: the server runs just the `ip` analyzer (DNS, GeoIP/ASN, RDAP/WHOIS, TLS cert, redirects), no engines, no quota (artifact-index `views/v3/instance.py` `UrlSubmissionView`). Accepts a URL, bare domain or IP; refanged. A known target reuses its instance and re-runs the analyzer, rewriting the same metadata row in place, so the response can carry the previous result. |
+| `wait_for_url_analysis(instance, timeout=…, newer_than=None)` | — (polls `lookup`) | Done when `ArtifactInstance.ip_analysis` is set and, with `newer_than`, when `ip_analysis_updated` is later than it. No webhook exists for this analysis; polling is the contract. |
+| `url_analysis(url, timeout=…, fresh=True)` | — (`analyze_url` + `wait_for_url_analysis`) | `fresh=True` waits past a previous result for the re-run (`newer_than` = the submit response's `ip_analysis_updated`, a server timestamp, so no client-clock skew); `fresh=False` returns a previous result at once. |
 | `rescan(hash_, hash_type=None, scan_config=None)` | `ArtifactInstance.rescan` | |
 | `rescan_id(scan, scan_config=None)` | `ArtifactInstance.rescan_id` | |
 
@@ -216,6 +219,7 @@ IoC inputs of `search_url`, `search_by_metadata` (`ips` / `urls` / `domains` onl
 | `sandbox_file(artifact, …)` / `sandbox_url(url, …)` | Same file-upload pattern. |
 | `wait_for(scan, timeout=…)` | Polling loop. Uses `await asyncio.sleep` (canonical) / `time.sleep` (generated). |
 | `report_wait_for(report_id, timeout=…)` | Same polling shape. |
+| `wait_for_url_analysis(instance, timeout=…, newer_than=None)` | Same polling shape. |
 | `refresh_engine_cache()` | Mutates `self._engines`. Optional — `engines()` refreshes lazily on first use; call this to force a refresh. |
 | `engines()` (method) | Cached engine listing; refreshes on first call. `await api.engines()` (async) / `api.engines()` (sync) — a plain `async def` method mirrored by unasync like everything else. Was a `property` before 4.0 (properties can't `await`); the property→method change is breaking for callers — see [`05-downstream-contract.md`](./05-downstream-contract.md). |
 | `sandbox_providers()` | Returns the executed request itself so callers can read `.json['result'][slug]`. The async version does `return await self.session.execute(resources.SandboxProvider.list(self))`. |

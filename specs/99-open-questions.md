@@ -242,3 +242,8 @@ cannot be produced on the shared stack). The sha256 path stays covered live by
 `beta=False` and `beta=True`, asserting the same `ips`/`ttps` as the sha256 lookup; delete
 and re-record both cassettes against a fresh stack, update the `04-testing.md` line, and
 remove this entry. The respx refusal test stays.
+
+## `analyze_url` has no live VCR lifecycle test
+
+`analyze_url` / `url_analysis` (`POST /instance/url`) are covered by pure-unit and respx tests only (`test/url_analysis_test.py`). The server side runs the `ip` analyzer, which does live DNS, RDAP/WHOIS and TLS lookups against the public internet; whether the e2e stack runs that analyzer at all, and with what egress, is unverified. Once it does, add a `test_url_analysis` / `test_async_url_analysis` lifecycle cassette (submit an IP literal, wait, assert `ip_analysis` keys) and drop the respx stand-in for the happy path. Verified by hand against prod on 2026-11-26 (sync and async, first and re-submit).
+

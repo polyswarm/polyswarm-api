@@ -370,6 +370,48 @@ class ArtifactInstance(core.BaseJsonResource, core.Hashable):
         )
 
     @classmethod
+    def submit_url_analysis(cls, api, url):
+        """``POST /instance/url``: analysis-only submission of a URL, domain or IP.
+
+        No engines and no bounty run, and the server charges no quota; only the
+        ``ip`` analyzer runs (DNS, GeoIP/ASN, RDAP/WHOIS, TLS certificate,
+        redirects). Its result lands on the instance as ``metadata.ip``. The
+        community travels in the query string, as ``search_url`` sends it.
+        """
+        return core.PolyswarmRequest(
+            api=api,
+            method='POST',
+            url=f'{api.uri}{cls.RESOURCE_ENDPOINT}/url',
+            params={'community': api.community},
+            json={'url': url},
+            result_parser=cls,
+        )
+
+    @property
+    def ip_analysis(self):
+        """The ``ip`` analyzer's output (a dict), or ``None`` until it has run.
+
+        Present on URL artifacts only. Every component is best-effort, so a
+        finished result may still carry ``error`` / ``geoip_error`` /
+        ``rdap_error`` / ``whois_error`` / ``certificate_error`` with the
+        matching fields set to ``None``.
+        """
+        return self.metadata.json.get('ip') or None
+
+    @property
+    def ip_analysis_updated(self):
+        """When the ``ip`` result was last written (``updated``, else ``created``), or ``None``.
+
+        Re-submitting a known target re-runs the analyzer and rewrites the same
+        metadata row in place, so this timestamp is what moves when a fresh
+        result lands; ``ip_analysis`` alone can't tell old from new.
+        """
+        for entry in self.json.get('metadata') or []:
+            if entry.get('tool') == 'ip' and entry.get('tool_metadata'):
+                return core.parse_isoformat(entry.get('updated') or entry.get('created'))
+        return None
+
+    @classmethod
     def list_scans(cls, api, hash_value):
         return core.PolyswarmRequest(
             api=api,
